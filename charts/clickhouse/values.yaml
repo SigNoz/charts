@@ -1,0 +1,6 @@
+# cloud:
+
+clickhouseOperator:
+  enabled: true
+  storage: 20Gi
+  serviceType: ClusterIP
