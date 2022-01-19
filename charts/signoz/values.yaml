@@ -2,10 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-zookeeper:
-  autopurge:
-    purgeInterval: 1
-
 clickhouse:
   # cloud:
   clickhouseOperator:
