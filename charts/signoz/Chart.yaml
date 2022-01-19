@@ -1,0 +1,29 @@
+apiVersion: v2
+name: signoz
+version: 0.0.2
+appVersion: "0.5.4"
+description: SigNoz Observability Platform Helm Chart
+type: application
+home: https://signoz.io/
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+keywords:
+  - SigNoz
+  - opentelemetry
+  - apm
+  - monitoring
+  - distributed tracing
+sources:
+  - https://github.com/signoz/charts/
+  - https://github.com/signoz/signoz
+dependencies:
+  - name: otel-collector
+    repository: "file://../otel-collector"
+    version: 0.0.1
+  - name: alertmanager
+    repository: "file://../alertmanager"
+    version: 0.5.0
+maintainers:
+  - name: signoz
+    email: hello@signoz.io
+  - name: prashant
+    email: prashant@signoz.io
