@@ -21,7 +21,6 @@ jobs:
 
       - name: Add dependencies
         run: |
-          helm repo add signoz https://signoz.github.io/charts
           helm repo add bitnami https://charts.bitnami.com/bitnami
 
       - name: Run chart-releaser
