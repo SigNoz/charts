@@ -4,6 +4,7 @@ description: A Helm chart for ClickHouse
 type: application
 version: 9.1.0
 appVersion: "21.7"
+icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
 dependencies:
   - name: zookeeper
     repository: "https://charts.bitnami.com/bitnami"

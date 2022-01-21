@@ -1,9 +1,9 @@
 dependencies:
-- name: otel-collector
-  repository: file://../otel-collector
-  version: 0.0.1
+- name: clickhouse
+  repository: file://../clickhouse
+  version: 9.1.0
 - name: alertmanager
   repository: file://../alertmanager
   version: 0.5.0
-digest: sha256:ad101c45f6c788942354bec950d53e48ced8f4976cdf05fe3249e25e00f24745
-generated: "2022-01-19T04:10:28.861888185+05:30"
+digest: sha256:2f1b14759368dafaa9e6c1143267a05d020871074d64d93c605440c305641072
+generated: "2022-01-21T11:30:19.32164036+05:30"
