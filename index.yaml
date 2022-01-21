@@ -1,0 +1,68 @@
+apiVersion: v1
+entries:
+  alertmanager:
+  - apiVersion: v2
+    appVersion: 0.5.0
+    created: "2022-01-21T07:21:33.811410361Z"
+    description: The Alertmanager handles alerts for SigNoz.
+    digest: d639d0b8f69839c02c4cb7fa43a529b2100b428f385bc6e3794ea6c9c4b23fbb
+    icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    name: alertmanager
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/alertmanager-0.5.0/alertmanager-0.5.0.tgz
+    version: 0.5.0
+  clickhouse:
+  - apiVersion: v2
+    appVersion: "21.7"
+    created: "2022-01-21T07:21:33.993667909Z"
+    dependencies:
+    - name: zookeeper
+      repository: https://charts.bitnami.com/bitnami
+      version: 6.0.0
+    description: A Helm chart for ClickHouse
+    digest: efaf0c98723d7fcdb14021607d94e57a019f3a6d44c4b82751d6b5d0fa238b93
+    icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
+    name: clickhouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-9.1.0/clickhouse-9.1.0.tgz
+    version: 9.1.0
+  signoz:
+  - apiVersion: v2
+    appVersion: 0.5.4
+    created: "2022-01-21T07:21:34.183526206Z"
+    dependencies:
+    - name: clickhouse
+      repository: file://../clickhouse
+      version: 9.1.0
+    - name: alertmanager
+      repository: file://../alertmanager
+      version: 0.5.0
+    description: SigNoz Observability Platform Helm Chart
+    digest: ec3b6dedb05a06e64f99fde6252c60a4267a9d1738057898a57de145d8d05abe
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    - email: prashant@signoz.io
+      name: prashant
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts/
+    - https://github.com/signoz/signoz
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
+    version: 0.0.2
+generated: "2022-01-21T07:21:34.183689204Z"
