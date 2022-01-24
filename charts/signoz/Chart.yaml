@@ -17,10 +17,10 @@ sources:
   - https://github.com/signoz/signoz
 dependencies:
   - name: clickhouse
-    repository: "file://../clickhouse"
+    repository: "https://signoz.github.io/charts"
     version: 9.1.0
   - name: alertmanager
-    repository: "file://../alertmanager"
+    repository: "https://signoz.github.io/charts"
     version: 0.5.0
 maintainers:
   - name: signoz
