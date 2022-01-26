@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "query-service.fullname" . }}
+  name: {{ include "queryService.fullname" . }}
   labels:
-    {{- include "query-service.labels" . | nindent 4 }}
+    {{- include "queryService.labels" . | nindent 4 }}
 spec:
-  serviceName: query-service
+  serviceName: {{ include "queryService.fullname" . }}
   replicas: {{ .Values.queryService.replicaCount }}
   selector:
     matchLabels:
-      {{- include "query-service.selectorLabels" . | nindent 6 }}
+      {{- include "queryService.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "query-service.selectorLabels" . | nindent 8 }}
+        {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: {{ .Chart.Name }}

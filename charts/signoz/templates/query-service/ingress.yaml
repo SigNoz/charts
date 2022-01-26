@@ -1,5 +1,5 @@
 {{- if .Values.queryService.ingress.enabled -}}
-{{- $fullName := include "query-service.fullname" . -}}
+{{- $fullName := include "queryService.fullname" . -}}
 {{- $svcPort := .Values.queryService.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1beta1
@@ -10,7 +10,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    {{- include "query-service.labels" . | nindent 4 }}
+    {{- include "queryService.labels" . | nindent 4 }}
   {{- with .Values.queryService.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -2,8 +2,8 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "query-service.name" -}}
-{{- default .Chart.Name .Values.queryService.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- define "queryService.name" -}}
+{{- default .Chart.Name .Values.queryService.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -11,11 +11,11 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "query-service.fullname" -}}
+{{- define "queryService.fullname" -}}
 {{- if .Values.queryService.fullnameOverride -}}
 {{- .Values.queryService.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default .Chart.Name .Values.queryService.nameOverride -}}
+{{- $name := default .Chart.Name .Values.queryService.name -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "query-service.chart" -}}
+{{- define "queryService.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "query-service.labels" -}}
-helm.sh/chart: {{ include "query-service.chart" . }}
-{{ include "query-service.selectorLabels" . }}
+{{- define "queryService.labels" -}}
+helm.sh/chart: {{ include "queryService.chart" . }}
+{{ include "queryService.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,17 +46,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "query-service.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "query-service.name" . }}
+{{- define "queryService.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "queryService.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "query-service.serviceAccountName" -}}
+{{- define "queryService.serviceAccountName" -}}
 {{- if .Values.queryService.serviceAccount.create -}}
-    {{ default (include "query-service.fullname" .) .Values.queryService.serviceAccount.name }}
+    {{ default (include "queryService.fullname" .) .Values.queryService.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.queryService.serviceAccount.name }}
 {{- end -}}
