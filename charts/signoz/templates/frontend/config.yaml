@@ -25,7 +25,7 @@ data:
         try_files $uri $uri/ /index.html;
       }
       location /api/alertmanager{
-        proxy_pass http://{{ include "alertmanager.fullname" . }}:{{ .Values.alertmanager.service.port }}/api/v2;
+        proxy_pass http://{{ .Release.Name }}-{{ .Values.alertmanager.name }}:{{ .Values.alertmanager.service.port }}/api/v2;
       }
       location /api {
         proxy_pass http://{{ include "queryService.fullname" . }}:{{ .Values.queryService.service.port }}/api;
