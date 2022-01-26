@@ -21,7 +21,7 @@ dependencies:
     version: 9.1.0
   - name: alertmanager
     repository: "https://signoz.github.io/charts"
-    version: 0.5.0
+    version: 0.5.1
 maintainers:
   - name: signoz
     email: hello@signoz.io
