@@ -13,8 +13,8 @@ image:
 extraArgs: {}
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+name: "alertmanager"
+# fullnameOverride: "signoz-alertmanager"
 
 serviceAccount:
   # Specifies whether a service account should be created

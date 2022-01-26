@@ -23,7 +23,7 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: {{ .Values.frontend.config.name }}
+            name: {{ include "frontend.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -36,7 +36,7 @@ spec:
               protocol: TCP
           env:
           - name: REACT_APP_QUERY_SERVICE_URL
-            value: {{ .Values.queryService.configVars.queryServiceUrl }}
+            value: "{{ .Values.queryService.fullname }}:{{ .Values.queryService.service.port }}"
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/conf.d

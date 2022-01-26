@@ -1,6 +1,6 @@
 apiVersion: v2
 name: signoz
-version: 0.0.2
+version: 0.0.3
 appVersion: "0.5.4"
 description: SigNoz Observability Platform Helm Chart
 type: application
@@ -16,12 +16,12 @@ sources:
   - https://github.com/signoz/charts/
   - https://github.com/signoz/signoz
 dependencies:
-  - name: otel-collector
-    repository: "file://../otel-collector"
-    version: 0.0.1
+  - name: clickhouse
+    repository: "https://signoz.github.io/charts"
+    version: 9.1.0
   - name: alertmanager
-    repository: "file://../alertmanager"
-    version: 0.5.0
+    repository: "https://signoz.github.io/charts"
+    version: 0.5.1
 maintainers:
   - name: signoz
     email: hello@signoz.io

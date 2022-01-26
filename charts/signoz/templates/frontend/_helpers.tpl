@@ -3,7 +3,7 @@
 Expand the name of the chart.
 */}}
 {{- define "frontend.name" -}}
-{{- default .Chart.Name .Values.frontend.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.frontend.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -15,7 +15,7 @@ If release name contains chart name it will be used as a full name.
 {{- if .Values.frontend.fullnameOverride -}}
 {{- .Values.frontend.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default .Chart.Name .Values.frontend.nameOverride -}}
+{{- $name := default .Chart.Name .Values.frontend.name -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -36,6 +36,7 @@ Common labels
 */}}
 {{- define "frontend.labels" -}}
 helm.sh/chart: {{ include "frontend.chart" . }}
+release: {{ .Release.Name }}
 {{ include "frontend.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
