@@ -13,7 +13,7 @@ image:
 extraArgs: {}
 
 imagePullSecrets: []
-nameOverride: ""
+name: "alertmanager"
 fullnameOverride: ""
 
 serviceAccount:
