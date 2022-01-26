@@ -15,7 +15,7 @@ data:
       alertmanagers:
       - static_configs:
         - targets:
-          - alertmanager:9093
+          - {{ include "alertmanager.fullname" . }}:{{ .Values.alertmanager.service.port }}
 
     # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
     rule_files:

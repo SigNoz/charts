@@ -11,6 +11,7 @@ clickhouse:
 
 # Default values for frontend
 frontend:
+  name: "frontend"
   replicaCount: 1
 
   image:
@@ -19,15 +20,8 @@ frontend:
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
-  nameOverride: "frontend"
-  fullnameOverride: "frontend"
 
   configVars: {}
-
-  config:
-    name: signoz-nginx-config
-    queryServiceUrl: query-service:8080
-    alertmanagerUrl: alertmanager:9093
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -90,6 +84,7 @@ frontend:
 
 # Default values for query-service
 queryService:
+  name: "query-service"
   replicaCount: 1
 
   image:
@@ -98,8 +93,6 @@ queryService:
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
-  nameOverride: "query-service"
-  fullnameOverride: "query-service"
 
   configVars:
     DruidClientUrl: http://signoz-druid-router:8888
