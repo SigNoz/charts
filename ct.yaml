@@ -3,7 +3,7 @@ remote: origin
 target-branch: main
 debug: true
 check-version-increment: false
-helm-extra-args: --create-namespace --timeout 600s
+helm-extra-args: --timeout 600s
 chart-repos:
   - signoz=https://signoz.github.io/charts
   - bitnami=https://charts.bitnami.com/bitnami
