@@ -19,6 +19,11 @@ spec:
         app: opentelemetry
         component: otel-collector
     spec:
+      initContainers:
+        - name: otel-collector-init
+          image: busybox:1.35
+          imagePullPolicy: "IfNotPresent"
+          command: ["sh", "-c", 'until wget --spider -q signoz-clickhouse:8123/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting otel collector now";']
       containers:
       - command:
           - "/otelcontribcol"
@@ -53,10 +58,20 @@ spec:
           httpGet:
             path: /
             port: 13133 # Health Check extension default port.
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+          successThreshold: 1
         readinessProbe:
           httpGet:
             path: /
             port: 13133 # Health Check extension default port.
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+          successThreshold: 1
       volumes:
         - configMap:
             name: otel-collector-conf

@@ -94,6 +94,15 @@ queryService:
 
   imagePullSecrets: []
 
+  initContainers:
+    init:
+      enabled: true
+      image:
+        # registry:
+        repository: busybox
+        tag: 1.35
+      command: ["sh", "-c", 'until wget --spider -q signoz-clickhouse:8123/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting query service now";']
+
   configVars:
     DruidClientUrl: http://signoz-druid-router:8888
     DruidDatasource: flattened_spans
