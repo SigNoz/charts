@@ -15,6 +15,18 @@ spec:
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.queryService.initContainers.init.enabled }}
+      initContainers:
+        {{- if .Values.queryService.initContainers.init.enabled }}
+        - name: {{ include "queryService.fullname" . }}-init
+          image: {{ include "queryService.initContainers.init.image" . }}
+          imagePullPolicy: {{ .Values.queryService.initContainers.init.image.pullPolicy | quote }}
+          command:
+          {{- range .Values.queryService.initContainers.init.command }}
+            - {{ . | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
         {{- with .Values.queryService.imagePullSecrets }}

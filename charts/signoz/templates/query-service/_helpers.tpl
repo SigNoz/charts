@@ -61,3 +61,17 @@ Create the name of the service account to use
     {{ default "default" .Values.queryService.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the initContainers image name
+*/}}
+{{- define "queryService.initContainers.init.image" -}}
+{{- $registryName := .Values.queryService.initContainers.init.image.registry -}}
+{{- $repositoryName := .Values.queryService.initContainers.init.image.repository -}}
+{{- $tag := .Values.queryService.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
