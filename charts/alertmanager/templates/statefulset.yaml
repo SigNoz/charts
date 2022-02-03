@@ -50,8 +50,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+    {{- if .Values.securityContext.pod.enabled }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.securityContext.pod.data | nindent 8 }}
+    {{- end}}
       containers:
         {{- if and (.Values.configmapReload.enabled) (.Values.config) }}
         - name: {{ .Chart.Name }}-{{ .Values.configmapReload.name }}
@@ -67,8 +69,10 @@ spec:
               mountPath: /etc/alertmanager
         {{- end }}
         - name: {{ .Chart.Name }}
+        {{- if .Values.securityContext.container.enabled }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml .Values.securityContext.container.data | nindent 12 }}
+        {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:

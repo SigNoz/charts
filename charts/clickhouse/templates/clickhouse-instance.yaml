@@ -71,7 +71,7 @@ spec:
               image: yandex/clickhouse-server:21.7
               volumeMounts:
                 - name: default-volume-claim
-                  mountPath: /var/lib/clickhouse
+                  mountPath: /usr/lib/clickhouse
                 - name: initdb
                   mountPath: /docker-entrypoint-initdb.d
           volumes:

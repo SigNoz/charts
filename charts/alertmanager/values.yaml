@@ -25,8 +25,6 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
 
-podSecurityContext:
-  fsGroup: 65534
 dnsConfig: {}
   # nameservers:
   #   - 1.2.3.4
@@ -37,14 +35,18 @@ dnsConfig: {}
   #   - name: ndots
   #     value: "2"
   #   - name: edns0
+
 securityContext:
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  runAsUser: 65534
-  runAsNonRoot: true
-  runAsGroup: 65534
+  pod:
+    enabled: false
+    data:
+      fsGroup: 65534
+  container:
+    enable: false
+    data:
+      runAsUser: 65534
+      runAsNonRoot: true
+      runAsGroup: 65534
 
 additionalPeers: []
 
@@ -116,7 +118,7 @@ persistence:
   size: 100Mi
 
 config:
-  global: 
+  global:
     resolve_timeout: 1m
     slack_api_url: 'https://hooks.slack.com/services/xxx'
 
@@ -160,7 +162,7 @@ configmapReload:
   ##
   resources: {}
 
-templates: 
+templates:
   title.tmpl: |-
       {{ define "slack.title" }}
       [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
