@@ -16,7 +16,7 @@ frontend:
 
   image:
     repository: signoz/frontend
-    tag: 0.5.4
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
@@ -47,7 +47,7 @@ frontend:
 
   service:
     type: ClusterIP
-    port: 3000
+    port: 3301
 
   ingress:
     enabled: false
@@ -89,7 +89,7 @@ queryService:
 
   image:
     repository: signoz/query-service
-    tag: 0.5.4
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
