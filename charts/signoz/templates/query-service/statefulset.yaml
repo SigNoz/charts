@@ -51,6 +51,8 @@ spec:
             value: {{ .Values.queryService.configVars.STORAGE }}
           - name: ClickHouseUrl
             value: {{ .Values.queryService.configVars.ClickHouseUrl}}
+          - name: ALERTMANAGER_API_PREFIX
+            value: http://{{ include "alertmanager.servicename" . }}:{{ .Values.alertmanager.service.port }}/api/
           - name: GODEBUG
             value: netdns=go
           # livenessProbe:

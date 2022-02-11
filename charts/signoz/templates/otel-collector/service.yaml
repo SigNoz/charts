@@ -1,33 +1,26 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: otel-collector
+  name: {{ include "otelCollector.fullname" . }}
   labels:
-    app: opentelemetry
-    component: otel-collector
+    {{- include "otelCollector.labels" . | nindent 4 }}
 spec:
   ports:
-  - name: otlp # Default endpoint for OpenTelemetry receiver.
-    port: 55680
-    protocol: TCP
-    targetPort: 55680
-  - name: otlp-http-legacy # Default endpoint for OpenTelemetry receiver.
-    port: 55681
-    protocol: TCP
-    targetPort: 55681
-  - name: otlp-grpc # Default endpoint for OpenTelemetry receiver.
-    port: 4317
-    protocol: TCP
-    targetPort: 4317
-  - name: jaeger-grpc # Default endpoing for Jaeger gRPC receiver
-    port: 14250
-  - name: jaeger-thrift-http # Default endpoint for Jaeger HTTP receiver.
-    port: 14268
-  - name: zipkin # Default endpoint for Zipkin receiver.
-    port: 9411
-  - name: metrics # Default endpoint for querying metrics.
-    port: 8888
-  - name: prometheus-metrics # Default endpoint for querying prometheus metrics.
-    port: 8889
+  - name: otlp
+    port: {{ .Values.otelCollector.ports.openTelemetryReceiver }}
+  - name: otlp-http-legacy
+    port: {{ .Values.otelCollector.ports.openTelemetryHttpReceiver }}
+  - name: otlp-grpc
+    port: {{ .Values.otelCollector.ports.openTelemetryGrpcReceiver }}
+  - name: jaeger-grpc
+    port: {{ .Values.otelCollector.ports.jaegerGrpcReceiver }}
+  - name: jaeger-thrift-http
+    port: {{ .Values.otelCollector.ports.jaegerHttpReceiver }}
+  - name: zipkin
+    port: {{ .Values.otelCollector.ports.zipkinReceiver }}
+  - name: metrics
+    port: {{ .Values.otelCollector.ports.queryingMetrics }}
+  - name: prometheus-metrics 
+    port: {{ .Values.otelCollector.ports.prometheusExportedMetrics }}
   selector:
-    component: otel-collector
+    {{- include "otelCollector.selectorLabels" . | nindent 4 }}

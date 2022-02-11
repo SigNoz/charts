@@ -1,17 +1,19 @@
+{{- $clickhousehostport := print (include "clickhouse.servicename" .) ":" .Values.clickhouse.service.tcpPort -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: otel-collector-conf
+  name: {{ include "otelCollector.fullname" . }}
   labels:
-    app: opentelemetry
-    component: otel-collector-conf
+    {{- include "otelCollector.labels" . | nindent 4 }}
 data:
-  otel-collector-config: |
+  otel-collector-config.yaml: |-
+    {{- with .Values.otelCollector.config -}}
+    {{- with .receivers }}
     receivers:
       otlp/spanmetrics:
         protocols:
           grpc:
-            endpoint: "localhost:12345"
+            endpoint: {{ .otlpSpanmetrics.protocols.grpc.endpoint }}
       otlp:
         protocols:
           grpc:
@@ -20,48 +22,73 @@ data:
         protocols:
           grpc:
           thrift_http:
+    {{- end -}}
+    {{- with .processors }}
     processors:
       batch:
-        send_batch_size: 1000
-        timeout: 10s
+        send_batch_size: {{ .batch.sendBatchSize }}
+        timeout: {{ .batch.timeout }}
       signozspanmetrics/prometheus:
-        metrics_exporter: prometheus
-        latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s ]
+        metrics_exporter: {{ .signozSpanmetricsPrometheus.metricsExporter }}
+        latency_histogram_buckets:
+          {{- toYaml .signozSpanmetricsPrometheus.latencyHistogramBuckets | nindent 10 }}
       memory_limiter:
-        # Same as --mem-ballast-size-mib CLI argument
-        ballast_size_mib: 683
-        # 80% of maximum memory up to 2G
-        limit_mib: 1500
-        # 25% of limit up to 2G
-        spike_limit_mib: 512
-        check_interval: 5s
-      # queued_retry:
-      #   num_workers: 4
-      #   queue_size: 100
-      #   retry_on_failure: true
+        ballast_size_mib: {{ .memoryLimiter.ballastSizeMib }}
+        limit_mib: {{ .memoryLimiter.limitMib }}
+        spike_limit_mib: {{ .memoryLimiter.spikeLimitMib }}
+        check_interval: {{ .memoryLimiter.checkInterval }}
+      {{- if .queuedRetry }}
+      queued_retry:
+        num_workers: {{ .queuedRetry.numWorkers }}
+        queue_size: {{ .queuedRetry.queueSize }}
+        retry_on_failure: {{ .queuedRetry.retryOnFailure }}
+      {{- end -}}
+    {{- end }}
     extensions:
-      health_check: {}
-      zpages: {}
+      health_check:
+        {{- toYaml .extensions.healthCheck | nindent 8 }}
+      zpages:
+        {{- toYaml .extensions.zpages | nindent 8 }}
+    {{- with .exporters }}
     exporters:
       clickhouse:
-        datasource: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
+        {{- with .clickhouse.datasource -}}
+        {{- if .clickhouseOverride -}}
+        {{- $clickhousehostport = print .clickhouseOverride.host ":" .clickhouseOverride.port }}
+        {{- end }}
+        {{- $datasourceUrl := print $clickhousehostport "?username=" .username "&password=" .password }}
+        datasource: tcp://{{ $datasourceUrl }}
+        {{- end }}
       clickhousemetricswrite:
-        endpoint: tcp://signoz-clickhouse:9000/?database=signoz_metrics&username=clickhouse_operator&password=clickhouse_operator_password
+        {{- with .clickhousemetricswrite.endpoint -}}
+        {{- if .clickhouseOverride -}}
+        {{- $clickhousehostport = print .clickhouseOverride.host ":" .clickhouseOverride.port }}
+        {{- end }}
+        {{- $endpointUrl := print $clickhousehostport "?database=" .database "&username=" .username "&password=" .password }}
+        endpoint: tcp://{{ $endpointUrl }}
+        {{- end }}
         resource_to_telemetry_conversion:
-          enabled: true
+          enabled: {{ .clickhousemetricswrite.resourceToTelemetryConversion.enabled }}
       prometheus:
-        endpoint: "0.0.0.0:8889"
+        endpoint: {{ .prometheus.endpoint }}
+    {{- end -}}
+    {{- with .service }}
     service:
-      extensions: [health_check, zpages]
+      extensions:
+        {{- toYaml .extensions | nindent 8 }}
+      {{- with .pipelines }}
       pipelines:
         traces:
-          receivers: [jaeger, otlp]
-          processors: [signozspanmetrics/prometheus, batch]
-          exporters: [clickhouse]
+          receivers: {{- toYaml .traces.receivers | nindent 12 }}
+          processors: {{- toYaml .traces.processors | nindent 12 }}
+          exporters: {{- toYaml .traces.exporters | nindent 12 }}
         metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [clickhousemetricswrite]
+          receivers: {{- toYaml .metrics.receivers | nindent 12 }}
+          processors: {{- toYaml .metrics.processors | nindent 12 }}
+          exporters: {{- toYaml .metrics.exporters | nindent 12 }}
         metrics/spanmetrics:
-          receivers: [otlp/spanmetrics]
-          exporters: [prometheus]
+          receivers: {{- toYaml .metricsspanmetrics.receivers | nindent 12 }}
+          exporters: {{- toYaml .metricsspanmetrics.exporters | nindent 12 }}
+      {{- end -}}
+    {{- end -}}
+    {{- end }}
