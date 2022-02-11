@@ -1,86 +1,33 @@
 # Default values for SigNoz.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+fullnameOverride: ""
+nameOverride: ""
 
 clickhouse:
+  fullnameOverride: signoz-clickhouse
+
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # We can pass anyone of ['aws','gcp','hcloud'].
+  # When set to 'aws' or 'gcp', new expandible storage class is created.
+  # When not set, the default storage class (if any) from the k8s cluster is selected.
   # cloud:
+
+  # We can override the storage class for the persistent volume.
+  # Also, note that 'storageClassOverride' takes more precedence than 'cloud'.
+  # So if you set both of the configurations, 'cloud' will be no-op.
+  # storageClassOverride: 
+
+  # clickhouse service
+  service:
+    httpPort: 8123
+    tcpPort: 9000
+
   clickhouseOperator:
     enabled: true
     storage: 20Gi
     serviceType: ClusterIP
 
-# Default values for frontend
-frontend:
-  name: "frontend"
-  replicaCount: 1
-
-  image:
-    repository: signoz/frontend
-    tag: "0.6.0"
-    pullPolicy: IfNotPresent
-
-  imagePullSecrets: []
-
-  configVars: {}
-
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: false
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
-
-  podSecurityContext:
-    {}
-    # fsGroup: 2000
-
-  securityContext:
-    {}
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
-    # runAsUser: 1000
-
-  service:
-    type: ClusterIP
-    port: 3301
-
-  ingress:
-    enabled: false
-    annotations:
-      {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-    hosts:
-      - host: chart-example.local
-        paths: []
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-
-  resources:
-    {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
 
 # Default values for query-service
 queryService:
@@ -89,7 +36,7 @@ queryService:
 
   image:
     repository: signoz/query-service
-    tag: "0.6.0"
+    tag: 0.6.1
     pullPolicy: IfNotPresent
 
   imagePullSecrets: []
@@ -150,24 +97,91 @@ queryService:
     #    hosts:
     #      - chart-example.local
 
+  # adjust the resource requests and limit as necessary
   resources:
-    {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
 
   nodeSelector: {}
 
   tolerations: []
 
   affinity: {}
+
+
+# Default values for frontend
+frontend:
+  name: "frontend"
+  replicaCount: 1
+
+  image:
+    repository: signoz/frontend
+    tag: 0.6.1
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+
+  configVars: {}
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: false
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 3301
+
+  ingress:
+    enabled: false
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths: []
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  # adjust the resource requests and limit as necessary
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
 
 alertmanager:
   name: "alertmanager"
@@ -181,17 +195,14 @@ alertmanager:
     annotations: {}
     type: ClusterIP
     port: 9093
-  resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 10m
-    #   memory: 32Mi
+  resources:
+    # adjust the resource requests and limit as necessary
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
   persistence:
     enabled: true
     ## Persistent Volume Storage Class
@@ -204,3 +215,265 @@ alertmanager:
     accessModes:
       - ReadWriteOnce
     size: 100Mi
+
+# Default values for OtelCollector
+otelCollector:
+  name: "otel-collector"
+  image:
+    repository: signoz/otelcontribcol
+    tag: "0.5.0"
+    pullPolicy: IfNotPresent
+
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
+  ballastSizeMib: 683
+
+  initContainers:
+    init:
+      enabled: true
+      image:
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        # clickhouseHostOverride:
+        port: 8123  # Default http port for clickhouse
+        endpoint: ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector now"
+
+  # ports used by the container
+  ports:
+    zPages: 55679                     # Default endpoint for ZPages.
+    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
+    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
+    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
+    jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888             # Default endpoint for querying metrics.
+    prometheusExportedMetrics: 8889   # Default endpoint for prometheus exported metrics.
+
+  ## Configure liveness and readiness probes.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ##
+  livenessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  ## Custom liveness and readiness probes
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+
+  # adjust the resource requests and limit as necessary
+  resources:
+    requests:
+      cpu: 200m
+      memory: 400Mi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+  # configurations to form the file in configmap
+  # Note: any of the following configuration update action will not be applied immediately for the pods.
+  #       either you can change the configmap name and update the same in the deployment/statefulset
+  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
+  config:
+    receivers:
+      otlpSpanmetrics:
+        protocols:
+          grpc:
+            endpoint: "localhost:12345"
+    processors:
+      batch:
+        sendBatchSize: 1000
+        timeout: 10s
+      signozSpanmetricsPrometheus:
+        metricsExporter: prometheus
+        latencyHistogramBuckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
+      memoryLimiter:
+        # Same as --mem-ballast-size-mib CLI argument
+        ballastSizeMib: 683
+        # 80% of maximum memory up to 2G
+        limitMib: 1500
+        # 25% of limit up to 2G
+        spikeLimitMib: 512
+        checkInterval: 5s
+      # queuedRetry:
+      #   numWorkers: 4
+      #   queueSize: 100
+      #   retryOnFailure: true
+    extensions:
+      healthCheck: {}
+      zpages: {}
+    exporters:
+      clickhouse:
+        datasource:
+          username: clickhouse_operator
+          password: clickhouse_operator_password
+          # clickhouseOverride:
+          #   host:
+          #   port:
+      clickhousemetricswrite:
+        endpoint: 
+          # clickhouseOverride:
+          #   host:
+          #   port:
+          username: clickhouse_operator
+          password: clickhouse_operator_password
+          database: signoz_metrics
+        resourceToTelemetryConversion:
+          enabled: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+    service:
+      extensions: [health_check, zpages]
+      pipelines:
+        traces:
+          receivers: [jaeger, otlp]
+          processors: [signozspanmetrics/prometheus, batch]
+          exporters: [clickhouse]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [clickhousemetricswrite]
+        metricsspanmetrics:
+          receivers: [otlp/spanmetrics]
+          exporters: [prometheus]
+
+# Default values for OtelCollectorMetrics
+otelCollectorMetrics:
+  name: "otel-collector-metrics"
+  image:
+    repository: signoz/otelcontribcol
+    tag: "0.5.0"
+    pullPolicy: IfNotPresent
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
+  ballastSizeMib: 683
+  initContainers:
+    init:
+      enabled: true
+      image:
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        # clickhouseHostOverride:
+        port: 8123
+        endpoint: ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector metrics now"
+
+  # ports used by the container
+  ports:
+    zPages: 55679                     # Default endpoint for ZPages.
+    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
+    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
+    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
+    jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888             # Default endpoint for querying metrics.
+
+  ## Configure liveness and readiness probes.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ##
+  livenessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  ## Custom liveness and readiness probes
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+
+  # adjust the resource requests and limit as necessary
+  resources:
+    requests:
+      cpu: 200m
+      memory: 400Mi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+  # configurations to form the file in configmap
+  # Note: any of the following configuration update action will not be applied immediately for the pods.
+  #       either you can change the configmap name and update the same in the deployment/statefulset
+  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
+  config:
+    receivers:
+      prometheus:
+        jobName: otel-collector
+        scrapeInterval: 30s
+        # prometheusOverride:
+        #   host: otelcollector
+        #   port: 8889
+    processors:
+      batch:
+        sendBatchSize: 1000
+        timeout: 10s
+      memoryLimiter:
+        # Same as --mem-ballast-size-mib CLI argument
+        ballastSizeMib: 683
+        # 80% of maximum memory up to 2G
+        limitMib: 1500
+        # 25% of limit up to 2G
+        spikeLimitMib: 512
+        checkInterval: 5s
+      # queuedRetry:
+      #   numWorkers: 4
+      #   queueSize: 100
+      #   retryOnFailure: true
+    extensions:
+      healthCheck: {}
+      zpages: {}
+    exporters:
+      clickhousemetricswrite:
+        endpoint: 
+          # clickhouseOverride:
+          #   host:
+          #   port:
+          username: clickhouse_operator
+          password: clickhouse_operator_password
+          database: signoz_metrics
+    service:
+      extensions: [health_check, zpages]
+      pipelines:
+        metrics: 
+          receivers: [otlp, prometheus]
+          processors: [batch]
+          exporters: [clickhousemetricswrite]
