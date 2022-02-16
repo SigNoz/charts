@@ -16,6 +16,7 @@ spec:
       labels:
         {{- include "otelCollectorMetrics.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "otelCollectorMetrics.serviceAccountName" . }}
       initContainers:
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
         - name: {{ include "otelCollectorMetrics.fullname" . }}-init

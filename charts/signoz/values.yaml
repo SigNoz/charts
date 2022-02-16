@@ -59,7 +59,7 @@ queryService:
 
   serviceAccount:
     # Specifies whether a service account should be created
-    create: false
+    create: true
     # Annotations to add to the service account
     annotations: {}
     # The name of the service account to use.
@@ -129,7 +129,7 @@ frontend:
 
   serviceAccount:
     # Specifies whether a service account should be created
-    create: false
+    create: true
     # Annotations to add to the service account
     annotations: {}
     # The name of the service account to use.
@@ -224,7 +224,6 @@ otelCollector:
     tag: "0.5.0"
     pullPolicy: IfNotPresent
 
-  serviceType: "ClusterIP"
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
@@ -244,6 +243,16 @@ otelCollector:
         endpoint: ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
+
+  serviceType: "ClusterIP"
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   # ports used by the container
   ports:
@@ -367,7 +376,6 @@ otelCollectorMetrics:
     tag: "0.5.0"
     pullPolicy: IfNotPresent
   
-  serviceType: "ClusterIP"
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
@@ -387,6 +395,16 @@ otelCollectorMetrics:
         endpoint: ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
+
+  serviceType: "ClusterIP"
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   # ports used by the container
   ports:
