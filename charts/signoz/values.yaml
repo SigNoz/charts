@@ -6,6 +6,8 @@ nameOverride: ""
 
 clickhouse:
   fullnameOverride: signoz-clickhouse
+  zookeeper:
+    fullnameOverride: signoz-zookeeper
 
   # Based on the cloud, storage class for the persistent volume is selected.
   # We can pass anyone of ['aws','gcp','hcloud'].
@@ -375,7 +377,7 @@ otelCollectorMetrics:
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
-  
+
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1

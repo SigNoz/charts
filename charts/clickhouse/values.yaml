@@ -1,5 +1,6 @@
 # zookeeper auto purge interval prevents full disk space error
 zookeeper:
+  fullnameOverride: signoz-zookeeper
   autopurge:
     purgeInterval: 1
 
