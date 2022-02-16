@@ -9,3 +9,6 @@ dependencies:
   - name: zookeeper
     repository: "https://charts.bitnami.com/bitnami"
     version: 6.0.0
+maintainers:
+  - name: signoz
+    email: hello@signoz.io
