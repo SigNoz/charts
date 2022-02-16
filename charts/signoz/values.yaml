@@ -224,6 +224,7 @@ otelCollector:
     tag: "0.5.0"
     pullPolicy: IfNotPresent
 
+  serviceType: "ClusterIP"
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
@@ -365,10 +366,13 @@ otelCollectorMetrics:
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
+  
+  serviceType: "ClusterIP"
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
   ballastSizeMib: 683
+
   initContainers:
     init:
       enabled: true
