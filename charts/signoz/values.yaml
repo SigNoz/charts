@@ -37,6 +37,7 @@ queryService:
   name: "query-service"
   replicaCount: 1
   image:
+    registry: docker.io
     repository: signoz/query-service
     tag: 0.6.1
     pullPolicy: IfNotPresent
@@ -54,7 +55,7 @@ queryService:
     init:
       enabled: true
       image:
-        # registry:
+        registry: docker.io
         repository: busybox
         tag: 1.35
       command: ["sh", "-c", 'until wget --spider -q signoz-clickhouse:8123/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting query service now";']
@@ -119,6 +120,7 @@ frontend:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: signoz/frontend
     tag: 0.6.1
     pullPolicy: IfNotPresent
@@ -185,6 +187,7 @@ alertmanager:
   name: "alertmanager"
   # fullnameOverride: "signoz-alertmanager"
   image:
+    registry: docker.io
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
@@ -219,6 +222,7 @@ alertmanager:
 otelCollector:
   name: "otel-collector"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
@@ -240,6 +244,7 @@ otelCollector:
     init:
       enabled: true
       image:
+        registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
@@ -368,6 +373,7 @@ otelCollector:
 otelCollectorMetrics:
   name: "otel-collector-metrics"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
@@ -390,6 +396,7 @@ otelCollectorMetrics:
     init:
       enabled: true
       image:
+        registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
