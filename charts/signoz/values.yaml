@@ -1,8 +1,9 @@
 # Default values for SigNoz.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+
+# SigNoz chart full name override
 fullnameOverride: ""
-nameOverride: ""
 
 clickhouse:
   fullnameOverride: signoz-clickhouse
@@ -35,19 +36,26 @@ clickhouse:
 queryService:
   name: "query-service"
   replicaCount: 1
-
   image:
+    registry: docker.io
     repository: signoz/query-service
     tag: 0.6.1
     pullPolicy: IfNotPresent
-
   imagePullSecrets: []
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   initContainers:
     init:
       enabled: true
       image:
-        # registry:
+        registry: docker.io
         repository: busybox
         tag: 1.35
       command: ["sh", "-c", 'until wget --spider -q signoz-clickhouse:8123/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting query service now";']
@@ -58,15 +66,6 @@ queryService:
     ClickHouseUrl: http://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
     STORAGE: clickhouse
     POSTHOG_API_KEY: "H-htDCae7CR3RV57gUzmol6IAKtm5IMCvbcm_fwnL-w"
-
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
 
   podSecurityContext:
     {}
@@ -121,14 +120,11 @@ frontend:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: signoz/frontend
     tag: 0.6.1
     pullPolicy: IfNotPresent
-
   imagePullSecrets: []
-
-  configVars: {}
-
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -137,6 +133,8 @@ frontend:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  configVars: {}
 
   podSecurityContext:
     {}
@@ -189,10 +187,12 @@ alertmanager:
   name: "alertmanager"
   # fullnameOverride: "signoz-alertmanager"
   image:
+    registry: docker.io
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: "0.5.0"
+  imagePullSecrets: []
   service:
     annotations: {}
     type: ClusterIP
@@ -222,19 +222,29 @@ alertmanager:
 otelCollector:
   name: "otel-collector"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
-
+  serviceType: "ClusterIP"
+  imagePullSecrets: []
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
   ballastSizeMib: 683
-
   initContainers:
     init:
       enabled: true
       image:
+        registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
@@ -245,17 +255,6 @@ otelCollector:
         endpoint: ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
-
-  serviceType: "ClusterIP"
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
-
   # ports used by the container
   ports:
     zPages: 55679                     # Default endpoint for ZPages.
@@ -374,19 +373,30 @@ otelCollector:
 otelCollectorMetrics:
   name: "otel-collector-metrics"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
     tag: "0.5.0"
     pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  serviceType: "ClusterIP"
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
   ballastSizeMib: 683
-
   initContainers:
     init:
       enabled: true
       image:
+        registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
@@ -397,16 +407,6 @@ otelCollectorMetrics:
         endpoint: ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
-
-  serviceType: "ClusterIP"
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
 
   # ports used by the container
   ports:

@@ -35,7 +35,7 @@ spec:
         {{- end }}
       containers:
       - name: {{ template "otelCollectorMetrics.fullname" . }}
-        image: {{ .Values.otelCollectorMetrics.image.repository }}:{{ .Values.otelCollectorMetrics.image.tag }}
+        image: {{ template "otelCollectorMetrics.image" . }}
         imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
         command:
           - "/otelcontribcol"

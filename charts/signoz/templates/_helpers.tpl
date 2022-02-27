@@ -86,6 +86,20 @@ Return the initContainers image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the proper queryService image name
+*/}}
+{{- define "queryService.image" -}}
+{{- $registryName := .Values.queryService.image.registry -}}
+{{- $repositoryName := .Values.queryService.image.repository -}}
+{{- $tag := .Values.queryService.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
 
 
 {{/*
@@ -125,6 +139,20 @@ Create the name of the service account to use
     {{ default (include "frontend.fullname" .) .Values.frontend.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.frontend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper frontend image name
+*/}}
+{{- define "frontend.image" -}}
+{{- $registryName := .Values.frontend.image.registry -}}
+{{- $repositoryName := .Values.frontend.image.repository -}}
+{{- $tag := .Values.frontend.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}
 
@@ -173,9 +201,28 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollector.initContainers.init.image" -}}
+{{- $registryName := .Values.otelCollector.initContainers.init.image.registry -}}
 {{- $repositoryName := .Values.otelCollector.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollector.initContainers.init.image.tag | toString -}}
-{{- printf "%s:%s" $repositoryName $tag -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper otelCollector image name
+*/}}
+{{- define "otelCollector.image" -}}
+{{- $registryName := .Values.otelCollector.image.registry -}}
+{{- $repositoryName := .Values.otelCollector.image.repository -}}
+{{- $tag := .Values.otelCollector.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
 {{- end -}}
 
 
@@ -223,9 +270,28 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollectorMetrics.initContainers.init.image" -}}
+{{- $registryName := .Values.otelCollectorMetrics.initContainers.init.image.registry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.initContainers.init.image.tag | toString -}}
-{{- printf "%s:%s" $repositoryName $tag -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper otelCollectorMetrics image name
+*/}}
+{{- define "otelCollectorMetrics.image" -}}
+{{- $registryName := .Values.otelCollectorMetrics.image.registry -}}
+{{- $repositoryName := .Values.otelCollectorMetrics.image.repository -}}
+{{- $tag := .Values.otelCollectorMetrics.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
 {{- end -}}
 
 

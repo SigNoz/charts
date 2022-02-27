@@ -36,7 +36,7 @@ spec:
         {{- end }}
           securityContext:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
-          image: "{{ .Values.queryService.image.repository }}:{{ .Values.queryService.image.tag }}"
+          image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args: ["-config=/root/config/prometheus.yml"]
           ports:
