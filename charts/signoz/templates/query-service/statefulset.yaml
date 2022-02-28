@@ -68,9 +68,9 @@ spec:
           - name: prometheus
             mountPath: /root/config
           - name: signoz-db
-            mountPath: /var/lib/signoz/
+            mountPath: /var/tmp/signoz
           - name: dashboards
-            mountPath: /root/config/dashboards
+            mountPath: /var/tmp/dashboards
           resources:
             {{- toYaml .Values.queryService.resources | nindent 12 }}
       {{- with .Values.queryService.nodeSelector }}

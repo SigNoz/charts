@@ -3,6 +3,8 @@ zookeeper:
   fullnameOverride: signoz-zookeeper
   autopurge:
     purgeInterval: 1
+  securityContext:
+    enabled: false
 
 # cloud:
 
