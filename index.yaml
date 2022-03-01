@@ -3,6 +3,20 @@ entries:
   alertmanager:
   - apiVersion: v2
     appVersion: 0.5.0
+    created: "2022-03-01T10:29:46.158870116Z"
+    description: The Alertmanager handles alerts for SigNoz.
+    digest: c465874cef53237d2c3fb74b3a9b94908188574ab3af1a56d93a3b7d0747074f
+    icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    name: alertmanager
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/alertmanager-0.5.2/alertmanager-0.5.2.tgz
+    version: 0.5.2
+  - apiVersion: v2
+    appVersion: 0.5.0
     created: "2022-01-26T20:29:55.466447898Z"
     description: The Alertmanager handles alerts for SigNoz.
     digest: 7094f7e94067948fda27b8ce37de8c2674f9f2ff4ea5883ecde263528283ae4e
@@ -30,6 +44,24 @@ entries:
     - https://github.com/SigNoz/charts/releases/download/alertmanager-0.5.0/alertmanager-0.5.0.tgz
     version: 0.5.0
   clickhouse:
+  - apiVersion: v2
+    appVersion: 21.12.3.32
+    created: "2022-03-01T10:29:46.462647465Z"
+    dependencies:
+    - name: zookeeper
+      repository: https://charts.bitnami.com/bitnami
+      version: 7.0.5
+    description: A Helm chart for ClickHouse
+    digest: 44518078e806dcd9c1aa887fb9da81dd7b77c0349c0573c858c95c4884b5b5ff
+    icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    name: clickhouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-16.0.0/clickhouse-16.0.0.tgz
+    version: 16.0.0
   - apiVersion: v2
     appVersion: "21.7"
     created: "2022-01-21T07:21:33.993667909Z"
@@ -244,4 +276,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2022-02-16T19:58:51.509901569Z"
+generated: "2022-03-01T10:29:46.646499768Z"
