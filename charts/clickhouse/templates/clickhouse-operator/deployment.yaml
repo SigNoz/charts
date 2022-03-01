@@ -1,7 +1,7 @@
-{{- if .Values.clickhouseOperator.enabled }}
+{{- if .Values.enabled }}
 # Template Parameters:
 #
-# NAMESPACE=posthog
+# NAMESPACE=platform
 # COMMENT=
 # OPERATOR_IMAGE=altinity/clickhouse-operator:latest
 # METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:latest
@@ -12,7 +12,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: clickhouse-operator
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 spec:
