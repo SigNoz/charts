@@ -1,7 +1,7 @@
-{{- if .Values.clickhouseOperator.enabled }}
+{{- if .Values.enabled }}
 # Template Parameters:
 #
-# NAMESPACE=posthog
+# NAMESPACE=platform
 # COMMENT=
 #
 # Setup ClusterIP Service to provide monitoring metrics for Prometheus
@@ -13,7 +13,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: clickhouse-operator-metrics
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 spec:
