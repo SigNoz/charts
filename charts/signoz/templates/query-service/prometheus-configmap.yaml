@@ -15,7 +15,7 @@ data:
       alertmanagers:
       - static_configs:
         - targets:
-          # - {{ include "alertmanager.fullname" . }}:{{ .Values.alertmanager.service.port }}
+          # - {{ include "alertmanager.servicename" . }}:{{ include "alertmanager.port" . }}
 
     # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
     rule_files:
@@ -29,5 +29,5 @@ data:
       
 
     remote_read:
-      - url: tcp://signoz-clickhouse:9000/?database=signoz_metrics&username=clickhouse_operator&password=clickhouse_operator_password
+      - url: tcp://{{ include "clickhouse.url" . }}
 
