@@ -116,7 +116,7 @@ persistence:
   size: 100Mi
 
 config:
-  global: 
+  global:
     resolve_timeout: 1m
     slack_api_url: 'https://hooks.slack.com/services/xxx'
 
@@ -160,7 +160,7 @@ configmapReload:
   ##
   resources: {}
 
-templates: 
+templates:
   title.tmpl: |-
       {{ define "slack.title" }}
       [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
