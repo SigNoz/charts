@@ -4,7 +4,7 @@
 Expand the name of the chart.
 */}}
 {{- define "signoz.name" -}}
-{{- default .Chart.Name .Values.nameOveride | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -16,7 +16,7 @@ If release name contains chart name it will be used as a full name.
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default .Chart.Name .Values.nameOveride -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -313,6 +313,21 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
+Set Clickhouse http port
+*/}}
+{{- define "clickhouse.httpPort" -}}
+{{- 8123 -}}
+{{- end -}}
+
+{{/*
+Set Clickhouse tcp port
+*/}}
+{{- define "clickhouse.tcpPort" -}}
+{{- 9000 -}}
+{{- end -}}
+
+
+{{/*
 Return the service name of Alertmanager
 */}}
 {{- define "alertmanager.servicename" -}}
@@ -327,3 +342,10 @@ Return the service name of Alertmanager
 {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+Set alertmanager port
+*/}}
+{{- define "alertmanager.port" -}}
+{{- default 9093 .Values.alertmanager.service.port  -}}
+{{- end -}}

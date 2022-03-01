@@ -30,7 +30,7 @@ spec:
             {{- end }}
             - sh
             - -c
-            - until wget --spider -q {{ $clickhousehost }}:{{ .port }}/{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end -}}
         {{- end }}
       containers:

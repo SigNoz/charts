@@ -1,4 +1,3 @@
-{{- $clickhousehostport := print (include "clickhouse.servicename" .) ":" .Values.clickhouse.service.tcpPort -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -52,20 +51,16 @@ data:
     {{- with .exporters }}
     exporters:
       clickhouse:
-        {{- with .clickhouse.datasource -}}
-        {{- if .clickhouseOverride -}}
-        {{- $clickhousehostport = print .clickhouseOverride.host ":" .clickhouseOverride.port }}
-        {{- end }}
-        {{- $datasourceUrl := print $clickhousehostport "?username=" .username "&password=" .password }}
-        datasource: tcp://{{ $datasourceUrl }}
+        {{ if .clickhouse.datasource.clickhouseUrlOverride -}}
+        datasource: {{ .clickhouse.datasource.clickhouseUrlOverride }}
+        {{- else -}}
+        datasource: tcp://{{ include "clickhouse.url" $ }}
         {{- end }}
       clickhousemetricswrite:
-        {{- with .clickhousemetricswrite.endpoint -}}
-        {{- if .clickhouseOverride -}}
-        {{- $clickhousehostport = print .clickhouseOverride.host ":" .clickhouseOverride.port }}
-        {{- end }}
-        {{- $endpointUrl := print $clickhousehostport "?database=" .database "&username=" .username "&password=" .password }}
-        endpoint: tcp://{{ $endpointUrl }}
+        {{ if .clickhousemetricswrite.endpoint.clickhouseUrlOverride -}}
+        endpoint: {{ .clickhousemetricswrite.endpoint.clickhouseUrlOverride }}
+        {{- else -}}
+        endpoint: tcp://{{ include "clickhouse.metricsUrl" $ }}
         {{- end }}
         resource_to_telemetry_conversion:
           enabled: {{ .clickhousemetricswrite.resourceToTelemetryConversion.enabled }}
