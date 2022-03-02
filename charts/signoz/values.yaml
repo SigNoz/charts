@@ -57,7 +57,7 @@ clickhouse:
     # -- Clickhouse image repository to use.
     repository: yandex/clickhouse-server
     # -- Clickhouse image tag to use (example: `21.8`).
-    tag: 21.7
+    tag: 21.12.3.32
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
@@ -321,7 +321,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "0.5.0"
+    tag: 0.5.0
   imagePullSecrets: []
   service:
     annotations: {}
@@ -354,7 +354,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: "0.5.0"
+    tag: 0.6.0
     pullPolicy: IfNotPresent
   serviceType: "ClusterIP"
   imagePullSecrets: []
@@ -498,7 +498,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: "0.5.0"
+    tag: 0.6.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceType: "ClusterIP"
