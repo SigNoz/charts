@@ -12,6 +12,8 @@ spec:
       {{- include "queryService.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/query-service/prometheus-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
@@ -58,8 +60,6 @@ spec:
             value: http://{{ include "alertmanager.servicename" . }}:{{ include "alertmanager.port" . }}/api/
           - name: GODEBUG
             value: {{ .Values.queryService.configVars.goDebug }}
-          - name: POSTHOG_API_KEY
-            value: {{ .Values.queryService.configVars.posthogApiKey }}
           # livenessProbe:
           #   httpGet:
           #     path: /

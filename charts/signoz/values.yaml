@@ -435,9 +435,6 @@ otelCollector:
       memory: 2Gi
 
   # configurations to form the file in configmap
-  # Note: any of the following configuration update action will not be applied immediately for the pods.
-  #       either you can change the configmap name and update the same in the deployment/statefulset
-  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
   config:
     receivers:
       otlpSpanmetrics:
@@ -580,9 +577,6 @@ otelCollectorMetrics:
       memory: 2Gi
 
   # configurations to form the file in configmap
-  # Note: any of the following configuration update action will not be applied immediately for the pods.
-  #       either you can change the configmap name and update the same in the deployment/statefulset
-  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
   config:
     receivers:
       prometheus:
