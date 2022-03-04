@@ -71,14 +71,12 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.name`                      | Query Service component name                                            | `query-service`                   |
 | `queryService.image.registry`            | Query Service image registry name                                       | `docker.io`                       |
 | `queryService.image.repository`          | Container image name                                                    | `signoz/query-service`            |
-| `queryService.image.tag`                 | Container image tag                                                     | `0.6.2`                           |
+| `queryService.image.tag`                 | Container image tag                                                     | `0.7.1`                           |
 | `queryService.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `queryService.replicas`                  | Number of query-service nodes                                           | `1`                               |
 | `queryService.initContainers.init.enabled`      | Query Service initContainer enabled                              | `true`                            |
 | `queryService.initContainers.init.image.registry`   | Query Service initContainer registry name                    | `docker.io`                       |
-| `queryService.initContainers.init.image.repository` | Query Service initContainer image nam| `queryService.nodeSelector`              | Node labels for query-service pod assignment                            | `{}`                              |
-| `queryService.tolerations`               | Query Service tolerations                                               | `[]`                              |
-| `queryService.nodeAffinity`              | Query Service affinity policy                                           | `{}`                              |e                       | `busybox`                         |
+| `queryService.initContainers.init.image.repository` | Query Service initContainer image name                       | `busybox`                         |
 | `queryService.initContainers.init.image.tag`        | Query Service initContainer image tag                        | `1.35`                            |
 | `queryService.initContainers.init.image.pullPolicy` | Query Service initContainer pull policy                      | `IfNotPresent`                    |
 | `queryService.initContainers.init.command`      | Query Service initContainer command line to execute              | See `values.yaml` for defaults    |
@@ -103,7 +101,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.name`                          | Frontend component name                                                 | `frontend`                        |
 | `frontend.image.registry`                | Frontend image registry name                                            | `docker.io`                       |
 | `frontend.image.repository`              | Container image name                                                    | `signoz/frontend`                 |
-| `frontend.image.tag`                     | Container image tag                                                     | `0.6.2`                           |
+| `frontend.image.tag`                     | Container image tag                                                     | `0.7.1`                           |
 | `frontend.image.pullPolicy`              | Container pull policy                                                   | `IfNotPresent`                    |
 | `frontend.replicas`                      | Number of query-service nodes                                           | `1`                               |
 | `frontend.initContainers.init.enabled`   | Frontend initContainer enabled                                          | `true`                            |
@@ -131,7 +129,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.name`                     | Otel Collector component name                                           | `otel-collector`                  |
 | `otelCollector.image.registry`           | Otel Collector image registry name                                      | `docker.io`                       |
 | `otelCollector.image.repository`         | Container image name                                                    | `signoz/query-service`            |
-| `otelCollector.image.tag`                | Container image tag                                                     | `0.6.2`                           |
+| `otelCollector.image.tag`                | Container image tag                                                     | `0.43.0`                          |
 | `otelCollector.image.pullPolicy`         | Container pull policy                                                   | `IfNotPresent`                    |
 | `otelCollector.replicas`                 | Number of otel-collector nodes                                          | `1`                               |
 | `otelCollector.serviceType`              | Otel Collector service type                                             | `ClusterIP`                       |
@@ -159,7 +157,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.name`              | Otel Collector Metrics component name                                   | `otel-collector-metrics`          |
 | `otelCollectorMetrics.image.registry`    | Otel Collector Metrics image registry name                              | `docker.io`                       |
 | `otelCollectorMetrics.image.repository`  | Container image name                                                    | `signoz/otelcontribcol`           |
-| `otelCollectorMetrics.image.tag`         | Container image tag                                                     | `0.5.0`                           |
+| `otelCollectorMetrics.image.tag`         | Container image tag                                                     | `0.43.0`                          |
 | `otelCollectorMetrics.image.pullPolicy`  | Container pull policy                                                   | `IfNotPresent`                    |
 | `otelCollectorMetrics.replicas`          | Number of otel-collector-metrics nodes                                  | `1`                               |
 | `otelCollectorMetrics.serviceType`       | Otel Collector service metrics type                                     | `ClusterIP`                       |

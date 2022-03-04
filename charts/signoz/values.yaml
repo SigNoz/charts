@@ -168,7 +168,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.6.2
+    tag: 0.7.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -256,7 +256,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.6.2
+    tag: 0.7.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -358,7 +358,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.6.0
+    tag: 0.43.0
     pullPolicy: IfNotPresent
   serviceType: "ClusterIP"
   imagePullSecrets: []
@@ -448,14 +448,12 @@ otelCollector:
       signozSpanmetricsPrometheus:
         metricsExporter: prometheus
         latencyHistogramBuckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
-      memoryLimiter:
-        # Same as --mem-ballast-size-mib CLI argument
-        ballastSizeMib: 683
-        # 80% of maximum memory up to 2G
-        limitMib: 1500
-        # 25% of limit up to 2G
-        spikeLimitMib: 512
-        checkInterval: 5s
+      memoryLimiter: {}
+      #   # 80% of maximum memory up to 2G
+      #   limitMib: 1500
+      #   # 25% of limit up to 2G
+      #   spikeLimitMib: 512
+      #   checkInterval: 5s
       # queuedRetry:
       #   numWorkers: 4
       #   queueSize: 100
@@ -499,7 +497,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.6.0
+    tag: 0.43.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceType: "ClusterIP"
@@ -589,14 +587,12 @@ otelCollectorMetrics:
       batch:
         sendBatchSize: 1000
         timeout: 10s
-      memoryLimiter:
-        # Same as --mem-ballast-size-mib CLI argument
-        ballastSizeMib: 683
-        # 80% of maximum memory up to 2G
-        limitMib: 1500
-        # 25% of limit up to 2G
-        spikeLimitMib: 512
-        checkInterval: 5s
+      memoryLimiter: {}
+        # # 80% of maximum memory up to 2G
+        # limitMib: 1500
+        # # 25% of limit up to 2G
+        # spikeLimitMib: 512
+        # checkInterval: 5s
       # queuedRetry:
       #   numWorkers: 4
       #   queueSize: 100
