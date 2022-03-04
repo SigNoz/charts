@@ -46,9 +46,14 @@ clickhouse:
   # -- Clickhouse database
   database: signoz_metrics
   # -- Clickhouse user
-  # user: admin
+  user: admin
   # -- Clickhouse password
-  # password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+
+  # -- Clickhouse cluster shards
+  shardsCount: 2
+  # -- Clickhouse cluster replicas
+  replicasCount: 2
 
   # -- Clickhouse image
   image:
@@ -195,7 +200,6 @@ queryService:
     # clickHouseUrl: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
     storage: clickhouse
     goDebug: netdns=go
-    posthogApiKey: H-htDCae7CR3RV57gUzmol6IAKtm5IMCvbcm_fwnL-w
 
   podSecurityContext:
     {}
