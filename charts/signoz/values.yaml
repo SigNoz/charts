@@ -5,6 +5,7 @@
 # SigNoz chart full name override
 fullnameOverride: ""
 
+
 # Clickhouse default values
 clickhouse:
   # fullnameOverride: signoz-clickhouse
@@ -51,9 +52,9 @@ clickhouse:
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
   # -- Clickhouse cluster shards
-  shardsCount: 2
+  shardsCount: 1
   # -- Clickhouse cluster replicas
-  replicasCount: 2
+  replicasCount: 1
 
   # -- Clickhouse image
   image:
@@ -352,6 +353,7 @@ alertmanager:
       - ReadWriteOnce
     size: 100Mi
 
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
@@ -490,6 +492,7 @@ otelCollector:
         metricsspanmetrics:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
+
 
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
