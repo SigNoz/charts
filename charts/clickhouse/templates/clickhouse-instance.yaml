@@ -4,6 +4,13 @@ kind: "ClickHouseInstallation"
 metadata:
   name: "signoz"
 spec:
+  defaults:
+    templates:
+      {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
+      dataVolumeClaimTemplate: data-volumeclaim-template
+      # logVolumeClaimTemplate: data-volumeclaim-template
+      {{- end }}
+      serviceTemplate: service-template
   configuration:
     users:
       {{ .Values.user }}/password: {{ .Values.password }}
@@ -18,10 +25,6 @@ spec:
       - name: {{ .Values.cluster | quote }}
         templates:
           podTemplate: pod-template
-          clusterServiceTemplate: service-template
-          {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
-          dataVolumeClaimTemplate: data-volumeclaim-template
-          {{- end }}
         layout:
           shardsCount: {{ .Values.shardsCount }}
           replicasCount: {{ .Values.replicasCount }}
