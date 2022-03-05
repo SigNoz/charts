@@ -29,5 +29,4 @@ data:
       
 
     remote_read:
-      - url: tcp://{{ include "clickhouse.url" . }}
-
+      - url: tcp://{{ include "clickhouse.metricsUrl" . }}
