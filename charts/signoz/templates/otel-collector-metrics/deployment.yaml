@@ -42,7 +42,6 @@ spec:
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
-          - "--mem-ballast-size-mib={{ .Values.otelCollectorMetrics.ballastSizeMib }}"
         volumeMounts:
         - name: otel-collector-metrics-config-vol
           mountPath: /conf

@@ -31,10 +31,7 @@ data:
         send_batch_size: {{ .batch.sendBatchSize }}
         timeout: {{ .batch.timeout | quote  }}
       memory_limiter:
-        ballast_size_mib: {{ .memoryLimiter.ballastSizeMib }}
-        limit_mib: {{ .memoryLimiter.limitMib }}
-        spike_limit_mib: {{ .memoryLimiter.spikeLimitMib }}
-        check_interval: {{ .memoryLimiter.checkInterval | quote }}
+        {{- toYaml .memory_limiter | nindent 8 }}
       {{- if .queuedRetry }}
       queued_retry:
         num_workers: {{ .queuedRetry.numWorkers }}

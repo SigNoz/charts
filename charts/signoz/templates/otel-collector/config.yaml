@@ -32,10 +32,7 @@ data:
         latency_histogram_buckets:
           {{- toYaml .signozSpanmetricsPrometheus.latencyHistogramBuckets | nindent 10 }}
       memory_limiter:
-        ballast_size_mib: {{ .memoryLimiter.ballastSizeMib }}
-        limit_mib: {{ .memoryLimiter.limitMib }}
-        spike_limit_mib: {{ .memoryLimiter.spikeLimitMib }}
-        check_interval: {{ .memoryLimiter.checkInterval }}
+        {{- toYaml .memory_limiter | nindent 8 }}
       {{- if .queuedRetry }}
       queued_retry:
         num_workers: {{ .queuedRetry.numWorkers }}
