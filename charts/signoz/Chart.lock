@@ -1,9 +1,9 @@
 dependencies:
 - name: clickhouse
   repository: https://signoz.github.io/charts
-  version: 16.0.1
+  version: 16.0.2
 - name: alertmanager
   repository: https://signoz.github.io/charts
   version: 0.5.2
-digest: sha256:17e1a304a1cdbc2bdc215a5f175a06fcca2debfa6e7f4d95b84a8d580f1d0430
-generated: "2022-03-04T16:48:35.248047981+05:30"
+digest: sha256:867612a84144d02d296c1f1d471b931dbcbcb465723b3f64ee869a2a56a430e7
+generated: "2022-03-05T16:19:07.283171048+05:30"
