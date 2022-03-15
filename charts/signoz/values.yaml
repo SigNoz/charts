@@ -394,9 +394,10 @@ otelCollector:
   # ports used by the container
   ports:
     zPages: 55679                     # Default endpoint for ZPages.
-    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
-    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
-    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
+    otelGrpcReceiver: 4317            # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318            # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680     # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681     # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
     jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
     jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
     zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
@@ -536,14 +537,15 @@ otelCollectorMetrics:
 
   # ports used by the container
   ports:
-    zPages: 55679                     # Default endpoint for ZPages.
-    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
-    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
-    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
-    jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888             # Default endpoint for querying metrics.
+    zPages: 55679                   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317          # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318          # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
+    jaegerGrpcReceiver: 14250       # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268       # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411            # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888           # Default endpoint for querying metrics.
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
