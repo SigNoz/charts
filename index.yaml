@@ -116,6 +116,39 @@ entries:
   signoz:
   - apiVersion: v2
     appVersion: 0.7.1
+    created: "2022-03-15T17:34:01.241159347Z"
+    dependencies:
+    - name: clickhouse
+      repository: https://signoz.github.io/charts
+      version: 16.0.2
+    - name: alertmanager
+      repository: https://signoz.github.io/charts
+      version: 0.5.2
+    description: SigNoz Observability Platform Helm Chart
+    digest: b85745cf8366ea1a91ca8ea479c46a5c0c160d057dcc47bb206f1be6f3477bc6
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    - email: prashant@signoz.io
+      name: prashant
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts/
+    - https://github.com/signoz/signoz
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.0.10/signoz-0.0.10.tgz
+    version: 0.0.10
+  - apiVersion: v2
+    appVersion: 0.7.1
     created: "2022-03-05T10:52:36.79590935Z"
     dependencies:
     - name: clickhouse
@@ -378,4 +411,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2022-03-05T10:52:36.795952951Z"
+generated: "2022-03-15T17:34:01.241203147Z"
