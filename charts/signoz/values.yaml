@@ -24,9 +24,9 @@ clickhouse:
   # cloud:
 
   # We can override the storage class for the persistent volume.
-  # Also, note that 'storageClassOverride' takes more precedence than 'cloud'.
+  # Also, note that 'storageClass' takes more precedence than 'cloud'.
   # So if you set both of the configurations, 'cloud' will be no-op.
-  # storageClassOverride:
+  # storageClass:
 
   # -- Cloud service being deployed on (example: `aws`, `gcp`, `azure`, `hcloud`, `other`).
   # cloud:
@@ -63,6 +63,8 @@ clickhouse:
     # -- Clickhouse image repository to use.
     repository: yandex/clickhouse-server
     # -- Clickhouse image tag to use (example: `21.8`).
+    #    SigNoz is not always tested with latest version of ClickHouse.
+    #    Only if you know what you are doing, proceed with overriding.
     tag: 21.12.3.32
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
@@ -84,11 +86,11 @@ clickhouse:
   # -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
   resources: {}
   #   limits:
-  #     cpu: 1000m
-  #     memory: 16Gi
-  #   requests:
   #     cpu: 4000m
   #     memory: 16Gi
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 5Gi
   securityContext:
     enabled: true
     runAsUser: 101
@@ -236,11 +238,11 @@ queryService:
   # adjust the resource requests and limit as necessary
   resources:
     requests:
-      cpu: 100m
-      memory: 100Mi
-    limits:
       cpu: 200m
-      memory: 200Mi
+      memory: 300Mi
+    limits:
+      cpu: 750m
+      memory: 1000Mi
 
   nodeSelector: {}
 
@@ -450,6 +452,7 @@ otelCollector:
       signozSpanmetricsPrometheus:
         metricsExporter: prometheus
         latencyHistogramBuckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
+        dimensionsCacheSize: 10000
       memoryLimiter: {}
       #   # 80% of maximum memory up to 2G
       #   limitMib: 1500

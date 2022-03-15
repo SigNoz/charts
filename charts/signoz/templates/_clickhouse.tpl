@@ -81,7 +81,7 @@ Return the ClickHouse secret key
 Return the external ClickHouse password
 */}}
 {{- define "clickhouse.externalPasswordKey" -}}
-{{- if .Values.externalClickhouse.existingSecret }}
+{{- if .Values.externalClickhouse.user }}
   {{- required "externalClickhouse.password is required if using external clickhouse" .Values.externalClickhouse.password -}}
 {{- end -}}
 {{- end -}}

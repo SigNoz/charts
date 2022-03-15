@@ -60,14 +60,14 @@ spec:
             value: http://{{ include "alertmanager.servicename" . }}:{{ include "alertmanager.port" . }}/api/
           - name: GODEBUG
             value: {{ .Values.queryService.configVars.goDebug }}
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
+          livenessProbe:
+            httpGet:
+              path: /api/v1/version
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/v1/version
+              port: http
           volumeMounts:
           - name: prometheus
             mountPath: /root/config

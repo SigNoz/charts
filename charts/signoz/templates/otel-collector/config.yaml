@@ -31,6 +31,7 @@ data:
         metrics_exporter: {{ .signozSpanmetricsPrometheus.metricsExporter }}
         latency_histogram_buckets:
           {{- toYaml .signozSpanmetricsPrometheus.latencyHistogramBuckets | nindent 10 }}
+        dimensions_cache_size: {{ .signozSpanmetricsPrometheus.dimensionsCacheSize }}
       memory_limiter:
         {{- toYaml .memory_limiter | nindent 8 }}
       {{- if .queuedRetry }}
