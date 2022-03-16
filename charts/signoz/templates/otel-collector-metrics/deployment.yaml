@@ -13,6 +13,8 @@ spec:
   replicas: {{ .Values.frontend.replicaCount }} # adjust replica count to your own requirements
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/otel-collector-metrics/config.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollectorMetrics.selectorLabels" . | nindent 8 }}
     spec:
@@ -30,17 +32,16 @@ spec:
             {{- end }}
             - sh
             - -c
-            - until wget --spider -q {{ $clickhousehost }}:{{ .port }}/{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end -}}
         {{- end }}
       containers:
       - name: {{ template "otelCollectorMetrics.fullname" . }}
-        image: {{ .Values.otelCollectorMetrics.image.repository }}:{{ .Values.otelCollectorMetrics.image.tag }}
+        image: {{ template "otelCollectorMetrics.image" . }}
         imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
-          - "--mem-ballast-size-mib={{ .Values.otelCollectorMetrics.ballastSizeMib }}"
         volumeMounts:
         - name: otel-collector-metrics-config-vol
           mountPath: /conf

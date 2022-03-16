@@ -1,106 +1,149 @@
-{{ if (eq (.Values.cloud | toString) "gcp" )}}
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: gce-resizable
-provisioner: kubernetes.io/gce-pd
-parameters:
-  type: pd-standard
-  fstype: ext4
-  replication-type: none
-reclaimPolicy: Retain
-#volumeBindingMode: Immediate
-allowVolumeExpansion: true
----
-{{- else if (eq (.Values.cloud | toString) "aws") }}
-#
-# AWS resizable disk example
-#
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: gp2-resizable
-provisioner: kubernetes.io/aws-ebs
-parameters:
-  type: gp2
-reclaimPolicy: Retain
-#volumeBindingMode: Immediate
-allowVolumeExpansion: true
----
-{{- end }}
+{{- if .Values.enabled }}
 apiVersion: "clickhouse.altinity.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
-  name: signoz
+  name: "signoz"
 spec:
   defaults:
     templates:
-      dataVolumeClaimTemplate: default-volume-claim
-      # logVolumeClaimTemplate: default-volume-claim
-      serviceTemplate: chi-service-template
+      {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
+      dataVolumeClaimTemplate: data-volumeclaim-template
+      # logVolumeClaimTemplate: data-volumeclaim-template
+      {{- end }}
+      serviceTemplate: service-template
   configuration:
+    users:
+      {{ .Values.user }}/password: {{ .Values.password }}
+      {{ .Values.user }}/networks/ip: "0.0.0.0/0"
+      {{ .Values.user }}/profile: default
+      {{ .Values.user }}/quota: default
+
+    profiles:
+      {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
+
+    clusters:
+      - name: {{ .Values.cluster | quote }}
+        templates:
+          podTemplate: pod-template
+        layout:
+          shardsCount: {{ .Values.shardsCount }}
+          replicasCount: {{ .Values.replicasCount }}
+
+    settings:
+      format_schema_path: /etc/clickhouse-server/config.d/
+
+    files:
+      events.proto: |
+        syntax = "proto3";
+        message Event {
+          string uuid = 1;
+          string event = 2;
+          string properties = 3;
+          string timestamp = 4;
+          uint64 team_id = 5;
+          string distinct_id = 6;
+          string created_at = 7;
+          string elements_chain = 8;
+        }
+
     zookeeper:
       nodes:
-        - host: signoz-zookeeper
-          port: 2181
-      session_timeout_ms: 6000
-    clusters:
-      - name: cluster
-        # Templates are specified for this cluster explicitly
-        templates:
-          dataVolumeClaimTemplate: default-volume-claim
-          # logVolumeClaimTemplate: default-volume-claim
-          podTemplate: pod-template-with-volume
-        layout:
-          shardsCount: 1
-          replicasCount: 1
+      {{- if .Values.externalZookeeper }}
+      {{ toYaml .Values.externalZookeeper.servers | indent 4 }}
+      {{- else }}
+        - host: {{ include "clickhouse.zookeeper.servicename" . }}
+          port: {{ include "clickhouse.zookeeper.port" . }}
+      {{- end }}
+
   templates:
-    hostTemplates:
-      - name: port-distribution
-        portDistribution:
-          - type: ClusterScopeIndex
-        spec:
-          tcpPort: 9000
-          httpPort: 8123
-          interserverHTTPPort: 9009
     podTemplates:
-      - name: pod-template-with-volume
+      - name: pod-template
         spec:
+          {{- if .Values.affinity }}
+          affinity: {{ toYaml .Values.affinity | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations }}
+          tolerations: {{ toYaml .Values.tolerations | nindent 12 }}
+          {{- end }}
+          {{- if .Values.nodeSelector }}
+          nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.persistence.enabled }}
+          volumes:
+          {{- if .Values.persistence.existingClaim }}
+            - name: existing-volumeclaim
+              persistentVolumeClaim:
+                claimName: {{ .Values.persistence.existingClaim }}
+          {{- else }}
+            - name: data-volumeclaim-template
+              persistentVolumeClaim:
+                claimName: data-volumeclaim-template
+          {{- end }}
+          {{- end }}
+
+          {{- if .Values.securityContext.enabled }}
+          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
           containers:
             - name: clickhouse
-              image: yandex/clickhouse-server:21.7
+              image: {{ template "clickhouse.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - /bin/bash
+                - -c
+                - /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml
+
+              ports:
+                - name: http
+                  containerPort: 8123
+                - name: client
+                  containerPort: 9000
+                - name: interserver
+                  containerPort: 9009
+
+              {{- if .Values.persistence.enabled }}
               volumeMounts:
-                - name: default-volume-claim
+              {{- if .Values.persistence.existingClaim }}
+                - name: existing-volumeclaim
+              {{- else }}
+                - name: data-volumeclaim-template
+              {{- end }}
                   mountPath: /var/lib/clickhouse
-                - name: initdb
-                  mountPath: /docker-entrypoint-initdb.d
-          volumes:
-            - name: initdb
-              configMap:
-                name: initdb-config
+              {{- end }}
+
+              {{- if .Values.useNodeSelector }}
+              nodeSelector:
+                clickhouse: true
+              {{- end }}
+
+              {{- if .Values.resources }}
+              resources: {{ toYaml .Values.resources | nindent 16 }}
+              {{- end }}
+
     serviceTemplates:
-      - name: chi-service-template
-        generateName: signoz-clickhouse
+      - name: service-template
+        generateName: {{ include "clickhouse.fullname" . }}
         spec:
           ports:
             - name: http
               port: 8123
             - name: tcp
               port: 9000
-          type: {{ .Values.clickhouseOperator.serviceType }}
+          type: {{ .Values.serviceType | quote }}
+
+    {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
     volumeClaimTemplates:
-      - name: default-volume-claim
-        reclaimPolicy: Retain
+      - name: data-volumeclaim-template
         spec:
-          {{- if (eq (.Values.cloud | toString) "gcp" )}}
-          storageClassName: gce-resizable
-          {{- else if (eq (.Values.cloud | toString) "aws") }}
-          storageClassName: gp2-resizable
-          {{- else if (eq (.Values.cloud | toString) "hcloud") }}
-          storageClassName: hcloud-volumes
+          {{- if .Values.persistence.storageClass }}
+          storageClassName: {{ .Values.persistence.storageClass }}
           {{- end }}
           accessModes:
             - ReadWriteOnce
           resources:
             requests:
-              storage: {{ .Values.clickhouseOperator.storage | quote }}
+              storage: {{ .Values.persistence.size | quote }}
+    {{- end }}
+
+{{- end }}

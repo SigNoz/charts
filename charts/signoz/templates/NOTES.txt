@@ -4,6 +4,7 @@
 - frontend version: '{{ .Values.frontend.image.tag }}'
 - query-service version: '{{ .Values.queryService.image.tag }}'
 - otel-collector version: '{{ .Values.otelCollector.image.tag }}'
+- otel-collector-metrics version: '{{ .Values.otelCollectorMetrics.image.tag }}'
 
 2. Get the application URL by running these commands:
 
@@ -31,8 +32,8 @@
 {{- else if contains "ClusterIP" .Values.frontend.service.type }}
 
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component={{ .Values.frontend.name }}" -o jsonpath="{.items[0].metadata.name}")
-  echo "Visit http://127.0.0.1:8080 to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 3301:3301
+  echo "Visit http://127.0.0.1:{{ .Values.frontend.service.port }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }}
 
 {{- end }}
 

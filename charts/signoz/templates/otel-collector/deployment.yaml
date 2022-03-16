@@ -13,6 +13,8 @@ spec:
   replicas: {{ .Values.frontend.replicaCount }} # adjust replica count to your own requirements
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/otel-collector/config.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
     spec:
@@ -24,23 +26,18 @@ spec:
           imagePullPolicy: {{ .Values.otelCollector.initContainers.init.image.pullPolicy }}
           {{- with .Values.otelCollector.initContainers.init.command }}
           command:
-            {{- $clickhousehost := print (include "clickhouse.servicename" $) -}}
-            {{- if hasKey . "clickhouseHostOverride" -}}
-            {{- $clickhousehost = .clickhouseHostOverride -}}
-            {{- end }}
             - sh
             - -c
-            - until wget --spider -q {{ $clickhousehost }}:{{ .port }}/{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end -}}
         {{- end }}
       containers:
       - name: {{ template "otelCollector.fullname" . }}
-        image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
+        image: {{ template "otelCollector.image" . }}
         imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-config.yaml"
-          - "--mem-ballast-size-mib={{ .Values.otelCollector.ballastSizeMib }}"
         volumeMounts:
           - name: otel-collector-config-vol
             mountPath: /conf

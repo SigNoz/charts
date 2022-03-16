@@ -1,18 +1,18 @@
-{{- if .Values.clickhouseOperator.enabled }}
+{{- if .Values.enabled }}
 # Template Parameters:
 #
-# NAMESPACE=posthog
+# NAMESPACE=platform
 # COMMENT=#
 # ROLE_KIND=ClusterRole
-# ROLE_NAME=clickhouse-operator-posthog
+# ROLE_NAME=clickhouse-operator-signoz
 # ROLE_BINDING_KIND=ClusterRoleBinding
-# ROLE_BINDING_NAME=clickhouse-operator-posthog
+# ROLE_BINDING_NAME=clickhouse-operator-signoz
 #
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: clickhouse-operator-posthog
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  name: clickhouse-operator-signoz
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 rules:
 - apiGroups:
     - ""

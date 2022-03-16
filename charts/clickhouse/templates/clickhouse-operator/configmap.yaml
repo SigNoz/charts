@@ -1,15 +1,15 @@
-{{- if .Values.clickhouseOperator.enabled }}
+{{- if .Values.enabled }}
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-files
-# NAMESPACE=posthog
+# NAMESPACE=platform
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etc-clickhouse-operator-files
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 data:
@@ -183,14 +183,14 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-confd-files
-# NAMESPACE=posthog
+# NAMESPACE=signoz
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etc-clickhouse-operator-confd-files
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 data:
@@ -200,14 +200,14 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-configd-files
-# NAMESPACE=posthog
+# NAMESPACE=signoz
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etc-clickhouse-operator-configd-files
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 data:
@@ -259,14 +259,14 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-templatesd-files
-# NAMESPACE=posthog
+# NAMESPACE=signoz
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etc-clickhouse-operator-templatesd-files
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 data:
@@ -360,14 +360,14 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-usersd-files
-# NAMESPACE=posthog
+# NAMESPACE=signoz
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etc-clickhouse-operator-usersd-files
-  namespace: {{ .Values.clickhouseOperator.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     app: clickhouse-operator
 data:

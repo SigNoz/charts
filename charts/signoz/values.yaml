@@ -1,13 +1,21 @@
 # Default values for SigNoz.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-fullnameOverride: ""
-nameOverride: ""
 
+# SigNoz chart full name override
+fullnameOverride: ""
+
+
+# Clickhouse default values
 clickhouse:
-  fullnameOverride: signoz-clickhouse
-  zookeeper:
-    fullnameOverride: signoz-zookeeper
+  # fullnameOverride: signoz-clickhouse
+  # zookeeper:
+  #   fullnameOverride: signoz-zookeeper
+
+  # clickhouse service
+  service:
+    httpPort: 8123
+    tcpPort: 9000
 
   # Based on the cloud, storage class for the persistent volume is selected.
   # We can pass anyone of ['aws','gcp','hcloud'].
@@ -16,49 +24,156 @@ clickhouse:
   # cloud:
 
   # We can override the storage class for the persistent volume.
-  # Also, note that 'storageClassOverride' takes more precedence than 'cloud'.
+  # Also, note that 'storageClass' takes more precedence than 'cloud'.
   # So if you set both of the configurations, 'cloud' will be no-op.
-  # storageClassOverride:
+  # storageClass:
 
-  # clickhouse service
-  service:
-    httpPort: 8123
-    tcpPort: 9000
+  # -- Cloud service being deployed on (example: `aws`, `gcp`, `azure`, `hcloud`, `other`).
+  # cloud:
 
-  clickhouseOperator:
+  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+  enabled: true
+
+  # -- Name override for clickhouse
+  # nameOverride: clickhouse
+
+  # -- Name override for clickhouse
+  # fullnameOverride: signoz-clickhouse
+
+  # -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
+  namespace:
+  # -- Clickhouse cluster
+  cluster: cluster
+  # -- Clickhouse database
+  database: signoz_metrics
+  # -- Clickhouse user
+  user: admin
+  # -- Clickhouse password
+  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+
+  # -- Clickhouse cluster shards
+  shardsCount: 1
+  # -- Clickhouse cluster replicas
+  replicasCount: 1
+
+  # -- Clickhouse image
+  image:
+    # -- Clickhouse image registry to use.
+    registry: docker.io
+    # -- Clickhouse image repository to use.
+    repository: yandex/clickhouse-server
+    # -- Clickhouse image tag to use (example: `21.8`).
+    #    SigNoz is not always tested with latest version of ClickHouse.
+    #    Only if you know what you are doing, proceed with overriding.
+    tag: 21.12.3.32
+    # -- Clickhouse image pull policy.
+    pullPolicy: IfNotPresent
+
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS certificate on connection to ClickHouse
+  verify: false
+  # externalZookeeper:
+  # -- URL for zookeeper.
+  # servers:
+  # - host: signoz-signoz-zookeeper
+  #   port: 2181
+
+  # -- Toleration labels for clickhouse pod assignment
+  tolerations: []
+  # -- Affinity settings for clickhouse pod
+  affinity: {}
+  # -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
+  resources: {}
+  #   limits:
+  #     cpu: 4000m
+  #     memory: 16Gi
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 5Gi
+  securityContext:
     enabled: true
-    storage: 20Gi
-    serviceType: ClusterIP
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+
+  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+  serviceType: ClusterIP
+
+  # -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
+  useNodeSelector: false
+
+  persistence:
+    # -- Enable data persistence using PVC.
+    enabled: true
+
+    # -- Use a manually managed Persistent Volume and Claim.
+    #    If defined, PVC must be created manually before volume will be bound.
+    #
+    existingClaim: ""
+
+    # -- Persistent Volume Storage Class to use.
+    #    If defined, `storageClassName: <storageClass>`.
+    #    If set to `storageClassName: ""`, disables dynamic provisioning.
+    #    If undefined (the default) or set to `null`, no storageClassName spec is
+    #    set, choosing the default provisioneralertmanager
+    # -- Persistent Volume size
+    size: 20Gi
+
+  ## -- Clickhouse user profile configuration.
+  ## You can use this to override settings, for example `default/max_memory_usage: 40000000000`
+  ## For a full list of clickhouse settings, see https://clickhouse.com/docs/en/operations/settings/settings/
+  profiles: {}
+
+  ## -- Default user profile configuration for Clickhouse. Don't overwrite this!
+  defaultProfiles:
+    default/allow_experimental_window_functions: "1"
+
+  ###
+  ###
+  ### ---- MISC ----
+  ###
+  ###
+
+  # When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+  # it creates custom storage class with volume expansion permission.
+  installCustomStorageClass: false
+
+
+## External clickhouse configuration
+## This is required when clickhouse.enabled is false
+##
+externalClickhouse:
+  # -- Host of the external cluster.
+  host:
+  # -- Name of the external cluster to run DDL queries on.
+  cluster:
+  # -- Database name for the external cluster
+  database: signoz
+  # -- User name for the external cluster to connect to the external cluster as
+  user:
+  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  password:
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret:
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey:
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS connection connecting to ClickHouse
+  verify: false
 
 
 # Default values for query-service
 queryService:
   name: "query-service"
   replicaCount: 1
-
   image:
+    registry: docker.io
     repository: signoz/query-service
-    tag: 0.6.1
+    tag: 0.7.1
     pullPolicy: IfNotPresent
-
   imagePullSecrets: []
-
-  initContainers:
-    init:
-      enabled: true
-      image:
-        # registry:
-        repository: busybox
-        tag: 1.35
-      command: ["sh", "-c", 'until wget --spider -q signoz-clickhouse:8123/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting query service now";']
-
-  configVars:
-    DruidClientUrl: http://signoz-druid-router:8888
-    DruidDatasource: flattened_spans
-    ClickHouseUrl: http://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
-    STORAGE: clickhouse
-    POSTHOG_API_KEY: "H-htDCae7CR3RV57gUzmol6IAKtm5IMCvbcm_fwnL-w"
-
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -67,6 +182,27 @@ queryService:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting query service now"
+  configVars:
+    druidClientUrl: http://signoz-druid-router:8888
+    druidDatasource: flattened_spans
+    # ClickHouse URL is set and applied internally.
+    # Don't override unless you know what you are doing.
+    # clickHouseUrl: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
+    storage: clickhouse
+    goDebug: netdns=go
 
   podSecurityContext:
     {}
@@ -102,11 +238,11 @@ queryService:
   # adjust the resource requests and limit as necessary
   resources:
     requests:
-      cpu: 100m
-      memory: 100Mi
-    limits:
       cpu: 200m
-      memory: 200Mi
+      memory: 300Mi
+    limits:
+      cpu: 750m
+      memory: 1000Mi
 
   nodeSelector: {}
 
@@ -121,14 +257,11 @@ frontend:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: signoz/frontend
-    tag: 0.6.1
+    tag: 0.7.1
     pullPolicy: IfNotPresent
-
   imagePullSecrets: []
-
-  configVars: {}
-
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -137,6 +270,8 @@ frontend:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  configVars: {}
 
   podSecurityContext:
     {}
@@ -186,13 +321,15 @@ frontend:
 
 
 alertmanager:
-  name: "alertmanager"
+  # name: "alertmanager"
   # fullnameOverride: "signoz-alertmanager"
   image:
+    registry: docker.io
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "0.5.0"
+    tag: 0.5.0
+  imagePullSecrets: []
   service:
     annotations: {}
     type: ClusterIP
@@ -218,35 +355,17 @@ alertmanager:
       - ReadWriteOnce
     size: 100Mi
 
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
-    tag: "0.5.0"
+    tag: 0.43.0
     pullPolicy: IfNotPresent
-
-  minReadySeconds: 5
-  progressDeadlineSeconds: 120
-  replicas: 1
-  ballastSizeMib: 683
-
-  initContainers:
-    init:
-      enabled: true
-      image:
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        delay: 5
-        # clickhouseHostOverride:
-        port: 8123  # Default http port for clickhouse
-        endpoint: ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting otel collector now"
-
   serviceType: "ClusterIP"
+  imagePullSecrets: []
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -255,13 +374,30 @@ otelCollector:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
-
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
+  ballastSizeMib: 683
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector now"
   # ports used by the container
   ports:
     zPages: 55679                     # Default endpoint for ZPages.
-    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
-    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
-    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
+    otelGrpcReceiver: 4317            # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318            # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680     # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681     # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
     jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
     jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
     zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
@@ -304,9 +440,6 @@ otelCollector:
       memory: 2Gi
 
   # configurations to form the file in configmap
-  # Note: any of the following configuration update action will not be applied immediately for the pods.
-  #       either you can change the configmap name and update the same in the deployment/statefulset
-  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
   config:
     receivers:
       otlpSpanmetrics:
@@ -320,14 +453,13 @@ otelCollector:
       signozSpanmetricsPrometheus:
         metricsExporter: prometheus
         latencyHistogramBuckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
-      memoryLimiter:
-        # Same as --mem-ballast-size-mib CLI argument
-        ballastSizeMib: 683
-        # 80% of maximum memory up to 2G
-        limitMib: 1500
-        # 25% of limit up to 2G
-        spikeLimitMib: 512
-        checkInterval: 5s
+        dimensionsCacheSize: 10000
+      memoryLimiter: {}
+      #   # 80% of maximum memory up to 2G
+      #   limitMib: 1500
+      #   # 25% of limit up to 2G
+      #   spikeLimitMib: 512
+      #   checkInterval: 5s
       # queuedRetry:
       #   numWorkers: 4
       #   queueSize: 100
@@ -337,20 +469,15 @@ otelCollector:
       zpages: {}
     exporters:
       clickhouse:
-        datasource:
-          username: clickhouse_operator
-          password: clickhouse_operator_password
-          # clickhouseOverride:
-          #   host:
-          #   port:
+        datasource: {}
+          # ClickHouse datasource URL is set and applied internally.
+          # Don't override unless you know what you are doing.
+          # clickhouseUrlOverride:
       clickhousemetricswrite:
-        endpoint:
-          # clickhouseOverride:
-          #   host:
-          #   port:
-          username: clickhouse_operator
-          password: clickhouse_operator_password
-          database: signoz_metrics
+        endpoint: {}
+          # ClickHouse metrics write URL is set and applied internally.
+          # Don't override unless you know what you are doing.
+          # clickhouseUrlOverride:
         resourceToTelemetryConversion:
           enabled: true
       prometheus:
@@ -370,34 +497,16 @@ otelCollector:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
 
+
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
   name: "otel-collector-metrics"
   image:
+    registry: docker.io
     repository: signoz/otelcontribcol
-    tag: "0.5.0"
+    tag: 0.43.0
     pullPolicy: IfNotPresent
-
-  minReadySeconds: 5
-  progressDeadlineSeconds: 120
-  replicas: 1
-  ballastSizeMib: 683
-
-  initContainers:
-    init:
-      enabled: true
-      image:
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        delay: 5
-        # clickhouseHostOverride:
-        port: 8123
-        endpoint: ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting otel collector metrics now"
-
+  imagePullSecrets: []
   serviceType: "ClusterIP"
   serviceAccount:
     # Specifies whether a service account should be created
@@ -408,16 +517,35 @@ otelCollectorMetrics:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
+  ballastSizeMib: 683
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector metrics now"
+
   # ports used by the container
   ports:
-    zPages: 55679                     # Default endpoint for ZPages.
-    openTelemetryReceiver: 55680      # Default endpoint for OpenTelemetry receiver.
-    openTelemetryHttpReceiver: 55681  # Default endpoint for OpenTelemetry HTTP/1.0 receiver.
-    openTelemetryGrpcReceiver: 4317   # Default endpoint for OpenTelemetry GRPC receiver.
-    jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888             # Default endpoint for querying metrics.
+    zPages: 55679                   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317          # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318          # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
+    jaegerGrpcReceiver: 14250       # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268       # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411            # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888           # Default endpoint for querying metrics.
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -455,9 +583,6 @@ otelCollectorMetrics:
       memory: 2Gi
 
   # configurations to form the file in configmap
-  # Note: any of the following configuration update action will not be applied immediately for the pods.
-  #       either you can change the configmap name and update the same in the deployment/statefulset
-  #       or you can delete the existing pod, that way new pod is spawned with updated configuration.
   config:
     receivers:
       prometheus:
@@ -470,14 +595,12 @@ otelCollectorMetrics:
       batch:
         sendBatchSize: 1000
         timeout: 10s
-      memoryLimiter:
-        # Same as --mem-ballast-size-mib CLI argument
-        ballastSizeMib: 683
-        # 80% of maximum memory up to 2G
-        limitMib: 1500
-        # 25% of limit up to 2G
-        spikeLimitMib: 512
-        checkInterval: 5s
+      memoryLimiter: {}
+        # # 80% of maximum memory up to 2G
+        # limitMib: 1500
+        # # 25% of limit up to 2G
+        # spikeLimitMib: 512
+        # checkInterval: 5s
       # queuedRetry:
       #   numWorkers: 4
       #   queueSize: 100
@@ -487,13 +610,10 @@ otelCollectorMetrics:
       zpages: {}
     exporters:
       clickhousemetricswrite:
-        endpoint:
-          # clickhouseOverride:
-          #   host:
-          #   port:
-          username: clickhouse_operator
-          password: clickhouse_operator_password
-          database: signoz_metrics
+        endpoint: {}
+          # ClickHouse metrics URL is set and applied internally.
+          # Don't override unless you know what you are doing.
+          # clickhouseUrlOverride:
     service:
       extensions: [health_check, zpages]
       pipelines:

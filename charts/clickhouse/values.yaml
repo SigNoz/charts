@@ -1,12 +1,137 @@
-# zookeeper auto purge interval prevents full disk space error
+# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `other`).
+cloud:
+
+###
+###
+### ---- ZOOKEEPER ----
+###
+###
 zookeeper:
-  fullnameOverride: signoz-zookeeper
+  # -- Please DO NOT override this value.
+  #    This chart installs Zookeeper separately.
+  #    Only if you know what you are doing, proceed with overriding.
+  enabled: true
   autopurge:
     purgeInterval: 1
+  # -- Name override for zookeeper app
+  # nameOverride: signoz-zookeeper
+  # -- Fullname override for zookeeper app
+  fullnameOverride: ""
+  # -- replica count for zookeeper
+  replicaCount: 1
 
-# cloud:
+###
+###
+### ---- CLICKHOUSE ----
+###
+###
+# -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+enabled: true
 
-clickhouseOperator:
+# -- Name override for clickhouse
+# nameOverride: clickhouse
+
+# -- Name override for clickhouse
+# fullnameOverride: signoz-clickhouse
+
+# -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
+namespace:
+# -- Clickhouse cluster
+cluster: cluster
+# -- Clickhouse database
+database: signoz_metrics
+# -- Clickhouse user
+user: admin
+# -- Clickhouse password
+password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+
+# -- Clickhouse cluster replicas
+replicasCount: 1
+# -- Clickhouse cluster shards
+shardsCount: 1
+
+# -- Clickhouse image
+image:
+  # -- Clickhouse image registry to use.
+  registry: docker.io
+  # -- Clickhouse image repository to use.
+  repository: yandex/clickhouse-server
+  # -- Clickhouse image tag.
+  #    Note: SigNoz does not support all versions of ClickHouse.
+  #    Please override the default only if you know what you are doing.
+  tag: 21.12.3.32
+  # -- Clickhouse image pull policy.
+  pullPolicy: IfNotPresent
+
+# -- Whether to use TLS connection connecting to ClickHouse
+secure: false
+# -- Whether to verify TLS certificate on connection to ClickHouse
+verify: false
+# externalZookeeper:
+# -- URL for zookeeper.
+# servers:
+# - host: signoz-zookeeper
+#   port: 2181
+
+# -- Toleration labels for clickhouse pod assignment
+tolerations: []
+# -- Affinity settings for clickhouse pod
+affinity: {}
+# -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
+resources: {}
+#   limits:
+#     cpu: 1000m
+#     memory: 16Gi
+#   requests:
+#     cpu: 4000m
+#     memory: 16Gi
+securityContext:
   enabled: true
-  storage: 20Gi
-  serviceType: ClusterIP
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+
+# -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+serviceType: ClusterIP
+
+# -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
+useNodeSelector: false
+
+persistence:
+  # -- Enable data persistence using PVC.
+  enabled: true
+
+  # -- Use a manually managed Persistent Volume and Claim.
+  #    If defined, PVC must be created manually before volume will be bound.
+  #
+  existingClaim: ""
+
+  # -- Persistent Volume Storage Class to use.
+  #    If defined, `storageClassName: <storageClass>`.
+  #    If set to `storageClassName: ""`, disables dynamic provisioning.
+  #    If undefined (the default) or set to `null`, no storageClassName spec is
+  #    set, choosing the default provisioner.
+  #
+  storageClass: null
+
+  # -- Persistent Volume size
+  size: 20Gi
+
+## -- Clickhouse user profile configuration.
+## You can use this to override settings, for example `default/max_memory_usage: 40000000000`
+## For a full list of clickhouse settings, see https://clickhouse.com/docs/en/operations/settings/settings/
+profiles: {}
+
+## -- Default user profile configuration for Clickhouse. Don't overwrite this!
+defaultProfiles:
+  default/allow_experimental_window_functions: "1"
+
+###
+###
+### ---- MISC ----
+###
+###
+
+# When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+# it creates custom storage class with volume expansion permission.
+installCustomStorageClass: false

@@ -7,12 +7,14 @@ metadata:
 spec:
   type: {{ .Values.otelCollectorMetrics.serviceType }}
   ports:
-  - name: otlp
-    port: {{ .Values.otelCollectorMetrics.ports.openTelemetryReceiver }}
-  - name: otlp-http-legacy
-    port: {{ .Values.otelCollectorMetrics.ports.openTelemetryHttpReceiver }}
   - name: otlp-grpc
-    port: {{ .Values.otelCollectorMetrics.ports.openTelemetryGrpcReceiver }}
+    port: {{ .Values.otelCollector.ports.otelGrpcReceiver }}
+  - name: otlp-http
+    port: {{ .Values.otelCollector.ports.otelHttpReceiver }}
+  - name: otlp-grpc-legacy
+    port: {{ .Values.otelCollector.ports.otelGrpcLegacyReceiver }}
+  - name: otlp-http-legacy
+    port: {{ .Values.otelCollector.ports.otelHttpLegacyReceiver }}
   - name: jaeger-grpc
     port: {{ .Values.otelCollectorMetrics.ports.jaegerGrpcReceiver }}
   - name: jaeger-thrift-http

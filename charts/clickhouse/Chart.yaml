@@ -2,13 +2,13 @@ apiVersion: v2
 name: clickhouse
 description: A Helm chart for ClickHouse
 type: application
-version: 9.1.0
-appVersion: "21.7"
+version: 16.0.2
+appVersion: "21.12.3.32"
 icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
 dependencies:
   - name: zookeeper
     repository: "https://charts.bitnami.com/bitnami"
-    version: 6.0.0
+    version: 7.0.5
 maintainers:
   - name: signoz
     email: hello@signoz.io
