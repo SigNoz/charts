@@ -25,10 +25,10 @@ data:
         try_files $uri $uri/ /index.html;
       }
       location /api/alertmanager {
-        proxy_pass http://{{ include "alertmanager.servicename" . }}:{{ include "alertmanager.port" . }}/api/v2;
+        proxy_pass http://{{ include "alertmanager.url" . }}/api/v2;
       }
       location /api {
-        proxy_pass http://{{ include "queryService.fullname" . }}:{{ .Values.queryService.service.port }}/api;
+        proxy_pass http://{{ include "queryService.url" . }}/api;
       }
 
       # redirect server error pages to the static page /50x.html

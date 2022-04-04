@@ -100,6 +100,19 @@ Return the proper queryService image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Set query-service port
+*/}}
+{{- define "queryService.port" -}}
+{{- default 8080 .Values.queryService.service.port  -}}
+{{- end -}}
+
+{{/*
+Set query-service url
+*/}}
+{{- define "queryService.url" -}}
+{{ include "queryService.fullname" . }}:{{ include "queryService.port" . }}
+{{- end -}}
 
 
 {{/*
@@ -154,6 +167,103 @@ Return the proper frontend image name
 {{- else -}}
     {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Return the initContainers image name
+*/}}
+{{- define "frontend.initContainers.init.image" -}}
+{{- $registryName := .Values.frontend.initContainers.init.image.registry -}}
+{{- $repositoryName := .Values.frontend.initContainers.init.image.repository -}}
+{{- $tag := .Values.frontend.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "alertmanager.fullname" -}}
+{{- printf "%s-%s" (include "signoz.fullname" .) .Values.alertmanager.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "alertmanager.labels" -}}
+helm.sh/chart: {{ include "signoz.chart" . }}
+{{ include "alertmanager.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "alertmanager.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "signoz.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ .Values.alertmanager.name }}
+{{- end -}}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "alertmanager.serviceAccountName" -}}
+{{- if .Values.alertmanager.serviceAccount.create -}}
+    {{ default (include "alertmanager.fullname" .) .Values.alertmanager.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.alertmanager.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Set alertmanager port
+*/}}
+{{- define "alertmanager.port" -}}
+{{- default 9093 .Values.alertmanager.service.port  -}}
+{{- end -}}
+
+{{/*
+Return the initContainers image name
+*/}}
+{{- define "alertmanager.initContainers.init.image" -}}
+{{- $registryName := .Values.alertmanager.initContainers.init.image.registry -}}
+{{- $repositoryName := .Values.alertmanager.initContainers.init.image.repository -}}
+{{- $tag := .Values.alertmanager.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper otelCollector image name
+*/}}
+{{- define "alertmanager.image" -}}
+{{- $registryName := .Values.alertmanager.image.registry -}}
+{{- $repositoryName := .Values.alertmanager.image.repository -}}
+{{- $tag := .Values.alertmanager.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Set query-service url
+*/}}
+{{- define "alertmanager.url" -}}
+{{ include "alertmanager.fullname" . }}:{{ include "alertmanager.port" . }}
 {{- end -}}
 
 
@@ -324,28 +434,4 @@ Set Clickhouse tcp port
 */}}
 {{- define "clickhouse.tcpPort" -}}
 {{- 9000 -}}
-{{- end -}}
-
-
-{{/*
-Return the service name of Alertmanager
-*/}}
-{{- define "alertmanager.servicename" -}}
-{{- if .Values.alertmanager.fullnameOverride -}}
-{{- .Values.alertmanager.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default "alertmanager" .Values.alertmanager.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end }}
-
-{{/*
-Set alertmanager port
-*/}}
-{{- define "alertmanager.port" -}}
-{{- default 9093 .Values.alertmanager.service.port  -}}
 {{- end -}}

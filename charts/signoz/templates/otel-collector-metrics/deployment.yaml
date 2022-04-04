@@ -26,10 +26,6 @@ spec:
           imagePullPolicy: {{ .Values.otelCollectorMetrics.initContainers.init.image.pullPolicy }}
           {{- with .Values.otelCollectorMetrics.initContainers.init.command }}
           command:
-            {{- $clickhousehost := print (include "clickhouse.servicename" $) -}}
-            {{- if hasKey . "clickhouseHostOverride" -}}
-            {{- $clickhousehost = .clickhouseHostOverride -}}
-            {{- end }}
             - sh
             - -c
             - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";

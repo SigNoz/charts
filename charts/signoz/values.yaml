@@ -139,6 +139,15 @@ clickhouse:
   # it creates custom storage class with volume expansion permission.
   installCustomStorageClass: false
 
+  # cold storage configuration
+  coldStorage:
+    enabled: false
+    # Set free space size on default disk
+    defaultKeepFreeSpaceBytes: "10485760"   # 10MiB
+    endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+    accessKey: <access_key_id>
+    secretAccess: <secret_access_key>
+
 
 ## External clickhouse configuration
 ## This is required when clickhouse.enabled is false
@@ -171,7 +180,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.7.1
+    tag: 0.7.4
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -196,13 +205,13 @@ queryService:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
   configVars:
-    druidClientUrl: http://signoz-druid-router:8888
-    druidDatasource: flattened_spans
+    storage: clickhouse
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
     # clickHouseUrl: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
-    storage: clickhouse
     goDebug: netdns=go
+    telemetryEnabled: true
+    deploymentType: kubernetes-helm
 
   podSecurityContext:
     {}
@@ -259,7 +268,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.7.1
+    tag: 0.7.4
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -270,6 +279,20 @@ frontend:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /api/v1/version
+        waitMessage: "waiting for query-service"
+        doneMessage: "clickhouse ready, starting frontend now"
 
   configVars: {}
 
@@ -320,20 +343,92 @@ frontend:
   affinity: {}
 
 
+# Default values for Alertmanager
 alertmanager:
-  # name: "alertmanager"
-  # fullnameOverride: "signoz-alertmanager"
+  name: "alertmanager"
+  replicaCount: 1
+
   image:
     registry: docker.io
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.5.0
+    tag: 0.6.0
+
+  command: []
+  extraArgs: {}
+
   imagePullSecrets: []
+
   service:
     annotations: {}
     type: ClusterIP
     port: 9093
+    # if you want to force a specific nodePort. Must be use with service.type=NodePort
+    # nodePort:
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /api/v1/version
+        waitMessage: "waiting for query-service"
+        doneMessage: "clickhouse ready, starting alertmanager now"
+
+  podSecurityContext:
+    fsGroup: 65534
+  dnsConfig: {}
+    # nameservers:
+    #   - 1.2.3.4
+    # searches:
+    #   - ns1.svc.cluster-domain.example
+    #   - my.dns.search.suffix
+    # options:
+    #   - name: ndots
+    #     value: "2"
+    #   - name: edns0
+  securityContext:
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    runAsUser: 65534
+    runAsNonRoot: true
+    runAsGroup: 65534
+
+  additionalPeers: []
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: alertmanager.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - alertmanager.domain.com
+
   resources:
     # adjust the resource requests and limit as necessary
     requests:
@@ -342,6 +437,24 @@ alertmanager:
     limits:
       cpu: 200m
       memory: 200Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  statefulSet:
+    annotations: {}
+
+  podAnnotations: {}
+  podLabels: {}
+
+  # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+  podDisruptionBudget: {}
+    # maxUnavailable: 1
+    # minAvailable: 1
+
   persistence:
     enabled: true
     ## Persistent Volume Storage Class
@@ -355,6 +468,84 @@ alertmanager:
       - ReadWriteOnce
     size: 100Mi
 
+  ## Using the config, alertmanager.yml file is created.
+  ## We no longer need the config file as query services
+  ## delivers the required config.
+  config: {}
+    # global:
+    #   resolve_timeout: 1m
+    #   slack_api_url: 'https://hooks.slack.com/services/xxx'
+
+    # templates:
+    #   - '/etc/alertmanager/*.tmpl'
+
+    # receivers:
+    # - name: 'slack-notifications'
+    #   slack_configs:
+    #   - channel: '#alerts'
+    #     send_resolved: true
+    #     icon_url: https://avatars3.githubusercontent.com/u/3380462
+    #     title: '{{ template "slack.title" . }}'
+    #     text: '{{ template "slack.text" . }}'
+
+    # route:
+    #   receiver: 'slack-notifications'
+
+  ## Templates are no longer needed as they are included
+  ## from frontend placeholder while creating alert channels.
+  # templates:
+  #   title.tmpl: |-
+  #       {{ define "slack.title" }}
+  #       [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+  #       {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+  #         {{" "}}(
+  #         {{- with .CommonLabels.Remove .GroupLabels.Names }}
+  #           {{- range $index, $label := .SortedPairs -}}
+  #             {{ if $index }}, {{ end }}
+  #             {{- $label.Name }}="{{ $label.Value -}}"
+  #           {{- end }}
+  #         {{- end -}}
+  #         )
+  #       {{- end }}
+  #       {{ end }}
+  #   text.tmpl: |-
+  #       {{ define "slack.text" }}
+  #       {{ range .Alerts -}}
+  #       *Alert:* {{ .Labels.alertname }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+
+  #       *Summary:* {{ .Annotations.summary }}
+  #       *Description:* {{ .Annotations.description }}
+
+  #       *Details:*
+  #         {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+  #         {{ end }}
+  #       {{ end }}
+  #       {{ end }}
+
+  ## Monitors ConfigMap changes and POSTs to a URL
+  ## Ref: https://github.com/jimmidyson/configmap-reload
+  ##
+  configmapReload:
+    ## If false, the configmap-reload container will not be deployed
+    ##
+    enabled: false
+
+    ## configmap-reload container name
+    ##
+    name: configmap-reload
+
+    ## configmap-reload container image
+    ##
+    image:
+      repository: jimmidyson/configmap-reload
+      tag: v0.5.0
+      pullPolicy: IfNotPresent
+
+    ## configmap-reload resource requests and limits
+    ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    resources: {}
+
 
 # Default values for OtelCollector
 otelCollector:
@@ -363,7 +554,7 @@ otelCollector:
     registry: docker.io
     repository: signoz/otelcontribcol
     tag: 0.43.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   serviceType: "ClusterIP"
   imagePullSecrets: []
   serviceAccount:
@@ -505,7 +696,7 @@ otelCollectorMetrics:
     registry: docker.io
     repository: signoz/otelcontribcol
     tag: 0.43.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   imagePullSecrets: []
   serviceType: "ClusterIP"
   serviceAccount:

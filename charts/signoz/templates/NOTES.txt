@@ -3,6 +3,7 @@
 
 - frontend version: '{{ .Values.frontend.image.tag }}'
 - query-service version: '{{ .Values.queryService.image.tag }}'
+- alertmanager version: '{{ .Values.alertmanager.image.tag }}'
 - otel-collector version: '{{ .Values.otelCollector.image.tag }}'
 - otel-collector-metrics version: '{{ .Values.otelCollectorMetrics.image.tag }}'
 
