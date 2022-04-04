@@ -205,13 +205,13 @@ queryService:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
   configVars:
-    druidClientUrl: http://signoz-druid-router:8888
-    druidDatasource: flattened_spans
+    storage: clickhouse
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
     # clickHouseUrl: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
-    storage: clickhouse
     goDebug: netdns=go
+    telemetryEnabled: true
+    deploymentType: kubernetes-helm
 
   podSecurityContext:
     {}
