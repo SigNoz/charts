@@ -126,6 +126,16 @@ profiles: {}
 defaultProfiles:
   default/allow_experimental_window_functions: "1"
 
+# cold storage configuration
+coldStorage:
+  enabled: false
+  # Set free space size on default disk
+  defaultKeepFreeSpaceBytes: 10485760 # 10MiB
+  endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+  accessKey: <access_key_id>
+  secretAccess: <secret_access_key>
+
+
 ###
 ###
 ### ---- MISC ----

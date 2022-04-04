@@ -1,4 +1,3 @@
-{{- if .Values.enabled }}
 # Template Parameters:
 #
 # NAMESPACE=platform
@@ -125,5 +124,3 @@ spec:
               mountPath: /etc/clickhouse-operator/templates.d
             - name: etc-clickhouse-operator-usersd-folder
               mountPath: /etc/clickhouse-operator/users.d
-
-{{- end }}

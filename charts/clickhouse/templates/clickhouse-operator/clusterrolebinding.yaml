@@ -1,4 +1,3 @@
-{{- if .Values.enabled }}
 # Setup ClusterRoleBinding between ClusterRole and ServiceAccount.
 # ClusterRoleBinding is namespace-less and must have unique name
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,5 +13,3 @@ subjects:
 - kind: ServiceAccount
   name: clickhouse-operator
   namespace: {{ .Values.namespace | default .Release.Namespace }}
-
-{{- end }}

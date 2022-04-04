@@ -1,4 +1,3 @@
-{{- if .Values.enabled }}
 apiVersion: "clickhouse.altinity.com/v1"
 kind: "ClickHouseInstallation"
 metadata:
@@ -45,6 +44,45 @@ spec:
           string created_at = 7;
           string elements_chain = 8;
         }
+      {{- if .Values.coldStorage.enabled }}
+      config.d/storage.xml: |
+        <yandex>
+          <storage_configuration>
+            <disks>
+              <!--
+                default disk is special, it always exists even if not explicitly configured here,
+                but you can't change it's path here (you should use <path> on top level config instead)
+              -->
+              <default>
+                <!--
+                  You can reserve some amount of free space on any disk (including default) by adding
+                  keep_free_space_bytes tag.
+                -->
+                <keep_free_space_bytes>{{ .Values.coldStorage.defaultKeepFreeSpaceBytes }}</keep_free_space_bytes>
+              </default>
+
+              <s3>
+                <type>s3</type>
+                <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
+                <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
+              </s3>
+            </disks>
+            <policies>
+              <tiered>
+                <volumes>
+                  <default>
+                    <disk>default</disk>
+                  </default>
+                  <s3>
+                    <disk>s3</disk>
+                  </s3>
+                </volumes>
+              </tiered>
+            </policies>
+          </storage_configuration>
+        </yandex>
+      {{- end }}
 
     zookeeper:
       nodes:
@@ -71,15 +109,15 @@ spec:
 
           {{- if .Values.persistence.enabled }}
           volumes:
-          {{- if .Values.persistence.existingClaim }}
+            {{- if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
                 claimName: {{ .Values.persistence.existingClaim }}
-          {{- else }}
+            {{- else }}
             - name: data-volumeclaim-template
               persistentVolumeClaim:
                 claimName: data-volumeclaim-template
-          {{- end }}
+            {{- end }}
           {{- end }}
 
           {{- if .Values.securityContext.enabled }}
@@ -145,5 +183,3 @@ spec:
             requests:
               storage: {{ .Values.persistence.size | quote }}
     {{- end }}
-
-{{- end }}

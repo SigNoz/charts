@@ -1,4 +1,3 @@
-{{- if .Values.enabled }}
 # Template Parameters:
 #
 # NAMESPACE=platform
@@ -22,5 +21,3 @@ spec:
       name: clickhouse-operator-metrics
   selector:
     app: clickhouse-operator
-
-{{- end }}
