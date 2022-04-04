@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "alertmanager.fullname" . }}
+  labels:
+    {{- include "alertmanager.labels" . | nindent 4 }}
+{{- if .Values.alertmanager.statefulSet.annotations }}
+  annotations:
+    {{ toYaml .Values.alertmanager.statefulSet.annotations | nindent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.alertmanager.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "alertmanager.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "alertmanager.fullname" . }}-headless
+  template:
+    metadata:
+      labels:
+        {{- include "alertmanager.selectorLabels" . | nindent 8 }}
+{{- if .Values.alertmanager.podLabels }}
+        {{ toYaml .Values.alertmanager.podLabels | nindent 8 }}
+{{- end }}
+      annotations:
+      {{- if not .Values.alertmanager.configmapReload.enabled }}
+        checksum/config: {{ include (print $.Template.BasePath "/alertmanager/configmap.yaml") . | sha256sum }}
+      {{- end }}
+{{- if .Values.alertmanager.podAnnotations }}
+        {{- toYaml .Values.alertmanager.podAnnotations | nindent 8 }}
+{{- end }}
+    spec:
+    {{- with .Values.alertmanager.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "alertmanager.serviceAccountName" . }}
+    {{- with .Values.alertmanager.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.alertmanager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.alertmanager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.alertmanager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.alertmanager.podSecurityContext | nindent 8 }}
+      {{- if .Values.alertmanager.initContainers.init.enabled }}
+      initContainers:
+        - name: {{ include "alertmanager.fullname" . }}-init
+          image: {{ include "alertmanager.initContainers.init.image" . }}
+          imagePullPolicy: {{ .Values.alertmanager.initContainers.init.image.pullPolicy }}
+          {{- with .Values.alertmanager.initContainers.init.command }}
+          command:
+            - sh
+            - -c
+            - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
+      {{- end }}
+      containers:
+        {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}
+        - name: {{ .Chart.Name }}-{{ .Values.alertmanager.configmapReload.name }}
+          image: "{{ .Values.alertmanager.configmapReload.image.repository }}:{{ .Values.alertmanager.configmapReload.image.tag }}"
+          imagePullPolicy: "{{ .Values.alertmanager.configmapReload.image.pullPolicy }}"
+          args:
+            - --volume-dir=/etc/alertmanager
+            - --webhook-url=http://127.0.0.1:{{ .Values.alertmanager.service.port }}/-/reload
+          resources:
+            {{- toYaml .Values.alertmanager.configmapReload.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+        {{- end }}
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.alertmanager.securityContext | nindent 12 }}
+          image: {{ template "alertmanager.image" . }}
+          imagePullPolicy: {{ .Values.alertmanager.image.pullPolicy }}
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+{{- if .Values.alertmanager.command }}
+          command:
+            {{- toYaml .Values.alertmanager.command | nindent 12 }}
+{{- end }}
+          args:
+            - --storage.path=/alertmanager
+            - --queryService.url=http://{{ include "queryService.url" . }}
+            {{- if or (gt .Values.alertmanager.replicaCount 1.0) (.Values.alertmanager.additionalPeers) }}
+            - --cluster.advertise-address=$(POD_IP):9094
+            - --cluster.listen-address=0.0.0.0:9094
+            {{- end }}
+            {{- if gt .Values.alertmanager.replicaCount 1.0}}
+            {{- $fullName := include "alertmanager.fullname" . }}
+            {{- range $i := until (int .Values.alertmanager.replicaCount) }}
+            - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:9094
+            {{- end }}
+            {{- end }}
+            {{- if .Values.alertmanager.additionalPeers }}
+            {{- range $item := .Values.alertmanager.additionalPeers }}
+            - --cluster.peer={{ $item }}
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.alertmanager.extraArgs }}
+            - --{{ $key }}={{ $value }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 9093
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.alertmanager.config }}
+            - name: config
+              mountPath: /etc/alertmanager
+            {{- end }}
+            - name: storage
+              mountPath: /alertmanager
+      {{- if .Values.alertmanager.config }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "alertmanager.fullname" . }}
+      {{- end }}
+      {{- if .Values.alertmanager.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+      spec:
+        accessModes:
+          {{- toYaml .Values.alertmanager.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.alertmanager.persistence.size }}
+      {{- if .Values.alertmanager.persistence.storageClass }}
+      {{- if (eq "-" .Values.alertmanager.persistence.storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: {{ .Values.alertmanager.persistence.storageClass }}
+      {{- end }}
+      {{- end }}
+{{- else }}
+        - name: storage
+          emptyDir: {}
+{{- end -}}

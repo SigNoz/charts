@@ -27,6 +27,18 @@ spec:
         - name: nginx-config
           configMap:
             name: {{ include "frontend.fullname" . }}
+      {{- if .Values.frontend.initContainers.init.enabled }}
+      initContainers:
+        - name: {{ include "frontend.fullname" . }}-init
+          image: {{ include "frontend.initContainers.init.image" . }}
+          imagePullPolicy: {{ .Values.frontend.initContainers.init.image.pullPolicy }}
+          {{- with .Values.frontend.initContainers.init.command }}
+          command:
+            - sh
+            - -c
+            - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

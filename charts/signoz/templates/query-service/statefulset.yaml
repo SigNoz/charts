@@ -20,13 +20,15 @@ spec:
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
       {{- if .Values.queryService.initContainers.init.enabled }}
       initContainers:
-        - name: {{ include "otelCollectorMetrics.fullname" . }}-init
-          image: {{ include "otelCollectorMetrics.initContainers.init.image" . }}
-          imagePullPolicy: {{ .Values.otelCollectorMetrics.initContainers.init.image.pullPolicy }}
+        - name: {{ include "queryService.fullname" . }}-init
+          image: {{ include "queryService.initContainers.init.image" . }}
+          imagePullPolicy: {{ .Values.queryService.initContainers.init.image.pullPolicy }}
+          {{- with .Values.queryService.initContainers.init.command }}
           command:
             - sh
             - -c
             - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -44,22 +46,22 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-          - name: DruidClientUrl
-            value: {{ .Values.queryService.configVars.druidClientUrl }}
-          - name: DruidDatasource
-            value: {{ .Values.queryService.configVars.druidDatasource }}
-          - name: STORAGE
-            value: {{ .Values.queryService.configVars.storage }}
-          - name: ClickHouseUrl
-            {{ if hasKey .Values.queryService.configVars "clickHouseUrl" -}}
-            value: {{ .Values.queryService.configVars.clickHouseUrl }}
-            {{- else -}}
-            value: tcp://{{ include "clickhouse.url" . }}
-            {{- end }}
-          - name: ALERTMANAGER_API_PREFIX
-            value: http://{{ include "alertmanager.servicename" . }}:{{ include "alertmanager.port" . }}/api/
-          - name: GODEBUG
-            value: {{ .Values.queryService.configVars.goDebug }}
+            - name: STORAGE
+              value: {{ .Values.queryService.configVars.storage }}
+            - name: ClickHouseUrl
+              {{- if hasKey .Values.queryService.configVars "clickHouseUrl" }}
+              value: {{ .Values.queryService.configVars.clickHouseUrl }}
+              {{- else }}
+              value: tcp://{{ include "clickhouse.url" . }}
+              {{- end }}
+            - name: ALERTMANAGER_API_PREFIX
+              value: http://{{ include "alertmanager.url" . }}/api/
+            - name: GODEBUG
+              value: {{ .Values.queryService.configVars.goDebug }}
+            - name: TELEMETRY_ENABLED
+              value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
+            - name: DEPLOYMENT_TYPE
+              value: {{ .Values.queryService.configVars.deploymentType }}
           livenessProbe:
             httpGet:
               path: /api/v1/version

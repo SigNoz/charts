@@ -11,6 +11,6 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "queryService.fullname" . }}:{{ .Values.queryService.service.port }}/api/v1/settings/ttl']
+      args: ['http://{{ include "queryService.url" . }}/api/v1/version']
       # NOTE: replace the path with version or healthcheck URL after the implementation
   restartPolicy: Never

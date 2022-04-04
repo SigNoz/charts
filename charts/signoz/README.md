@@ -71,7 +71,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.name`                      | Query Service component name                                            | `query-service`                   |
 | `queryService.image.registry`            | Query Service image registry name                                       | `docker.io`                       |
 | `queryService.image.repository`          | Container image name                                                    | `signoz/query-service`            |
-| `queryService.image.tag`                 | Container image tag                                                     | `0.7.1`                           |
+| `queryService.image.tag`                 | Container image tag                                                     | `0.7.4`                           |
 | `queryService.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `queryService.replicas`                  | Number of query-service nodes                                           | `1`                               |
 | `queryService.initContainers.init.enabled`      | Query Service initContainer enabled                              | `true`                            |
@@ -82,10 +82,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.initContainers.init.command`      | Query Service initContainer command line to execute              | See `values.yaml` for defaults    |
 | `queryService.configVars`                | Query Service configurations                                            | See `values.yaml` for defaults    |
 | `queryService.imagePullSecrets`          | Reference to secrets to be used when pulling images                     | `[]`                              |
-| `queryService.serviceAccount.create`     | Service account for query-service nodes enabled                         | `false`                           |
+| `queryService.serviceAccount.create`     | Service account for query-service nodes enabled                         | `true`                            |
 | `queryService.serviceAccount.annotations`    | Service account annotations                                         | `{}`                              |
-| `queryService.serviceAccount.name`       | Name of the service account                                             | `{}`                              |
-| `queryService.serviceAccount.name`       | Name of the service account                                             | `{}`                              |
+| `queryService.serviceAccount.name`       | Name of the service account                                             | `nil`                             |
 | `queryService.resources`                 | Resources requests and limits                                           | See `values.yaml` for defaults    |
 | `queryService.podSecurityContext`        | Pods security context                                                   | `{}`                              |
 | `queryService.securityContext`           | Security context for query-service node                                 | `{}`                              |
@@ -93,8 +92,8 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.service.port`              | Query Service service port                                              | `8080`                            |
 | `queryService.ingress.enabled`           | Query Service ingress resource enabled                                  | `false`                           |
 | `queryService.ingress.hosts`             | Query Service ingress virtual hosts                                     | See `values.yaml` for defaults    |
-| `queryService.ingress.annotations`       | Query Service ingress annotations                                       | `nil`                             |
-| `queryService.ingress.tls`               | Query Service ingress TLS settings                                      | `nil`                             |
+| `queryService.ingress.annotations`       | Query Service ingress annotations                                       | `{}`                              |
+| `queryService.ingress.tls`               | Query Service ingress TLS settings                                      | `[]`                              |
 | `queryService.nodeSelector`              | Node labels for query-service pod assignment                            | `{}`                              |
 | `queryService.tolerations`               | Query Service tolerations                                               | `[]`                              |
 | `queryService.nodeAffinity`              | Query Service affinity policy                                           | `{}`                              |
@@ -111,9 +110,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.initContainers.init.image.pullPolicy` | Frontend initContainer pull policy                               | `IfNotPresent`                    |
 | `frontend.initContainers.init.command`   | Frontend initContainer command line to execute                          | See `values.yaml` for defaults    |
 | `frontend.imagePullSecrets`              | Reference to secrets to be used when pulling images                     | `[]`                              |
-| `frontend.serviceAccount.create`         | Service account for query-service nodes enabled                         | `false`                           |
+| `frontend.serviceAccount.create`         | Service account for query-service nodes enabled                         | `true`                            |
 | `frontend.serviceAccount.annotations`    | Service account annotations                                             | `{}`                              |
-| `frontend.serviceAccount.name`           | Name of the service account                                             | `{}`                              |
+| `frontend.serviceAccount.name`           | Name of the service account                                             | `nil`                             |
 | `frontend.resources`                     | Resources requests and limits                                           | See `values.yaml` for defaults    |
 | `frontend.podSecurityContext`            | Pods security context                                                   | `{}`                              |
 | `frontend.securityContext`               | Security context for query-service node                                 | `{}`                              |
@@ -121,11 +120,51 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.service.port`                  | Frontend service port                                                   | `3301`                            |
 | `frontend.ingress.enabled`               | Frontend ingress resource enabled                                       | `false`                           |
 | `frontend.ingress.hosts`                 | Frontend ingress virtual hosts                                          | See `values.yaml` for defaults    |
-| `frontend.ingress.annotations`           | Frontend ingress annotations                                            | `nil`                             |
-| `frontend.ingress.tls`                   | Frontend ingress TLS settings                                           | `nil`                             |
+| `frontend.ingress.annotations`           | Frontend ingress annotations                                            | `{}`                              |
+| `frontend.ingress.tls`                   | Frontend ingress TLS settings                                           | `[]`                              |
 | `frontend.nodeSelector`                  | Node labels for frontend pod assignment                                 | `{}`                              |
 | `frontend.tolerations`                   | Frontend tolerations                                                    | `[]`                              |
 | `frontend.nodeAffinity`                  | Frontend affinity policy                                                | `{}`                              |
+| `alertmanager.name`                      | Alertmanager component name                                             | `alertmanager`                    |
+| `alertmanager.name`                      | Alertmanager component name                                             | `otel-collector`                  |
+| `alertmanager.image.registry`            | Alertmanager image registry name                                        | `docker.io`                       |
+| `alertmanager.image.repository`          | Container image name                                                    | `signoz/query-service`            |
+| `alertmanager.image.tag`                 | Container image tag                                                     | `0.43.0`                          |
+| `alertmanager.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
+| `alertmanager.command`                   | Set container command to execute                                        | `[]`                              |
+| `alertmanager.extraArgs`                 | Extra arguments for the alertmanager container                          | `{}`                              |
+| `alertmanager.imagePullSecrets`          | Reference to secrets to be used when pulling images                     | `[]`                              |
+| `alertmanager.service.annotations`       | Service annotations                                                     | `{}`                              |
+| `alertmanager.service.type`              | Alertmanager service type                                               | `ClusterIP`                       |
+| `alertmanager.service.port`              | Alertmanager service port                                               | `9093`                            |
+| `alertmanager.service.nodePort`          | Force specific nodePort                                                 | `nil`                             |
+| `alertmanager.serviceAccount.create`           | Service account for alertmanager nodes enabled                    | `true`                            |
+| `alertmanager.serviceAccount.annotations`      | Service account annotations                                       | `{}`                              |
+| `alertmanager.serviceAccount.name`       | Name of the service account                                             | `nil`                             |
+| `alertmanager.podSecurityContext`        | Pods security context                                                   | See `values.yaml` for defaults    |
+| `alertmanager.dnsConfig`                 | DNS configuration                                                       | `{}`                              |
+| `alertmanager.securityContext`           | Security context for alertmanager node                                  | See `values.yaml` for defaults    |
+| `alertmanager.additionalPeers`           | Additional Peers for alertmanager                                       | `[]`                              |
+| `alertmanager.ingress.enabled`           | Alertmanager ingress resource enabled                                   | `false`                           |
+| `alertmanager.ingress.ingressClassName`  | Alertmanager ingress class name                                         | `""`                              |
+| `alertmanager.ingress.hosts`             | Alertmanager ingress virtual hosts                                      | See `values.yaml` for defaults    |
+| `alertmanager.ingress.annotations`       | Alertmanager ingress annotations                                        | `{}`                              |
+| `alertmanager.ingress.tls`               | Alertmanager ingress TLS settings                                       | `[]`                              |
+| `alertmanager.resources`                 | Resources requests and limits                                           | See `values.yaml` for defaults    |
+| `alertmanager.nodeSelector`              | Node labels for alertmanager pod assignment                             | `{}`                              |
+| `alertmanager.tolerations`               | Alertmanager tolerations                                                | `[]`                              |
+| `alertmanager.nodeAffinity`              | Alertmanager affinity policy                                            | `{}`                              |
+| `alertmanager.statefulSet.annotations`   | Set statefulset annotations                                             | `{}`                              |
+| `alertmanager.podAnnotations`            | Set pod annotations                                                     | `{}`                              |
+| `alertmanager.podLabels`                 | Set pod labels                                                          | `{}`                              |
+| `alertmanager.podDisruptionBudget`       | Set pod distruption budget (PDBs)                                       | See `values.yaml` for defaults    |
+| `alertmanager.persistence.enabled`       | Enable volume persistence                                               | `true`                            |
+| `alertmanager.persistence.storageClass`  | Set storage class for persistent volume                                 | `nil`                             |
+| `alertmanager.persistence.accessModes`   | Set access mode for persistent volume                                   | `[ReadWriteOnce]`                 |
+| `alertmanager.persistence.size`          | Set storage size                                                        | `100Mi`                           |
+| `alertmanager.config`                    | Alertmanager configurations                                             | See `values.yaml` for defaults    |
+| `alertmanager.configmapReload`           | Configure ConfigMap reload                                              | See `values.yaml` for defaults    |
+| `alertmanager.templates`                 | Set alert templates                                                     | See `values.yaml` for defaults    |
 | `otelCollector.name`                     | Otel Collector component name                                           | `otel-collector`                  |
 | `otelCollector.image.registry`           | Otel Collector image registry name                                      | `docker.io`                       |
 | `otelCollector.image.repository`         | Container image name                                                    | `signoz/query-service`            |
@@ -142,9 +181,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.initContainers.init.command`    | Otel Collector initContainer command line to execute              | See `values.yaml` for defaults    |
 | `otelCollector.config`                         | Otel Collector configurations                                     | See `values.yaml` for defaults    |
 | `otelCollector.imagePullSecrets`               | Reference to secrets to be used when pulling images               | `[]`                              |
-| `otelCollector.serviceAccount.create`          | Service account for otel-collector nodes enabled                  | `false`                           |
+| `otelCollector.serviceAccount.create`          | Service account for otel-collector nodes enabled                  | `true`                            |
 | `otelCollector.serviceAccount.annotations`     | Service account annotations                                       | `{}`                              |
-| `otelCollector.serviceAccount.name`      | Name of the service account                                             | `{}`                              |
+| `otelCollector.serviceAccount.name`      | Name of the service account                                             | `nil`                             |
 | `otelCollector.resources`                | Resources requests and limits                                           | See `values.yaml` for defaults    |
 | `otelCollector.livenessProbe`            | Otel Collector liveness probes                                          | See `values.yaml` for defaults    |
 | `otelCollector.readinessProbe`           | Otel Collector readiness probes                                         | See `values.yaml` for defaults    |
@@ -170,9 +209,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.initContainers.init.command`  | Otel Collector Metrics initContainer command line to execute | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.config`            | Otel Collector Metrics configurations                                   | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.imagePullSecrets`  | Reference to secrets to be used when pulling images                     | `[]`                              |
-| `otelCollectorMetrics.serviceAccount.create`        | Service account for otel-collector-metrics nodes enabled     | `false`                           |
+| `otelCollectorMetrics.serviceAccount.create`        | Service account for otel-collector-metrics nodes enabled     | `true`                            |
 | `otelCollectorMetrics.serviceAccount.annotations`   | Service account annotations                                  | `{}`                              |
-| `otelCollectorMetrics.serviceAccount.name`          | Name of the service account                                  | `{}`                              |
+| `otelCollectorMetrics.serviceAccount.name`          | Name of the service account                                  | `nil`                             |
 | `otelCollectorMetrics.resources`         | Resources requests and limits                                           | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.livenessProbe`     | Otel Collector Metrics liveness probes                                  | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.readinessProbe`    | Otel Collector Metrics readiness probes                                 | See `values.yaml` for defaults    |

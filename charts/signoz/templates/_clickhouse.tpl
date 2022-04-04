@@ -93,7 +93,7 @@ Return the ClickHouse tcp URL
 {{- if .Values.clickhouse.enabled -}}
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
 {{- else -}}
-  {{- .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
 {{- end -}}
 {{- end -}}
 
@@ -104,7 +104,7 @@ Return the ClickHouse http URL
 {{- if .Values.clickhouse.enabled -}}
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.httpPort" . }}
 {{- else -}}
-  {{- .Values.externalClickhouse.host }}:{{ include "clickhouse.httpPort" . }}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.httpPort" . }}
 {{- end -}}
 {{- end -}}
 
@@ -115,6 +115,6 @@ Return the ClickHouse Metrics URL
 {{- if .Values.clickhouse.enabled -}}
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.clickhouse.database }}&username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
 {{- else -}}
-  {{- .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.database }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.database }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
 {{- end -}}
 {{- end -}}
