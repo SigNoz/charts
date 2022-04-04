@@ -133,7 +133,7 @@ entries:
     version: 9.1.0
   signoz:
   - apiVersion: v2
-    appVersion: 0.7.1
+    appVersion: 0.7.4
     created: "2022-04-04T18:24:15.699521973Z"
     dependencies:
     - condition: clickhouse.enabled
