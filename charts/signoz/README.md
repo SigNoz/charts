@@ -71,7 +71,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.name`                      | Query Service component name                                            | `query-service`                   |
 | `queryService.image.registry`            | Query Service image registry name                                       | `docker.io`                       |
 | `queryService.image.repository`          | Container image name                                                    | `signoz/query-service`            |
-| `queryService.image.tag`                 | Container image tag                                                     | `0.7.4`                           |
+| `queryService.image.tag`                 | Container image tag                                                     | `0.7.5`                           |
 | `queryService.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `queryService.replicas`                  | Number of query-service nodes                                           | `1`                               |
 | `queryService.initContainers.init.enabled`      | Query Service initContainer enabled                              | `true`                            |
@@ -100,7 +100,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.name`                          | Frontend component name                                                 | `frontend`                        |
 | `frontend.image.registry`                | Frontend image registry name                                            | `docker.io`                       |
 | `frontend.image.repository`              | Container image name                                                    | `signoz/frontend`                 |
-| `frontend.image.tag`                     | Container image tag                                                     | `0.7.1`                           |
+| `frontend.image.tag`                     | Container image tag                                                     | `0.7.5`                           |
 | `frontend.image.pullPolicy`              | Container pull policy                                                   | `IfNotPresent`                    |
 | `frontend.replicas`                      | Number of query-service nodes                                           | `1`                               |
 | `frontend.initContainers.init.enabled`   | Frontend initContainer enabled                                          | `true`                            |
@@ -126,10 +126,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.tolerations`                   | Frontend tolerations                                                    | `[]`                              |
 | `frontend.nodeAffinity`                  | Frontend affinity policy                                                | `{}`                              |
 | `alertmanager.name`                      | Alertmanager component name                                             | `alertmanager`                    |
-| `alertmanager.name`                      | Alertmanager component name                                             | `otel-collector`                  |
 | `alertmanager.image.registry`            | Alertmanager image registry name                                        | `docker.io`                       |
-| `alertmanager.image.repository`          | Container image name                                                    | `signoz/query-service`            |
-| `alertmanager.image.tag`                 | Container image tag                                                     | `0.43.0`                          |
+| `alertmanager.image.repository`          | Container image name                                                    | `signoz/alertmanager`             |
+| `alertmanager.image.tag`                 | Container image tag                                                     | `0.6.1`                           |
 | `alertmanager.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `alertmanager.command`                   | Set container command to execute                                        | `[]`                              |
 | `alertmanager.extraArgs`                 | Extra arguments for the alertmanager container                          | `{}`                              |
