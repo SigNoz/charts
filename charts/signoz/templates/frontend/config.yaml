@@ -24,9 +24,11 @@ data:
         index  index.html index.htm;
         try_files $uri $uri/ /index.html;
       }
+
       location /api/alertmanager {
         proxy_pass http://{{ include "alertmanager.url" . }}/api/v2;
       }
+      
       location /api {
         proxy_pass http://{{ include "queryService.url" . }}/api;
       }

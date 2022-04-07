@@ -471,7 +471,7 @@ alertmanager:
   ## Using the config, alertmanager.yml file is created.
   ## We no longer need the config file as query services
   ## delivers the required config.
-  config: {}
+  # config:
     # global:
     #   resolve_timeout: 1m
     #   slack_api_url: 'https://hooks.slack.com/services/xxx'
