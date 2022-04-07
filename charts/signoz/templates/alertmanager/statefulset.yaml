@@ -74,6 +74,10 @@ spec:
             - --webhook-url=http://127.0.0.1:{{ .Values.alertmanager.service.port }}/-/reload
           resources:
             {{- toYaml .Values.alertmanager.configmapReload.resources | nindent 12 }}
+          {{- if .Values.alertmanager.configmapReload.containerPort }}
+          ports:
+            - containerPort: {{ .Values.alertmanager.configmapReload.containerPort }}
+          {{- end }}
           volumeMounts:
             - name: config
               mountPath: /etc/alertmanager
@@ -119,13 +123,9 @@ spec:
               containerPort: 9093
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
-              port: http
+            {{- toYaml .Values.alertmanager.livenessProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            {{- toYaml .Values.alertmanager.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.alertmanager.resources | nindent 12 }}
           volumeMounts:
@@ -141,7 +141,7 @@ spec:
           configMap:
             name: {{ include "alertmanager.fullname" . }}
       {{- end }}
-      {{- if .Values.alertmanager.persistence.enabled }}
+  {{- if .Values.alertmanager.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
         name: storage
@@ -157,8 +157,8 @@ spec:
       {{- else }}
         storageClassName: {{ .Values.alertmanager.persistence.storageClass }}
       {{- end }}
-      {{- end }}
-{{- else }}
+  {{- end }}
+  {{- else }}
         - name: storage
           emptyDir: {}
-{{- end -}}
+  {{- end -}}
