@@ -642,6 +642,12 @@ otelCollector:
       cpu: 1
       memory: 2Gi
 
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
   # configurations to form the file in configmap
   config:
     receivers:
@@ -784,6 +790,12 @@ otelCollectorMetrics:
     limits:
       cpu: 1
       memory: 2Gi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
   # configurations to form the file in configmap
   config:
