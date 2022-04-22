@@ -71,6 +71,10 @@ spec:
         {{- end }}
         resources:
           {{- toYaml .Values.otelCollectorMetrics.resources | nindent 10 }}
+      {{- with .Values.otelCollectorMetrics.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: otel-collector-metrics-config-vol
           configMap:
