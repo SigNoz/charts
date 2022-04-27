@@ -3,6 +3,10 @@
 {{- if .Values.clickhouse.enabled -}}
 - name: CLICKHOUSE_HOST
   value: {{ include "clickhouse.servicename" . }}
+- name: CLICKHOUSE_PORT
+  value: {{ include "clickhouse.tcpPort" . | quote }}
+- name: CLICKHOUSE_HTTP_PORT
+  value: {{ include "clickhouse.httpPort" . | quote }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
@@ -18,6 +22,10 @@
 {{- else -}}
 - name: CLICKHOUSE_HOST
   value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
+- name: CLICKHOUSE_PORT
+  value: {{ include "clickhouse.tcpPort" . }}
+- name: CLICKHOUSE_HTTP_PORT
+  value: {{ include "clickhouse.httpPort" . }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
