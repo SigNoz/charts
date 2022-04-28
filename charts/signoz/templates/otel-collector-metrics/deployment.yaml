@@ -10,7 +10,7 @@ spec:
       {{- include "otelCollectorMetrics.selectorLabels" . | nindent 6 }}
   minReadySeconds: {{ .Values.otelCollectorMetrics.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelCollectorMetrics.progressDeadlineSeconds }}
-  replicas: {{ .Values.frontend.replicaCount }} # adjust replica count to your own requirements
+  replicas: {{ .Values.frontend.replicaCount }}
   template:
     metadata:
       annotations:
@@ -38,11 +38,13 @@ spec:
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
+        env:
+          {{- include "snippet.clickhouse-env" . | nindent 10 }}
         volumeMounts:
-        - name: otel-collector-metrics-config-vol
-          mountPath: /conf
-        # - name: otel-collector-secrets
-        #   mountPath: /secrets
+          - name: otel-collector-metrics-config-vol
+            mountPath: /conf
+          # - name: otel-collector-secrets
+          #   mountPath: /secrets
         {{- if .Values.otelCollector.livenessProbe.enabled }}
         livenessProbe:
           httpGet:
