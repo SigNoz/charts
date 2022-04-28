@@ -38,11 +38,13 @@ spec:
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
+        env:
+          {{- include "snippet.clickhouse-env" . | nindent 10 }}
         volumeMounts:
-        - name: otel-collector-metrics-config-vol
-          mountPath: /conf
-        # - name: otel-collector-secrets
-        #   mountPath: /secrets
+          - name: otel-collector-metrics-config-vol
+            mountPath: /conf
+          # - name: otel-collector-secrets
+          #   mountPath: /secrets
         {{- if .Values.otelCollectorMetrics.livenessProbe.enabled }}
         livenessProbe:
           httpGet:

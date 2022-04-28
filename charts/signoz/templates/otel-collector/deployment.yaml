@@ -38,6 +38,8 @@ spec:
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-config.yaml"
+        env:
+          {{- include "snippet.clickhouse-env" . | nindent 10 }}
         volumeMounts:
           - name: otel-collector-config-vol
             mountPath: /conf
