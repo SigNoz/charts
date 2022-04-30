@@ -10,7 +10,7 @@ spec:
       {{- include "otelCollector.selectorLabels" . | nindent 6 }}
   minReadySeconds: {{ .Values.otelCollector.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelCollector.progressDeadlineSeconds }}
-  replicas: {{ .Values.frontend.replicaCount }}
+  replicas: {{ .Values.otelCollector.replicaCount }} # adjust replica count to your own requirements
   template:
     metadata:
       annotations:
@@ -77,7 +77,14 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-          
+      {{- with .Values.otelCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: otel-collector-config-vol
           configMap:
