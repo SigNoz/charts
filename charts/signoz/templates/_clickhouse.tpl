@@ -10,7 +10,9 @@
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
-  value: {{ .Values.clickhouse.database | quote }}
+  value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
+- name: CLICKHOUSE_TRACE_DATABASE
+  value: {{ default "signoz_traces" .Values.clickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
@@ -29,7 +31,9 @@
 - name: CLICKHOUSE_CLUSTER
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
-  value: {{ .Values.externalClickhouse.database | quote }}
+  value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}
+- name: CLICKHOUSE_TRACE_DATABASE
+  value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_USER
   value: {{ required "externalClickhouse.user is required if not clickhouse.enabled" .Values.externalClickhouse.user | quote }}
 {{- if .Values.externalClickhouse.existingSecret }}

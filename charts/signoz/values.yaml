@@ -44,8 +44,10 @@ clickhouse:
   namespace:
   # -- Clickhouse cluster
   cluster: cluster
-  # -- Clickhouse database
+  # -- Clickhouse database (SigNoz Metrics)
   database: signoz_metrics
+  # -- Clickhouse trace database (SigNoz Traces)
+  traceDatabase: signoz_traces
   # -- Clickhouse user
   user: admin
   # -- Clickhouse password
@@ -700,7 +702,7 @@ otelCollector:
       zpages: {}
     exporters:
       clickhouse:
-        datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_TRACE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         resource_to_telemetry_conversion:
