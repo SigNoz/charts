@@ -182,7 +182,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.7.5
+    tag: 0.8.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -270,7 +270,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.7.5
+    tag: 0.8.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -355,7 +355,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.6.1
+    tag: 0.23.0-0.1
 
   command: []
   extraArgs: {}
@@ -567,7 +567,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.43.0
+    tag: 0.43.0-0.1
     pullPolicy: Always
   serviceType: "ClusterIP"
   imagePullSecrets: []
@@ -731,7 +731,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.43.0
+    tag: 0.43.0-0.1
     pullPolicy: Always
   imagePullSecrets: []
   serviceType: "ClusterIP"
