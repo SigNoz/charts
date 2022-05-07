@@ -210,7 +210,7 @@ queryService:
     storage: clickhouse
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
-    # clickHouseUrl: tcp://signoz-clickhouse:9000?username=clickhouse_operator&password=clickhouse_operator_password
+    # clickHouseUrl: tcp://my-release-clickhouse:9000/?database=signoz_traces&username=clickhouse_operator&password=clickhouse_operator_password
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm

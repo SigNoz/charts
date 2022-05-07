@@ -99,17 +99,6 @@ Return the external ClickHouse password
 {{- end -}}
 
 {{/*
-Return the ClickHouse tcp URL
-*/}}
-{{- define "clickhouse.url" -}}
-{{- if .Values.clickhouse.enabled -}}
-  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
-{{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return the ClickHouse http URL
 */}}
 {{- define "clickhouse.httpUrl" -}}
@@ -128,5 +117,16 @@ Return the ClickHouse Metrics URL
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.clickhouse.database }}&username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
 {{- else -}}
   {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.database }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the ClickHouse Traces URL
+*/}}
+{{- define "clickhouse.tracesUrl" -}}
+{{- if .Values.clickhouse.enabled -}}
+  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.clickhouse.traceDatabase }}&username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
+{{- else -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
 {{- end -}}
 {{- end -}}
