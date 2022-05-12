@@ -31,7 +31,7 @@ spec:
           {{- end }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "queryService.fullname" . }}
         {{- with .Values.queryService.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 8 }}

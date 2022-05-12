@@ -40,7 +40,7 @@ spec:
           {{- end }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "frontend.fullname" . }}
           securityContext:
             {{- toYaml .Values.frontend.securityContext | nindent 12 }}
           image: {{ template "frontend.image" . }}

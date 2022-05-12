@@ -66,7 +66,7 @@ spec:
       {{- end }}
       containers:
         {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}
-        - name: {{ .Chart.Name }}-{{ .Values.alertmanager.configmapReload.name }}
+        - name: {{ include "alertmanager.fullname" . }}-{{ .Values.alertmanager.configmapReload.name }}
           image: "{{ .Values.alertmanager.configmapReload.image.repository }}:{{ .Values.alertmanager.configmapReload.image.tag }}"
           imagePullPolicy: "{{ .Values.alertmanager.configmapReload.image.pullPolicy }}"
           args:
@@ -82,7 +82,7 @@ spec:
             - name: config
               mountPath: /etc/alertmanager
         {{- end }}
-        - name: {{ .Chart.Name }}
+        - name: {{ include "alertmanager.fullname" . }}
           securityContext:
             {{- toYaml .Values.alertmanager.securityContext | nindent 12 }}
           image: {{ template "alertmanager.image" . }}
