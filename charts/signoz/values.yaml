@@ -581,7 +581,7 @@ otelCollector:
     name:
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicas: 1
+  replicaCount: 1
   ballastSizeMib: 683
   initContainers:
     init:
@@ -746,7 +746,7 @@ otelCollectorMetrics:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicas: 1
+  replicaCount: 1
   ballastSizeMib: 683
   initContainers:
     init:
