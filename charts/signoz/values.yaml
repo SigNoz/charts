@@ -660,20 +660,24 @@ otelCollector:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
+            endpoint: 0.0.0.0:4318
       jaeger:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:14250
           thrift_http:
+            endpoint: 0.0.0.0:14268
       hostmetrics:
         collection_interval: 30s
         scrapers:
-          cpu:
-          load:
-          memory:
-          disk:
-          filesystem:
-          network:
+          cpu: {}
+          load: {}
+          memory: {}
+          disk: {}
+          filesystem: {}
+          network: {}
     processors:
       batch:
         send_batch_size: 1000
@@ -821,7 +825,9 @@ otelCollectorMetrics:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
+            endpoint: 0.0.0.0:4318
       # Data sources: metrics
       prometheus:
         config:
