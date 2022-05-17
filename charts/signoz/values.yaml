@@ -149,6 +149,9 @@ clickhouse:
     endpoint: https://<bucket-name>.s3.amazonaws.com/data/
     accessKey: <access_key_id>
     secretAccess: <secret_access_key>
+  # ClickhouseOperator node selector
+  ClickhouseOperator:
+    nodeSelector: {}
 
 
 ## External clickhouse configuration
