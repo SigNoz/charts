@@ -147,6 +147,6 @@ coldStorage:
 installCustomStorageClass: false
 
 # ClickhouseOperator node selector
-ClickhouseOperator: 
-  nodeSelector: 
+ClickhouseOperator:
+  nodeSelector:
     devops-tool: "true"
