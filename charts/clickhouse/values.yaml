@@ -130,7 +130,7 @@ defaultProfiles:
 coldStorage:
   enabled: false
   # Set free space size on default disk
-  defaultKeepFreeSpaceBytes: 10485760 # 10MiB
+  defaultKeepFreeSpaceBytes: 10485760  # 10MiB
   endpoint: https://<bucket-name>.s3.amazonaws.com/data/
   accessKey: <access_key_id>
   secretAccess: <secret_access_key>
@@ -145,3 +145,7 @@ coldStorage:
 # When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
 # it creates custom storage class with volume expansion permission.
 installCustomStorageClass: false
+
+# ClickhouseOperator node selector
+ClickhouseOperator:
+  nodeSelector: {}
