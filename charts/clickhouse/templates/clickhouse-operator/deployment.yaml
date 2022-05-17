@@ -28,6 +28,10 @@ spec:
         prometheus.io/scrape: 'true'
     spec:
       serviceAccountName: clickhouse-operator
+    {{- with .Values.ClickhouseOperator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}      
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
