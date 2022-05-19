@@ -161,13 +161,15 @@ externalClickhouse:
   # -- Host of the external cluster.
   host:
   # -- Name of the external cluster to run DDL queries on.
-  cluster:
+  cluster: cluster
   # -- Database name for the external cluster
-  database: signoz
+  database: signoz_metrics
+  # -- Clickhouse trace database (SigNoz Traces)
+  traceDatabase: signoz_traces
   # -- User name for the external cluster to connect to the external cluster as
-  user:
+  user: ""
   # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
-  password:
+  password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret:
   # -- Name of the key pointing to the password in your Kubernetes secret
@@ -176,6 +178,10 @@ externalClickhouse:
   secure: false
   # -- Whether to verify TLS connection connecting to ClickHouse
   verify: false
+    # -- HTTP port of Clickhouse
+  httpPort: 8123
+  # -- TCP port of Clickhouse
+  tcpPort: 9000
 
 
 # Default values for query-service
@@ -659,24 +665,28 @@ otelCollector:
       otlp/spanmetrics:
         protocols:
           grpc:
-            endpoint: "localhost:12345"
+            endpoint: localhost:12345
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
+            endpoint: 0.0.0.0:4318
       jaeger:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:14250
           thrift_http:
+            endpoint: 0.0.0.0:14268
       hostmetrics:
         collection_interval: 30s
         scrapers:
-          cpu:
-          load:
-          memory:
-          disk:
-          filesystem:
-          network:
+          cpu: {}
+          load: {}
+          memory: {}
+          disk: {}
+          filesystem: {}
+          network: {}
     processors:
       batch:
         send_batch_size: 1000
@@ -824,15 +834,18 @@ otelCollectorMetrics:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
+            endpoint: 0.0.0.0:4318
       # Data sources: metrics
       prometheus:
         config:
           scrape_configs:
-            - job_name: "otel-collector"
+            - job_name: otel-collector
               scrape_interval: 30s
               static_configs:
-                - targets: ["otel-collector:8889"]
+                - targets:
+                  - ${OTEL_COLLECTOR_PROMETHEUS}
     processors:
       batch:
         send_batch_size: 1000
