@@ -106,7 +106,6 @@ spec:
           {{- if .Values.nodeSelector }}
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
           {{- end }}
-
           {{- if .Values.persistence.enabled }}
           volumes:
             {{- if .Values.persistence.existingClaim }}
@@ -149,12 +148,6 @@ spec:
               {{- end }}
                   mountPath: /var/lib/clickhouse
               {{- end }}
-
-              {{- if .Values.useNodeSelector }}
-              nodeSelector:
-                clickhouse: true
-              {{- end }}
-
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
               {{- end }}
