@@ -133,7 +133,7 @@ coldStorage:
   defaultKeepFreeSpaceBytes: 10485760  # 10MiB
   endpoint: https://<bucket-name>.s3.amazonaws.com/data/
   role:
-    enabled: true
+    enabled: false
     annotations: {}
   accessKey: <access_key_id>
   secretAccess: <secret_access_key>
