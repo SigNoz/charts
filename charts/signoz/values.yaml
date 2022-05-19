@@ -150,7 +150,7 @@ clickhouse:
     accessKey: <access_key_id>
     secretAccess: <secret_access_key>
   # ClickhouseOperator node selector
-  ClickhouseOperator:
+  clickhouseOperator:
     nodeSelector: {}
 
 
