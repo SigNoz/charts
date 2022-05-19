@@ -64,8 +64,12 @@ spec:
               <s3>
                 <type>s3</type>
                 <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
+              {{- if .Values.coldStorage.role.enabled }}
+                  <use_environment_credentials>true</use_environment_credentials>
+                {{- else }}
                 <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
                 <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
+              {{- end }}
               </s3>
             </disks>
             <policies>
@@ -97,6 +101,10 @@ spec:
     podTemplates:
       - name: pod-template
         spec:
+          {{- if .Values.coldStorage.role.enabled }}
+          serviceAccountName: clickhouse-instance
+          {{- end }}
+
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
           {{- end }}
