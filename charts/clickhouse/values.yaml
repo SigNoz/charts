@@ -77,6 +77,8 @@ verify: false
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
+# node selector for settings for clickhouse pod
+nodeSelector: {}
 # -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
 resources: {}
 #   limits:
@@ -94,8 +96,6 @@ securityContext:
 # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
 serviceType: ClusterIP
 
-# -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
-useNodeSelector: false
 
 persistence:
   # -- Enable data persistence using PVC.
