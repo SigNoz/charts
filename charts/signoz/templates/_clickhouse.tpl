@@ -1,4 +1,6 @@
-{{/* Common ClickHouse ENV variables and helpers used by SigNoz */}}
+{{/*
+Common ClickHouse ENV variables and helpers used by SigNoz
+*/}}
 {{- define "snippet.clickhouse-env" }}
 {{- if .Values.clickhouse.enabled -}}
 - name: CLICKHOUSE_HOST
@@ -25,9 +27,9 @@
 - name: CLICKHOUSE_HOST
   value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
 - name: CLICKHOUSE_PORT
-  value: {{ include "clickhouse.tcpPort" . }}
+  value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
 - name: CLICKHOUSE_HTTP_PORT
-  value: {{ include "clickhouse.httpPort" . }}
+  value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
@@ -35,7 +37,7 @@
 - name: CLICKHOUSE_TRACE_DATABASE
   value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_USER
-  value: {{ required "externalClickhouse.user is required if not clickhouse.enabled" .Values.externalClickhouse.user | quote }}
+  value: {{ .Values.externalClickhouse.user | quote }}
 {{- if .Values.externalClickhouse.existingSecret }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
@@ -44,7 +46,7 @@
       key: {{ include "clickhouse.secretPasswordKey" . }}
 {{- else }}
 - name: CLICKHOUSE_PASSWORD
-  value: {{ required "externalClickhouse.password or externalClickhouse.existingSecret is required if using external clickhouse" .Values.externalClickhouse.password | quote }}
+  value: {{ .Values.externalClickhouse.password | quote }}
 {{- end }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.externalClickhouse.secure | quote }}
@@ -57,6 +59,20 @@
 {*
    ------ CLICKHOUSE ------
 *}
+
+{{/*
+Set Clickhouse tcp port
+*/}}
+{{- define "clickhouse.tcpPort" -}}
+{{- default 9000 .Values.clickhouse.service.tcpPort -}}
+{{- end -}}
+
+{{/*
+Set Clickhouse http port
+*/}}
+{{- define "clickhouse.httpPort" -}}
+{{- default 8123 .Values.clickhouse.service.httpPort -}}
+{{- end -}}
 
 {{/*
 Return true if a secret object for ClickHouse should be created
@@ -130,3 +146,4 @@ Return the ClickHouse Traces URL
   {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
 {{- end -}}
 {{- end -}}
+

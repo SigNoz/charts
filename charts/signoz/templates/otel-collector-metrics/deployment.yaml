@@ -39,7 +39,8 @@ spec:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
         env:
-          {{- include "snippet.clickhouse-env" . | nindent 10 }}
+          {{- include "snippet.clickhouse-env" . | nindent 10 -}}
+          {{- include "snippet.otelcol-env" . | nindent 10 }}
         volumeMounts:
           - name: otel-collector-metrics-config-vol
             mountPath: /conf

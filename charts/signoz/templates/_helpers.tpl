@@ -423,15 +423,9 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
-Set Clickhouse http port
+Common OtelCollector ENV variables and helpers used by SigNoz
 */}}
-{{- define "clickhouse.httpPort" -}}
-{{- 8123 -}}
-{{- end -}}
-
-{{/*
-Set Clickhouse tcp port
-*/}}
-{{- define "clickhouse.tcpPort" -}}
-{{- 9000 -}}
-{{- end -}}
+{{- define "snippet.otelcol-env" -}}
+- name: OTEL_COLLECTOR_PROMETHEUS
+  value: {{ include "otelCollector.fullname" . }}:8889
+{{- end }}
