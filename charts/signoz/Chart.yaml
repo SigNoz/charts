@@ -19,7 +19,7 @@ dependencies:
   - name: clickhouse
     repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
-    version: 16.0.4
+    version: 16.0.5
 maintainers:
   - name: signoz
     email: hello@signoz.io
