@@ -147,6 +147,11 @@ clickhouse:
     # Set free space size on default disk
     defaultKeepFreeSpaceBytes: "10485760"   # 10MiB
     endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+    role:
+      enabled: false
+      annotations:
+        # aws role arn
+        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
     accessKey: <access_key_id>
     secretAccess: <secret_access_key>
   # ClickhouseOperator node selector
