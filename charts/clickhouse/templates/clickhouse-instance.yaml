@@ -64,12 +64,12 @@ spec:
               <s3>
                 <type>s3</type>
                 <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
-              {{- if .Values.coldStorage.role.enabled }}
-                  <use_environment_credentials>true</use_environment_credentials>
+                {{- if .Values.coldStorage.role.enabled }}
+                <use_environment_credentials>true</use_environment_credentials>
                 {{- else }}
                 <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
                 <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
-              {{- end }}
+                {{- end }}
               </s3>
             </disks>
             <policies>
@@ -86,12 +86,12 @@ spec:
             </policies>
           </storage_configuration>
         </yandex>
-      {{- end }}
+    {{- end }}
 
     zookeeper:
       nodes:
       {{- if .Values.externalZookeeper }}
-      {{ toYaml .Values.externalZookeeper.servers | indent 4 }}
+        {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
       {{- else }}
         - host: {{ include "clickhouse.zookeeper.servicename" . }}
           port: {{ include "clickhouse.zookeeper.port" . }}
