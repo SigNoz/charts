@@ -23,5 +23,7 @@ dependencies:
 maintainers:
   - name: signoz
     email: hello@signoz.io
+    url: https://signoz.io
   - name: prashant
     email: prashant@signoz.io
+    url: https://prashantshahi.dev
