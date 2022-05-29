@@ -1,4 +1,3 @@
-{{- $prometheusMetricsTarget := print (include "otelCollector.fullname" .) ":" .Values.otelCollector.ports.prometheusExportedMetrics -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,4 +6,6 @@ metadata:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 data:
   otel-collector-metrics-config.yaml: |-
-    {{- toYaml .Values.otelCollectorMetrics.config | nindent 4 }}
+    {{- toYaml .Values.otelCollectorMetrics.config | 
+      nindent 4 |
+      replace "$OTEL_COLLECTOR_PROMETHEUS" (include "otelCollector.prometheus-servicename" .)}}

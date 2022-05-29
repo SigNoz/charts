@@ -423,9 +423,8 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
-Common OtelCollector ENV variables and helpers used by SigNoz
+Return the service name of OtelCollector with Prometheus port
 */}}
-{{- define "snippet.otelcol-env" -}}
-- name: OTEL_COLLECTOR_PROMETHEUS
-  value: {{ include "otelCollector.fullname" . }}:8889
-{{- end }}
+{{- define "otelCollector.prometheus-servicename" -}}
+{{- printf "%s:%s" (include "otelCollector.fullname" .) "8889" -}}
+{{- end -}}
