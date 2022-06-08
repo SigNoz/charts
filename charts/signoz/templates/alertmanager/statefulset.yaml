@@ -99,7 +99,7 @@ spec:
 {{- end }}
           args:
             - --storage.path=/alertmanager
-            - --queryService.url=http://{{ include "queryService.url" . }}
+            - --queryService.url=http://{{ include "queryService.internalUrl" . }}
             {{- if or (gt .Values.alertmanager.replicaCount 1.0) (.Values.alertmanager.additionalPeers) }}
             - --cluster.advertise-address=$(POD_IP):9094
             - --cluster.listen-address=0.0.0.0:9094

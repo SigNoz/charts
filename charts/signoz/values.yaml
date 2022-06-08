@@ -245,6 +245,7 @@ queryService:
   service:
     type: ClusterIP
     port: 8080
+    internalPort: 8085
 
   ingress:
     enabled: false
