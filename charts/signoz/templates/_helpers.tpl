@@ -108,10 +108,24 @@ Set query-service port
 {{- end -}}
 
 {{/*
+Set query-service internal port
+*/}}
+{{- define "queryService.internalPort" -}}
+{{- default 8085 .Values.queryService.service.internalPort  -}}
+{{- end -}}
+
+{{/*
 Set query-service url
 */}}
 {{- define "queryService.url" -}}
 {{ include "queryService.fullname" . }}:{{ include "queryService.port" . }}
+{{- end -}}
+
+{{/*
+Set query-service internal url
+*/}}
+{{- define "queryService.internalUrl" -}}
+{{ include "queryService.fullname" . }}:{{ include "queryService.internalPort" . }}
 {{- end -}}
 
 
