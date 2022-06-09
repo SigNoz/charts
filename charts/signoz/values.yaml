@@ -196,7 +196,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.8.0
+    tag: 0.8.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -285,7 +285,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.8.0
+    tag: 0.8.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -582,7 +582,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.43.0-0.1
+    tag: 0.45.1-0.2
     pullPolicy: Always
   serviceType: "ClusterIP"
   imagePullSecrets: []
@@ -725,7 +725,7 @@ otelCollector:
       health_check: {}
       zpages: {}
     exporters:
-      clickhouse:
+      clickhousetraces:
         datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_TRACE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
@@ -739,7 +739,7 @@ otelCollector:
         traces:
           receivers: [jaeger, otlp]
           processors: [signozspanmetrics/prometheus, batch]
-          exporters: [clickhouse]
+          exporters: [clickhousetraces]
         metrics:
           receivers: [otlp, hostmetrics]
           processors: [batch]
@@ -755,7 +755,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.43.0-0.1
+    tag: 0.45.1-0.2
     pullPolicy: Always
   imagePullSecrets: []
   serviceType: "ClusterIP"
