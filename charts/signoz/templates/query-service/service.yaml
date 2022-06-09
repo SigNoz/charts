@@ -11,5 +11,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: {{ .Values.queryService.service.internalPort }}
+      targetPort: http
+      protocol: TCP
+      name: http-internal
   selector:
     {{- include "queryService.selectorLabels" . | nindent 4 }}
