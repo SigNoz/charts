@@ -7,7 +7,7 @@ appVersion: "21.12.3.32"
 icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
 dependencies:
   - name: zookeeper
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
     version: 7.0.5
 maintainers:
   - name: signoz
