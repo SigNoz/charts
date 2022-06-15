@@ -166,10 +166,10 @@ spec:
         spec:
           ports:
             - name: http
-              port: 8123
+              port: {{ .Values.service.httpPort }}
             - name: tcp
-              port: 9000
-          type: {{ .Values.serviceType | quote }}
+              port: {{ .Values.service.tcpPort }}
+          type: {{ .Values.service.type }}
 
     {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
     volumeClaimTemplates:

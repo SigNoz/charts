@@ -63,6 +63,15 @@ image:
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
+# Clickhouse service
+service:
+  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+  type: ClusterIP
+  # -- Clickhouse HTTP port
+  httpPort: 8123
+  # -- Clickhouse TCP port
+  tcpPort: 9000
+
 # -- Whether to use TLS connection connecting to ClickHouse
 secure: false
 # -- Whether to verify TLS certificate on connection to ClickHouse
@@ -92,10 +101,6 @@ securityContext:
   runAsUser: 101
   runAsGroup: 101
   fsGroup: 101
-
-# -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-serviceType: ClusterIP
-
 
 persistence:
   # -- Enable data persistence using PVC.
