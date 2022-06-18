@@ -249,6 +249,7 @@ queryService:
 
   ingress:
     enabled: false
+    className: ""
     annotations:
       {}
       # kubernetes.io/ingress.class: nginx
@@ -332,6 +333,7 @@ frontend:
 
   ingress:
     enabled: false
+    className: ""
     annotations:
       {}
       # kubernetes.io/ingress.class: nginx
