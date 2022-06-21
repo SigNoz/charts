@@ -18,6 +18,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  ingressClassName: {{ .Values.otelCollectorMetrics.ingress.className }}
 {{- if .Values.otelCollectorMetrics.ingress.tls }}
   tls:
   {{- range .Values.otelCollectorMetrics.ingress.tls }}
