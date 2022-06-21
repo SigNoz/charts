@@ -92,6 +92,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.service.port`              | Query Service service port                                              | `8080`                            |
 | `queryService.service.internalPort`      | Query Service service internal port                                     | `8085`                            |
 | `queryService.ingress.enabled`           | Query Service ingress resource enabled                                  | `false`                           |
+| `queryService.ingress.className`         | Query Service ingress class name                                        | `""`                              |
 | `queryService.ingress.hosts`             | Query Service ingress virtual hosts                                     | See `values.yaml` for defaults    |
 | `queryService.ingress.annotations`       | Query Service ingress annotations                                       | `{}`                              |
 | `queryService.ingress.tls`               | Query Service ingress TLS settings                                      | `[]`                              |
@@ -120,6 +121,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.service.type`                  | Frontend service type                                                   | `ClusterIP`                       |
 | `frontend.service.port`                  | Frontend service port                                                   | `3301`                            |
 | `frontend.ingress.enabled`               | Frontend ingress resource enabled                                       | `false`                           |
+| `frontend.ingress.className`             | Frontend ingress class name                                             | `""`                              |
 | `frontend.ingress.hosts`                 | Frontend ingress virtual hosts                                          | See `values.yaml` for defaults    |
 | `frontend.ingress.annotations`           | Frontend ingress annotations                                            | `{}`                              |
 | `frontend.ingress.tls`                   | Frontend ingress TLS settings                                           | `[]`                              |
@@ -147,7 +149,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.securityContext`           | Security context for alertmanager node                                  | See `values.yaml` for defaults    |
 | `alertmanager.additionalPeers`           | Additional Peers for alertmanager                                       | `[]`                              |
 | `alertmanager.ingress.enabled`           | Alertmanager ingress resource enabled                                   | `false`                           |
-| `alertmanager.ingress.ingressClassName`  | Alertmanager ingress class name                                         | `""`                              |
+| `alertmanager.ingress.className`         | Alertmanager ingress class name                                         | `""`                              |
 | `alertmanager.ingress.hosts`             | Alertmanager ingress virtual hosts                                      | See `values.yaml` for defaults    |
 | `alertmanager.ingress.annotations`       | Alertmanager ingress annotations                                        | `{}`                              |
 | `alertmanager.ingress.tls`               | Alertmanager ingress TLS settings                                       | `[]`                              |
