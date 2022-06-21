@@ -654,6 +654,22 @@ otelCollector:
   customLivenessProbe: {}
   customReadinessProbe: {}
 
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: otelcollector.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otelcollector.domain.com
+
   # adjust the resource requests and limit as necessary
   resources:
     requests:
@@ -827,6 +843,22 @@ otelCollectorMetrics:
   ## Custom liveness and readiness probes
   customLivenessProbe: {}
   customReadinessProbe: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: otelcollector-metrics.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otelcollector-metrics.domain.com
 
   # adjust the resource requests and limit as necessary
   resources:

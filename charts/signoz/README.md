@@ -195,6 +195,11 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.readinessProbe`           | Otel Collector readiness probes                                         | See `values.yaml` for defaults    |
 | `otelCollector.customLivenessProbe`      | Custom liveness probes (if `otelCollector.livenessProbe` not enabled)   | `{}`                              |
 | `otelCollector.customReadinessProbe`     | Custom readiness probes (if `otelCollector.readinessProbe` not enabled) | `{}`                              |
+| `otelCollector.ingress.enabled`           | Open Telemetry Collector ingress resource enabled                      | `false`                           |
+| `otelCollector.ingress.className`         | Open Telemetry Collector ingress class name                            | `""`                              |
+| `otelCollector.ingress.hosts`             | Open Telemetry Collector ingress virtual hosts                         | See `values.yaml` for defaults    |
+| `otelCollector.ingress.annotations`       | Open Telemetry Collector ingress annotations                           | `{}`                              |
+| `otelCollector.ingress.tls`               | Open Telemetry Collector ingress TLS settings                          | `[]`                              |
 | `otelCollector.podSecurityContext`       | Pods security context                                                   | `{}`                              |
 | `otelCollector.minReadySeconds`          | Minimum seconds for otel-collector pod to be ready without crashing     | `300`                             |
 | `otelCollector.progressDeadlineSeconds`  | Seconds to wait for the deployment to progress before fail reporting    | `120`                             |
@@ -226,6 +231,11 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.readinessProbe`    | Otel Collector Metrics readiness probes                                 | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.customLivenessProbe`    | Custom liveness probes (if `otelCollectorMetrics.livenessProbe` not enabled)   | `{}`                  |
 | `otelCollectorMetrics.customReadinessProbe`   | Custom readiness probes (if `otelCollectorMetrics.readinessProbe` not enabled) | `{}`                  |
+| `otelCollectorMetrics.ingress.enabled`           | Open Telemetry Collector Metrics ingress resource enabled                      | `false`                           |
+| `otelCollectorMetrics.ingress.className`         | Open Telemetry Collector Metrics ingress class name                            | `""`                              |
+| `otelCollectorMetrics.ingress.hosts`             | Open Telemetry Collector Metrics ingress virtual hosts                         | See `values.yaml` for defaults    |
+| `otelCollectorMetrics.ingress.annotations`       | Open Telemetry Collector Metrics ingress annotations                           | `{}`                              |
+| `otelCollectorMetrics.ingress.tls`               | Open Telemetry Collector Metrics ingress TLS settings                          | `[]`                              |
 | `otelCollectorMetrics.minReadySeconds`          | Minimum seconds for otel-collector-metrics pod to be ready without crashing  | `300`                 |
 | `otelCollectorMetrics.progressDeadlineSeconds`  | Seconds to wait for the deployment to progress before fail reporting   | `120`                       |
 | `otelCollectorMetrics.ballastSizeMib`           | Ballast memory size in Mib                                             | `683`                       |
