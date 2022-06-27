@@ -2,7 +2,7 @@
 #
 # NAMESPACE=platform
 # COMMENT=
-# OPERATOR_IMAGE=altinity/clickhouse-operator:latest
+# OPERATOR_IMAGE=altinity/clickhouse-operator:0.19.0
 # METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:latest
 #
 # Setup Deployment for clickhouse-operator
@@ -13,6 +13,7 @@ metadata:
   name: clickhouse-operator
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
+    clickhouse.altinity.com/chop: 0.18.4
     app: clickhouse-operator
 spec:
   replicas: 1
@@ -28,10 +29,6 @@ spec:
         prometheus.io/scrape: 'true'
     spec:
       serviceAccountName: clickhouse-operator
-      {{- with .Values.clickhouseOperator.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}      
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
@@ -50,7 +47,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: altinity/clickhouse-operator:latest
+          image: altinity/clickhouse-operator:0.19.0
           imagePullPolicy: Always
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -128,3 +125,6 @@ spec:
               mountPath: /etc/clickhouse-operator/templates.d
             - name: etc-clickhouse-operator-usersd-folder
               mountPath: /etc/clickhouse-operator/users.d
+          ports:
+            - containerPort: 8888
+              name: metrics

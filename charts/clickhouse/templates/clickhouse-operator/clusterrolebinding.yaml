@@ -5,6 +5,8 @@ kind: ClusterRoleBinding
 metadata:
   name: clickhouse-operator-signoz
   namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    clickhouse.altinity.com/chop: 0.18.4
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

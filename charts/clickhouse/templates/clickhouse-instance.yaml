@@ -13,7 +13,10 @@ spec:
   configuration:
     users:
       {{ .Values.user }}/password: {{ .Values.password }}
-      {{ .Values.user }}/networks/ip: "0.0.0.0/0"
+      {{ .Values.user }}/networks/ip:
+        {{- range $.Values.allowedNetworkIps }}
+        - {{ . | quote }}
+        {{- end }}
       {{ .Values.user }}/profile: default
       {{ .Values.user }}/quota: default
 
@@ -25,11 +28,10 @@ spec:
         templates:
           podTemplate: pod-template
         layout:
-          shardsCount: {{ .Values.shardsCount }}
-          replicasCount: {{ .Values.replicasCount }}
+          {{- toYaml .Values.layout | nindent 10 }}
 
     settings:
-      format_schema_path: /etc/clickhouse-server/config.d/
+      {{- merge dict .Values.settings .Values.defaultSettings | toYaml | nindent 6 }}
 
     files:
       events.proto: |
@@ -46,7 +48,7 @@ spec:
         }
       {{- if .Values.coldStorage.enabled }}
       config.d/storage.xml: |
-        <yandex>
+        <clickhouse>
           <storage_configuration>
             <disks>
               <!--
@@ -85,8 +87,8 @@ spec:
               </tiered>
             </policies>
           </storage_configuration>
-        </yandex>
-    {{- end }}
+        </clickhouse>
+      {{- end }}
 
     zookeeper:
       nodes:
@@ -100,11 +102,14 @@ spec:
   templates:
     podTemplates:
       - name: pod-template
+        {{- if .Values.podAnnotations }}
+        metadata:
+          annotations: {{ toYaml .Values.podAnnotations | nindent 12 }}
+        {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
           serviceAccountName: clickhouse-instance
           {{- end }}
-
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
           {{- end }}
@@ -114,17 +119,18 @@ spec:
           {{- if .Values.nodeSelector }}
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
           {{- end }}
+
           {{- if .Values.persistence.enabled }}
           volumes:
-            {{- if .Values.persistence.existingClaim }}
+          {{- if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
                 claimName: {{ .Values.persistence.existingClaim }}
-            {{- else }}
+          {{- else }}
             - name: data-volumeclaim-template
               persistentVolumeClaim:
                 claimName: data-volumeclaim-template
-            {{- end }}
+          {{- end }}
           {{- end }}
 
           {{- if .Values.securityContext.enabled }}
@@ -132,6 +138,8 @@ spec:
           {{- end }}
           containers:
             - name: clickhouse
+              # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
+              # https://github.com/SigNoz/signoz/blob/develop/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
               image: {{ template "clickhouse.image" . }}
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               command:
@@ -156,6 +164,7 @@ spec:
               {{- end }}
                   mountPath: /var/lib/clickhouse
               {{- end }}
+
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
               {{- end }}
