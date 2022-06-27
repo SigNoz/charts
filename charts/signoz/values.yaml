@@ -9,6 +9,16 @@ clickhouse:
   # When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
   cloud: other
 
+  zookeeper:
+    #
+    # Please DO NOT override this value.
+    # This chart installs Zookeeper separately.
+    # Only if you know what you are doing, proceed with overriding.
+    #
+
+    # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
+    enabled: true
+
   # -- Name override for clickhouse
   nameOverride: ""
 
