@@ -12,7 +12,7 @@ zookeeper:
   # Please DO NOT override this value.
   # This chart installs Zookeeper separately.
   # Only if you know what you are doing, proceed with overriding.
-  # 
+  #
   enabled: true
   autopurge:
     purgeInterval: 1
