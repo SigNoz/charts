@@ -1,44 +1,22 @@
-# Default values for SigNoz.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-# SigNoz chart full name override
+# -- SigNoz chart full name override
 fullnameOverride: ""
-
 
 # Clickhouse default values
 clickhouse:
-  # fullnameOverride: signoz-clickhouse
-  # zookeeper:
-  #   fullnameOverride: signoz-zookeeper
-
-  # clickhouse service
-  service:
-    httpPort: 8123
-    tcpPort: 9000
-
+  # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
   # Based on the cloud, storage class for the persistent volume is selected.
-  # We can pass anyone of ['aws','gcp','hcloud'].
   # When set to 'aws' or 'gcp', new expandible storage class is created.
-  # When not set, the default storage class (if any) from the k8s cluster is selected.
-  # cloud:
+  # When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
+  cloud: other
 
-  # We can override the storage class for the persistent volume.
-  # Also, note that 'storageClass' takes more precedence than 'cloud'.
-  # So if you set both of the configurations, 'cloud' will be no-op.
-  # storageClass:
+  # -- Name override for clickhouse
+  nameOverride: ""
 
-  # -- Cloud service being deployed on (example: `aws`, `gcp`, `azure`, `hcloud`, `other`).
-  # cloud:
+  # -- Fullname override for clickhouse
+  fullnameOverride: ""
 
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
-
-  # -- Name override for clickhouse
-  # nameOverride: clickhouse
-
-  # -- Name override for clickhouse
-  # fullnameOverride: signoz-clickhouse
 
   # -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
   namespace:
@@ -53,33 +31,37 @@ clickhouse:
   # -- Clickhouse password
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
-  # -- Clickhouse cluster shards
-  shardsCount: 1
-  # -- Clickhouse cluster replicas
-  replicasCount: 1
-
   # -- Clickhouse image
   image:
     # -- Clickhouse image registry to use.
     registry: docker.io
     # -- Clickhouse image repository to use.
-    repository: yandex/clickhouse-server
+    repository: clickhouse/clickhouse-server
     # -- Clickhouse image tag to use (example: `21.8`).
-    #    SigNoz is not always tested with latest version of ClickHouse.
-    #    Only if you know what you are doing, proceed with overriding.
-    tag: 21.12.3.32
+    # SigNoz is not always tested with latest version of ClickHouse.
+    # Only if you know what you are doing, proceed with overriding.
+    tag: 22.4.5-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
+
+  # Clickhouse service
+  service:
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+    # -- Clickhouse HTTP port
+    httpPort: 8123
+    # -- Clickhouse TCP port
+    tcpPort: 9000
 
   # -- Whether to use TLS connection connecting to ClickHouse
   secure: false
   # -- Whether to verify TLS certificate on connection to ClickHouse
   verify: false
-  # externalZookeeper:
   # -- URL for zookeeper.
-  # servers:
-  # - host: signoz-signoz-zookeeper
-  #   port: 2181
+  externalZookeeper: {}
+    # servers:
+    # - host: signoz-signoz-zookeeper
+    #   port: 2181
 
   # -- Toleration labels for clickhouse pod assignment
   tolerations: []
@@ -93,6 +75,8 @@ clickhouse:
   #   requests:
   #     cpu: 1000m
   #     memory: 5Gi
+
+  # -- Security context for Clickhouse node
   securityContext:
     enabled: true
     runAsUser: 101
@@ -105,31 +89,98 @@ clickhouse:
   # -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
   useNodeSelector: false
 
+  # -- An allowlist of IP addresses or network masks the ClickHouse user is
+  # allowed to access from. By default anything within a private network will be
+  # allowed. This should suffice for most use case although to expose to other
+  # networks you will need to update this setting.
+  #
+  allowedNetworkIps:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+
   persistence:
     # -- Enable data persistence using PVC.
     enabled: true
 
     # -- Use a manually managed Persistent Volume and Claim.
-    #    If defined, PVC must be created manually before volume will be bound.
+    # If defined, PVC must be created manually before volume will be bound.
     #
     existingClaim: ""
 
     # -- Persistent Volume Storage Class to use.
-    #    If defined, `storageClassName: <storageClass>`.
-    #    If set to `storageClassName: ""`, disables dynamic provisioning.
-    #    If undefined (the default) or set to `null`, no storageClassName spec is
-    #    set, choosing the default provisioneralertmanager
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to `storageClassName: ""`, disables dynamic provisioning.
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioneralertmanager
+    #
+    storageClass: null
+
     # -- Persistent Volume size
     size: 20Gi
 
-  ## -- Clickhouse user profile configuration.
-  ## You can use this to override settings, for example `default/max_memory_usage: 40000000000`
-  ## For a full list of clickhouse settings, see https://clickhouse.com/docs/en/operations/settings/settings/
+  # -- Clickhouse user profile configuration.
+  # You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  #
   profiles: {}
 
-  ## -- Default user profile configuration for Clickhouse. Don't overwrite this!
+  # -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
   defaultProfiles:
     default/allow_experimental_window_functions: "1"
+    default/allow_nondeterministic_mutations: "1"
+
+  # -- Clickhouse cluster layout. (Experimental, use at own risk)
+  # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+  # section on clusters and layouts.
+  #
+  layout:
+    shardsCount: 1
+    replicasCount: 1
+
+  # -- ClickHouse settings configuration.
+  # You can use this to override settings, for example `prometheus/port: 9363`
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  #
+  settings: {}
+    # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+    # prometheus/endpoint: /metrics
+    # prometheus/port: 9363
+    # prometheus/metrics: true
+    # prometheus/events: true
+    # prometheus/asynchronous_metrics: true
+
+  # -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+  defaultSettings:
+    format_schema_path: /etc/clickhouse-server/config.d/
+
+  # -- ClickHouse pod(s) annotation.
+  podAnnotations: {}
+
+  # Cold storage configuration
+  coldStorage:
+    # -- Whether to enable S3 cold storage
+    enabled: false
+    # -- Reserve free space on default disk (in bytes)
+    defaultKeepFreeSpaceBytes: "10485760"
+    # -- AWS S3 endpoint
+    endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+    # AWS role configuration - to use environment variables instead of passing access and secret keys
+    role:
+      # -- Whether to enable AWS IAM ARN role.
+      enabled: false
+      # -- Annotations to use by service account associated to Clickhouse instance
+      annotations:
+        # aws role arn
+        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+    # -- AWS Access Key
+    accessKey: <access_key_id>
+    # -- AWS Secret Access Key
+    secretAccess: <secret_access_key>
+
 
   ###
   ###
@@ -137,25 +188,12 @@ clickhouse:
   ###
   ###
 
-  # When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+  # -- When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
   # it creates custom storage class with volume expansion permission.
   installCustomStorageClass: false
 
-  # cold storage configuration
-  coldStorage:
-    enabled: false
-    # Set free space size on default disk
-    defaultKeepFreeSpaceBytes: "10485760"   # 10MiB
-    endpoint: https://<bucket-name>.s3.amazonaws.com/data/
-    role:
-      enabled: false
-      annotations:
-        # aws role arn
-        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-    accessKey: <access_key_id>
-    secretAccess: <secret_access_key>
-  # ClickhouseOperator node selector
   clickhouseOperator:
+    # -- ClickhouseOperator node selector
     nodeSelector: {}
 
 

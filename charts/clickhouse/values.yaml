@@ -1,4 +1,7 @@
-# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `other`).
+# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
+# Based on the cloud, storage class for the persistent volume is selected.
+# When set to 'aws' or 'gcp', new expandible storage class is created.
+# When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
 cloud: other
 
 ###
@@ -7,19 +10,35 @@ cloud: other
 ###
 ###
 zookeeper:
-  # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
   #
   # Please DO NOT override this value.
   # This chart installs Zookeeper separately.
   # Only if you know what you are doing, proceed with overriding.
   #
+
+  # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
   enabled: true
+
   autopurge:
+    # -- The time interval (in hours) for which the purge task has to be triggered
     purgeInterval: 1
+
+  metrics:
+    # -- Enable Prometheus to access ZooKeeper metrics endpoint.
+    enabled: false
+
+    service:
+      # -- ZooKeeper metrics service annotation
+      annotations: {}
+
+  ## -- Zookeeper pod(s) annotation.
+  podAnnotations: {}
+
   # -- Name override for zookeeper app
   nameOverride: ""
   # -- Fullname override for zookeeper app
   fullnameOverride: ""
+
   # -- replica count for zookeeper
   replicaCount: 1
 
@@ -28,13 +47,14 @@ zookeeper:
 ### ---- CLICKHOUSE ----
 ###
 ###
+
 # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
 enabled: true
 
 # -- Name override for clickhouse
 nameOverride: ""
 
-# -- Name override for clickhouse
+# -- Fullname override for clickhouse
 fullnameOverride: ""
 
 # -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
@@ -142,6 +162,7 @@ persistence:
 # For the full list of settings, see:
 # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
 # - https://clickhouse.com/docs/en/operations/settings/settings/
+#
 profiles: {}
 
 # -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
@@ -151,7 +172,8 @@ defaultProfiles:
 
 
 # -- Clickhouse cluster layout. (Experimental, use at own risk)
-# For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+# For a full list of options, see
+# https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
 # section on clusters and layouts.
 layout:
   shardsCount: 1
@@ -174,11 +196,7 @@ defaultSettings:
   format_schema_path: /etc/clickhouse-server/config.d/
 
 # -- ClickHouse pod(s) annotation.
-podAnnotations:
-  # Uncomment those lines if you want Prometheus server to scrape ClickHouse pods metrics.
-  # prometheus.io/scrape: "true"
-  # prometheus.io/path: /metrics
-  # prometheus.io/port: "9363"
+podAnnotations: {}
 
 # Cold storage configuration
 coldStorage:

@@ -10,5 +10,9 @@ dependencies:
     repository: https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
     version: 7.0.5
 maintainers:
-  - name: signoz
+  - name: SigNoz
     email: hello@signoz.io
+    url: https://signoz.io
+  - name: Prashant Shahi
+    email: prashant@signoz.io
+    url: https://prashantshahi.dev
