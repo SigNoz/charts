@@ -45,6 +45,24 @@ entries:
     version: 0.5.0
   clickhouse:
   - apiVersion: v2
+    appVersion: 22.4.5
+    created: "2022-06-27T10:00:25.663284922Z"
+    dependencies:
+    - name: zookeeper
+      repository: https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
+      version: 7.0.5
+    description: A Helm chart for ClickHouse
+    digest: 8f951f313446131067ef73ce5ba4a23e31d2b46fd7ca1a2762644cd4e063b280
+    icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
+    maintainers:
+    - email: hello@signoz.io
+      name: signoz
+    name: clickhouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-23.3.0/clickhouse-23.3.0.tgz
+    version: 23.3.0
+  - apiVersion: v2
     appVersion: 21.12.3.32
     created: "2022-06-15T17:19:46.353590959Z"
     dependencies:
@@ -793,4 +811,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2022-06-22T19:59:51.509144532Z"
+generated: "2022-06-27T10:00:25.663438726Z"
