@@ -244,7 +244,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.8.2
+    tag: 0.9.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -334,7 +334,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.8.2
+    tag: 0.9.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -634,7 +634,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.45.1-0.3
+    tag: 0.45.1-1.0
     pullPolicy: Always
   serviceType: "ClusterIP"
   imagePullSecrets: []
@@ -823,7 +823,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/otelcontribcol
-    tag: 0.45.1-0.3
+    tag: 0.45.1-1.0
     pullPolicy: Always
   imagePullSecrets: []
   serviceType: "ClusterIP"
