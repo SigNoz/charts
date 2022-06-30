@@ -1,0 +1,19 @@
+{{- if and .Values.otelCollectorMetrics.autoscaling.enabled -}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "otelCollectorMetrics.fullname" . }}
+spec:
+  scaleTargetRef:
+    apiVersion:    apps/v1  # Optional. Default: apps/v1
+    kind:          Deployment        # Optional. Default: Deployment
+    name:          {{ include "otelCollectorMetrics.fullname" . }}     # Mandatory. Must be in the same namespace as the ScaledObject
+  pollingInterval: {{ .Values.otelCollectorMetrics.autoscaling.pollingInterval }}    # Optional. Default: 30 seconds
+  cooldownPeriod:  {{ .Values.otelCollectorMetrics.autoscaling.cooldownPeriod }}     # Optional. Default: 300 seconds
+  minReplicaCount: {{ .Values.otelCollectorMetrics.autoscaling.minReplicaCount }}    # Optional. Default: 0
+  maxReplicaCount: {{ .Values.otelCollectorMetrics.autoscaling.maxReplicaCount }}    # Optional. Default: 100
+  {{- with .Values.otelCollectorMetrics.autoscaling.triggers }}
+  triggers:
+    {{- toYaml . | nindent 4 }}
+  {{ end }}
+{{ end }}
