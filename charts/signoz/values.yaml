@@ -320,12 +320,12 @@ queryService:
     triggers:
       - type: memory
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
       - type: cpu
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   resources:
     requests:
@@ -384,12 +384,12 @@ frontend:
     triggers:
       - type: memory
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
       - type: cpu
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
@@ -772,12 +772,12 @@ otelCollector:
     triggers:
       - type: memory
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
       - type: cpu
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   # configurations to form the file in configmap
   config:
@@ -881,6 +881,7 @@ otelCollectorMetrics:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
   autoscaling:
     enabled: false
     pollingInterval: "30"  # check 30sec periodically for metrics data
@@ -890,12 +891,12 @@ otelCollectorMetrics:
     triggers:
       - type: memory
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
       - type: cpu
         metadata:
-            type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+          type: Utilization
+          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
