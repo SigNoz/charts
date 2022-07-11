@@ -311,22 +311,6 @@ queryService:
     #      - chart-example.local
 
   # adjust the resource requests and limit as necessary
-  autoscaling:
-    enabled: false
-    pollingInterval: "30"  # check 30sec periodically for metrics data
-    cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-    minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
-    maxReplicaCount: "5"
-    triggers:
-      - type: memory
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
-
   resources:
     requests:
       cpu: 200m
@@ -377,19 +361,21 @@ frontend:
         doneMessage: "clickhouse ready, starting frontend now"
   autoscaling:
     enabled: false
-    pollingInterval: "30"  # check 30sec periodically for metrics data
-    cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-    minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
-    maxReplicaCount: "5"
-    triggers:
-      - type: memory
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+    keda:
+      enabled: false
+      pollingInterval: "30"  # check 30sec periodically for metrics data
+      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      maxReplicaCount: "5"
+      triggers:
+        - type: memory
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+        - type: cpu
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
@@ -765,19 +751,22 @@ otelCollector:
   affinity: {}
   autoscaling:
     enabled: false
-    pollingInterval: "30"  # check 30sec periodically for metrics data
-    cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-    minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
-    maxReplicaCount: "5"
-    triggers:
-      - type: memory
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+    keda:
+      enabled: false
+      pollingInterval: "30"  # check 30sec periodically for metrics data
+      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      maxReplicaCount: "5"
+      triggers:
+        - type: memory
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+        - type: cpu
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+
 
   # configurations to form the file in configmap
   config:
@@ -881,22 +870,6 @@ otelCollectorMetrics:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
-
-  autoscaling:
-    enabled: false
-    pollingInterval: "30"  # check 30sec periodically for metrics data
-    cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-    minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
-    maxReplicaCount: "5"
-    triggers:
-      - type: memory
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utilization <=80 by adding new pods
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
