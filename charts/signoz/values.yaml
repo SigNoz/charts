@@ -361,6 +361,25 @@ frontend:
         doneMessage: "clickhouse ready, starting frontend now"
   autoscaling:
     enabled: false
+    minReplicas: 1
+    maxReplicas: 11
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: {}
+      # scaleDown:
+      #   stabilizationWindowSeconds: 300
+      #  policies:
+      #   - type: Pods
+      #     value: 1
+      #     periodSeconds: 180
+      # scaleUp:
+      #   stabilizationWindowSeconds: 300
+      #   policies:
+      #   - type: Pods
+      #     value: 2
+      #     periodSeconds: 60
+
+    autoscalingTemplate: []
     keda:
       enabled: false
       pollingInterval: "30"  # check 30sec periodically for metrics data
@@ -751,6 +770,25 @@ otelCollector:
   affinity: {}
   autoscaling:
     enabled: false
+    minReplicas: 1
+    maxReplicas: 11
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: {}
+      # scaleDown:
+      #   stabilizationWindowSeconds: 300
+      #  policies:
+      #   - type: Pods
+      #     value: 1
+      #     periodSeconds: 180
+      # scaleUp:
+      #   stabilizationWindowSeconds: 300
+      #   policies:
+      #   - type: Pods
+      #     value: 2
+      #     periodSeconds: 60
+
+    autoscalingTemplate: []
     keda:
       enabled: false
       pollingInterval: "30"  # check 30sec periodically for metrics data
@@ -766,7 +804,6 @@ otelCollector:
           metadata:
             type: Utilization
             value: "80"  # hpa make sure average Utlization <=80 by adding new pods
-
 
   # configurations to form the file in configmap
   config:
