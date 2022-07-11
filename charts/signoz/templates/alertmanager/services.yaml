@@ -34,7 +34,7 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-    {{- if or (gt .Values.alertmanager.replicaCount 1.0) (.Values.alertmanager.additionalPeers) }}
+    {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
     - port: 9094
       targetPort: 9094
       protocol: TCP

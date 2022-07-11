@@ -100,11 +100,11 @@ spec:
           args:
             - --storage.path=/alertmanager
             - --queryService.url=http://{{ include "queryService.internalUrl" . }}
-            {{- if or (gt .Values.alertmanager.replicaCount 1.0) (.Values.alertmanager.additionalPeers) }}
+            {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
             - --cluster.advertise-address=$(POD_IP):9094
             - --cluster.listen-address=0.0.0.0:9094
             {{- end }}
-            {{- if gt .Values.alertmanager.replicaCount 1.0}}
+            {{- if gt (int .Values.alertmanager.replicaCount) 1 }}
             {{- $fullName := include "alertmanager.fullname" . }}
             {{- range $i := until (int .Values.alertmanager.replicaCount) }}
             - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:9094
