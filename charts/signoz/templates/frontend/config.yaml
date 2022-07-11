@@ -30,10 +30,12 @@ data:
 
       location /api/alertmanager {
         proxy_pass http://{{ include "alertmanager.url" . }}/api/v2;
+        proxy_http_version 1.1;
       }
 
       location /api {
         proxy_pass http://{{ include "queryService.url" . }}/api;
+        proxy_http_version 1.1;
       }
 
       # redirect server error pages to the static page /50x.html
