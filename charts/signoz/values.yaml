@@ -359,6 +359,42 @@ frontend:
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
         doneMessage: "clickhouse ready, starting frontend now"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 11
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: {}
+      # scaleDown:
+      #   stabilizationWindowSeconds: 300
+      #  policies:
+      #   - type: Pods
+      #     value: 1
+      #     periodSeconds: 180
+      # scaleUp:
+      #   stabilizationWindowSeconds: 300
+      #   policies:
+      #   - type: Pods
+      #     value: 2
+      #     periodSeconds: 60
+
+    autoscalingTemplate: []
+    keda:
+      enabled: false
+      pollingInterval: "30"  # check 30sec periodically for metrics data
+      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      maxReplicaCount: "5"
+      triggers:
+        - type: memory
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+        - type: cpu
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
@@ -732,6 +768,42 @@ otelCollector:
   tolerations: []
 
   affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 11
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: {}
+      # scaleDown:
+      #   stabilizationWindowSeconds: 300
+      #  policies:
+      #   - type: Pods
+      #     value: 1
+      #     periodSeconds: 180
+      # scaleUp:
+      #   stabilizationWindowSeconds: 300
+      #   policies:
+      #   - type: Pods
+      #     value: 2
+      #     periodSeconds: 60
+
+    autoscalingTemplate: []
+    keda:
+      enabled: false
+      pollingInterval: "30"  # check 30sec periodically for metrics data
+      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      maxReplicaCount: "5"
+      triggers:
+        - type: memory
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+        - type: cpu
+          metadata:
+            type: Utilization
+            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
 
   # configurations to form the file in configmap
   config:
