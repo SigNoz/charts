@@ -36,7 +36,7 @@ spec:
         image: {{ template "otelCollector.image" . }}
         imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
         command:
-          - "/otelcontribcol"
+          - "/signoz-collector"
           - "--config=/conf/otel-collector-config.yaml"
         env:
           {{- include "snippet.clickhouse-env" . | nindent 10 }}
