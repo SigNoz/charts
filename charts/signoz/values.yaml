@@ -228,9 +228,8 @@ externalClickhouse:
   # -- Whether to use TLS connection connecting to ClickHouse
   secure: false
   # -- Whether to verify TLS connection connecting to ClickHouse
-  verify:
-    false
-    # -- HTTP port of Clickhouse
+  verify: false
+  # -- HTTP port of Clickhouse
   httpPort: 8123
   # -- TCP port of Clickhouse
   tcpPort: 9000
@@ -685,7 +684,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 5
+  replicaCount: 1
   ballastSizeMib: 683
   initContainers:
     init:
