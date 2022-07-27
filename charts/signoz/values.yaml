@@ -68,8 +68,7 @@ clickhouse:
   # -- Whether to verify TLS certificate on connection to ClickHouse
   verify: false
   # -- URL for zookeeper.
-  externalZookeeper:
-    {}
+  externalZookeeper: {}
     # servers:
     # - host: signoz-signoz-zookeeper
     #   port: 2181
@@ -156,8 +155,7 @@ clickhouse:
   # For the full list of settings, see:
   # - https://clickhouse.com/docs/en/operations/settings/settings/
   #
-  settings:
-    {}
+  settings: {}
     # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
     # prometheus/endpoint: /metrics
     # prometheus/port: 9363
@@ -277,12 +275,10 @@ queryService:
     telemetryEnabled: true
     deploymentType: kubernetes-helm
 
-  podSecurityContext:
-    {}
+  podSecurityContext: {}
     # fsGroup: 2000
 
-  securityContext:
-    {}
+  securityContext: {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -298,8 +294,7 @@ queryService:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -364,8 +359,7 @@ frontend:
     maxReplicas: 11
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 50
-    behavior:
-      {}
+    behavior: {}
       # scaleDown:
       #   stabilizationWindowSeconds: 300
       #  policies:
@@ -382,28 +376,26 @@ frontend:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30" # check 30sec periodically for metrics data
-      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30"   # check 30sec periodically for metrics data
+      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utilization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utlization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
-  podSecurityContext:
-    {}
+  podSecurityContext: {}
     # fsGroup: 2000
 
-  securityContext:
-    {}
+  securityContext: {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -418,8 +410,7 @@ frontend:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -496,8 +487,7 @@ alertmanager:
 
   podSecurityContext:
     fsGroup: 65534
-  dnsConfig:
-    {}
+  dnsConfig: {}
     # nameservers:
     #   - 1.2.3.4
     # searches:
@@ -531,8 +521,7 @@ alertmanager:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -567,8 +556,7 @@ alertmanager:
   podLabels: {}
 
   # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
-  podDisruptionBudget:
-    {}
+  podDisruptionBudget: {}
     # maxUnavailable: 1
     # minAvailable: 1
 
@@ -714,16 +702,16 @@ otelCollector:
         doneMessage: "clickhouse ready, starting otel collector now"
   # ports used by the container
   ports:
-    zPages: 55679 # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317 # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318 # Default endpoint for OpenTelemetry HTTP receiver.
-    otelGrpcLegacyReceiver: 55680 # Default endpoint for OpenTelemetry gRPC legacy receiver.
-    otelHttpLegacyReceiver: 55681 # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250 # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268 # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411 # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888 # Default endpoint for querying metrics.
-    prometheusExportedMetrics: 8889 # Default endpoint for prometheus exported metrics.
+    zPages: 55679   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
+    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888   # Default endpoint for querying metrics.
+    prometheusExportedMetrics: 8889   # Default endpoint for prometheus exported metrics.
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -754,8 +742,7 @@ otelCollector:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -789,8 +776,7 @@ otelCollector:
     maxReplicas: 11
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 50
-    behavior:
-      {}
+    behavior: {}
       # scaleDown:
       #   stabilizationWindowSeconds: 300
       #  policies:
@@ -807,19 +793,19 @@ otelCollector:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30" # check 30sec periodically for metrics data
-      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30"   # check 30sec periodically for metrics data
+      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utilization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utlization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
   # configurations to form the file in configmap
   config:
@@ -970,15 +956,15 @@ otelCollectorMetrics:
 
   # ports used by the container
   ports:
-    zPages: 55679 # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317 # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318 # Default endpoint for OpenTelemetry HTTP receiver.
-    otelGrpcLegacyReceiver: 55680 # Default endpoint for OpenTelemetry gRPC legacy receiver.
-    otelHttpLegacyReceiver: 55681 # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250 # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268 # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411 # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888 # Default endpoint for querying metrics.
+    zPages: 55679   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
+    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888   # Default endpoint for querying metrics.
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1009,8 +995,7 @@ otelCollectorMetrics:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
