@@ -4,6 +4,10 @@ metadata:
   name: {{ include "otelCollectorMetrics.fullname" . }}
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+  {{- if .Values.otelCollectorMetrics.annotations }}
+  annotations:
+    {{ toYaml .Values.otelCollectorMetrics.annotations | nindent 4 }}
+  {{- end }}
 spec:
   selector:
     matchLabels:
@@ -14,6 +18,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if .Values.otelCollectorMetrics.podAnnotations -}}
+          {{- toYaml .Values.otelCollectorMetrics.podAnnotations | nindent 8 -}}
+        {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-collector-metrics/config.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollectorMetrics.selectorLabels" . | nindent 8 }}

@@ -6,6 +6,4 @@ metadata:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 data:
   otel-collector-metrics-config.yaml: |-
-    {{- toYaml .Values.otelCollectorMetrics.config | 
-      nindent 4 |
-      replace "$OTEL_COLLECTOR_PROMETHEUS" (include "otelCollector.prometheus-servicename" .)}}
+    {{- toYaml .Values.otelCollectorMetrics.config | nindent 4 }}

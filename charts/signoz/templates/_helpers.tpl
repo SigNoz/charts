@@ -435,10 +435,3 @@ Return the service name of Clickhouse
 {{- end -}}
 {{- end -}}
 {{- end }}
-
-{{/*
-Return the service name of OtelCollector with Prometheus port
-*/}}
-{{- define "otelCollector.prometheus-servicename" -}}
-{{- printf "%s:%s" (include "otelCollector.fullname" .) "8889" -}}
-{{- end -}}

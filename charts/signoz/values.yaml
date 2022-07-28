@@ -191,7 +191,6 @@ clickhouse:
     # -- AWS Secret Access Key
     secretAccess: <secret_access_key>
 
-
   ###
   ###
   ### ---- MISC ----
@@ -205,7 +204,6 @@ clickhouse:
   clickhouseOperator:
     # -- ClickhouseOperator node selector
     nodeSelector: {}
-
 
 ## External clickhouse configuration
 ## This is required when clickhouse.enabled is false
@@ -231,11 +229,10 @@ externalClickhouse:
   secure: false
   # -- Whether to verify TLS connection connecting to ClickHouse
   verify: false
-    # -- HTTP port of Clickhouse
+  # -- HTTP port of Clickhouse
   httpPort: 8123
   # -- TCP port of Clickhouse
   tcpPort: 9000
-
 
 # Default values for query-service
 queryService:
@@ -277,12 +274,10 @@ queryService:
     telemetryEnabled: true
     deploymentType: kubernetes-helm
 
-  podSecurityContext:
-    {}
+  podSecurityContext: {}
     # fsGroup: 2000
 
-  securityContext:
-    {}
+  securityContext: {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -298,8 +293,7 @@ queryService:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -324,7 +318,6 @@ queryService:
   tolerations: []
 
   affinity: {}
-
 
 # Default values for frontend
 frontend:
@@ -382,28 +375,26 @@ frontend:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30"  # check 30sec periodically for metrics data
-      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30"   # check 30sec periodically for metrics data
+      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
-  podSecurityContext:
-    {}
+  podSecurityContext: {}
     # fsGroup: 2000
 
-  securityContext:
-    {}
+  securityContext: {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -418,8 +409,7 @@ frontend:
   ingress:
     enabled: false
     className: ""
-    annotations:
-      {}
+    annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
     hosts:
@@ -446,7 +436,6 @@ frontend:
   tolerations: []
 
   affinity: {}
-
 
 # Default values for Alertmanager
 alertmanager:
@@ -587,24 +576,24 @@ alertmanager:
   ## We no longer need the config file as query services
   ## delivers the required config.
   # config:
-    # global:
-    #   resolve_timeout: 1m
-    #   slack_api_url: 'https://hooks.slack.com/services/xxx'
+  # global:
+  #   resolve_timeout: 1m
+  #   slack_api_url: 'https://hooks.slack.com/services/xxx'
 
-    # templates:
-    #   - '/etc/alertmanager/*.tmpl'
+  # templates:
+  #   - '/etc/alertmanager/*.tmpl'
 
-    # receivers:
-    # - name: 'slack-notifications'
-    #   slack_configs:
-    #   - channel: '#alerts'
-    #     send_resolved: true
-    #     icon_url: https://avatars3.githubusercontent.com/u/3380462
-    #     title: '{{ template "slack.title" . }}'
-    #     text: '{{ template "slack.text" . }}'
+  # receivers:
+  # - name: 'slack-notifications'
+  #   slack_configs:
+  #   - channel: '#alerts'
+  #     send_resolved: true
+  #     icon_url: https://avatars3.githubusercontent.com/u/3380462
+  #     title: '{{ template "slack.title" . }}'
+  #     text: '{{ template "slack.text" . }}'
 
-    # route:
-    #   receiver: 'slack-notifications'
+  # route:
+  #   receiver: 'slack-notifications'
 
   ## Templates are no longer needed as they are included
   ## from frontend placeholder while creating alert channels.
@@ -663,7 +652,6 @@ alertmanager:
     ##
     resources: {}
 
-
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
@@ -682,6 +670,18 @@ otelCollector:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # -- OtelColector Deployment annotation.
+  annotations: {}
+  # -- OtelColector pod(s) annotation.
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8888"
+    prometheus.io/path: /metrics
+    signoz.io/scrape: "true"
+    signoz.io/port: "8889"
+    signoz.io/path: /metrics
+
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicaCount: 1
@@ -701,15 +701,15 @@ otelCollector:
         doneMessage: "clickhouse ready, starting otel collector now"
   # ports used by the container
   ports:
-    zPages: 55679                     # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317            # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318            # Default endpoint for OpenTelemetry HTTP receiver.
-    otelGrpcLegacyReceiver: 55680     # Default endpoint for OpenTelemetry gRPC legacy receiver.
-    otelHttpLegacyReceiver: 55681     # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250         # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268         # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411              # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888             # Default endpoint for querying metrics.
+    zPages: 55679   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
+    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
+    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
+    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888   # Default endpoint for querying metrics.
     prometheusExportedMetrics: 8889   # Default endpoint for prometheus exported metrics.
 
   ## Configure liveness and readiness probes.
@@ -768,6 +768,7 @@ otelCollector:
   tolerations: []
 
   affinity: {}
+
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -791,19 +792,19 @@ otelCollector:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30"  # check 30sec periodically for metrics data
-      cooldownPeriod: "300"  # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1"   # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30"   # check 30sec periodically for metrics data
+      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80"  # hpa make sure average Utilization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80"  # hpa make sure average Utlization <=80 by adding new pods
+            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
   # configurations to form the file in configmap
   config:
@@ -839,13 +840,32 @@ otelCollector:
         timeout: 10s
       signozspanmetrics/prometheus:
         metrics_exporter: prometheus
-        latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
+        latency_histogram_buckets:
+          [
+            100us,
+            1ms,
+            2ms,
+            6ms,
+            10ms,
+            50ms,
+            100ms,
+            250ms,
+            500ms,
+            1000ms,
+            1400ms,
+            2000ms,
+            5s,
+            10s,
+            20s,
+            40s,
+            60s,
+          ]
         dimensions_cache_size: 10000
         dimensions:
-        - name: service.namespace
-          default: default
-        - name: deployment.environment
-          default: default
+          - name: service.namespace
+            default: default
+          - name: deployment.environment
+            default: default
       # memory_limiter:
       #   # 80% of maximum memory up to 2G
       #   limit_mib: 1500
@@ -872,8 +892,11 @@ otelCollector:
         resource_to_telemetry_conversion:
           enabled: true
       prometheus:
-        endpoint: "0.0.0.0:8889"
+        endpoint: 0.0.0.0:8889
     service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
       extensions: [health_check, zpages]
       pipelines:
         traces:
@@ -887,7 +910,6 @@ otelCollector:
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
-
 
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
@@ -907,6 +929,11 @@ otelCollectorMetrics:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # -- OtelColectorMetrics Deployment annotation.
+  annotations: {}
+  # -- OtelColectorMetrics pod(s) annotation.
+  podAnnotations: {}
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
@@ -928,15 +955,15 @@ otelCollectorMetrics:
 
   # ports used by the container
   ports:
-    zPages: 55679                   # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317          # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318          # Default endpoint for OpenTelemetry HTTP receiver.
+    zPages: 55679   # Default endpoint for ZPages.
+    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
+    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
     otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
     otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250       # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268       # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411            # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888           # Default endpoint for querying metrics.
+    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
+    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
+    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
+    queryingMetrics: 8888   # Default endpoint for querying metrics.
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1008,12 +1035,74 @@ otelCollectorMetrics:
       prometheus:
         config:
           scrape_configs:
-            - job_name: otel-collector
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                  # the following string is replaced with OTel service name using the helper template
-                  - $OTEL_COLLECTOR_PROMETHEUS
+            # otel-collector-metrics internal metrics
+            # - job_name: "otel-collector-metrics"
+            #   scrape_interval: 60s
+            #   static_configs:
+            #     - targets:
+            #       - localhost:8888
+            # generic prometheus metrics scraper (scrapped when pod annotations are set)
+            - job_name: "generic-collector"
+              scrape_interval: 60s
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: true
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - source_labels:
+                    [
+                      __meta_kubernetes_pod_ip,
+                      __meta_kubernetes_pod_annotation_prometheus_io_port,
+                    ]
+                  action: replace
+                  separator: ":"
+                  target_label: __address__
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: replace
+                  target_label: k8s_namespace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: k8s_pod
+            # SigNoz span metrics
+            - job_name: "signozspanmetrics-collector"
+              scrape_interval: 60s
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_signoz_io_scrape]
+                  action: keep
+                  regex: true
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_signoz_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - source_labels:
+                    [
+                      __meta_kubernetes_pod_ip,
+                      __meta_kubernetes_pod_annotation_signoz_io_port,
+                    ]
+                  action: replace
+                  separator: ":"
+                  target_label: __address__
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: replace
+                  target_label: k8s_namespace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: k8s_pod
     processors:
       batch:
         send_batch_size: 1000
@@ -1040,6 +1129,9 @@ otelCollectorMetrics:
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
     service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
       extensions: [health_check, zpages]
       pipelines:
         metrics:
