@@ -173,6 +173,11 @@ spec:
     serviceTemplates:
       - name: service-template
         generateName: {{ include "clickhouse.fullname" . }}
+        {{- if .Values.service.annotations }}
+        metadata:
+          annotations:
+            {{- toYaml .Values.service.annotations | nindent 12 }}
+        {{- end }}
         spec:
           ports:
             - name: http

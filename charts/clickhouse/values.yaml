@@ -88,6 +88,8 @@ image:
 
 # Clickhouse service
 service:
+  # -- Annotations to use by service associated to Clickhouse instance
+  annotations: {}
   # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
   type: ClusterIP
   # -- Clickhouse HTTP port
