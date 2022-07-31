@@ -240,6 +240,11 @@ defaultSettings:
 
 # -- ClickHouse pod(s) annotation.
 podAnnotations: {}
+  # Uncomment lines below to enable scraping of ClickHouse metrics.
+  # Be sure to uncomment `setting` to enable built-in Prometheus HTTP endpoint.
+  # signoz.io/scrape: 'true'
+  # signoz.io/port: '9363'
+  # signoz.io/path: /metrics
 
 # Cold storage configuration
 coldStorage:
