@@ -1,3 +1,11 @@
+---
+global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  storageClass: null
+
 # -- SigNoz chart full name override
 fullnameOverride: ""
 
@@ -110,7 +118,7 @@ clickhouse:
     - "192.168.0.0/16"
 
   persistence:
-    # -- Enable data persistence using PVC.
+    # -- Enable data persistence using PVC for ClickHouseDB data.
     enabled: true
 
     # -- Use a manually managed Persistent Volume and Claim.
@@ -120,11 +128,15 @@ clickhouse:
 
     # -- Persistent Volume Storage Class to use.
     # If defined, `storageClassName: <storageClass>`.
-    # If set to `storageClassName: ""`, disables dynamic provisioning.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
     # If undefined (the default) or set to `null`, no storageClassName spec is
-    # set, choosing the default provisioneralertmanager
+    # set, choosing the default provisioner.
     #
     storageClass: null
+
+    # -- Access Modes for persistent volume
+    accessModes:
+      - ReadWriteOnce
 
     # -- Persistent Volume size
     size: 20Gi
@@ -321,6 +333,26 @@ queryService:
   tolerations: []
 
   affinity: {}
+
+  persistence:
+    # -- Enable data persistence using PVC for SQLiteDB data.
+    enabled: true
+
+    # -- Persistent Volume Storage Class to use.
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Access Modes for persistent volume
+    accessModes:
+      - ReadWriteOnce
+
+    # -- Persistent Volume size
+    size: 1Gi
+
 
 # Default values for frontend
 frontend:
@@ -563,16 +595,22 @@ alertmanager:
     # minAvailable: 1
 
   persistence:
+    # -- Enable data persistence using PVC for Alertmanager data.
     enabled: true
-    ## Persistent Volume Storage Class
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ## set, choosing the default provisioner.
-    ##
-    # storageClass: "-"
+
+    # -- Persistent Volume Storage Class to use.
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Access Modes for persistent volume
     accessModes:
       - ReadWriteOnce
+
+    # -- Persistent Volume size
     size: 100Mi
 
   ## Using the config, alertmanager.yml file is created.
