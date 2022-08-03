@@ -1,5 +1,8 @@
 ---
 global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: &GLOBAL_SC null
 
