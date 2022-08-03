@@ -90,7 +90,7 @@ Return the initContainers image name
 Return the proper queryService image name
 */}}
 {{- define "queryService.image" -}}
-{{- $registryName := .Values.queryService.image.registry -}}
+{{- $registryName := default .Values.queryService.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.queryService.image.repository -}}
 {{- $tag := .Values.queryService.image.tag | toString -}}
 {{- if $registryName -}}
@@ -173,7 +173,7 @@ Create the name of the service account to use
 Return the proper frontend image name
 */}}
 {{- define "frontend.image" -}}
-{{- $registryName := .Values.frontend.image.registry -}}
+{{- $registryName := default .Values.frontend.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.frontend.image.repository -}}
 {{- $tag := .Values.frontend.image.tag | toString -}}
 {{- if $registryName -}}
@@ -263,7 +263,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "alertmanager.image" -}}
-{{- $registryName := .Values.alertmanager.image.registry -}}
+{{- $registryName := default .Values.alertmanager.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.alertmanager.image.repository -}}
 {{- $tag := .Values.alertmanager.image.tag | toString -}}
 {{- if $registryName -}}
@@ -339,7 +339,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "otelCollector.image" -}}
-{{- $registryName := .Values.otelCollector.image.registry -}}
+{{- $registryName := default .Values.otelCollector.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.otelCollector.image.repository -}}
 {{- $tag := .Values.otelCollector.image.tag | toString -}}
 {{- if $registryName -}}
@@ -408,7 +408,7 @@ Return the initContainers image name
 Return the proper otelCollectorMetrics image name
 */}}
 {{- define "otelCollectorMetrics.image" -}}
-{{- $registryName := .Values.otelCollectorMetrics.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.image.tag | toString -}}
 {{- if $registryName -}}

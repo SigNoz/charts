@@ -1,3 +1,11 @@
+---
+global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  storageClass: &GLOBAL_SC null
+
 # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
 # Based on the cloud, storage class for the persistent volume is selected.
 # When set to 'aws' or 'gcp', new expandible storage class is created.
@@ -41,6 +49,35 @@ zookeeper:
 
   # -- replica count for zookeeper
   replicaCount: 1
+
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  persistence:
+    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
+    #
+    enabled: true
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    #
+    existingClaim: ""
+    # -- PVC Storage Class for ZooKeeper data volume
+    # If defined, storageClassName: <storageClass>
+    # If set to "-", storageClassName: "", which disables dynamic provisioning
+    # If undefined (the default) or set to null, no storageClassName spec is
+    #   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    #   GKE, AWS & OpenStack)
+    #
+    storageClass: *GLOBAL_SC
+
+    # -- PVC Access modes
+    accessModes:
+      - ReadWriteOnce
+
+    # -- PVC Storage Request for ZooKeeper data volume
+    size: 8Gi
+
+    # -- Annotations for the PVC
+    annotations: {}
 
 ###
 ###
@@ -150,11 +187,15 @@ persistence:
 
   # -- Persistent Volume Storage Class to use.
   # If defined, `storageClassName: <storageClass>`.
-  # If set to `storageClassName: ""`, disables dynamic provisioning.
+  # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
   # If undefined (the default) or set to `null`, no storageClassName spec is
   # set, choosing the default provisioner.
   #
   storageClass: null
+
+  # -- Access Modes for persistent volume
+  accessModes:
+    - ReadWriteOnce
 
   # -- Persistent Volume size
   size: 20Gi

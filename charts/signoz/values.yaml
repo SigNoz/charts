@@ -1,3 +1,11 @@
+---
+global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  storageClass: null
+
 # -- SigNoz chart full name override
 fullnameOverride: ""
 
@@ -110,7 +118,7 @@ clickhouse:
     - "192.168.0.0/16"
 
   persistence:
-    # -- Enable data persistence using PVC.
+    # -- Enable data persistence using PVC for ClickHouseDB data.
     enabled: true
 
     # -- Use a manually managed Persistent Volume and Claim.
@@ -120,11 +128,15 @@ clickhouse:
 
     # -- Persistent Volume Storage Class to use.
     # If defined, `storageClassName: <storageClass>`.
-    # If set to `storageClassName: ""`, disables dynamic provisioning.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
     # If undefined (the default) or set to `null`, no storageClassName spec is
-    # set, choosing the default provisioneralertmanager
+    # set, choosing the default provisioner.
     #
     storageClass: null
+
+    # -- Access Modes for persistent volume
+    accessModes:
+      - ReadWriteOnce
 
     # -- Persistent Volume size
     size: 20Gi
@@ -155,10 +167,10 @@ clickhouse:
   # For the full list of settings, see:
   # - https://clickhouse.com/docs/en/operations/settings/settings/
   #
-  settings: {}
+  settings:
     # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
-    # prometheus/endpoint: /metrics
-    # prometheus/port: 9363
+    prometheus/endpoint: /metrics
+    prometheus/port: 9363
     # prometheus/metrics: true
     # prometheus/events: true
     # prometheus/asynchronous_metrics: true
@@ -168,7 +180,10 @@ clickhouse:
     format_schema_path: /etc/clickhouse-server/config.d/
 
   # -- ClickHouse pod(s) annotation.
-  podAnnotations: {}
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '9363'
+    signoz.io/path: /metrics
 
   # Cold storage configuration
   coldStorage:
@@ -318,6 +333,26 @@ queryService:
   tolerations: []
 
   affinity: {}
+
+  persistence:
+    # -- Enable data persistence using PVC for SQLiteDB data.
+    enabled: true
+
+    # -- Persistent Volume Storage Class to use.
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Access Modes for persistent volume
+    accessModes:
+      - ReadWriteOnce
+
+    # -- Persistent Volume size
+    size: 1Gi
+
 
 # Default values for frontend
 frontend:
@@ -560,16 +595,22 @@ alertmanager:
     # minAvailable: 1
 
   persistence:
+    # -- Enable data persistence using PVC for Alertmanager data.
     enabled: true
-    ## Persistent Volume Storage Class
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ## set, choosing the default provisioner.
-    ##
-    # storageClass: "-"
+
+    # -- Persistent Volume Storage Class to use.
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Access Modes for persistent volume
     accessModes:
       - ReadWriteOnce
+
+    # -- Persistent Volume size
     size: 100Mi
 
   ## Using the config, alertmanager.yml file is created.
@@ -675,12 +716,12 @@ otelCollector:
   annotations: {}
   # -- OtelColector pod(s) annotation.
   podAnnotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "8888"
-    prometheus.io/path: /metrics
-    signoz.io/scrape: "true"
-    signoz.io/port: "8889"
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
     signoz.io/path: /metrics
+    internal.signoz.io/scrape: 'true'
+    internal.signoz.io/port: '8889'
+    internal.signoz.io/path: /metrics
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
@@ -933,7 +974,10 @@ otelCollectorMetrics:
   # -- OtelColectorMetrics Deployment annotation.
   annotations: {}
   # -- OtelColectorMetrics pod(s) annotation.
-  podAnnotations: {}
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
+    signoz.io/path: /metrics
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
@@ -1048,18 +1092,18 @@ otelCollectorMetrics:
                 - role: pod
               relabel_configs:
                 - source_labels:
-                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    [__meta_kubernetes_pod_annotation_signoz_io_scrape]
                   action: keep
                   regex: true
                 - source_labels:
-                    [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                    [__meta_kubernetes_pod_annotation_signoz_io_path]
                   action: replace
                   target_label: __metrics_path__
                   regex: (.+)
                 - source_labels:
                     [
                       __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_prometheus_io_port,
+                      __meta_kubernetes_pod_annotation_signoz_io_port,
                     ]
                   action: replace
                   separator: ":"
@@ -1079,18 +1123,18 @@ otelCollectorMetrics:
                 - role: pod
               relabel_configs:
                 - source_labels:
-                    [__meta_kubernetes_pod_annotation_signoz_io_scrape]
+                    [__meta_kubernetes_pod_annotation_internal_signoz_io_scrape]
                   action: keep
                   regex: true
                 - source_labels:
-                    [__meta_kubernetes_pod_annotation_signoz_io_path]
+                    [__meta_kubernetes_pod_annotation_internal_signoz_io_path]
                   action: replace
                   target_label: __metrics_path__
                   regex: (.+)
                 - source_labels:
                     [
                       __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_signoz_io_port,
+                      __meta_kubernetes_pod_annotation_internal_signoz_io_port,
                     ]
                   action: replace
                   separator: ":"

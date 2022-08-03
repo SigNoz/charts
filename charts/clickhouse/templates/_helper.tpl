@@ -49,7 +49,7 @@ Set zookeeper port
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
-{{- $registryName := .Values.image.registry -}}
+{{- $registryName := default .Values.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
 {{- if $registryName -}}
