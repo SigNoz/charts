@@ -4,8 +4,12 @@ metadata:
   name: {{ include "otelCollectorMetrics.fullname" . }}
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+{{- if .Values.otelCollectorMetrics.service.annotations }}
+  annotations:
+    {{- toYaml .Values.otelCollectorMetrics.service.annotations | nindent 4 }}
+{{- end }}
 spec:
-  type: {{ .Values.otelCollectorMetrics.serviceType }}
+  type: {{ .Values.otelCollectorMetrics.service.type }}
   ports:
   - name: otlp-grpc
     port: {{ .Values.otelCollector.ports.otelGrpcReceiver }}

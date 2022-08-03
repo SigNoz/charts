@@ -64,6 +64,8 @@ clickhouse:
 
   # Clickhouse service
   service:
+    # -- Annotations to use by service associated to Clickhouse instance
+    annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Clickhouse HTTP port
@@ -100,9 +102,6 @@ clickhouse:
     runAsUser: 101
     runAsGroup: 101
     fsGroup: 101
-
-  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-  serviceType: ClusterIP
 
   # -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
   useNodeSelector: false
@@ -300,9 +299,15 @@ queryService:
     # runAsNonRoot: true
     # runAsUser: 1000
 
+  # Query-Service service
   service:
+    # -- Annotations to use by service associated to Query-Service
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
+    # -- Query-Service HTTP port
     port: 8080
+    # -- Query-Service Internal port
     internalPort: 8085
 
   ingress:
@@ -437,8 +442,13 @@ frontend:
     # runAsNonRoot: true
     # runAsUser: 1000
 
+  # Frontend service
   service:
+    # -- Annotations to use by service associated to Frontend
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
+    # -- Frontend HTTP port
     port: 3301
 
   ingress:
@@ -489,12 +499,16 @@ alertmanager:
 
   imagePullSecrets: []
 
+  # Alertmanager service
   service:
+    # -- Annotations to use by service associated to Alertmanager
     annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
+    # -- Alertmanager HTTP port
     port: 9093
-    # if you want to force a specific nodePort. Must be use with service.type=NodePort
-    # nodePort:
+    # -- Set this to you want to force a specific nodePort. Must be use with service.type=NodePort
+    nodePort: null
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -701,8 +715,15 @@ otelCollector:
     repository: signoz/otelcontribcol
     tag: 0.45.1-1.1
     pullPolicy: Always
-  serviceType: "ClusterIP"
   imagePullSecrets: []
+
+  # OtelCollector service
+  service:
+    # -- Annotations to use by service associated to OtelCollector
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -961,7 +982,14 @@ otelCollectorMetrics:
     tag: 0.45.1-1.1
     pullPolicy: Always
   imagePullSecrets: []
-  serviceType: "ClusterIP"
+  
+  # OtelCollectorMetrics service
+  service:
+    # -- Annotations to use by service associated to OtelCollectorMetrics
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
