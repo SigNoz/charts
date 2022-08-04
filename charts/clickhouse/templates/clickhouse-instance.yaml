@@ -191,7 +191,7 @@ spec:
       - name: data-volumeclaim-template
         spec:
           accessModes:
-            {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+            {{- toYaml .Values.persistence.accessModes | nindent 12 }}
           resources:
             requests:
               storage: {{ .Values.persistence.size }}
