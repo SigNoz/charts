@@ -173,18 +173,22 @@ spec:
     serviceTemplates:
       - name: service-template
         generateName: {{ include "clickhouse.fullname" . }}
-        {{- if .Values.service.annotations }}
+        {{- with .Values.service }}
+        {{- if .annotations }}
         metadata:
           annotations:
-            {{- toYaml .Values.service.annotations | nindent 12 }}
+            {{- toYaml .annotations | nindent 12 }}
         {{- end }}
         spec:
+          type: {{ .type }}
           ports:
             - name: http
-              port: {{ .Values.service.httpPort }}
+              port: {{ .httpPort }}
+              {{ include "service.ifClusterIP" .type }}
             - name: tcp
-              port: {{ .Values.service.tcpPort }}
-          type: {{ .Values.service.type }}
+              port: {{ .tcpPort }}
+              {{ include "service.ifClusterIP" .type -}}
+        {{- end }}
 
     {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
     volumeClaimTemplates:
