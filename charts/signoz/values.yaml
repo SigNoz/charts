@@ -311,18 +311,27 @@ queryService:
     internalPort: 8085
 
   ingress:
+    # -- Enable ingress for Query-Service
     enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
+    # -- Annotations to Query-Service Ingress
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # -- Query-Service Ingress Host names with their path details
     hosts:
-      - host: chart-example.local
-        paths: []
+      - host: query-service.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: 8080
+    # -- Query-Service Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
-    #      - chart-example.local
+    #      - query-service.domain.com
 
   # adjust the resource requests and limit as necessary
   resources:
@@ -452,20 +461,27 @@ frontend:
     port: 3301
 
   ingress:
+    # -- Enable ingress for Frontend
     enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
+    # -- Annotations to Frontend Ingress
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # -- Frontend Ingress Host names with their path details
     hosts:
       - host: frontend.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
+            port: 3301
+    # -- Frontend Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
-    #      - chart-example.local
+    #      - frontend.domain.com
 
   # adjust the resource requests and limit as necessary
   resources:
@@ -567,16 +583,23 @@ alertmanager:
       port: http
 
   ingress:
+    # -- Enable ingress for Alertmanager
     enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
+    # -- Annotations to Alertmanager Ingress
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # -- Alertmanager Ingress Host names with their path details
     hosts:
       - host: alertmanager.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
+            port: 9093
+    # -- Alertmanager Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
@@ -873,16 +896,23 @@ otelCollector:
   customReadinessProbe: {}
 
   ingress:
+    # -- Enable ingress for OtelCollector
     enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
+    # -- Annotations to OtelCollector Ingress
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # -- OtelCollector Ingress Host names with their path details
     hosts:
       - host: otelcollector.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
+            port: 4318
+    # -- OtelCollector Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
@@ -1176,16 +1206,23 @@ otelCollectorMetrics:
   customReadinessProbe: {}
 
   ingress:
+    # -- Enable ingress for OtelCollectorMetrics
     enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
+    # -- Annotations to OtelCollectorMetrics Ingress
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # -- OtelCollectorMetrics Ingress Host names with their path details
     hosts:
       - host: otelcollector-metrics.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
+            port: 13133
+    # -- OtelCollectorMetrics Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
