@@ -761,18 +761,90 @@ otelCollector:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
-  # ports used by the container
+
+  # Configuration for ports
   ports:
-    zPages: 55679   # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
-    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
-    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888   # Default endpoint for querying metrics.
-    prometheusExportedMetrics: 8889   # Default endpoint for prometheus exported metrics.
+    otlp:
+      # -- Whether to enable service port for OTLP gRPC
+      enabled: true
+      # -- Container port for OTLP gRPC
+      containerPort: 4317
+      # -- Service port for OTLP gRPC
+      servicePort: 4317
+      # -- Protocol to use for OTLP gRPC
+      protocol: TCP
+    otlp-http:
+      # -- Whether to enable service port for OTLP HTTP
+      enabled: true
+      # -- Container port for OTLP HTTP
+      containerPort: 4318
+      # -- Service port for OTLP HTTP
+      servicePort: 4318
+      # -- Protocol to use for OTLP HTTP
+      protocol: TCP
+    jaeger-compact:
+      # -- Whether to enable service port for Jaeger Compact
+      enabled: false
+      # -- Container port for Jaeger Compact
+      containerPort: 6831
+      # -- Service port for Jaeger Compact
+      servicePort: 6831
+      # -- Protocol to use for Jaeger Compact
+      protocol: UDP
+    jaeger-thrift:
+      # -- Whether to enable service port for Jaeger Thrift HTTP
+      enabled: true
+      # -- Container port for Jaeger Thrift
+      containerPort: 14268
+      # -- Service port for Jaeger Thrift
+      servicePort: 14268
+      # -- Protocol to use for Jaeger Thrift
+      protocol: TCP
+    jaeger-grpc:
+      # -- Whether to enable service port for Jaeger gRPC
+      enabled: true
+      # -- Container port for Jaeger gRPC
+      containerPort: 14250
+      # -- Service port for Jaeger gRPC
+      servicePort: 14250
+      # -- Protocol to use for Jaeger gRPC
+      protocol: TCP
+    zipkin:
+      # -- Whether to enable service port for Zipkin
+      enabled: false
+      # -- Container port for Zipkin
+      containerPort: 9411
+      # -- Service port for Zipkin
+      servicePort: 9411
+      # -- Protocol to use for Zipkin
+      protocol: TCP
+    prometheus-metrics:
+      # -- Whether to enable service port for SigNoz exported prometheus metrics
+      enabled: false
+      # -- Container port for SigNoz exported prometheus metrics
+      containerPort: 8889
+      # -- Service port for SigNoz exported prometheus metrics
+      servicePort: 8889
+      # -- Protocol to use for SigNoz exported prometheus metrics
+      protocol: TCP
+    metrics:
+      # -- Whether to enable service port for internal metrics
+      enabled: false
+      # -- Container port for internal metrics
+      containerPort: 8888
+      # -- Service port for internal metrics
+      servicePort: 8888
+      # -- Protocol to use for internal metrics
+      protocol: TCP
+    zpages:
+      # -- Whether to enable service port for ZPages
+      enabled: false
+      # -- Container port for Zpages
+      containerPort: 55679
+      # -- Service port for Zpages
+      servicePort: 55679
+      # -- Protocol to use for Zpages
+      protocol: TCP
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -887,6 +959,10 @@ otelCollector:
             endpoint: 0.0.0.0:14250
           thrift_http:
             endpoint: 0.0.0.0:14268
+          # Uncomment to enable thift_company receiver.
+          # You will also have set set enable it in `otelCollector.ports
+          # thrift_compact:
+          #   endpoint: 0.0.0.0:6831
       hostmetrics:
         collection_interval: 30s
         scrapers:
@@ -896,6 +972,10 @@ otelCollector:
           disk: {}
           filesystem: {}
           network: {}
+      # Uncomment to enable zipkin receiver.
+      # You will also have set set enable it in `otelCollector.ports
+      # zipkin:
+      #   endpoint: 0.0.0.0:9411
     processors:
       batch:
         send_batch_size: 1000
@@ -944,8 +1024,12 @@ otelCollector:
       #   queue_size: 100
       #   retry_on_failure: true
     extensions:
-      health_check: {}
-      zpages: {}
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: localhost:55679
+      pprof:
+        endpoint: localhost:1777
     exporters:
       clickhousetraces:
         datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_TRACE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
@@ -1025,17 +1109,45 @@ otelCollectorMetrics:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
 
-  # ports used by the container
+  # Configuration for ports
   ports:
-    zPages: 55679   # Default endpoint for ZPages.
-    otelGrpcReceiver: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
-    otelHttpReceiver: 4318  # Default endpoint for OpenTelemetry HTTP receiver.
-    otelGrpcLegacyReceiver: 55680   # Default endpoint for OpenTelemetry gRPC legacy receiver.
-    otelHttpLegacyReceiver: 55681   # Default endpoint for OpenTelemetry HTTP/1.0 legacy receiver.
-    jaegerGrpcReceiver: 14250   # Default endpoint for Jaeger GRPC receiver.
-    jaegerHttpReceiver: 14268   # Default endpoint for Jaeger HTTP receiver.
-    zipkinReceiver: 9411  # Default endpoint for Zipkin receiver.
-    queryingMetrics: 8888   # Default endpoint for querying metrics.
+    metrics:
+      # -- Whether to enable service port for internal metrics
+      enabled: false
+      # -- Container port for internal metrics
+      containerPort: 8888
+      # -- Service port for internal metrics
+      servicePort: 8888
+      # -- Protocol to use for internal metrics
+      protocol: TCP
+    zpages:
+      # -- Whether to enable service port for ZPages
+      enabled: false
+      # -- Container port for Zpages
+      containerPort: 55679
+      # -- Service port for Zpages
+      servicePort: 55679
+      # -- Protocol to use for Zpages
+      protocol: TCP
+    health-check:
+      # -- Whether to enable service port for health check
+      enabled: true
+      # -- Container port for health check
+      containerPort: 13133
+      # -- Service port for health check
+      servicePort: 13133
+      # -- Protocol to use for health check
+      protocol: TCP
+    pprof:
+      # -- Whether to enable service port for pprof
+      enabled: false
+      # -- Container port for pprof
+      containerPort: 1777
+      # -- Service port for pprof
+      servicePort: 1777
+      # -- Protocol to use for pprof
+      protocol: TCP
+
 
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1097,12 +1209,6 @@ otelCollectorMetrics:
   # configurations to form the file in configmap
   config:
     receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
       # Data sources: metrics
       prometheus:
         config:
@@ -1179,6 +1285,9 @@ otelCollectorMetrics:
       batch:
         send_batch_size: 1000
         timeout: 10s
+      # -- Memory Limiter processor
+      # If set to null, will be overridden with values based on k8s resource limits.
+      memory_limiter: null
       # memory_limiter:
       #   # 80% of maximum memory up to 2G
       #   limit_mib: 1500
@@ -1195,8 +1304,12 @@ otelCollectorMetrics:
       #   queue_size: 100
       #   retry_on_failure: true
     extensions:
-      health_check: {}
-      zpages: {}
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: localhost:55679
+      pprof:
+        endpoint: localhost:1777
     exporters:
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
@@ -1204,7 +1317,7 @@ otelCollectorMetrics:
       telemetry:
         metrics:
           address: 0.0.0.0:8888
-      extensions: [health_check, zpages]
+      extensions: [health_check, zpages, pprof]
       pipelines:
         metrics:
           receivers: [otlp, prometheus]

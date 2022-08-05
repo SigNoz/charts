@@ -435,3 +435,28 @@ Return the service name of Clickhouse
 {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+Return `nodePort: null` if service type is ClusterIP
+*/}}
+{{- define "service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") -}}
+nodePort: null
+{{- end -}}
+{{- end -}}
+
+{{/*
+*/}}
+{{- define "otelCollector.portsConfig" -}}
+{{- $serviceType := deepCopy .service.type -}}
+{{- $ports := deepCopy .ports -}}
+{{- range $key, $port := $ports -}}
+{{- if $port.enabled }}
+- name: {{ $key }}
+  port: {{ $port.servicePort }}
+  {{ include "service.ifClusterIP" $serviceType }}
+  targetPort: {{ $key }}
+  protocol: {{ $port.protocol }}
+{{- end -}}
+{{- end -}}
+{{- end -}}

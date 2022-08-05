@@ -4,28 +4,15 @@ metadata:
   name: {{ include "otelCollectorMetrics.fullname" . }}
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
-{{- if .Values.otelCollectorMetrics.service.annotations }}
+{{- with .Values.otelCollectorMetrics }}
+{{- if .annotations }}
   annotations:
-    {{- toYaml .Values.otelCollectorMetrics.service.annotations | nindent 4 }}
+    {{- toYaml .annotations | nindent 4 }}
 {{- end }}
 spec:
-  type: {{ .Values.otelCollectorMetrics.service.type }}
+  type: {{ .service.type }}
   ports:
-  - name: otlp-grpc
-    port: {{ .Values.otelCollector.ports.otelGrpcReceiver }}
-  - name: otlp-http
-    port: {{ .Values.otelCollector.ports.otelHttpReceiver }}
-  - name: otlp-grpc-legacy
-    port: {{ .Values.otelCollector.ports.otelGrpcLegacyReceiver }}
-  - name: otlp-http-legacy
-    port: {{ .Values.otelCollector.ports.otelHttpLegacyReceiver }}
-  - name: jaeger-grpc
-    port: {{ .Values.otelCollectorMetrics.ports.jaegerGrpcReceiver }}
-  - name: jaeger-thrift-http
-    port: {{ .Values.otelCollectorMetrics.ports.jaegerHttpReceiver }}
-  - name: zipkin
-    port: {{ .Values.otelCollectorMetrics.ports.zipkinReceiver }}
-  - name: metrics
-    port: {{ .Values.otelCollectorMetrics.ports.queryingMetrics }}
+    {{- include "otelCollector.portsConfig" . | indent 4 -}}
+{{- end }}
   selector:
     {{- include "otelCollectorMetrics.selectorLabels" . | nindent 4 }}

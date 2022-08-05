@@ -58,3 +58,12 @@ Return the proper clickhouse image name
     {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return `nodePort: null` if service type is ClusterIP
+*/}}
+{{- define "service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") -}}
+nodePort: null
+{{- end -}}
+{{- end -}}
