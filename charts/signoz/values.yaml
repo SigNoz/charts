@@ -1357,6 +1357,6 @@ otelCollectorMetrics:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics:
-          receivers: [otlp, prometheus]
+          receivers: [prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
