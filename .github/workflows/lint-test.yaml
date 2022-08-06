@@ -49,5 +49,5 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
-        run: ct install --config ct.yaml --charts charts/signoz --namespace default
+        run: ct install --config ct.yaml --namespace default
         if: steps.list-changed.outputs.changed == 'true'
