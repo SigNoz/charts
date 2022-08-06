@@ -67,3 +67,10 @@ Return `nodePort: null` if service type is ClusterIP
 nodePort: null
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return namespace of clickhouse-operator
+*/}}
+{{- define "chOperator.namespace" -}}
+{{- default .Release.Namespace .Values.namespace -}}
+{{- end -}}
