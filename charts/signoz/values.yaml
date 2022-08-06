@@ -1096,7 +1096,7 @@ otelCollectorMetrics:
     tag: 0.45.1-1.1
     pullPolicy: Always
   imagePullSecrets: []
-  
+
   # OtelCollectorMetrics service
   service:
     # -- Annotations to use by service associated to OtelCollectorMetrics
