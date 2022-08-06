@@ -94,8 +94,9 @@ nameOverride: ""
 # -- Fullname override for clickhouse
 fullnameOverride: ""
 
-# -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
-namespace:
+# -- Which namespace to install `clickhouse-operator` to (defaults to namespace chart is installed to)
+namespace: ""
+
 # -- Clickhouse cluster
 cluster: cluster
 # -- Clickhouse database
@@ -274,7 +275,7 @@ coldStorage:
 ###
 ###
 
-# When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+# -- When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
 # it creates custom storage class with volume expansion permission.
 #
 installCustomStorageClass: false

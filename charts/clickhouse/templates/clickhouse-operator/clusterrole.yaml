@@ -1,19 +1,19 @@
 # Template Parameters:
 #
-# NAMESPACE=platform
+# NAMESPACE={{ include "chOperator.namespace" . }}
 # COMMENT=#
 # ROLE_KIND=ClusterRole
-# ROLE_NAME=clickhouse-operator-signoz
+# ROLE_NAME=clickhouse-operator-{{ include "chOperator.namespace" . }}
 # ROLE_BINDING_KIND=ClusterRoleBinding
-# ROLE_BINDING_NAME=clickhouse-operator-signoz
+# ROLE_BINDING_NAME=clickhouse-operator-{{ include "chOperator.namespace" . }}
 #
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: clickhouse-operator-signoz
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  name: clickhouse-operator-{{ include "chOperator.namespace" . }}
+  namespace: {{ include "chOperator.namespace" . }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
 rules:
 - apiGroups:
     - ""

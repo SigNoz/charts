@@ -1,7 +1,8 @@
+---
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-files
-# NAMESPACE=platform
+# NAMESPACE= {{ include "chOperator.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
@@ -10,13 +11,10 @@ metadata:
   name: etc-clickhouse-operator-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 data:
   config.yaml: |
-    # IMPORTANT
-    # This file is auto-generated from deploy/builder/templates-config.
-    # It will be overwritten upon next sources build.
     #
     # Template parameters available:
     #   watchNamespaces
@@ -233,7 +231,7 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-confd-files
-# NAMESPACE=platform
+# NAMESPACE= {{ include "chOperator.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
@@ -242,7 +240,7 @@ metadata:
   name: etc-clickhouse-operator-confd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 data:
 
@@ -251,7 +249,7 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-configd-files
-# NAMESPACE=platform
+# NAMESPACE= {{ include "chOperator.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
@@ -260,7 +258,7 @@ metadata:
   name: etc-clickhouse-operator-configd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 data:
   01-clickhouse-01-listen.xml: |
@@ -311,7 +309,7 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-templatesd-files
-# NAMESPACE=platform
+# NAMESPACE= {{ include "chOperator.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
@@ -320,7 +318,7 @@ metadata:
   name: etc-clickhouse-operator-templatesd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 data:
   001-templates.json.example: |
@@ -413,7 +411,7 @@ data:
 # Template Parameters:
 #
 # NAME=etc-clickhouse-operator-usersd-files
-# NAMESPACE=platform
+# NAMESPACE= {{ include "chOperator.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
@@ -422,7 +420,7 @@ metadata:
   name: etc-clickhouse-operator-usersd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.18.4
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 data:
   01-clickhouse-user.xml: |
@@ -431,8 +429,6 @@ data:
             <clickhouse_operator>
                 <networks>
                     <ip>127.0.0.1</ip>
-                    <ip>0.0.0.0/0</ip>
-                    <ip>::/0</ip>
                 </networks>
                 <password_sha256_hex>716b36073a90c6fe1d445ac1af85f4777c5b7a155cea359961826a030513e448</password_sha256_hex>
                 <profile>clickhouse_operator</profile>
@@ -460,7 +456,6 @@ data:
       </profiles>
     </yandex>
   03-database-ordinary.xml: |
-    <!--  Remove it for ClickHouse versions before 20.4 -->
     <yandex>
         <profiles>
             <default>
