@@ -19,7 +19,7 @@ dependencies:
   - name: clickhouse
     repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
-    version: 23.3.3
+    version: 23.4.0
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
