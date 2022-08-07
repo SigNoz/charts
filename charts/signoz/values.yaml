@@ -10,6 +10,7 @@ global:
 fullnameOverride: ""
 
 # Clickhouse default values
+# @ignored
 clickhouse:
   # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
   # Based on the cloud, storage class for the persistent volume is selected.
@@ -36,8 +37,9 @@ clickhouse:
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
 
-  # -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
-  namespace:
+  # -- Which namespace to install `clickhouse-operator` to (defaults to namespace chart is installed to)
+  namespace: ""
+
   # -- Clickhouse cluster
   cluster: cluster
   # -- Clickhouse database (SigNoz Metrics)
@@ -970,7 +972,8 @@ otelCollector:
             type: Utilization
             value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
-  # configurations to form the file in configmap
+  # -- Configurations for OtelCollector
+  # @default -- See `values.yaml` for defaults
   config:
     receivers:
       otlp/spanmetrics:
@@ -1243,7 +1246,8 @@ otelCollectorMetrics:
 
   affinity: {}
 
-  # configurations to form the file in configmap
+  # -- Configurations for OtelCollectorMetrics
+  # @default -- See `values.yaml` for defaults
   config:
     receivers:
       # Data sources: metrics
