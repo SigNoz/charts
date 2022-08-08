@@ -143,7 +143,6 @@ Return the ClickHouse Traces URL
 {{- if .Values.clickhouse.enabled -}}
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.clickhouse.traceDatabase }}&username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
 {{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password={{ include "clickhouse.externalPasswordKey" . -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
 {{- end -}}
 {{- end -}}
-

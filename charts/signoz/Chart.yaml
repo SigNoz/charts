@@ -1,7 +1,7 @@
 apiVersion: v2
 name: signoz
-version: 0.0.14
-appVersion: "0.8.0"
+version: 0.2.4
+appVersion: "0.10.1"
 description: SigNoz Observability Platform Helm Chart
 type: application
 home: https://signoz.io/
@@ -15,15 +15,16 @@ keywords:
 sources:
   - https://github.com/signoz/charts/
   - https://github.com/signoz/signoz
+  - https://github.com/signoz/alertmanager
+  - https://github.com/signoz/opentelemetry-collector-contrib
 dependencies:
   - name: clickhouse
     repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
-    version: 16.0.5
+    version: 23.4.0
 maintainers:
-  - name: signoz
+  - name: SigNoz
     email: hello@signoz.io
-    url: https://signoz.io
   - name: prashant
     email: prashant@signoz.io
     url: https://prashantshahi.dev

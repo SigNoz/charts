@@ -99,12 +99,12 @@ spec:
 {{- end }}
           args:
             - --storage.path=/alertmanager
-            - --queryService.url=http://{{ include "queryService.url" . }}
-            {{- if or (gt .Values.alertmanager.replicaCount 1.0) (.Values.alertmanager.additionalPeers) }}
+            - --queryService.url=http://{{ include "queryService.internalUrl" . }}
+            {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
             - --cluster.advertise-address=$(POD_IP):9094
             - --cluster.listen-address=0.0.0.0:9094
             {{- end }}
-            {{- if gt .Values.alertmanager.replicaCount 1.0}}
+            {{- if gt (int .Values.alertmanager.replicaCount) 1 }}
             {{- $fullName := include "alertmanager.fullname" . }}
             {{- range $i := until (int .Values.alertmanager.replicaCount) }}
             - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:9094
@@ -151,13 +151,14 @@ spec:
         resources:
           requests:
             storage: {{ .Values.alertmanager.persistence.size }}
-      {{- if .Values.alertmanager.persistence.storageClass }}
-      {{- if (eq "-" .Values.alertmanager.persistence.storageClass) }}
+      {{- $storageClass := default .Values.alertmanager.persistence.storageClass .Values.global.storageClass -}}
+      {{- if $storageClass -}}
+      {{- if (eq "-" $storageClass) }}
         storageClassName: ""
       {{- else }}
-        storageClassName: {{ .Values.alertmanager.persistence.storageClass }}
+        storageClassName: {{ $storageClass }}
+      {{- end -}}
       {{- end }}
-  {{- end }}
   {{- else }}
         - name: storage
           emptyDir: {}

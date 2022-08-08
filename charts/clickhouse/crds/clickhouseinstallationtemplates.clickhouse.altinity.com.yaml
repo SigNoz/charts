@@ -1,27 +1,25 @@
-# sources:
-#   - https://github.com/PostHog/charts-clickhouse/blob/main/charts/posthog/crds/clickhouseinstallations.clickhouse.altinity.com.yaml
-#   - https://github.com/Altinity/clickhouse-operator/blob/master/deploy/operator/clickhouse-operator-install-bundle.yaml
-#
 # Template Parameters:
 #
-# KIND=ClickHouseInstallation
-# SINGULAR=clickhouseinstallation
-# PLURAL=clickhouseinstallations
-# SHORT=chi
+# KIND=ClickHouseInstallationTemplate
+# SINGULAR=clickhouseinstallationtemplate
+# PLURAL=clickhouseinstallationtemplates
+# SHORT=chit
 #
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: clickhouseinstallations.clickhouse.altinity.com
+  name: clickhouseinstallationtemplates.clickhouse.altinity.com
+  labels:
+    clickhouse.altinity.com/chop: 0.19.0
 spec:
   group: clickhouse.altinity.com
   scope: Namespaced
   names:
-    kind: ClickHouseInstallation
-    singular: clickhouseinstallation
-    plural: clickhouseinstallations
+    kind: ClickHouseInstallationTemplate
+    singular: clickhouseinstallationtemplate
+    plural: clickhouseinstallationtemplates
     shortNames:
-      - chi
+      - chit
   versions:
     - name: v1
       served: true
@@ -31,7 +29,7 @@ spec:
           type: string
           description: Operator version
           priority: 1 # show in wide view
-          jsonPath: .status.version
+          jsonPath: .status.chop-version
         - name: clusters
           type: integer
           description: Clusters count
@@ -82,6 +80,11 @@ spec:
           description: Client access endpoint
           priority: 1 # show in wide view
           jsonPath: .status.endpoint
+        - name: age
+          type: date
+          description: Age of the resource
+          # Displayed in all priorities
+          jsonPath: .metadata.creationTimestamp
       subresources:
         status: {}
       schema:
@@ -107,9 +110,18 @@ spec:
               type: object
               description: "Current ClickHouseInstallation manifest status, contains many fields like a normalized configuration, clickhouse-operator version, current action and all applied action list, current taskID and all applied taskIDs and other"
               properties:
-                version:
+                chop-version:
                   type: string
-                  description: "Version"
+                  description: "ClickHouse operator version"
+                chop-commit:
+                  type: string
+                  description: "ClickHouse operator git commit SHA"
+                chop-date:
+                  type: string
+                  description: "ClickHouse operator build date"
+                chop-ip:
+                  type: string
+                  description: "IP address of the operator's pod which managed this CHI"
                 clusters:
                   type: integer
                   minimum: 0
@@ -179,6 +191,11 @@ spec:
                   description: "Pods"
                   items:
                     type: string
+                pod-ips:
+                  type: array
+                  description: "Pod IPs"
+                  items:
+                    type: string
                 fqdns:
                   type: array
                   description: "Pods FQDNs"
@@ -240,7 +257,7 @@ spec:
                     - "enabled"
                 restart:
                   type: string
-                  description: "restart policy for StatefulSets. When value `RollingUpdate` it allow graceful restart one by one instead of restart all StatefulSet simultaneously"
+                  description: "This is a 'soft restart' button. When set to 'RollingUpdate' operator will restart ClickHouse pods in a graceful way. Remove it after the use in order to avoid unneeded restarts"
                   enum:
                     - ""
                     - "RollingUpdate"
@@ -294,6 +311,7 @@ spec:
                   properties:
                     policy:
                       type: string
+                      description: DEPRECATED
                     configMapPropagationTimeout:
                       type: integer
                       description: |
@@ -647,6 +665,26 @@ spec:
                               volumeClaimTemplate:
                                 type: string
                                 description: "DEPRECATED! VolumeClaimTemplate is deprecated in favor of DataVolumeClaimTemplate and LogVolumeClaimTemplate"
+                          schemaPolicy:
+                            type: object
+                            description: |
+                              describes how schema is propagated within replicas and shards
+                            properties:
+                              replica:
+                                type: string
+                                description: "how schema is propagated within a replica"
+                                enum:
+                                  # List SchemaPolicyReplicaXXX constants from model
+                                  - "None"
+                                  - "All"
+                              shard:
+                                type: string
+                                description: "how schema is propagated between shards"
+                                enum:
+                                  # List SchemaPolicyShardXXX constants from model
+                                  - "None"
+                                  - "All"
+                                  - "DistributedTablesOnly"
                           layout:
                             type: object
                             description: |

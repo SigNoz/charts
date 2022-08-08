@@ -4,26 +4,15 @@ metadata:
   name: {{ include "otelCollector.fullname" . }}
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
+{{- with .Values.otelCollector }}
+{{- if .service.annotations }}
+  annotations:
+    {{- toYaml .service.annotations | nindent 4 }}
+{{- end }}
 spec:
-  type: {{ .Values.otelCollector.serviceType }}
+  type: {{ .service.type }}
   ports:
-  - name: otlp-grpc
-    port: {{ .Values.otelCollector.ports.otelGrpcReceiver }}
-  - name: otlp-http
-    port: {{ .Values.otelCollector.ports.otelHttpReceiver }}
-  - name: otlp-grpc-legacy
-    port: {{ .Values.otelCollector.ports.otelGrpcLegacyReceiver }}
-  - name: otlp-http-legacy
-    port: {{ .Values.otelCollector.ports.otelHttpLegacyReceiver }}
-  - name: jaeger-grpc
-    port: {{ .Values.otelCollector.ports.jaegerGrpcReceiver }}
-  - name: jaeger-thrift-http
-    port: {{ .Values.otelCollector.ports.jaegerHttpReceiver }}
-  - name: zipkin
-    port: {{ .Values.otelCollector.ports.zipkinReceiver }}
-  - name: metrics
-    port: {{ .Values.otelCollector.ports.queryingMetrics }}
-  - name: prometheus-metrics 
-    port: {{ .Values.otelCollector.ports.prometheusExportedMetrics }}
+    {{- include "otelCollector.portsConfig" . | indent 4 -}}
+{{- end }}
   selector:
     {{- include "otelCollector.selectorLabels" . | nindent 4 }}

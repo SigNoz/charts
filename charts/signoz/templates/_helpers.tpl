@@ -90,7 +90,7 @@ Return the initContainers image name
 Return the proper queryService image name
 */}}
 {{- define "queryService.image" -}}
-{{- $registryName := .Values.queryService.image.registry -}}
+{{- $registryName := default .Values.queryService.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.queryService.image.repository -}}
 {{- $tag := .Values.queryService.image.tag | toString -}}
 {{- if $registryName -}}
@@ -108,10 +108,24 @@ Set query-service port
 {{- end -}}
 
 {{/*
+Set query-service internal port
+*/}}
+{{- define "queryService.internalPort" -}}
+{{- default 8085 .Values.queryService.service.internalPort  -}}
+{{- end -}}
+
+{{/*
 Set query-service url
 */}}
 {{- define "queryService.url" -}}
 {{ include "queryService.fullname" . }}:{{ include "queryService.port" . }}
+{{- end -}}
+
+{{/*
+Set query-service internal url
+*/}}
+{{- define "queryService.internalUrl" -}}
+{{ include "queryService.fullname" . }}:{{ include "queryService.internalPort" . }}
 {{- end -}}
 
 
@@ -127,7 +141,6 @@ Common labels
 */}}
 {{- define "frontend.labels" -}}
 helm.sh/chart: {{ include "signoz.chart" . }}
-release: {{ .Release.Name }}
 {{ include "frontend.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -159,7 +172,7 @@ Create the name of the service account to use
 Return the proper frontend image name
 */}}
 {{- define "frontend.image" -}}
-{{- $registryName := .Values.frontend.image.registry -}}
+{{- $registryName := default .Values.frontend.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.frontend.image.repository -}}
 {{- $tag := .Values.frontend.image.tag | toString -}}
 {{- if $registryName -}}
@@ -249,7 +262,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "alertmanager.image" -}}
-{{- $registryName := .Values.alertmanager.image.registry -}}
+{{- $registryName := default .Values.alertmanager.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.alertmanager.image.repository -}}
 {{- $tag := .Values.alertmanager.image.tag | toString -}}
 {{- if $registryName -}}
@@ -325,7 +338,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "otelCollector.image" -}}
-{{- $registryName := .Values.otelCollector.image.registry -}}
+{{- $registryName := default .Values.otelCollector.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.otelCollector.image.repository -}}
 {{- $tag := .Values.otelCollector.image.tag | toString -}}
 {{- if $registryName -}}
@@ -394,7 +407,7 @@ Return the initContainers image name
 Return the proper otelCollectorMetrics image name
 */}}
 {{- define "otelCollectorMetrics.image" -}}
-{{- $registryName := .Values.otelCollectorMetrics.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.image.tag | toString -}}
 {{- if $registryName -}}
@@ -403,7 +416,6 @@ Return the proper otelCollectorMetrics image name
     {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}
-
 
 
 {{/*
@@ -423,9 +435,54 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
-Common OtelCollector ENV variables and helpers used by SigNoz
+Return `nodePort: null` if service type is ClusterIP
 */}}
-{{- define "snippet.otelcol-env" -}}
-- name: OTEL_COLLECTOR_PROMETHEUS
-  value: {{ include "otelCollector.fullname" . }}:8889
-{{- end }}
+{{- define "service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") -}}
+nodePort: null
+{{- end -}}
+{{- end -}}
+
+{{/*
+*/}}
+{{- define "otelCollector.portsConfig" -}}
+{{- $serviceType := deepCopy .service.type -}}
+{{- $ports := deepCopy .ports -}}
+{{- range $key, $port := $ports -}}
+{{- if $port.enabled }}
+- name: {{ $key }}
+  port: {{ $port.servicePort }}
+  {{ include "service.ifClusterIP" $serviceType }}
+  targetPort: {{ $key }}
+  protocol: {{ $port.protocol }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+Return the appropriate apiVersion for ingress.
+*/}}
+{{- define "ingress.apiVersion" -}}
+  {{- if and (.Capabilities.APIVersions.Has "networking.k8s.io/v1") (semverCompare ">= 1.19-0" .Capabilities.KubeVersion.Version) -}}
+      {{- print "networking.k8s.io/v1" -}}
+  {{- else if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" -}}
+    {{- print "networking.k8s.io/v1beta1" -}}
+  {{- else -}}
+    {{- print "extensions/v1beta1" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Return if ingress supports pathType.
+*/}}
+{{- define "ingress.supportsPathType" -}}
+  {{- or (eq (include "ingress.isStable" .) "true") (and (eq (include "ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18-0" .Capabilities.KubeVersion.Version)) -}}
+{{- end -}}
+
+{{/*
+Return if ingress is stable.
+*/}}
+{{- define "ingress.isStable" -}}
+  {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
+{{- end -}}

@@ -4,6 +4,10 @@ metadata:
   name: {{ include "otelCollectorMetrics.fullname" . }}
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
+  {{- if .Values.otelCollectorMetrics.annotations }}
+  annotations:
+    {{ toYaml .Values.otelCollectorMetrics.annotations | nindent 4 }}
+  {{- end }}
 spec:
   selector:
     matchLabels:
@@ -14,6 +18,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if .Values.otelCollectorMetrics.podAnnotations -}}
+          {{- toYaml .Values.otelCollectorMetrics.podAnnotations | nindent 8 -}}
+        {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-collector-metrics/config.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollectorMetrics.selectorLabels" . | nindent 8 }}
@@ -35,12 +42,19 @@ spec:
       - name: {{ template "otelCollectorMetrics.fullname" . }}
         image: {{ template "otelCollectorMetrics.image" . }}
         imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
+        ports:
+          {{- range $key, $port := .Values.otelCollectorMetrics.ports }}
+          {{- if $port.enabled }}
+          - name: {{ $key }}
+            containerPort: {{ $port.containerPort }}
+            protocol: {{ $port.protocol }}
+          {{- end }}
+          {{- end }}
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-metrics-config.yaml"
         env:
-          {{- include "snippet.clickhouse-env" . | nindent 10 -}}
-          {{- include "snippet.otelcol-env" . | nindent 10 }}
+          {{- include "snippet.clickhouse-env" . | nindent 10 }}
         volumeMounts:
           - name: otel-collector-metrics-config-vol
             mountPath: /conf
@@ -57,7 +71,8 @@ spec:
           successThreshold: {{ .Values.otelCollectorMetrics.livenessProbe.successThreshold }}
           failureThreshold: {{ .Values.otelCollectorMetrics.livenessProbe.failureThreshold }}
         {{- else if .Values.otelCollectorMetrics.customLivenessProbe }}
-        livenessProbe: {{- toYaml .Values.otelCollectorMetrics.customLivenessProbe | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.otelCollectorMetrics.customLivenessProbe | nindent 10 }}
         {{- end }}
         {{- if .Values.otelCollectorMetrics.readinessProbe.enabled }}
         readinessProbe:
@@ -70,7 +85,8 @@ spec:
           successThreshold: {{ .Values.otelCollectorMetrics.readinessProbe.successThreshold }}
           failureThreshold: {{ .Values.otelCollectorMetrics.readinessProbe.failureThreshold }}
         {{- else if .Values.otelCollectorMetrics.customReadinessProbe }}
-        readinessProbe: {{- toYaml .Values.otelCollectorMetrics.customReadinessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.otelCollectorMetrics.customReadinessProbe | nindent 10 }}
         {{- end }}
         resources:
           {{- toYaml .Values.otelCollectorMetrics.resources | nindent 10 }}

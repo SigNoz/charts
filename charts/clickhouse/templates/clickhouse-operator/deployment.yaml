@@ -1,9 +1,11 @@
 # Template Parameters:
 #
-# NAMESPACE=platform
+# NAMESPACE={{ include "chOperator.namespace" . }}
 # COMMENT=
-# OPERATOR_IMAGE=altinity/clickhouse-operator:latest
-# METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:latest
+# OPERATOR_IMAGE=altinity/clickhouse-operator:0.19.0
+# OPERATOR_IMAGE_PULL_POLICY=Always
+# METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:0.19.0
+# METRICS_EXPORTER_IMAGE_PULL_POLICY=Always
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -11,8 +13,9 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: clickhouse-operator
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ include "chOperator.namespace" . }}
   labels:
+    clickhouse.altinity.com/chop: 0.19.0
     app: clickhouse-operator
 spec:
   replicas: 1
@@ -24,14 +27,10 @@ spec:
       labels:
         app: clickhouse-operator
       annotations:
-        prometheus.io/port: '8888'
-        prometheus.io/scrape: 'true'
+        signoz.io/port: '8888'
+        signoz.io/scrape: 'true'
     spec:
       serviceAccountName: clickhouse-operator
-      {{- with .Values.clickhouseOperator.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}      
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
@@ -50,7 +49,7 @@ spec:
             name: etc-clickhouse-operator-usersd-files
       containers:
         - name: clickhouse-operator
-          image: altinity/clickhouse-operator:latest
+          image: altinity/clickhouse-operator:0.19.0
           imagePullPolicy: Always
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -115,7 +114,7 @@ spec:
                   resource: limits.memory
 
         - name: metrics-exporter
-          image: altinity/metrics-exporter:latest
+          image: altinity/metrics-exporter:0.19.0
           imagePullPolicy: Always
           volumeMounts:
             - name: etc-clickhouse-operator-folder
@@ -128,3 +127,6 @@ spec:
               mountPath: /etc/clickhouse-operator/templates.d
             - name: etc-clickhouse-operator-usersd-folder
               mountPath: /etc/clickhouse-operator/users.d
+          ports:
+            - containerPort: 8888
+              name: metrics

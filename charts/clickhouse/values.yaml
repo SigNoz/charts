@@ -1,5 +1,16 @@
-# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `other`).
-cloud:
+---
+global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  storageClass: &GLOBAL_SC null
+
+# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
+# Based on the cloud, storage class for the persistent volume is selected.
+# When set to 'aws' or 'gcp', new expandible storage class is created.
+# When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
+cloud: other
 
 ###
 ###
@@ -7,35 +18,85 @@ cloud:
 ###
 ###
 zookeeper:
-  # -- Please DO NOT override this value.
-  #    This chart installs Zookeeper separately.
-  #    Only if you know what you are doing, proceed with overriding.
+  #
+  # Please DO NOT override this value.
+  # This chart installs Zookeeper separately.
+  # Only if you know what you are doing, proceed with overriding.
+  #
+
+  # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
   enabled: true
+
   autopurge:
+    # -- The time interval (in hours) for which the purge task has to be triggered
     purgeInterval: 1
+
+  metrics:
+    # -- Enable Prometheus to access ZooKeeper metrics endpoint.
+    enabled: false
+
+    service:
+      # -- ZooKeeper metrics service annotation
+      annotations: {}
+
+  ## -- Zookeeper pod(s) annotation.
+  podAnnotations: {}
+
   # -- Name override for zookeeper app
-  # nameOverride: signoz-zookeeper
+  nameOverride: ""
   # -- Fullname override for zookeeper app
   fullnameOverride: ""
+
   # -- replica count for zookeeper
   replicaCount: 1
+
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  persistence:
+    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
+    #
+    enabled: true
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    #
+    existingClaim: ""
+    # -- PVC Storage Class for ZooKeeper data volume
+    # If defined, storageClassName: <storageClass>
+    # If set to "-", storageClassName: "", which disables dynamic provisioning
+    # If undefined (the default) or set to null, no storageClassName spec is
+    #   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    #   GKE, AWS & OpenStack)
+    #
+    storageClass: *GLOBAL_SC
+
+    # -- PVC Access modes
+    accessModes:
+      - ReadWriteOnce
+
+    # -- PVC Storage Request for ZooKeeper data volume
+    size: 8Gi
+
+    # -- Annotations for the PVC
+    annotations: {}
 
 ###
 ###
 ### ---- CLICKHOUSE ----
 ###
 ###
+
 # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
 enabled: true
 
 # -- Name override for clickhouse
-# nameOverride: clickhouse
+nameOverride: ""
 
-# -- Name override for clickhouse
-# fullnameOverride: signoz-clickhouse
+# -- Fullname override for clickhouse
+fullnameOverride: ""
 
-# -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
-namespace:
+# -- Which namespace to install `clickhouse-operator` to (defaults to namespace chart is installed to)
+namespace: ""
+
 # -- Clickhouse cluster
 cluster: cluster
 # -- Clickhouse database
@@ -55,29 +116,40 @@ image:
   # -- Clickhouse image registry to use.
   registry: docker.io
   # -- Clickhouse image repository to use.
-  repository: yandex/clickhouse-server
+  repository: clickhouse/clickhouse-server
   # -- Clickhouse image tag.
-  #    Note: SigNoz does not support all versions of ClickHouse.
-  #    Please override the default only if you know what you are doing.
-  tag: 21.12.3.32
+  # Note: SigNoz does not support all versions of ClickHouse.
+  # Please override the default only if you know what you are doing.
+  tag: 22.4.5-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
+
+# Clickhouse service
+service:
+  # -- Annotations to use by service associated to Clickhouse instance
+  annotations: {}
+  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+  type: ClusterIP
+  # -- Clickhouse HTTP port
+  httpPort: 8123
+  # -- Clickhouse TCP port
+  tcpPort: 9000
 
 # -- Whether to use TLS connection connecting to ClickHouse
 secure: false
 # -- Whether to verify TLS certificate on connection to ClickHouse
 verify: false
-# externalZookeeper:
-# -- URL for zookeeper.
-# servers:
-# - host: signoz-zookeeper
-#   port: 2181
+# -- URL for external zookeeper.
+externalZookeeper: {}
+  # servers:
+  #   - host: signoz-zookeeper
+  #     port: 2181
 
 # -- Toleration labels for clickhouse pod assignment
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
-# node selector for settings for clickhouse pod
+# -- node selector for settings for clickhouse pod
 nodeSelector: {}
 # -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
 resources: {}
@@ -87,55 +159,113 @@ resources: {}
 #   requests:
 #     cpu: 4000m
 #     memory: 16Gi
+
+# -- Security context for Clickhouse node
 securityContext:
   enabled: true
   runAsUser: 101
   runAsGroup: 101
   fsGroup: 101
 
-# -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-serviceType: ClusterIP
-
+# -- An allowlist of IP addresses or network masks the ClickHouse user is
+# allowed to access from. By default anything within a private network will be
+# allowed. This should suffice for most use case although to expose to other
+# networks you will need to update this setting.
+#
+allowedNetworkIps:
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
 
 persistence:
   # -- Enable data persistence using PVC.
   enabled: true
 
   # -- Use a manually managed Persistent Volume and Claim.
-  #    If defined, PVC must be created manually before volume will be bound.
+  # If defined, PVC must be created manually before volume will be bound.
   #
   existingClaim: ""
 
   # -- Persistent Volume Storage Class to use.
-  #    If defined, `storageClassName: <storageClass>`.
-  #    If set to `storageClassName: ""`, disables dynamic provisioning.
-  #    If undefined (the default) or set to `null`, no storageClassName spec is
-  #    set, choosing the default provisioner.
+  # If defined, `storageClassName: <storageClass>`.
+  # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+  # If undefined (the default) or set to `null`, no storageClassName spec is
+  # set, choosing the default provisioner.
   #
   storageClass: null
+
+  # -- Access Modes for persistent volume
+  accessModes:
+    - ReadWriteOnce
 
   # -- Persistent Volume size
   size: 20Gi
 
-## -- Clickhouse user profile configuration.
-## You can use this to override settings, for example `default/max_memory_usage: 40000000000`
-## For a full list of clickhouse settings, see https://clickhouse.com/docs/en/operations/settings/settings/
+# -- Clickhouse user profile configuration.
+# You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+# For the full list of settings, see:
+# - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+# - https://clickhouse.com/docs/en/operations/settings/settings/
+#
 profiles: {}
 
-## -- Default user profile configuration for Clickhouse. Don't overwrite this!
+# -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
 defaultProfiles:
   default/allow_experimental_window_functions: "1"
+  default/allow_nondeterministic_mutations: "1"
 
-# cold storage configuration
+
+# -- Clickhouse cluster layout. (Experimental, use at own risk)
+# For a full list of options, see
+# https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+# section on clusters and layouts.
+layout:
+  shardsCount: 1
+  replicasCount: 1
+
+# -- ClickHouse settings configuration.
+# You can use this to override settings, for example `prometheus/port: 9363`
+# For the full list of settings, see:
+# - https://clickhouse.com/docs/en/operations/settings/settings/
+settings: {}
+  # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+  # prometheus/endpoint: /metrics
+  # prometheus/port: 9363
+  # prometheus/metrics: true
+  # prometheus/events: true
+  # prometheus/asynchronous_metrics: true
+
+# -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+defaultSettings:
+  format_schema_path: /etc/clickhouse-server/config.d/
+
+# -- ClickHouse pod(s) annotation.
+podAnnotations: {}
+  # Uncomment lines below to enable scraping of ClickHouse metrics.
+  # Be sure to uncomment `setting` to enable built-in Prometheus HTTP endpoint.
+  # signoz.io/scrape: 'true'
+  # signoz.io/port: '9363'
+  # signoz.io/path: /metrics
+
+# Cold storage configuration
 coldStorage:
+  # -- Whether to enable S3 cold storage
   enabled: false
-  # Set free space size on default disk
-  defaultKeepFreeSpaceBytes: 10485760  # 10MiB
+  # -- Reserve free space on default disk (in bytes)
+  defaultKeepFreeSpaceBytes: "10485760"
+  # -- AWS S3 endpoint
   endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+  # AWS role configuration - to use environment variables instead of passing access and secret keys
   role:
+    # -- Whether to enable AWS IAM ARN role.
     enabled: false
-    annotations: {}
+    # -- Annotations to use by service account associated to Clickhouse instance
+    annotations:
+      # aws role arn
+      eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+  # -- AWS Access Key
   accessKey: <access_key_id>
+  # -- AWS Secret Access Key
   secretAccess: <secret_access_key>
 
 
@@ -145,10 +275,12 @@ coldStorage:
 ###
 ###
 
-# When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
+# -- When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
 # it creates custom storage class with volume expansion permission.
+#
 installCustomStorageClass: false
 
 # clickhouseOperator node selector
 clickhouseOperator:
+  # -- ClickhouseOperator node selector
   nodeSelector: {}

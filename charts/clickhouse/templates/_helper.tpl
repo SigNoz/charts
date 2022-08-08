@@ -49,7 +49,7 @@ Set zookeeper port
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
-{{- $registryName := .Values.image.registry -}}
+{{- $registryName := default .Values.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
 {{- if $registryName -}}
@@ -57,4 +57,20 @@ Return the proper clickhouse image name
 {{- else -}}
     {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Return `nodePort: null` if service type is ClusterIP
+*/}}
+{{- define "service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") -}}
+nodePort: null
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return namespace of clickhouse-operator
+*/}}
+{{- define "chOperator.namespace" -}}
+{{- default .Release.Namespace .Values.namespace -}}
 {{- end -}}

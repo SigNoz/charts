@@ -6,4 +6,4 @@ check-version-increment: false
 helm-extra-args: --timeout 600s
 chart-repos:
   - signoz=https://signoz.github.io/charts
-  - bitnami=https://charts.bitnami.com/bitnami
+  - bitnami=https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami

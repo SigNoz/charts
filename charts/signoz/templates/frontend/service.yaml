@@ -4,12 +4,19 @@ metadata:
   name: {{ include "frontend.fullname" . }}
   labels:
     {{- include "frontend.labels" . | nindent 4 }}
+{{- with .Values.frontend.service }}
+{{- if .annotations }}
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+{{- end }}
 spec:
-  type: {{ .Values.frontend.service.type }}
+  type: {{ .type }}
   ports:
-    - port: {{ .Values.frontend.service.port }}
+    - port: {{ .port }}
+      {{- include "service.ifClusterIP" .type | nindent 6 }}
       targetPort: http
       protocol: TCP
       name: http
+{{- end }}
   selector:
     {{- include "frontend.selectorLabels" . | nindent 4 }}
