@@ -42,6 +42,14 @@ spec:
       - name: {{ template "otelCollector.fullname" . }}
         image: {{ template "otelCollector.image" . }}
         imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+        ports:
+          {{- range $key, $port := .Values.otelCollector.ports }}
+          {{- if $port.enabled }}
+          - name: {{ $key }}
+            containerPort: {{ $port.containerPort }}
+            protocol: {{ $port.protocol }}
+          {{- end }}
+          {{- end }}
         command:
           - "/otelcontribcol"
           - "--config=/conf/otel-collector-config.yaml"
