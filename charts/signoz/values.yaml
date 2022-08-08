@@ -1052,10 +1052,6 @@ otelCollector:
       #   limit_percentage: 50
       #   # 20% of max memory usage spike expected
       #   spike_limit_percentage: 20
-      # queued_retry:
-      #   num_workers: 4
-      #   queue_size: 100
-      #   retry_on_failure: true
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1340,10 +1336,6 @@ otelCollectorMetrics:
       #   limit_percentage: 50
       #   # 20% of max memory usage spike expected
       #   spike_limit_percentage: 20
-      # queued_retry:
-      #   num_workers: 4
-      #   queue_size: 100
-      #   retry_on_failure: true
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
