@@ -3,15 +3,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: clickhouse-operator-{{ include "chOperator.namespace" . }}
-  namespace: {{ include "chOperator.namespace" . }}
+  name: {{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: clickhouse-operator-{{ include "chOperator.namespace" . }}
+  name: {{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
 subjects:
 - kind: ServiceAccount
-  name: clickhouse-operator
-  namespace: {{ include "chOperator.namespace" . }}
+  name: {{ include "clickhouseOperator.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}

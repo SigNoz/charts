@@ -1,18 +1,17 @@
 ---
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   config.yaml: |
     #
@@ -230,36 +229,34 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-confd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-confd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-confd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-confd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
 
 ---
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-configd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-configd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-configd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   01-clickhouse-01-listen.xml: |
     <yandex>
@@ -308,18 +305,17 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-templatesd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-templatesd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   001-templates.json.example: |
     {
@@ -410,18 +406,17 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-usersd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-usersd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   01-clickhouse-user.xml: |
     <yandex>

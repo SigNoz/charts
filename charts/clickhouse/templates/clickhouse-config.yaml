@@ -1,7 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: initdb-config
+  name: {{ include "clickhouse.fullname" . }}-initdb-config
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
 data:
   init-db.sql: |-
     CREATE TABLE IF NOT EXISTS signoz_index (

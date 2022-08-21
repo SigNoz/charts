@@ -26,6 +26,34 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 
 {{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "clickhouse.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "clickhouse.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouse.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "clickhouse.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickhouse.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ default "clickhouse" .Values.name }}
+{{- end -}}
+
+{{/*
 Set zookeeper host
 */}}
 {{- define "clickhouse.zookeeper.servicename" -}}
@@ -69,8 +97,48 @@ nodePort: null
 {{- end -}}
 
 {{/*
-Return namespace of clickhouse-operator
+Create a default fully qualified app name for queryService.
 */}}
-{{- define "chOperator.namespace" -}}
+{{- define "clickhouseOperator.fullname" -}}
+{{- printf "%s-%s" (include "clickhouse.fullname" .) .Values.clickhouseOperator.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Return namespace of clickhouse
+*/}}
+{{- define "clickhouse.namespace" -}}
 {{- default .Release.Namespace .Values.namespace -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "clickhouseOperator.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouseOperator.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+clickhouse.altinity.com/chop: 0.19.0
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "clickhouseOperator.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickhouse.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ .Values.clickhouseOperator.name }}
+{{- end -}}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "clickhouseOperator.serviceAccountName" -}}
+{{- if .Values.clickhouseOperator.serviceAccount.create -}}
+    {{ default (include "clickhouseOperator.fullname" .) .Values.clickhouseOperator.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.clickhouseOperator.serviceAccount.name }}
+{{- end -}}
 {{- end -}}
