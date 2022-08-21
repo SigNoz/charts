@@ -737,7 +737,7 @@ otelCollector:
   name: "otel-collector"
   image:
     registry: docker.io
-    repository: signoz/otelcontribcol
+    repository: signoz/signoz-otel-collector
     tag: 0.55.0-rc.3
     pullPolicy: Always
   imagePullSecrets: []
@@ -1178,7 +1178,7 @@ otelCollectorMetrics:
   name: "otel-collector-metrics"
   image:
     registry: docker.io
-    repository: signoz/otelcontribcol
+    repository: signoz/signoz-otel-collector
     tag: 0.55.0-rc.3
     pullPolicy: Always
   imagePullSecrets: []
