@@ -85,17 +85,18 @@ zookeeper:
 ###
 ###
 
+# -- Name of the clickhouse component
+name: clickhouse
+
 # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
 enabled: true
 
+# -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
+namespace: ""
 # -- Name override for clickhouse
 nameOverride: ""
-
 # -- Fullname override for clickhouse
 fullnameOverride: ""
-
-# -- Which namespace to install `clickhouse-operator` to (defaults to namespace chart is installed to)
-namespace: ""
 
 # -- Clickhouse cluster
 cluster: cluster
@@ -280,7 +281,38 @@ coldStorage:
 #
 installCustomStorageClass: false
 
-# clickhouseOperator node selector
+
+###
+###
+### ---- CLICKHOUSE OPERATOR ----
+###
+###
 clickhouseOperator:
-  # -- ClickhouseOperator node selector
+  # -- name of the component
+  name: operator
+
+  # Clickhouse service
+  service:
+    # -- Annotations to use by service associated to Clickhouse Operator instance
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+    # -- Clickhouse Operator port
+    port: 8888
+
+  # -- Clickhouse Operator pod(s) annotation.
+  podAnnotations:
+    signoz.io/port: '8888'
+    signoz.io/scrape: 'true'
+
+  # -- Clickhouse Operator node selector
   nodeSelector: {}
+
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:

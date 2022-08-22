@@ -1,7 +1,10 @@
-apiVersion: "clickhouse.altinity.com/v1"
-kind: "ClickHouseInstallation"
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
 metadata:
-  name: "signoz"
+  name: {{ include "clickhouse.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
 spec:
   defaults:
     templates:
@@ -103,10 +106,13 @@ spec:
   templates:
     podTemplates:
       - name: pod-template
-        {{- if .Values.podAnnotations }}
         metadata:
-          annotations: {{ toYaml .Values.podAnnotations | nindent 12 }}
-        {{- end }}
+          labels:
+            {{- include "clickhouse.labels" . | nindent 12 }}
+          {{- with .Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 -}}
+          {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
           serviceAccountName: clickhouse-instance
@@ -174,11 +180,13 @@ spec:
       - name: service-template
         generateName: {{ include "clickhouse.fullname" . }}
         {{- with .Values.service }}
-        {{- if .annotations }}
         metadata:
+          labels:
+            {{- include "clickhouse.labels" $ | nindent 12 }}
+          {{- with .annotations }}
           annotations:
-            {{- toYaml .annotations | nindent 12 }}
-        {{- end }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         spec:
           type: {{ .type }}
           ports:
