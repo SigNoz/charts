@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "otelCollectorMetrics.fullname" . }}
+  name: {{ include "otelCollectorMetrics.fullname" . }}-{{ include "signoz.namespace" . }}
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 rules:

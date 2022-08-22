@@ -32,6 +32,12 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/*
+Return namespace of the signoz release
+*/}}
+{{- define "signoz.namespace" -}}
+{{- .Release.Namespace -}}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for queryService.
@@ -427,9 +433,16 @@ Return the service name of Clickhouse
 {{- else -}}
 {{- $name := default "clickhouse" .Values.clickhouse.nameOverride -}}
 {{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- $namespace := .Values.clickhouse.namespace -}}
+{{- $clusterDomain := default "cluster.local" .Values.clusterDomain -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
+{{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
+{{- else -}}
+{{ $name }}
 {{- end -}}
 {{- end -}}
 {{- end }}
