@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/query-service/prometheus-configmap.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/query-service/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
@@ -94,7 +94,7 @@ spec:
       volumes:
       - name: prometheus
         configMap:
-          name: prometheus-config
+          name: {{ include "queryService.fullname" . }}
       - name: dashboards
         emptyDir: {}
 

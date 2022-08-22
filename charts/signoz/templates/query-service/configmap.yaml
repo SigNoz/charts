@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prometheus-config
+  name: {{ include "queryService.fullname" . }}
 data:
   prometheus.yml: |
     # my global config
