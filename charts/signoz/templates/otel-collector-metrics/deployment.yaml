@@ -51,7 +51,7 @@ spec:
           {{- end }}
           {{- end }}
         command:
-          - "/otelcontribcol"
+          - "/signoz-collector"
           - "--config=/conf/otel-collector-metrics-config.yaml"
         env:
           {{- include "snippet.clickhouse-env" . | nindent 10 }}
