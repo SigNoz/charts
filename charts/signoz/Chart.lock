@@ -1,6 +1,6 @@
 dependencies:
 - name: clickhouse
   repository: https://signoz.github.io/charts
-  version: 23.4.0
-digest: sha256:88b9e6171aeac3e9559a8ded4492b72f837a20691488458acefacec3a28c757e
-generated: "2022-08-07T06:16:50.978114922+05:30"
+  version: 23.5.0
+digest: sha256:f123d52b35fc415afa807a2815916a4ea8f58fd58bdf1852b62bbae6842af0ec
+generated: "2022-08-22T12:19:46.313405002+05:30"
