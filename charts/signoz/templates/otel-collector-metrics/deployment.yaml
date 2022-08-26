@@ -55,6 +55,11 @@ spec:
           - "--config=/conf/otel-collector-metrics-config.yaml"
         env:
           {{- include "snippet.clickhouse-env" . | nindent 10 }}
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
         volumeMounts:
           - name: otel-collector-metrics-config-vol
             mountPath: /conf
