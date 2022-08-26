@@ -47,6 +47,9 @@ spec:
           - name: {{ $key }}
             containerPort: {{ $port.containerPort }}
             protocol: {{ $port.protocol }}
+            {{- if $port.hostPort }}
+            hostPort: {{ $port.hostPort }}
+            {{- end }}
           {{- end }}
           {{- end }}
         command:

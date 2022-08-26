@@ -827,6 +827,8 @@ otelCollector:
       containerPort: 4317
       # -- Service port for OTLP gRPC
       servicePort: 4317
+      # -- Host port for OTLP gRPC
+      hostPort: 4317
       # -- Protocol to use for OTLP gRPC
       protocol: TCP
     otlp-http:
@@ -836,6 +838,8 @@ otelCollector:
       containerPort: 4318
       # -- Service port for OTLP HTTP
       servicePort: 4318
+      # -- Host port for OTLP HTTP
+      hostPort: 4318
       # -- Protocol to use for OTLP HTTP
       protocol: TCP
     jaeger-compact:
@@ -845,6 +849,8 @@ otelCollector:
       containerPort: 6831
       # -- Service port for Jaeger Compact
       servicePort: 6831
+      # -- Host port for Jaeger Compact
+      hostPort: 6831
       # -- Protocol to use for Jaeger Compact
       protocol: UDP
     jaeger-thrift:
@@ -854,6 +860,8 @@ otelCollector:
       containerPort: 14268
       # -- Service port for Jaeger Thrift
       servicePort: 14268
+      # -- Host port for Jaeger Thrift
+      hostPort: 14268
       # -- Protocol to use for Jaeger Thrift
       protocol: TCP
     jaeger-grpc:
@@ -863,6 +871,8 @@ otelCollector:
       containerPort: 14250
       # -- Service port for Jaeger gRPC
       servicePort: 14250
+      # -- Host port for Jaeger gRPC
+      hostPort: 14250
       # -- Protocol to use for Jaeger gRPC
       protocol: TCP
     zipkin:
@@ -872,6 +882,8 @@ otelCollector:
       containerPort: 9411
       # -- Service port for Zipkin
       servicePort: 9411
+      # -- Host port for Zipkin
+      hostPort: 9411
       # -- Protocol to use for Zipkin
       protocol: TCP
     prometheus-metrics:
@@ -881,6 +893,8 @@ otelCollector:
       containerPort: 8889
       # -- Service port for SigNoz exported prometheus metrics
       servicePort: 8889
+      # -- Host port for SigNoz exported prometheus metrics
+      hostPort: 8889
       # -- Protocol to use for SigNoz exported prometheus metrics
       protocol: TCP
     metrics:
@@ -890,6 +904,8 @@ otelCollector:
       containerPort: 8888
       # -- Service port for internal metrics
       servicePort: 8888
+      # -- Host port for internal metrics
+      hostPort: 8888
       # -- Protocol to use for internal metrics
       protocol: TCP
     zpages:
@@ -899,6 +915,8 @@ otelCollector:
       containerPort: 55679
       # -- Service port for Zpages
       servicePort: 55679
+      # -- Host port for Zpages
+      hostPort: 55679
       # -- Protocol to use for Zpages
       protocol: TCP
 
