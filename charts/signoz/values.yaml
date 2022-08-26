@@ -896,7 +896,7 @@ otelCollector:
       protocol: TCP
     metrics:
       # -- Whether to enable service port for internal metrics
-      enabled: false
+      enabled: true
       # -- Container port for internal metrics
       containerPort: 8888
       # -- Service port for internal metrics
