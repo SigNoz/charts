@@ -1153,12 +1153,12 @@ otelCollector:
         timeout: 10s
       # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        detectors: [env, system] # include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
         timeout: 2s
         override: false
         system:
-          hostname_sources: [os] # alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+          hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
       signozspanmetrics/prometheus:
         metrics_exporter: prometheus
         latency_histogram_buckets:
