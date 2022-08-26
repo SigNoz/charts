@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "otelCollector.fullname" . }}
   labels:
@@ -13,7 +13,6 @@ spec:
     matchLabels:
       {{- include "otelCollector.selectorLabels" . | nindent 6 }}
   minReadySeconds: {{ .Values.otelCollector.minReadySeconds }}
-  progressDeadlineSeconds: {{ .Values.otelCollector.progressDeadlineSeconds }}
   replicas: {{ .Values.otelCollector.replicaCount }} # adjust replica count to your own requirements
   template:
     metadata:
@@ -48,6 +47,9 @@ spec:
           - name: {{ $key }}
             containerPort: {{ $port.containerPort }}
             protocol: {{ $port.protocol }}
+            {{- if $port.hostPort }}
+            hostPort: {{ $port.hostPort }}
+            {{- end }}
           {{- end }}
           {{- end }}
         command:
@@ -55,6 +57,25 @@ spec:
           - "--config=/conf/otel-collector-config.yaml"
         env:
           {{- include "snippet.clickhouse-env" . | nindent 10 }}
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: K8S_NAMESPACE
+            valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: host.name=$(K8S_NODE_NAME)
         volumeMounts:
           - name: otel-collector-config-vol
             mountPath: /conf

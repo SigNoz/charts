@@ -290,7 +290,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.0-rc.1
+    tag: 0.11.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -411,7 +411,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.0-rc.1
+    tag: 0.11.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -771,7 +771,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0-rc.3
+    tag: 0.55.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -796,15 +796,10 @@ otelCollector:
   # -- OtelColector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
+    signoz.io/port: '8889'
     signoz.io/path: /metrics
-    internal.signoz.io/scrape: 'true'
-    internal.signoz.io/port: '8889'
-    internal.signoz.io/path: /metrics
 
   minReadySeconds: 5
-  progressDeadlineSeconds: 120
-  replicaCount: 1
   ballastSizeMib: 683
   initContainers:
     init:
@@ -829,6 +824,8 @@ otelCollector:
       containerPort: 4317
       # -- Service port for OTLP gRPC
       servicePort: 4317
+      # -- Host port for OTLP gRPC
+      hostPort: 4317
       # -- Protocol to use for OTLP gRPC
       protocol: TCP
     otlp-http:
@@ -838,6 +835,8 @@ otelCollector:
       containerPort: 4318
       # -- Service port for OTLP HTTP
       servicePort: 4318
+      # -- Host port for OTLP HTTP
+      hostPort: 4318
       # -- Protocol to use for OTLP HTTP
       protocol: TCP
     jaeger-compact:
@@ -847,6 +846,8 @@ otelCollector:
       containerPort: 6831
       # -- Service port for Jaeger Compact
       servicePort: 6831
+      # -- Host port for Jaeger Compact
+      hostPort: 6831
       # -- Protocol to use for Jaeger Compact
       protocol: UDP
     jaeger-thrift:
@@ -856,6 +857,8 @@ otelCollector:
       containerPort: 14268
       # -- Service port for Jaeger Thrift
       servicePort: 14268
+      # -- Host port for Jaeger Thrift
+      hostPort: 14268
       # -- Protocol to use for Jaeger Thrift
       protocol: TCP
     jaeger-grpc:
@@ -865,6 +868,8 @@ otelCollector:
       containerPort: 14250
       # -- Service port for Jaeger gRPC
       servicePort: 14250
+      # -- Host port for Jaeger gRPC
+      hostPort: 14250
       # -- Protocol to use for Jaeger gRPC
       protocol: TCP
     zipkin:
@@ -874,6 +879,8 @@ otelCollector:
       containerPort: 9411
       # -- Service port for Zipkin
       servicePort: 9411
+      # -- Host port for Zipkin
+      hostPort: 9411
       # -- Protocol to use for Zipkin
       protocol: TCP
     prometheus-metrics:
@@ -883,15 +890,19 @@ otelCollector:
       containerPort: 8889
       # -- Service port for SigNoz exported prometheus metrics
       servicePort: 8889
+      # -- Host port for SigNoz exported prometheus metrics
+      hostPort: 8889
       # -- Protocol to use for SigNoz exported prometheus metrics
       protocol: TCP
     metrics:
       # -- Whether to enable service port for internal metrics
-      enabled: false
+      enabled: true
       # -- Container port for internal metrics
       containerPort: 8888
       # -- Service port for internal metrics
       servicePort: 8888
+      # -- Host port for internal metrics
+      hostPort: 8888
       # -- Protocol to use for internal metrics
       protocol: TCP
     zpages:
@@ -901,6 +912,8 @@ otelCollector:
       containerPort: 55679
       # -- Service port for Zpages
       servicePort: 55679
+      # -- Host port for Zpages
+      hostPort: 55679
       # -- Protocol to use for Zpages
       protocol: TCP
 
@@ -1040,6 +1053,16 @@ otelCollector:
           disk: {}
           filesystem: {}
           network: {}
+      kubeletstats:
+        collection_interval: 60s
+        auth_type: serviceAccount
+        endpoint: ${K8S_NODE_NAME}:10250
+        insecure_skip_verify: true
+        metric_groups:
+          - container
+          - node
+          - pod
+          - volume
       # Uncomment to enable zipkin receiver.
       # You will also have set set enable it in `otelCollector.ports
       # zipkin:
@@ -1115,10 +1138,27 @@ otelCollector:
         - type: move
           from: attributes.log
           to: body
+      prometheus:
+        config:
+          global:
+            scrape_interval: 30s
+          scrape_configs:
+            - job_name: otel-collector
+              static_configs:
+              - targets:
+                - ${HOST_IP}:8888
     processors:
       batch:
         send_batch_size: 1000
         timeout: 10s
+      # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      resourcedetection:
+        detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+        timeout: 2s
+        override: false
+        system:
+          hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
       signozspanmetrics/prometheus:
         metrics_exporter: prometheus
         latency_histogram_buckets:
@@ -1195,8 +1235,12 @@ otelCollector:
           processors: [signozspanmetrics/prometheus, batch]
           exporters: [clickhousetraces]
         metrics:
-          receivers: [otlp, hostmetrics]
+          receivers: [otlp]
           processors: [batch]
+          exporters: [clickhousemetricswrite]
+        metrics/generic:
+          receivers: [hostmetrics, kubeletstats, prometheus]
+          processors: [resourcedetection, batch]
           exporters: [clickhousemetricswrite]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
@@ -1212,7 +1256,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0-rc.3
+    tag: 0.55.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1368,16 +1412,19 @@ otelCollectorMetrics:
   # @default -- See `values.yaml` for defaults
   config:
     receivers:
+      k8s_cluster:
+        collection_interval: 60s
+        node_conditions_to_report: [Ready, MemoryPressure]
       # Data sources: metrics
       prometheus:
         config:
           scrape_configs:
             # otel-collector-metrics internal metrics
-            # - job_name: "otel-collector-metrics"
-            #   scrape_interval: 60s
-            #   static_configs:
-            #     - targets:
-            #       - localhost:8888
+            - job_name: "otel-collector-metrics"
+              scrape_interval: 60s
+              static_configs:
+                - targets:
+                  - ${MY_POD_IP}:8888
             # generic prometheus metrics scraper (scrapped when pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
@@ -1397,37 +1444,6 @@ otelCollectorMetrics:
                     [
                       __meta_kubernetes_pod_ip,
                       __meta_kubernetes_pod_annotation_signoz_io_port,
-                    ]
-                  action: replace
-                  separator: ":"
-                  target_label: __address__
-                - action: labelmap
-                  regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: replace
-                  target_label: k8s_namespace
-                - source_labels: [__meta_kubernetes_pod_name]
-                  action: replace
-                  target_label: k8s_pod
-            # SigNoz span metrics
-            - job_name: "signozspanmetrics-collector"
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_internal_signoz_io_scrape]
-                  action: keep
-                  regex: true
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_internal_signoz_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels:
-                    [
-                      __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_internal_signoz_io_port,
                     ]
                   action: replace
                   separator: ":"
@@ -1475,6 +1491,6 @@ otelCollectorMetrics:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics:
-          receivers: [prometheus]
+          receivers: [k8s_cluster, prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
