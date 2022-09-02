@@ -13,5 +13,9 @@ roleRef:
   name: {{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
 subjects:
 - kind: ServiceAccount
+  {{- if .Values.clickhouseOperator.serviceAccount.create }}
   name: {{ include "clickhouseOperator.fullname" . }}
+  {{- else }}
+  name: {{ .Values.clickhouseOperator.serviceAccount.name }}
+  {{- end }}
   namespace: {{ include "clickhouse.namespace" . }}

@@ -88,7 +88,7 @@ rules:
 - apiGroups:
     - apps
   resourceNames:
-    - clickhouse-operator
+    - {{ include "clickhouseOperator.fullname" . }}
   resources:
     - deployments
   verbs:

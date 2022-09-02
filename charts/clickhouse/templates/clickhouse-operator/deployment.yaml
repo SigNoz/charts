@@ -2,10 +2,10 @@
 #
 # NAMESPACE={{ include "clickhouse.namespace" . }}
 # COMMENT=
-# OPERATOR_IMAGE=altinity/clickhouse-operator:0.19.0
-# OPERATOR_IMAGE_PULL_POLICY=Always
-# METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:0.19.0
-# METRICS_EXPORTER_IMAGE_PULL_POLICY=Always
+# OPERATOR_IMAGE={{ template "clickhouseOperator.image" . }}
+# OPERATOR_IMAGE_PULL_POLICY={{ .Values.clickhouseOperator.image.pullPolicy }}
+# METRICS_EXPORTER_IMAGE={{ include "metricsExporter.image" . }}
+# METRICS_EXPORTER_IMAGE_PULL_POLICY={{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
@@ -49,8 +49,8 @@ spec:
             name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
       containers:
         - name: {{ include "clickhouseOperator.fullname" . }}
-          image: altinity/clickhouse-operator:0.19.0
-          imagePullPolicy: Always
+          image: {{ template "clickhouseOperator.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.image.pullPolicy }}
           volumeMounts:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
@@ -113,9 +113,9 @@ spec:
                   containerName: {{ include "clickhouseOperator.fullname" . }}
                   resource: limits.memory
 
-        - name: metrics-exporter
-          image: altinity/metrics-exporter:0.19.0
-          imagePullPolicy: Always
+        - name: {{ include "metricsExporter.fullname" . }}
+          image: {{ include "metricsExporter.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
           volumeMounts:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
@@ -128,5 +128,5 @@ spec:
             - name: etc-clickhouse-operator-usersd-folder
               mountPath: /etc/clickhouse-operator/users.d
           ports:
-            - containerPort: 8888
+            - containerPort: {{ .Values.clickhouseOperator.metricsExporter.service.port }}
               name: metrics
