@@ -227,22 +227,19 @@ clickhouse:
     # -- name of the component
     name: operator
 
-    # Clickhouse service
-    service:
-      # -- Annotations to use by service associated to Clickhouse Operator instance
-      annotations: {}
-      # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-      type: ClusterIP
-      # -- Clickhouse Operator port
-      port: 8888
+    # -- Version of the operator
+    version: 0.19.1
 
-    # -- Clickhouse Operator pod(s) annotation.
-    podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
-
-    # -- Clickhouse Operator node selector
-    nodeSelector: {}
+    # -- Clickhouse Operator image
+    image:
+      # -- Clickhouse Operator image registry to use.
+      registry: docker.io
+      # -- Clickhouse Operator image repository to use.
+      repository: altinity/clickhouse-operator
+      # -- Clickhouse Operator image tag.
+      tag: 0.19.1
+      # -- Clickhouse Operator image pull policy.
+      pullPolicy: IfNotPresent
 
     serviceAccount:
       # -- Specifies whether a service account should be created
@@ -252,6 +249,39 @@ clickhouse:
       # -- The name of the service account to use.
       # If not set and create is true, a name is generated using the fullname template
       name:
+
+    # -- Clickhouse Operator pod(s) annotation.
+    podAnnotations:
+      signoz.io/port: '8888'
+      signoz.io/scrape: 'true'
+
+    # -- Clickhouse Operator node selector
+    nodeSelector: {}
+
+    # -- Metrics Exporter config.
+    metricsExporter:
+      # -- name of the component
+      name: metrics-exporter
+
+      # -- Metrics Exporter service
+      service:
+        # -- Annotations to use by service associated to Metrics Exporter
+        annotations: {}
+        # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+        type: ClusterIP
+        # -- Metrics Exporter port
+        port: 8888
+
+      # -- Metrics Exporter image
+      image:
+        # -- Metrics Exporter image registry to use.
+        registry: docker.io
+        # -- Metrics Exporter image repository to use.
+        repository: altinity/metrics-exporter
+        # -- Metrics Exporter image tag.
+        tag: 0.19.1
+        # -- Metrics Exporter image pull policy.
+        pullPolicy: IfNotPresent
 
 
 ## External clickhouse configuration
