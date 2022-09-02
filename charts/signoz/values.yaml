@@ -800,7 +800,6 @@ otelCollector:
     signoz.io/path: /metrics
 
   minReadySeconds: 5
-  ballastSizeMib: 683
   initContainers:
     init:
       enabled: true
@@ -1287,7 +1286,6 @@ otelCollectorMetrics:
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicaCount: 1
-  ballastSizeMib: 683
   initContainers:
     init:
       enabled: true
