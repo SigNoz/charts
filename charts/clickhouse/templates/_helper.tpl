@@ -97,7 +97,7 @@ nodePort: null
 {{- end -}}
 
 {{/*
-Create a default fully qualified app name for queryService.
+Create a default fully qualified app name for clickhouseOperator.
 */}}
 {{- define "clickhouseOperator.fullname" -}}
 {{- printf "%s-%s" (include "clickhouse.fullname" .) .Values.clickhouseOperator.name | trunc 63 | trimSuffix "-" -}}
@@ -120,7 +120,7 @@ helm.sh/chart: {{ include "clickhouse.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-clickhouse.altinity.com/chop: 0.19.0
+clickhouse.altinity.com/chop: {{ .Values.clickhouseOperator.version }}
 {{- end -}}
 
 {{/*
@@ -133,6 +133,21 @@ app.kubernetes.io/component: {{ .Values.clickhouseOperator.name }}
 {{- end -}}
 
 {{/*
+Return the proper clickhouseOperator image name
+*/}}
+{{- define "clickhouseOperator.image" -}}
+{{- $registryName := default .Values.clickhouseOperator.image.registry .Values.global.image.registry -}}
+{{- $repositoryName := .Values.clickhouseOperator.image.repository -}}
+{{- $tag := default .Values.clickhouseOperator.version .Values.clickhouseOperator.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "clickhouseOperator.serviceAccountName" -}}
@@ -140,5 +155,26 @@ Create the name of the service account to use
     {{ default (include "clickhouseOperator.fullname" .) .Values.clickhouseOperator.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.clickhouseOperator.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name for metricsExporter.
+*/}}
+{{- define "metricsExporter.fullname" -}}
+{{- printf "%s-%s" (include "clickhouse.fullname" .) .Values.clickhouseOperator.metricsExporter.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Return the proper metricsExporter image name
+*/}}
+{{- define "metricsExporter.image" -}}
+{{- $registryName := default .Values.clickhouseOperator.metricsExporter.image.registry .Values.global.image.registry -}}
+{{- $repositoryName := .Values.clickhouseOperator.metricsExporter.image.repository -}}
+{{- $tag := default .Values.clickhouseOperator.version .Values.clickhouseOperator.metricsExporter.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}

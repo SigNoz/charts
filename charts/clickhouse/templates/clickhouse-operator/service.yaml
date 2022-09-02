@@ -15,7 +15,7 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
-{{- with .Values.clickhouseOperator.service }}
+{{- with .Values.clickhouseOperator.metricsExporter.service }}
   {{- if .annotations }}
   annotations:
     {{- toYaml .annotations | nindent 4 }}
