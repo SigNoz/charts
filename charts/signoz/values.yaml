@@ -114,9 +114,15 @@ clickhouse:
   # allowed. This should suffice for most use case although to expose to other
   # networks you will need to update this setting.
   #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
+  # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
   allowedNetworkIps:
     - "10.0.0.0/8"
+    - "100.64.0.0/10"
     - "172.16.0.0/12"
+    - "192.0.0.0/24"
+    - "198.18.0.0/15"
     - "192.168.0.0/16"
 
   persistence:
