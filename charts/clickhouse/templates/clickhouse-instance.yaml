@@ -115,7 +115,7 @@ spec:
           {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
-          serviceAccountName: clickhouse-instance
+          serviceAccountName: {{ include "clickhouse.fullname" . }}-instance
           {{- end }}
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
