@@ -554,12 +554,6 @@ frontend:
     #    hosts:
     #      - frontend.domain.com
 
-  # -- Nginx congifmap customize for new parameters
-  customConfig: false
-  # customConfig: true
-  # data: |
-  #   large_client_header_buffers 4 256k;
-
   # adjust the resource requests and limit as necessary
   resources:
     requests:
