@@ -554,6 +554,11 @@ frontend:
     #    hosts:
     #      - frontend.domain.com
 
+  # -- Frontend Nginx extra configurations
+  nginxExtraConfig: |
+      client_max_body_size 24M;
+      large_client_header_buffers 8 16k;
+
   # adjust the resource requests and limit as necessary
   resources:
     requests:
