@@ -861,6 +861,8 @@ otelCollector:
       servicePort: 4317
       # -- Host port for OTLP gRPC
       hostPort: 4317
+      # -- Node port for OTLP gRPC
+      nodePort: ""
       # -- Protocol to use for OTLP gRPC
       protocol: TCP
     otlp-http:
@@ -872,6 +874,8 @@ otelCollector:
       servicePort: 4318
       # -- Host port for OTLP HTTP
       hostPort: 4318
+      # -- Node port for OTLP HTTP
+      nodePort: ""
       # -- Protocol to use for OTLP HTTP
       protocol: TCP
     jaeger-compact:
@@ -883,6 +887,8 @@ otelCollector:
       servicePort: 6831
       # -- Host port for Jaeger Compact
       hostPort: 6831
+      # -- Node port for Jaeger Compact
+      nodePort: ""
       # -- Protocol to use for Jaeger Compact
       protocol: UDP
     jaeger-thrift:
@@ -894,6 +900,8 @@ otelCollector:
       servicePort: 14268
       # -- Host port for Jaeger Thrift
       hostPort: 14268
+      # -- Node port for Jaeger Thrift
+      nodePort: ""
       # -- Protocol to use for Jaeger Thrift
       protocol: TCP
     jaeger-grpc:
@@ -905,6 +913,8 @@ otelCollector:
       servicePort: 14250
       # -- Host port for Jaeger gRPC
       hostPort: 14250
+      # -- Node port for Jaeger gRPC
+      nodePort: ""
       # -- Protocol to use for Jaeger gRPC
       protocol: TCP
     zipkin:
@@ -916,6 +926,8 @@ otelCollector:
       servicePort: 9411
       # -- Host port for Zipkin
       hostPort: 9411
+      # -- Node port for Zipkin
+      nodePort: ""
       # -- Protocol to use for Zipkin
       protocol: TCP
     prometheus-metrics:
@@ -927,6 +939,8 @@ otelCollector:
       servicePort: 8889
       # -- Host port for SigNoz exported prometheus metrics
       hostPort: 8889
+      # -- Node port for SigNoz exported prometheus metrics
+      nodePort: ""
       # -- Protocol to use for SigNoz exported prometheus metrics
       protocol: TCP
     metrics:
@@ -938,6 +952,8 @@ otelCollector:
       servicePort: 8888
       # -- Host port for internal metrics
       hostPort: 8888
+      # -- Node port for internal metrics
+      nodePort: ""
       # -- Protocol to use for internal metrics
       protocol: TCP
     zpages:
@@ -949,6 +965,8 @@ otelCollector:
       servicePort: 55679
       # -- Host port for Zpages
       hostPort: 55679
+      # -- Node port for Zpages
+      nodePort: ""
       # -- Protocol to use for Zpages
       protocol: TCP
 

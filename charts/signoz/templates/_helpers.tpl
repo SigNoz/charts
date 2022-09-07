@@ -468,6 +468,9 @@ nodePort: null
   {{ include "service.ifClusterIP" $serviceType }}
   targetPort: {{ $key }}
   protocol: {{ $port.protocol }}
+  {{- if $serviceType := "nodePort" }}
+  nodePort: {{ $port.nodePort }}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
