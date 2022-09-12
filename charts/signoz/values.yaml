@@ -42,7 +42,7 @@ clickhouse:
   fullnameOverride: ""
 
   # -- Clickhouse cluster
-  cluster: cluster
+  cluster: signoz
   # -- Clickhouse database (SigNoz Metrics)
   database: signoz_metrics
   # -- Clickhouse trace database (SigNoz Traces)
@@ -167,8 +167,8 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 1
-    replicasCount: 1
+    shardsCount: 3
+    replicasCount: 2
 
   # -- ClickHouse settings configuration.
   # You can use this to override settings, for example `prometheus/port: 9363`
@@ -812,7 +812,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: test11
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1029,11 +1029,11 @@ otelCollector:
   # adjust the resource requests and limit as necessary
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
-    limits:
       cpu: 1000m
-      memory: 2Gi
+      memory: 2000Mi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
 
   nodeSelector: {}
 
@@ -1314,7 +1314,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: test11
     pullPolicy: Always
   imagePullSecrets: []
 

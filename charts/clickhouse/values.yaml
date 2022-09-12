@@ -108,9 +108,9 @@ user: admin
 password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
 # -- Clickhouse cluster replicas
-replicasCount: 1
+replicasCount: 2
 # -- Clickhouse cluster shards
-shardsCount: 1
+shardsCount: 3
 
 # -- Clickhouse image
 image:
