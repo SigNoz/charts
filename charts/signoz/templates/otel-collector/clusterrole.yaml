@@ -1,25 +1,12 @@
+{{- if .Values.otelCollector.clusterRole.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "otelCollector.fullname" . }}-{{ include "signoz.namespace" . }}
+  name: {{ include "otelCollector.clusterRoleName" . }}
   namespace: {{ include "signoz.namespace" . }}
-rules:
-  - apiGroups: [""]
-    resources: ["pods", "nodes", "endpoints"]
-    verbs: ["list", "watch"]
-  - apiGroups: ["apps"]
-    resources: ["replicasets"]
-    verbs: ["list", "watch"]
-  - apiGroups: ["batch"]
-    resources: ["jobs"]
-    verbs: ["list", "watch"]
-  - apiGroups: [""]
-    resources: ["nodes/proxy"]
-    verbs: ["get"]
-  - apiGroups: [""]
-    resources: ["nodes/stats", "configmaps", "events"]
-    verbs: ["create", "get"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    resourceNames: ["{{ include "otelCollector.fullname" . }}"]
-    verbs: ["get","update"]
+  {{- with .Values.otelCollector.clusterRole.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules: {{ toYaml .Values.otelCollector.clusterRole.rules | nindent 2 -}}
+{{- end }}
