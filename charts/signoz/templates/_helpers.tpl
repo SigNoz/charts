@@ -98,7 +98,7 @@ Return the proper queryService image name
 {{- define "queryService.image" -}}
 {{- $registryName := default .Values.queryService.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.queryService.image.repository -}}
-{{- $tag := .Values.queryService.image.tag | toString -}}
+{{- $tag := default .Chart.AppVersion .Values.queryService.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -180,7 +180,7 @@ Return the proper frontend image name
 {{- define "frontend.image" -}}
 {{- $registryName := default .Values.frontend.image.registry .Values.global.image.registry -}}
 {{- $repositoryName := .Values.frontend.image.repository -}}
-{{- $tag := .Values.frontend.image.tag | toString -}}
+{{- $tag := default .Chart.AppVersion .Values.frontend.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -354,6 +354,29 @@ Return the proper otelCollector image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Create the name of the clusterRole to use
+*/}}
+{{- define "otelCollector.clusterRoleName" -}}
+{{- if .Values.otelCollector.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollector.clusterRole.name }}
+{{- else }}
+{{- default "default" .Values.otelCollector.clusterRole.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the clusterRoleBinding to use
+*/}}
+{{- define "otelCollector.clusterRoleBindingName" -}}
+{{- if .Values.otelCollector.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
+{{- else }}
+{{- default "default" .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
+{{- end }}
+{{- end }}
 
 
 {{/*
@@ -423,6 +446,29 @@ Return the proper otelCollectorMetrics image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Create the name of the clusterRole to use
+*/}}
+{{- define "otelCollectorMetrics.clusterRoleName" -}}
+{{- if .Values.otelCollectorMetrics.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollectorMetrics.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollectorMetrics.clusterRole.name }}
+{{- else }}
+{{- default "default" .Values.otelCollectorMetrics.clusterRole.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the clusterRoleBinding to use
+*/}}
+{{- define "otelCollectorMetrics.clusterRoleBindingName" -}}
+{{- if .Values.otelCollectorMetrics.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollectorMetrics.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollectorMetrics.clusterRole.clusterRoleBinding.name }}
+{{- else }}
+{{- default "default" .Values.otelCollectorMetrics.clusterRole.clusterRoleBinding.name }}
+{{- end }}
+{{- end }}
 
 {{/*
 Return the service name of Clickhouse
