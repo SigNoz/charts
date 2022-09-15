@@ -307,10 +307,14 @@ otelAgent:
           network: {}
       filelog/k8s:
         include:
+          # Include logs from all container
           - /var/log/pods/*/*/*.log
         exclude:
-          # Exclude logs from all containers named otel-collector
-          - /var/log/pods/*/otel-collector/*.log
+          # Exclude logs from all containers from kube-system namespace
+          - /var/log/pods/kube-system_*/*/*.log
+          # Exclude logs from all hotrod containers
+          - /var/log/pods/*_hotrod-*/*/*.log
+          - /var/log/pods/*_locust-*_*/*/*.log
         start_at: beginning
         include_file_path: true
         include_file_name: false
