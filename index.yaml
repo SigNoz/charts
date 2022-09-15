@@ -391,6 +391,35 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/clickhouse-9.1.0/clickhouse-9.1.0.tgz
     version: 9.1.0
+  k8s-infra:
+  - apiVersion: v2
+    appVersion: 0.55.0
+    created: "2022-09-15T15:07:45.264582084Z"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: 4fc337ee9a2feddab4f483d9f6c2d744396d10c876ce1648e7ff03c214d8ac37
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.1.0/k8s-infra-0.1.0.tgz
+    version: 0.1.0
   signoz:
   - apiVersion: v2
     appVersion: 0.11.0
@@ -1510,4 +1539,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2022-09-15T13:38:01.623681009Z"
+generated: "2022-09-15T15:07:45.265068584Z"
