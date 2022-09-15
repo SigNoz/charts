@@ -503,6 +503,7 @@ nodePort: null
 {{- end -}}
 
 {{/*
+Return structured list of ports config.
 */}}
 {{- define "otelCollector.portsConfig" -}}
 {{- $serviceType := deepCopy .service.type -}}
