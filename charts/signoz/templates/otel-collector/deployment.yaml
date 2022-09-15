@@ -23,7 +23,7 @@ spec:
         {{- if .Values.otelCollector.podAnnotations -}}
           {{- toYaml .Values.otelCollector.podAnnotations | nindent 8 -}}
         {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/otel-collector/config.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/otel-collector/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
     spec:
