@@ -1,0 +1,7 @@
+{{- if not .Values.otelAgent.configMap.create }}
+[WARNING] "configMap" wil not be created and "config" will not take effect.
+{{ end }}
+
+{{- if not .Values.otelDeployment.configMap.create }}
+[WARNING] "configMap" wil not be created and "config" will not take effect.
+{{ end }}

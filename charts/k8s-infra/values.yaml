@@ -1,0 +1,723 @@
+# Global override values
+global:
+  image:
+    # -- Overrides the Docker registry globally for all images
+    registry: null
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  storageClass: null
+
+# -- SigNoz chart name override
+nameOverride: ""
+
+# -- SigNoz chart full name override
+fullnameOverride: ""
+
+# -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
+otelCollectorEndpoint: my-release-signoz-otel-collector.platform.svc.cluster.local:4317
+
+# Default values for OtelAgent
+otelAgent:
+  name: "otel-agent"
+  image:
+    registry: docker.io
+    repository: otel/opentelemetry-collector-contrib
+    tag: 0.55.0
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+  # OpenTelemetry Collector executable
+  command:
+    # -- OtelAgent command name
+    name: /otelcol-contrib
+    # -- OtelAgent command extra arguments
+    extraArgs: []
+
+  configMap:
+    # -- Specifies whether a configMap should be created (true by default)
+    create: true
+
+  # OtelAgent service
+  service:
+    # -- Annotations to use by service associated to OtelAgent
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  # -- OtelColector Deployment annotation.
+  annotations: {}
+  # -- OtelColector pod(s) annotation.
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8889'
+    signoz.io/path: /metrics
+
+  # -- Minimum number of seconds for which a newly created Pod should be ready
+  # without any of its containers crashing, for it to be considered available.
+  minReadySeconds: 5
+
+  # OtelAgent RBAC config
+  clusterRole:
+    # -- Specifies whether a clusterRole should be created
+    create: true
+    # -- Annotations to add to the clusterRole
+    annotations: {}
+    # -- The name of the clusterRole to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+    # -- A set of rules as documented here.
+    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    rules:
+      - apiGroups: [""]
+        resources: ["pods", "nodes", "endpoints"]
+        verbs: ["list", "watch"]
+      - apiGroups: ["apps"]
+        resources: ["replicasets"]
+        verbs: ["list", "watch"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["list", "watch"]
+      - apiGroups: [""]
+        resources: ["nodes/proxy"]
+        verbs: ["get"]
+      - apiGroups: [""]
+        resources: ["nodes/stats", "configmaps", "events"]
+        verbs: ["create", "get"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        resourceNames: ["otel-container-insight-clusterleader"]
+        verbs: ["get", "update"]
+
+    # OtelAgent clusterRoleBinding
+    clusterRoleBinding:
+      # Annotations to add to the clusterRoleBinding
+      annotations: {}
+      # The name of the clusterRoleBinding to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name: ""
+
+  # Configuration for ports
+  ports:
+    otlp:
+      # -- Whether to enable service port for OTLP gRPC
+      enabled: true
+      # -- Container port for OTLP gRPC
+      containerPort: 4317
+      # -- Service port for OTLP gRPC
+      servicePort: 4317
+      # -- Node port for OTLP gRPC
+      nodePort: ""
+      # -- Host port for OTLP gRPC
+      hostPort: 4317
+      # -- Protocol to use for OTLP gRPC
+      protocol: TCP
+    otlp-http:
+      # -- Whether to enable service port for OTLP HTTP
+      enabled: true
+      # -- Container port for OTLP HTTP
+      containerPort: 4318
+      # -- Service port for OTLP HTTP
+      servicePort: 4318
+      # -- Node port for OTLP HTTP
+      nodePort: ""
+      # -- Host port for OTLP HTTP
+      hostPort: 4318
+      # -- Protocol to use for OTLP HTTP
+      protocol: TCP
+    zipkin:
+      # -- Whether to enable service port for Zipkin
+      enabled: false
+      # -- Container port for Zipkin
+      containerPort: 9411
+      # -- Service port for Zipkin
+      servicePort: 9411
+      # -- Node port for Zipkin
+      nodePort: ""
+      # -- Host port for Zipkin
+      hostPort: 9411
+      # -- Protocol to use for Zipkin
+      protocol: TCP
+    metrics:
+      # -- Whether to enable service port for internal metrics
+      enabled: true
+      # -- Container port for internal metrics
+      containerPort: 8888
+      # -- Service port for internal metrics
+      servicePort: 8888
+      # -- Node port for internal metrics
+      nodePort: ""
+      # -- Host port for internal metrics
+      hostPort: 8888
+      # -- Protocol to use for internal metrics
+      protocol: TCP
+    zpages:
+      # -- Whether to enable service port for ZPages
+      enabled: false
+      # -- Container port for Zpages
+      containerPort: 55679
+      # -- Service port for Zpages
+      servicePort: 55679
+      # -- Node port for Zpages
+      nodePort: ""
+      # -- Host port for Zpages
+      hostPort: 55679
+      # -- Protocol to use for Zpages
+      protocol: TCP
+    health-check:
+      # -- Whether to enable service port for health check
+      enabled: true
+      # -- Container port for health check
+      containerPort: 13133
+      # -- Service port for health check
+      servicePort: 13133
+      # -- Node port for health check
+      nodePort: ""
+      # -- Host port for health check
+      hostPort: 13133
+      # -- Protocol to use for health check
+      protocol: TCP
+    pprof:
+      # -- Whether to enable service port for pprof
+      enabled: false
+      # -- Container port for pprof
+      containerPort: 1777
+      # -- Service port for pprof
+      servicePort: 1777
+      # -- Node port for pprof
+      nodePort: ""
+      # -- Host port for pprof
+      hostPort: 1777
+      # -- Protocol to use for pprof
+      protocol: TCP
+
+  # -- Configure liveness probe.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+  livenessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  # -- Configure readiness probe.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+  readinessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  # -- Custom liveness probe
+  customLivenessProbe: {}
+  # -- Custom readiness probe
+  customReadinessProbe: {}
+
+  ingress:
+    # -- Enable ingress for OtelAgent
+    enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
+    className: ""
+    # -- Annotations to OtelAgent Ingress
+    annotations: {}
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- OtelAgent Ingress Host names with their path details
+    hosts:
+      - host: otel-agent.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: 4317
+    # -- OtelAgent Ingress TLS
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otel-agent.domain.com
+
+  # -- Configure resource requests and limits. Update according to your own use
+  # case as these values might be too low for a typical deployment.
+  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 200m
+      memory: 400Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # -- OtelAgent node selector
+  nodeSelector: {}
+
+  # -- Toleration labels for OtelAgent pod assignment
+  tolerations: []
+
+  # -- Affinity settings for OtelAgent pod
+  affinity: {}
+
+  # -- Pod-level security configuration
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  # -- Container security configuration
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # -- Configurations for OtelAgent
+  # @default -- See `values.yaml` for defaults
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      hostmetrics:
+        collection_interval: 30s
+        scrapers:
+          cpu: {}
+          load: {}
+          memory: {}
+          disk: {}
+          filesystem: {}
+          network: {}
+      filelog/k8s:
+        include:
+          - /var/log/pods/*/*/*.log
+        exclude:
+          # Exclude logs from all containers named otel-collector
+          - /var/log/pods/*/otel-collector/*.log
+        start_at: beginning
+        include_file_path: true
+        include_file_name: false
+        operators:
+        # Find out which format is used by kubernetes
+        - type: router
+          id: get-format
+          routes:
+            - output: parser-docker
+              expr: 'body matches "^\\{"'
+            - output: parser-crio
+              expr: 'body matches "^[^ Z]+ "'
+            - output: parser-containerd
+              expr: 'body matches "^[^ Z]+Z"'
+        # Parse CRI-O format
+        - type: regex_parser
+          id: parser-crio
+          regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+          output: extract_metadata_from_filepath
+          timestamp:
+            parse_from: attributes.time
+            layout_type: gotime
+            layout: '2006-01-02T15:04:05.000000000-07:00'
+        # Parse CRI-Containerd format
+        - type: regex_parser
+          id: parser-containerd
+          regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+          output: extract_metadata_from_filepath
+          timestamp:
+            parse_from: attributes.time
+            layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+        # Parse Docker format
+        - type: json_parser
+          id: parser-docker
+          output: extract_metadata_from_filepath
+          timestamp:
+            parse_from: attributes.time
+            layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+        # Extract metadata from file path
+        - type: regex_parser
+          id: extract_metadata_from_filepath
+          regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
+          parse_from: attributes["log.file.path"]
+        # Rename attributes
+        - type: move
+          from: attributes.stream
+          to: attributes["log.iostream"]
+        - type: move
+          from: attributes.container_name
+          to: attributes["k8s.container.name"]
+        - type: move
+          from: attributes.namespace
+          to: attributes["k8s.namespace.name"]
+        - type: move
+          from: attributes.pod_name
+          to: attributes["k8s.pod.name"]
+        - type: move
+          from: attributes.restart_count
+          to: attributes["k8s.container.restart_count"]
+        - type: move
+          from: attributes.uid
+          to: attributes["k8s.pod.uid"]
+        - type: move
+          from: attributes.log
+          to: body
+      prometheus:
+        config:
+          global:
+            scrape_interval: 60s
+          scrape_configs:
+            - job_name: otel-agent
+              static_configs:
+              - targets:
+                - ${MY_POD_IP}:8888
+    processors:
+      batch:
+        send_batch_size: 10000
+        timeout: 10s
+      # Resource detection processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      resourcedetection:
+        detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+        timeout: 2s
+        override: false
+        system:
+          hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+      # Memory Limiter processor config.
+      # If set to null, will be overridden with values based on k8s resource limits.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
+      memory_limiter: null
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: localhost:55679
+      pprof:
+        endpoint: localhost:1777
+    exporters:
+      otlp:
+        endpoint: ${OTEL_COLLECTOR_ENDPOINT}
+        tls:
+          insecure: true
+    service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
+      extensions: [health_check, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+        metrics/generic:
+          receivers: [hostmetrics, prometheus]
+          processors: [resourcedetection, batch]
+          exporters: [otlp]
+        logs:
+          receivers: [filelog/k8s, otlp]
+          processors: [batch]
+          exporters: [otlp]
+
+# Default values for OtelDeployment
+otelDeployment:
+  name: "otel-deployment"
+  image:
+    registry: docker.io
+    repository: otel/opentelemetry-collector-contrib
+    tag: 0.55.0
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+  # OpenTelemetry Collector executable
+  command:
+    # -- OtelDeployment command name
+    name: /otelcol-contrib
+    # -- OtelDeployment command extra arguments
+    extraArgs: []
+
+  configMap:
+    # -- Specifies whether a configMap should be created (true by default)
+    create: true
+
+  # OtelDeployment service
+  service:
+    # -- Annotations to use by service associated to OtelDeployment
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  # -- OtelDeployment deployment annotation.
+  annotations: {}
+  # -- OtelDeployment pod(s) annotation.
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
+    signoz.io/path: /metrics
+
+  # -- Pod-level security configuration
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  # -- Container security configuration
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # -- Minimum number of seconds for which a newly created Pod should be ready
+  # without any of its containers crashing, for it to be considered available.
+  minReadySeconds: 5
+
+  # -- Number of seconds to wait for the OtelDeployment to progress before the
+  # system reports back that the OtelDeployment has failed.
+  progressDeadlineSeconds: 120
+
+  # Configuration for ports
+  ports:
+    metrics:
+      # -- Whether to enable service port for internal metrics
+      enabled: false
+      # -- Container port for internal metrics
+      containerPort: 8888
+      # -- Service port for internal metrics
+      servicePort: 8888
+      # -- Node port for internal metrics
+      nodePort: ""
+      # -- Protocol to use for internal metrics
+      protocol: TCP
+    zpages:
+      # -- Whether to enable service port for ZPages
+      enabled: false
+      # -- Container port for Zpages
+      containerPort: 55679
+      # -- Service port for Zpages
+      servicePort: 55679
+      # -- Node port for Zpages
+      nodePort: ""
+      # -- Protocol to use for Zpages
+      protocol: TCP
+    health-check:
+      # -- Whether to enable service port for health check
+      enabled: true
+      # -- Container port for health check
+      containerPort: 13133
+      # -- Service port for health check
+      servicePort: 13133
+      # -- Node port for health check
+      nodePort: ""
+      # -- Protocol to use for health check
+      protocol: TCP
+    pprof:
+      # -- Whether to enable service port for pprof
+      enabled: false
+      # -- Container port for pprof
+      containerPort: 1777
+      # -- Service port for pprof
+      servicePort: 1777
+      # -- Node port for pprof
+      nodePort: ""
+      # -- Protocol to use for pprof
+      protocol: TCP
+
+  # -- Configure liveness probe.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+  livenessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  # -- Configure readiness probe.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+  readinessProbe:
+    enabled: false
+    port: 13133
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  # -- Custom liveness probe
+  customLivenessProbe: {}
+
+  # -- Custom readiness probe
+  customReadinessProbe: {}
+
+  ingress:
+    # -- Enable ingress for OtelDeployment
+    enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
+    className: ""
+    # -- Annotations to OtelDeployment Ingress
+    annotations: {}
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- OtelDeployment Ingress Host names with their path details
+    hosts:
+      - host: otel-deployment.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: 13133
+    # -- OtelDeployment Ingress TLS
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otel-deployment.domain.com
+
+  # -- Configure resource requests and limits. Update according to your own use
+  # case as these values might be too low for a typical deployment.
+  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 200m
+      memory: 400Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # -- OtelDeployment node selector
+  nodeSelector: {}
+
+  # -- Toleration labels for OtelDeployment pod assignment
+  tolerations: []
+
+  # -- Affinity settings for OtelDeployment pod
+  affinity: {}
+
+  # OtelDeployment RBAC config
+  clusterRole:
+    # -- Specifies whether a clusterRole should be created
+    create: true
+    # -- Annotations to add to the clusterRole
+    annotations: {}
+    # -- The name of the clusterRole to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+    # -- A set of rules as documented here : https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # @default -- See `values.yaml` for defaults
+    rules:
+      - apiGroups: [""]
+        resources:
+          - events
+          - namespaces
+          - namespaces/status
+          - nodes
+          - nodes/spec
+          - pods
+          - pods/status
+          - replicationcontrollers
+          - replicationcontrollers/status
+          - resourcequotas
+          - services
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["apps"]
+        resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources: ["daemonsets", "deployments", "replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["batch"]
+        resources: ["jobs", "cronjobs"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["autoscaling"]
+        resources: ["horizontalpodautoscalers"]
+        verbs: ["get", "list", "watch"]
+
+    # OtelDeployment clusterRoleBinding
+    clusterRoleBinding:
+      # -- Annotations to add to the clusterRoleBinding
+      annotations: {}
+      # -- The name of the clusterRoleBinding to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name: ""
+
+  # -- Configurations for OtelDeployment
+  # @default -- See `values.yaml` for defaults
+  config:
+    receivers:
+      # k8s cluster metrics
+      k8s_cluster:
+        collection_interval: 30s
+        node_conditions_to_report: [Ready, MemoryPressure]
+        allocatable_types_to_report: [cpu, memory]
+      # prometheus scrape config
+      prometheus:
+        config:
+          scrape_configs:
+            # deployment internal metrics
+            - job_name: "otel-deployment"
+              scrape_interval: 60s
+              static_configs:
+                - targets:
+                  - ${MY_POD_IP}:8888
+    processors:
+      batch:
+        send_batch_size: 10000
+        timeout: 10s
+      # Memory Limiter processor.
+      # If set to null, will be overridden with values based on k8s resource limits.
+      memory_limiter: null
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: localhost:55679
+      pprof:
+        endpoint: localhost:1777
+    exporters:
+      otlp:
+        endpoint: ${OTEL_COLLECTOR_ENDPOINT}
+        tls:
+          insecure: true
+    service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
+      extensions: [health_check, zpages, pprof]
+      pipelines:
+        metrics:
+          receivers: [k8s_cluster, prometheus]
+          processors: [batch]
+          exporters: [otlp]
