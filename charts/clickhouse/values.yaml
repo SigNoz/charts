@@ -328,6 +328,18 @@ clickhouseOperator:
   # -- Clickhouse Operator node selector
   nodeSelector: {}
 
+  # -- Clickhouse logging config
+  logger:
+    # -- Logging level. Acceptable values: trace, debug, information, warning, error.
+    level: information
+    # -- Size of the file. Applies to log and errorlog. Once the file reaches size,
+    # ClickHouse archives and renames it, and creates a new log file in its place.
+    size: 1000M
+    # -- The number of archived log files that ClickHouse stores.
+    count: 10
+    # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
+    console: true
+
   # -- Metrics Exporter config.
   metricsExporter:
     # -- name of the component

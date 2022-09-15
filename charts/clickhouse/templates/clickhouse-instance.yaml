@@ -10,7 +10,7 @@ spec:
     templates:
       {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
       dataVolumeClaimTemplate: data-volumeclaim-template
-      # logVolumeClaimTemplate: data-volumeclaim-template
+      # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
       serviceTemplate: service-template
   configuration:
@@ -137,6 +137,9 @@ spec:
             - name: data-volumeclaim-template
               persistentVolumeClaim:
                 claimName: data-volumeclaim-template
+            # - name: log-volumeclaim-template
+            #   persistentVolumeClaim:
+            #     claimName: log-volumeclaim-template
           {{- end }}
           {{- end }}
 
@@ -171,6 +174,8 @@ spec:
               {{- end }}
                   mountPath: /var/lib/clickhouse
               {{- end }}
+                # - name: log-volumeclaim-template
+                #   mountPath: /var/log/clickhouse-server
 
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
