@@ -253,16 +253,16 @@ otelAgent:
     #      - otel-agent.domain.com
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
+  # case as these values might not be suitable for your workload.
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
       cpu: 200m
-      memory: 400Mi
+      memory: 200Mi
     limits:
       cpu: 1000m
-      memory: 2Gi
+      memory: 1Gi
 
   # -- OtelAgent node selector
   nodeSelector: {}
@@ -606,16 +606,16 @@ otelDeployment:
     #      - otel-deployment.domain.com
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
+  # case as these values might not be suitable for your workload.
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
       cpu: 200m
-      memory: 400Mi
+      memory: 200Mi
     limits:
       cpu: 1000m
-      memory: 2Gi
+      memory: 1Gi
 
   # -- OtelDeployment node selector
   nodeSelector: {}
