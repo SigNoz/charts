@@ -6,11 +6,14 @@ global:
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
 
-# -- SigNoz chart name override
+# -- K8s infra chart name override
 nameOverride: ""
 
-# -- SigNoz chart full name override
+# -- K8s infra chart full name override
 fullnameOverride: ""
+
+# -- Whether to enable K8s infra chart
+enabled: true
 
 # -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 otelCollectorEndpoint: my-release-signoz-otel-collector.platform.svc.cluster.local:4317
@@ -52,13 +55,10 @@ otelAgent:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
-  # -- OtelColector Deployment annotation.
+  # -- OtelAgent daemonset annotation.
   annotations: {}
-  # -- OtelColector pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8889'
-    signoz.io/path: /metrics
+  # -- OtelAgent pod(s) annotation.
+  podAnnotations: {}
 
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.
@@ -481,10 +481,7 @@ otelDeployment:
   # -- OtelDeployment deployment annotation.
   annotations: {}
   # -- OtelDeployment pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
 
   # -- Pod-level security configuration
   podSecurityContext: {}
