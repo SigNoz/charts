@@ -345,7 +345,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.0
+    tag: 0.11.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -468,7 +468,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.0
+    tag: 0.11.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -838,7 +838,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: 0.55.1
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1288,7 +1288,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: 0.55.1
     pullPolicy: Always
   imagePullSecrets: []
 
