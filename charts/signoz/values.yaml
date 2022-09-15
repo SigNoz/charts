@@ -428,8 +428,8 @@ queryService:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 300Mi
+      cpu: 100m
+      memory: 100Mi
     limits:
       cpu: 750m
       memory: 1000Mi
@@ -1077,8 +1077,8 @@ otelCollector:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
+      cpu: 100m
+      memory: 100Mi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -1451,8 +1451,8 @@ otelCollectorMetrics:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
+      cpu: 100m
+      memory: 100Mi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -1619,8 +1619,8 @@ k8s-infra:
     # @default -- See `values.yaml` for defaults
     resources:
       requests:
-        cpu: 200m
-        memory: 200Mi
+        cpu: 100m
+        memory: 100Mi
       limits:
         cpu: 1000m
         memory: 1Gi
@@ -1659,8 +1659,8 @@ k8s-infra:
     # @default -- See `values.yaml` for defaults
     resources:
       requests:
-        cpu: 200m
-        memory: 200Mi
+        cpu: 100m
+        memory: 100Mi
       limits:
         cpu: 1000m
         memory: 1Gi
