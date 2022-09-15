@@ -326,8 +326,8 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.0
-    pullPolicy: IfNotPresent
+    tag: latest
+    pullPolicy: Always
   imagePullSecrets: []
   serviceAccount:
     # Specifies whether a service account should be created
@@ -447,7 +447,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.0
+    tag: test1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -812,7 +812,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: test11
+    tag: test17
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1274,7 +1274,7 @@ otelCollector:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
         sending_queue:
-          queue_size: 100
+          queue_size: 1000
         retry_on_failure:
           enabled: true
           initial_interval: 5s
@@ -1314,7 +1314,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: test11
+    tag: test17
     pullPolicy: Always
   imagePullSecrets: []
 
