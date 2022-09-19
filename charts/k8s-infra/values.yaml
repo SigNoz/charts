@@ -260,9 +260,9 @@ otelAgent:
     requests:
       cpu: 100m
       memory: 100Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 1Gi
 
   # -- OtelAgent node selector
   nodeSelector: {}
@@ -614,9 +614,9 @@ otelDeployment:
     requests:
       cpu: 100m
       memory: 100Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 1Gi
 
   # -- OtelDeployment node selector
   nodeSelector: {}
