@@ -1,7 +1,7 @@
 apiVersion: v2
 name: signoz
-version: 0.3.3
-appVersion: "0.11.0"
+version: 0.4.0
+appVersion: "0.11.1"
 description: SigNoz Observability Platform Helm Chart
 type: application
 home: https://signoz.io/
@@ -13,15 +13,19 @@ keywords:
   - monitoring
   - distributed tracing
 sources:
-  - https://github.com/signoz/charts/
+  - https://github.com/signoz/charts
   - https://github.com/signoz/signoz
   - https://github.com/signoz/alertmanager
-  - https://github.com/signoz/opentelemetry-collector-contrib
+  - https://github.com/signoz/signoz-otel-collector
 dependencies:
   - name: clickhouse
     repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
-    version: 23.5.2
+    version: 23.5.3
+  - name: k8s-infra
+    repository: "https://signoz.github.io/charts"
+    condition: k8s-infra.enabled
+    version: 0.1.1
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

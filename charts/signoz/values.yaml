@@ -1,10 +1,13 @@
----
+# Global override values
 global:
   image:
     # -- Overrides the Docker registry globally for all images
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
+
+# -- SigNoz chart name override
+nameOverride: ""
 
 # -- SigNoz chart full name override
 fullnameOverride: ""
@@ -13,6 +16,7 @@ fullnameOverride: ""
 clusterDomain: cluster.local
 
 # Clickhouse default values
+# For complete list of configurations, check `values.yaml` of `clickhouse` chart.
 # @ignored
 clickhouse:
   # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
@@ -95,12 +99,12 @@ clickhouse:
   # case as these values might be too low for a typical deployment.
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources: {}
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 4Gi
   #   limits:
   #     cpu: 4000m
   #     memory: 16Gi
-  #   requests:
-  #     cpu: 1000m
-  #     memory: 5Gi
 
   # -- Security context for Clickhouse node
   securityContext:
@@ -267,6 +271,18 @@ clickhouse:
     # -- Clickhouse Operator node selector
     nodeSelector: {}
 
+    # Clickhouse logging config
+    logger:
+      # -- Logging level. Acceptable values: trace, debug, information, warning, error.
+      level: information
+      # -- Size of the file. Applies to log and errorlog. Once the file reaches size,
+      # ClickHouse archives and renames it, and creates a new log file in its place.
+      size: 1000M
+      # -- The number of archived log files that ClickHouse stores.
+      count: 10
+      # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
+      console: 1
+
     # -- Metrics Exporter config.
     metricsExporter:
       # -- name of the component
@@ -329,7 +345,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.0
+    tag: 0.11.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -412,11 +428,11 @@ queryService:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 300Mi
-    limits:
-      cpu: 750m
-      memory: 1000Mi
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 750m
+    #   memory: 1000Mi
 
   nodeSelector: {}
 
@@ -452,7 +468,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.0
+    tag: 0.11.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -476,7 +492,7 @@ frontend:
         delay: 5
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
-        doneMessage: "clickhouse ready, starting frontend now"
+        doneMessage: "query-service ready, starting frontend now"
 
   autoscaling:
     enabled: false
@@ -572,9 +588,9 @@ frontend:
     requests:
       cpu: 100m
       memory: 100Mi
-    limits:
-      cpu: 200m
-      memory: 200Mi
+    # limits:
+    #   cpu: 200m
+    #   memory: 200Mi
 
   nodeSelector: {}
 
@@ -631,7 +647,7 @@ alertmanager:
         delay: 5
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
-        doneMessage: "clickhouse ready, starting alertmanager now"
+        doneMessage: "query-service ready, starting alertmanager now"
 
   podSecurityContext:
     fsGroup: 65534
@@ -696,9 +712,9 @@ alertmanager:
     requests:
       cpu: 100m
       memory: 100Mi
-    limits:
-      cpu: 200m
-      memory: 200Mi
+    # limits:
+    #   cpu: 200m
+    #   memory: 200Mi
 
   nodeSelector: {}
 
@@ -822,7 +838,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: 0.55.1
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1061,11 +1077,11 @@ otelCollector:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
-    limits:
-      cpu: 1000m
-      memory: 2Gi
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 2Gi
 
   nodeSelector: {}
 
@@ -1272,7 +1288,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.0
+    tag: 0.55.1
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1435,11 +1451,11 @@ otelCollectorMetrics:
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
-    limits:
-      cpu: 1000m
-      memory: 2Gi
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 2Gi
 
   nodeSelector: {}
 
@@ -1558,3 +1574,93 @@ otelCollectorMetrics:
           receivers: [prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
+
+# Default values for k8s-infra.
+# For complete list of configurations, check `values.yaml` of `k8s-infra` chart.
+# @ignored
+k8s-infra:
+  # -- Whether to enable K8s infra monitoring
+  enabled: true
+
+  # -- Endpoint/IP Address of the SigNoz.
+  otelCollectorEndpoint: my-release-signoz-otel-collector.platform.svc.cluster.local:4317
+
+  # Default values for OtelAgent
+  otelAgent:
+    name: "otel-agent"
+    image:
+      registry: docker.io
+      repository: otel/opentelemetry-collector-contrib
+      tag: 0.55.0
+      pullPolicy: IfNotPresent
+    imagePullSecrets: []
+
+    # OpenTelemetry Collector executable
+    command:
+      # -- OtelAgent command name
+      name: /otelcol-contrib
+      # -- OtelAgent command extra arguments
+      extraArgs: []
+
+    configMap:
+      # -- Specifies whether a configMap should be created (true by default)
+      create: true
+
+    # OtelAgent service
+    service:
+      # -- Annotations to use by service associated to OtelAgent
+      annotations: {}
+      # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+      type: ClusterIP
+
+    # -- Configure resource requests and limits. Update according to your own use
+    # case as these values might not be suitable for your workload.
+    # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # @default -- See `values.yaml` for defaults
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      # limits:
+      #   cpu: 1000m
+      #   memory: 1Gi
+
+  # Default values for OtelDeployment
+  otelDeployment:
+    name: "otel-deployment"
+    image:
+      registry: docker.io
+      repository: otel/opentelemetry-collector-contrib
+      tag: 0.55.0
+      pullPolicy: IfNotPresent
+    imagePullSecrets: []
+
+    # OpenTelemetry Collector executable
+    command:
+      # -- OtelDeployment command name
+      name: /otelcol-contrib
+      # -- OtelDeployment command extra arguments
+      extraArgs: []
+
+    configMap:
+      # -- Specifies whether a configMap should be created (true by default)
+      create: true
+
+    # OtelDeployment service
+    service:
+      # -- Annotations to use by service associated to OtelDeployment
+      annotations: {}
+      # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+      type: ClusterIP
+
+    # -- Configure resource requests and limits. Update according to your own use
+    # case as these values might not be suitable for your workload.
+    # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # @default -- See `values.yaml` for defaults
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      # limits:
+      #   cpu: 1000m
+      #   memory: 1Gi

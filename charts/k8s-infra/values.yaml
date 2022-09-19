@@ -258,11 +258,11 @@ otelAgent:
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
-      cpu: 200m
-      memory: 200Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 1Gi
 
   # -- OtelAgent node selector
   nodeSelector: {}
@@ -612,11 +612,11 @@ otelDeployment:
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
-      cpu: 200m
-      memory: 200Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 1000m
+    #   memory: 1Gi
 
   # -- OtelDeployment node selector
   nodeSelector: {}
