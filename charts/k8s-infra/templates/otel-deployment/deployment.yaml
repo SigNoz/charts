@@ -61,6 +61,10 @@ spec:
                   fieldPath: status.podIP
             - name: OTEL_COLLECTOR_ENDPOINT
               value: {{ include "otel.endpoint" . }}
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: {{ include "otel.insecure" . }}
+            - name: SIGNOZ_API_KEY
+              value: {{ include "otel.signozApiKey" . }}
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf
