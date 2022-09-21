@@ -13,7 +13,6 @@ spec:
   type: {{ .service.type }}
   ports:
     {{- include "otel.portsConfig" . | nindent 4 }}
-
   selector:
     {{- include "otelAgent.selectorLabels" $ | nindent 4 }}
 {{- end }}

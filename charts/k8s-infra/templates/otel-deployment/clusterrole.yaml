@@ -9,5 +9,5 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 rules:
-  {{ toYaml .Values.otelDeployment.clusterRole.rules | nindent 2 -}}
+  {{- toYaml .Values.otelDeployment.clusterRole.rules | nindent 2 }}
 {{- end }}
