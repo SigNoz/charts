@@ -70,8 +70,12 @@ spec:
                   fieldPath: status.podIP
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: host.name=$(K8S_NODE_NAME)
-            - name: OTEL_COLLECTOR_ENDPOINT
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ include "otel.endpoint" . }}
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: {{ include "otel.insecure" . }}
+            - name: SIGNOZ_API_KEY
+              value: {{ include "otel.signozApiKey" . }}
           volumeMounts:
             - name: otel-agent-config-vol
               mountPath: /conf

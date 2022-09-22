@@ -16,7 +16,15 @@ fullnameOverride: ""
 enabled: true
 
 # -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
+# Set it to `ingest.signoz.io:4317` for SigNoz SaaS.
 otelCollectorEndpoint: my-release-signoz-otel-collector.platform.svc.cluster.local:4317
+
+# -- Whether the OTLP endpoint is insecure.
+# Set this to false, in case of secure OTLP endpoint.
+otelInsecure: true
+
+# -- API key of SigNoz SaaS
+signozApiKey: ""
 
 # Default values for OtelAgent
 otelAgent:
@@ -415,9 +423,11 @@ otelAgent:
         endpoint: localhost:1777
     exporters:
       otlp:
-        endpoint: ${OTEL_COLLECTOR_ENDPOINT}
+        endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
         tls:
-          insecure: true
+          insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+        headers:
+          "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:
       telemetry:
         metrics:
@@ -709,9 +719,11 @@ otelDeployment:
         endpoint: localhost:1777
     exporters:
       otlp:
-        endpoint: ${OTEL_COLLECTOR_ENDPOINT}
+        endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
         tls:
-          insecure: true
+          insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+        headers:
+          "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:
       telemetry:
         metrics:

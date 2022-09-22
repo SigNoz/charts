@@ -213,6 +213,20 @@ Return endpoint of OtelCollector.
 {{- end }}
 
 {{/*
+Whether OtelCollector endpoint is insecure.
+*/}}
+{{- define "otel.insecure" -}}
+{{- default "true" (.Values.otelInsecure | quote) }}
+{{- end }}
+
+{{/*
+Return API key of SigNoz SAAS
+*/}}
+{{- define "otel.signozApiKey" -}}
+{{- default "" .Values.signozApiKey }}
+{{- end }}
+
+{{/*
 Return structured list of ports config for Service.
 */}}
 {{- define "otel.portsConfig" -}}
