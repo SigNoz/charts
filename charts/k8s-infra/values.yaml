@@ -26,6 +26,10 @@ otelInsecure: true
 # -- API key of SigNoz SaaS
 signozApiKey: ""
 
+# -- Which namespace to install k8s-infra components.
+# By default installed to the namespace same as the chart.
+namespace: ""
+
 # Default values for OtelAgent
 otelAgent:
   name: "otel-agent"

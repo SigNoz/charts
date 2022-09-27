@@ -34,7 +34,7 @@ Create chart name and version as used by the chart label.
 Return namespace of the release
 */}}
 {{- define "k8s-infra.namespace" -}}
-{{- .Release.Namespace -}}
+{{- default .Release.Namespace .Values.namespace }}
 {{- end -}}
 
 {{/*
