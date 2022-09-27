@@ -34,7 +34,7 @@ Create chart name and version as used by the chart label.
 Return namespace of the release
 */}}
 {{- define "k8s-infra.namespace" -}}
-{{- .Release.Namespace -}}
+{{- default .Release.Namespace .Values.namespace }}
 {{- end -}}
 
 {{/*
@@ -206,10 +206,46 @@ Create the name of the clusterRoleBinding to use for deployment.
 {{- end }}
 
 {{/*
+Create a fully qualified app name for signoz.
+Assuming defaults for fullnameOverride and nameOverride.
+*/}}
+{{- define "signoz.qualifiedname" -}}
+{{- $name := "signoz" }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create a fully qualified app name for otel-collector.
+*/}}
+{{- define "otel.qualifiedname" -}}
+{{- printf "%s-%s" (include "signoz.qualifiedname" .) "otel-collector" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Return the service name of OtelCollector.
+Assuming defaults for overrides and otel component name.
+*/}}
+{{- define "otel.servicename" -}}
+{{- if and .Values.namespace (ne .Values.namespace .Release.Namespace) }}
+{{- printf "%s.%s.svc.%s" (include "otel.qualifiedname" .) .Release.Namespace .Values.clusterDomain }}
+{{- else }}
+{{- include "otel.qualifiedname" . }}
+{{- end }}
+{{- end }}
+
+{{/*
 Return endpoint of OtelCollector.
 */}}
 {{- define "otel.endpoint" -}}
-{{- default "my-release-signoz-otel-collector.platform.svc.cluster.local:4317" .Values.otelCollectorEndpoint }}
+{{- if .Values.otelCollectorEndpoint }}
+{{- .Values.otelCollectorEndpoint }}
+{{- else if not .Chart.IsRoot }}
+{{- printf "%s:%s" (include "otel.servicename" .) "4317" }}
+{{- end }}
 {{- end }}
 
 {{/*

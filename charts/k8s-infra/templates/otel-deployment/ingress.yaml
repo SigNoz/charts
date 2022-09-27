@@ -7,6 +7,7 @@ apiVersion: {{ include "ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ include "k8s-infra.namespace" . }}
   labels:
     {{- include "otelDeployment.labels" . | nindent 4 }}
   {{- with .Values.otelDeployment.ingress.annotations }}

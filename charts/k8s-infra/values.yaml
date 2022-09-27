@@ -17,7 +17,10 @@ enabled: true
 
 # -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 # Set it to `ingest.signoz.io:4317` for SigNoz SaaS.
-otelCollectorEndpoint: my-release-signoz-otel-collector.platform.svc.cluster.local:4317
+#
+# If set to null and the chart is installed as dependency, it will attempt
+# to autogenerate the endpoint of SigNoz OtelCollector.
+otelCollectorEndpoint: null
 
 # -- Whether the OTLP endpoint is insecure.
 # Set this to false, in case of secure OTLP endpoint.
@@ -25,6 +28,13 @@ otelInsecure: true
 
 # -- API key of SigNoz SaaS
 signozApiKey: ""
+
+# -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
+clusterDomain: cluster.local
+
+# -- Which namespace to install k8s-infra components.
+# By default installed to the namespace same as the chart.
+namespace: ""
 
 # Default values for OtelAgent
 otelAgent:
@@ -399,8 +409,8 @@ otelAgent:
                 - ${MY_POD_IP}:8888
     processors:
       batch:
-        send_batch_size: 10000
-        timeout: 10s
+        send_batch_size: 5000
+        timeout: 5s
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
@@ -705,8 +715,8 @@ otelDeployment:
                   - ${MY_POD_IP}:8888
     processors:
       batch:
-        send_batch_size: 10000
-        timeout: 10s
+        send_batch_size: 5000
+        timeout: 5s
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       memory_limiter: null
