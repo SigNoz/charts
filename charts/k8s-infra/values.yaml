@@ -417,7 +417,6 @@ otelAgent:
         detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
         timeout: 2s
-        override: false
         system:
           hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
       # Memory Limiter processor config.
