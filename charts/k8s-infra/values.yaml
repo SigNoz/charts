@@ -219,10 +219,10 @@ otelAgent:
   # -- Configure liveness probe.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
@@ -231,10 +231,10 @@ otelAgent:
   # -- Configure readiness probe.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
@@ -573,10 +573,10 @@ otelDeployment:
   # -- Configure liveness probe.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
@@ -585,10 +585,10 @@ otelDeployment:
   # -- Configure readiness probe.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6

@@ -1,3 +1,4 @@
+{{- $healthCheckPort := index .Values.otelDeployment.ports "health-check" -}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -11,5 +12,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "otelDeployment.fullname" . }}:{{ .Values.otelDeployment.service.port }}']
+      args: ['{{ include "otelDeployment.fullname" . }}:{{ $healthCheckPort.servicePort }}']
   restartPolicy: Never

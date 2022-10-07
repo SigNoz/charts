@@ -11,6 +11,11 @@ spec:
   containers:
     - name: wget
       image: busybox
+      env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
       command: ['wget']
-      args: ['{{ include "otelAgent.fullname" . }}:{{ $healthCheckPort.servicePort }}']
+      args: ['$(K8S_NODE_NAME):{{ $healthCheckPort.servicePort }}']
   restartPolicy: Never
