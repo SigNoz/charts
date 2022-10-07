@@ -1,9 +1,9 @@
 dependencies:
 - name: clickhouse
   repository: https://signoz.github.io/charts
-  version: 23.5.3
+  version: 23.5.4
 - name: k8s-infra
   repository: https://signoz.github.io/charts
-  version: 0.1.1
-digest: sha256:93b7e038ab092cef0258fb896ed099851332693b872ebba846d6026d571ca392
-generated: "2022-09-15T21:42:03.603868236+05:30"
+  version: 0.1.4
+digest: sha256:bd469632c886fca7c49128e7b45ed57682f73e74997182c4c441070ed5b80767
+generated: "2022-10-07T09:46:00.838177249+05:45"
