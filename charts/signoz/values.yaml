@@ -1024,7 +1024,7 @@ otelCollector:
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1033,7 +1033,7 @@ otelCollector:
     failureThreshold: 6
     successThreshold: 1
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1398,7 +1398,7 @@ otelCollectorMetrics:
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   ##
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1407,7 +1407,7 @@ otelCollectorMetrics:
     failureThreshold: 6
     successThreshold: 1
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1642,6 +1642,162 @@ k8s-infra:
       #   cpu: 1000m
       #   memory: 1Gi
 
+    # -- Configurations for OtelAgent
+    # @default -- See `values.yaml` for defaults
+    config:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        hostmetrics:
+          collection_interval: 30s
+          scrapers:
+            cpu: {}
+            load: {}
+            memory: {}
+            disk: {}
+            filesystem: {}
+            network: {}
+        filelog/k8s:
+          include:
+            # Include logs from all container
+            - /var/log/pods/*/*/*.log
+          exclude:
+            # Exclude logs from all containers from kube-system namespace
+            - /var/log/pods/kube-system_*/*/*.log
+            # Exclude logs from all hotrod containers
+            - /var/log/pods/*_hotrod-*/*/*.log
+            - /var/log/pods/*_locust-*_*/*/*.log
+          start_at: beginning
+          include_file_path: true
+          include_file_name: false
+          operators:
+          # Find out which format is used by kubernetes
+          - type: router
+            id: get-format
+            routes:
+              - output: parser-docker
+                expr: 'body matches "^\\{"'
+              - output: parser-crio
+                expr: 'body matches "^[^ Z]+ "'
+              - output: parser-containerd
+                expr: 'body matches "^[^ Z]+Z"'
+          # Parse CRI-O format
+          - type: regex_parser
+            id: parser-crio
+            regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+            output: extract_metadata_from_filepath
+            timestamp:
+              parse_from: attributes.time
+              layout_type: gotime
+              layout: '2006-01-02T15:04:05.000000000-07:00'
+          # Parse CRI-Containerd format
+          - type: regex_parser
+            id: parser-containerd
+            regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+            output: extract_metadata_from_filepath
+            timestamp:
+              parse_from: attributes.time
+              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+          # Parse Docker format
+          - type: json_parser
+            id: parser-docker
+            output: extract_metadata_from_filepath
+            timestamp:
+              parse_from: attributes.time
+              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+          # Extract metadata from file path
+          - type: regex_parser
+            id: extract_metadata_from_filepath
+            regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
+            parse_from: attributes["log.file.path"]
+          # Rename attributes
+          - type: move
+            from: attributes.stream
+            to: attributes["log.iostream"]
+          - type: move
+            from: attributes.container_name
+            to: attributes["k8s.container.name"]
+          - type: move
+            from: attributes.namespace
+            to: attributes["k8s.namespace.name"]
+          - type: move
+            from: attributes.pod_name
+            to: attributes["k8s.pod.name"]
+          - type: move
+            from: attributes.restart_count
+            to: attributes["k8s.container.restart_count"]
+          - type: move
+            from: attributes.uid
+            to: attributes["k8s.pod.uid"]
+          - type: move
+            from: attributes.log
+            to: body
+        prometheus:
+          config:
+            global:
+              scrape_interval: 60s
+            scrape_configs:
+              - job_name: otel-agent
+                static_configs:
+                - targets:
+                  - ${MY_POD_IP}:8888
+      processors:
+        batch:
+          send_batch_size: 5000
+          timeout: 5s
+        # Resource detection processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+        resourcedetection:
+          detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+          # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+          timeout: 2s
+          system:
+            hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+        # Memory Limiter processor config.
+        # If set to null, will be overridden with values based on k8s resource limits.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
+        memory_limiter: null
+      extensions:
+        health_check:
+          endpoint: 0.0.0.0:13133
+        zpages:
+          endpoint: localhost:55679
+        pprof:
+          endpoint: localhost:1777
+      exporters:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+          tls:
+            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+          headers:
+            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      service:
+        telemetry:
+          metrics:
+            address: 0.0.0.0:8888
+        extensions: [health_check, zpages]
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlp]
+          metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlp]
+          metrics/generic:
+            receivers: [hostmetrics, prometheus]
+            processors: [resourcedetection, batch]
+            exporters: [otlp]
+          logs:
+            receivers: [filelog/k8s, otlp]
+            processors: [batch]
+            exporters: [otlp]
+
   # Default values for OtelDeployment
   otelDeployment:
     name: "otel-deployment"
@@ -1681,3 +1837,54 @@ k8s-infra:
       # limits:
       #   cpu: 1000m
       #   memory: 1Gi
+
+    # -- Configurations for OtelDeployment
+    # @default -- See `values.yaml` for defaults
+    config:
+      receivers:
+        # k8s cluster metrics
+        k8s_cluster:
+          collection_interval: 30s
+          node_conditions_to_report: [Ready, MemoryPressure]
+          allocatable_types_to_report: [cpu, memory]
+        # prometheus scrape config
+        prometheus:
+          config:
+            scrape_configs:
+              # deployment internal metrics
+              - job_name: "otel-deployment"
+                scrape_interval: 60s
+                static_configs:
+                  - targets:
+                    - ${MY_POD_IP}:8888
+      processors:
+        batch:
+          send_batch_size: 5000
+          timeout: 5s
+        # Memory Limiter processor.
+        # If set to null, will be overridden with values based on k8s resource limits.
+        memory_limiter: null
+      extensions:
+        health_check:
+          endpoint: 0.0.0.0:13133
+        zpages:
+          endpoint: localhost:55679
+        pprof:
+          endpoint: localhost:1777
+      exporters:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+          tls:
+            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+          headers:
+            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      service:
+        telemetry:
+          metrics:
+            address: 0.0.0.0:8888
+        extensions: [health_check, zpages, pprof]
+        pipelines:
+          metrics:
+            receivers: [k8s_cluster, prometheus]
+            processors: [batch]
+            exporters: [otlp]
