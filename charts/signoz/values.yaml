@@ -1024,7 +1024,7 @@ otelCollector:
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1033,7 +1033,7 @@ otelCollector:
     failureThreshold: 6
     successThreshold: 1
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1398,7 +1398,7 @@ otelCollectorMetrics:
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   ##
   livenessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
@@ -1407,7 +1407,7 @@ otelCollectorMetrics:
     failureThreshold: 6
     successThreshold: 1
   readinessProbe:
-    enabled: false
+    enabled: true
     port: 13133
     path: /
     initialDelaySeconds: 5
