@@ -8,7 +8,7 @@ on:
       - 'charts/**'
 
 jobs:
-  lint-test:
+  test-chart:
     runs-on: ubuntu-latest
     env:
       CT_CONFIG: ct-test.yaml
