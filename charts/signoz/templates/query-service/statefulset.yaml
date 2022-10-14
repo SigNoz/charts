@@ -25,12 +25,14 @@ spec:
         - name: {{ include "queryService.fullname" . }}-init
           image: {{ include "queryService.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.queryService.initContainers.init.image.pullPolicy }}
-        {{- with .Values.queryService.initContainers.init.command }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+          {{- with .Values.queryService.initContainers.init.command }}
           command:
             - sh
             - -c
-            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-        {{- end }}
+            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
       {{- end }}
       containers:
         - name: {{ include "queryService.fullname" . }}
@@ -48,6 +50,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
             - name: STORAGE
               value: {{ .Values.queryService.configVars.storage }}
             - name: ClickHouseUrl
