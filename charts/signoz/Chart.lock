@@ -5,5 +5,17 @@ dependencies:
 - name: k8s-infra
   repository: https://signoz.github.io/charts
   version: 0.1.4
-digest: sha256:bd469632c886fca7c49128e7b45ed57682f73e74997182c4c441070ed5b80767
-generated: "2022-10-07T09:46:00.838177249+05:45"
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.9.1
+- name: ingress-nginx
+  repository: https://kubernetes.github.io/ingress-nginx
+  version: 4.3.0
+- name: minio
+  repository: https://charts.min.io
+  version: 4.0.9
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.1.5
+digest: sha256:7a01d0460de530e78a8a54ead41f5931ede777d2e9fbf091714a2830c8825443
+generated: "2022-10-13T10:05:12.31540325+05:45"
