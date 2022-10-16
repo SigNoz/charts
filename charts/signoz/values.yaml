@@ -147,7 +147,7 @@ clickhouse:
       - ReadWriteOnce
 
     # -- Persistent Volume size
-    size: 20Gi
+    size: 100Gi
 
   # -- Clickhouse user profile configuration.
   # You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
@@ -167,8 +167,8 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 3
-    replicasCount: 2
+    shardsCount: 1
+    replicasCount: 1
 
   # -- ClickHouse settings configuration.
   # You can use this to override settings, for example `prometheus/port: 9363`
@@ -326,7 +326,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: latest
+    tag: test17
     pullPolicy: Always
   imagePullSecrets: []
   serviceAccount:
@@ -405,13 +405,13 @@ queryService:
     #      - query-service.domain.com
 
   # adjust the resource requests and limit as necessary
-  resources:
-    requests:
-      cpu: 200m
-      memory: 300Mi
-    limits:
-      cpu: 750m
-      memory: 1000Mi
+  # resources:
+  #   requests:
+  #     cpu: 200m
+  #     memory: 300Mi
+  #   limits:
+  #     cpu: 750m
+  #     memory: 1000Mi
 
   nodeSelector: {}
 
@@ -527,7 +527,7 @@ frontend:
     # -- Annotations to use by service associated to Frontend
     annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
+    type: LoadBalancer
     # -- Frontend HTTP port
     port: 3301
 
@@ -821,7 +821,7 @@ otelCollector:
     # -- Annotations to use by service associated to OtelCollector
     annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
+    type: LoadBalancer
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -1027,13 +1027,13 @@ otelCollector:
     #      - otelcollector.domain.com
 
   # adjust the resource requests and limit as necessary
-  resources:
-    requests:
-      cpu: 1000m
-      memory: 2000Mi
-    limits:
-      cpu: 2000m
-      memory: 4Gi
+  # resources:
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 2000Mi
+  #   limits:
+  #     cpu: 2000m
+  #     memory: 4Gi
 
   nodeSelector: {}
 
@@ -1207,7 +1207,7 @@ otelCollector:
                 - ${HOST_IP}:8888
     processors:
       batch:
-        send_batch_size: 1000
+        send_batch_size: 100000
         timeout: 10s
       # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
@@ -1274,7 +1274,7 @@ otelCollector:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
         sending_queue:
-          queue_size: 1000
+          queue_size: 100
         retry_on_failure:
           enabled: true
           initial_interval: 5s
