@@ -1888,3 +1888,90 @@ k8s-infra:
             receivers: [k8s_cluster, prometheus]
             processors: [batch]
             exporters: [otlp]
+
+###
+###
+### ---- CERT-MANAGER ----
+###
+###
+# @ignored
+cert-manager:
+  enabled: false
+  installCRDs: true
+
+###
+###
+### ---- NGINX INGRESS CONTROLLER ----
+###
+###
+# @ignored
+ingress-nginx:
+  enabled: false
+
+###
+###
+### ---- MINIO ----
+###
+###
+# @ignored
+minio:
+  enabled: false
+
+  rootUser: rootuser
+  rootPassword: rootpass123
+
+  drivesPerNode: 1
+  replicas: 1
+  pools: 1
+
+  persistence:
+    enabled: true
+    annotations: {}
+
+    existingClaim: ""
+
+    storageClass: ""
+    VolumeName: ""
+    accessMode: ReadWriteOnce
+    size: 50Gi
+
+  resources:
+    requests:
+      memory: 2Gi
+
+###
+###
+### ---- KEYCLOAK ----
+###
+###
+# @ignored
+keycloak:
+  enabled: false
+
+  auth:
+    adminUser: admin
+    adminPassword: adminpass123
+
+  postgresql:
+    auth:
+      username: bn_keycloak
+      password: bn_keycloak@123
+      database: bitnami_keycloak
+      existingSecret: ""
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+    hostname: keycloak.domain.com
+    ingressClassName: nginx
+    pathType: Prefix
+    servicePort: http
+
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+
+    tls: true
+    selfSigned: false
