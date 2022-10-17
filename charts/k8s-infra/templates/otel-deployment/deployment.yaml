@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "otelDeployment.fullname" . }}
+  namespace: {{ include "k8s-infra.namespace" . }}
+  labels:
+    {{- include "otelDeployment.labels" . | nindent 4 }}
+  {{- if .Values.otelDeployment.annotations }}
+  annotations:
+    {{ toYaml .Values.otelDeployment.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "otelDeployment.selectorLabels" . | nindent 6 }}
+  minReadySeconds: {{ .Values.otelDeployment.minReadySeconds }}
+  progressDeadlineSeconds: {{ .Values.otelDeployment.progressDeadlineSeconds }}
+  replicas: {{ .Values.otelDeployment.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.otelDeployment.podAnnotations }}
+          {{- toYaml .Values.otelDeployment.podAnnotations | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/otel-deployment/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "otelDeployment.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "otelDeployment.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.otelDeployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ template "otelDeployment.fullname" . }}
+          image: {{ template "otelDeployment.image" . }}
+          imagePullPolicy: {{ .Values.otelDeployment.image.pullPolicy }}
+          ports:
+            {{- range $key, $port := .Values.otelDeployment.ports }}
+            {{- if $port.enabled }}
+            - name: {{ $key }}
+              containerPort: {{ $port.containerPort }}
+              protocol: {{ $port.protocol }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.otelDeployment.command.name }}
+          command:
+            - {{ . | quote }}
+          {{- end }}
+          args:
+            {{- if .Values.otelDeployment.configMap.create }}
+            - "--config=/conf/otel-deployment-config.yaml"
+            {{- end }}
+            {{- range .Values.otelDeployment.command.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.otelDeployment.securityContext | nindent 12 }}
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ include "otel.endpoint" . }}
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: {{ include "otel.insecure" . }}
+            - name: SIGNOZ_API_KEY
+              value: {{ include "otel.signozApiKey" . }}
+          volumeMounts:
+            - name: otel-deployment-config-vol
+              mountPath: /conf
+            # - name: otel-collector-secrets
+            #   mountPath: /secrets
+          {{- if .Values.otelDeployment.livenessProbe.enabled }}
+          livenessProbe:
+            {{- with .Values.otelDeployment.livenessProbe }}
+            httpGet:
+              port: {{ .port }}
+              path: {{ .path }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
+            successThreshold: {{ .successThreshold }}
+            failureThreshold: {{ .failureThreshold }}
+            {{- end }}
+          {{- else if .Values.otelDeployment.customLivenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.otelDeployment.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.otelDeployment.readinessProbe.enabled }}
+          readinessProbe:
+            {{- with .Values.otelDeployment.readinessProbe }}
+            httpGet:
+              port: {{ .port }}
+              path: {{ .path }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
+            successThreshold: {{ .successThreshold }}
+            failureThreshold: {{ .failureThreshold }}
+            {{- end }}
+          {{- else if .Values.otelDeployment.customReadinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.otelDeployment.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.otelDeployment.resources | nindent 12 }}
+      {{- with .Values.otelDeployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelDeployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelDeployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: otel-deployment-config-vol
+          configMap:
+            name: {{ include "otelDeployment.fullname" . }}
+#        - secret:
+#            name: otel-deployment-secrets
+#            items:
+#              - key: cert.pem
+#                path: cert.pem
+#              - key: key.pem
+#                path: key.pem

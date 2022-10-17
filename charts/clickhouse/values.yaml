@@ -152,14 +152,16 @@ tolerations: []
 affinity: {}
 # -- node selector for settings for clickhouse pod
 nodeSelector: {}
-# -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
+# -- Configure resource requests and limits. Update according to your own use
+# case as these values might be too low for a typical deployment.
+# ref: http://kubernetes.io/docs/user-guide/compute-resources/
 resources: {}
-#   limits:
-#     cpu: 1000m
-#     memory: 16Gi
-#   requests:
-#     cpu: 4000m
-#     memory: 16Gi
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 4Gi
+  #   limits:
+  #     cpu: 4000m
+  #     memory: 16Gi
 
 # -- Security context for Clickhouse node
 securityContext:
@@ -327,6 +329,18 @@ clickhouseOperator:
 
   # -- Clickhouse Operator node selector
   nodeSelector: {}
+
+  # -- Clickhouse logging config
+  logger:
+    # -- Logging level. Acceptable values: trace, debug, information, warning, error.
+    level: information
+    # -- Size of the file. Applies to log and errorlog. Once the file reaches size,
+    # ClickHouse archives and renames it, and creates a new log file in its place.
+    size: 1000M
+    # -- The number of archived log files that ClickHouse stores.
+    count: 10
+    # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
+    console: true
 
   # -- Metrics Exporter config.
   metricsExporter:

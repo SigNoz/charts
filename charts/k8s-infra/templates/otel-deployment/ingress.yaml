@@ -1,0 +1,53 @@
+{{- if .Values.otelDeployment.ingress.enabled -}}
+{{- $fullName := include "otelDeployment.fullname" . -}}
+{{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
+{{- $ingressSupportsClassName := and .Values.otelDeployment.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) -}}
+apiVersion: {{ include "ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "k8s-infra.namespace" . }}
+  labels:
+    {{- include "otelDeployment.labels" . | nindent 4 }}
+  {{- with .Values.otelDeployment.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $ingressSupportsClassName }}
+  ingressClassName: {{ .Values.otelDeployment.ingress.className }}
+  {{- end }}
+  {{- if .Values.otelDeployment.ingress.tls }}
+  tls:
+    {{- range .Values.otelDeployment.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.otelDeployment.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- if $ingressSupportsPathType }}
+            pathType: {{ .pathType }}
+            {{- end }}
+            backend:
+              {{- if $ingressApiIsStable }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ .port }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ .port }}
+              {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}

@@ -23,12 +23,13 @@ spec:
       {{- include "clickhouseOperator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        {{- if .Values.clickhouseOperator.podAnnotations }}
+          {{- toYaml .Values.clickhouseOperator.podAnnotations | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/clickhouse-operator/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
-      {{- with .Values.clickhouseOperator.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
     spec:
       serviceAccountName: {{ include "clickhouseOperator.fullname" . }}
       volumes:

@@ -1,0 +1,21 @@
+{{- $healthCheckPort := index .Values.otelAgent.ports "health-check" -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "otelAgent.fullname" . }}-test-connection"
+  labels:
+    {{- include "otelAgent.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      command: ['wget']
+      args: ['$(K8S_NODE_NAME):{{ $healthCheckPort.servicePort }}']
+  restartPolicy: Never

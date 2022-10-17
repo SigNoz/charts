@@ -55,6 +55,34 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 {{- end }}
 {{- end }}
 
+{{/*
+Minimized ClickHouse ENV variables for user credentials
+*/}}
+{{- define "snippet.clickhouse-credentials" }}
+{{- if .Values.clickhouse.enabled -}}
+- name: CLICKHOUSE_USER
+  value: {{ .Values.clickhouse.user | quote }}
+- name: CLICKHOUSE_PASSWORD
+  value: {{ .Values.clickhouse.password | quote }}
+- name: CLICKHOUSE_SECURE
+  value: {{ .Values.clickhouse.secure | quote }}
+{{- else -}}
+- name: CLICKHOUSE_USER
+  value: {{ .Values.externalClickhouse.user | quote }}
+{{- if .Values.externalClickhouse.existingSecret }}
+- name: CLICKHOUSE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "clickhouse.secretName" . }}
+      key: {{ include "clickhouse.secretPasswordKey" . }}
+{{- else }}
+- name: CLICKHOUSE_PASSWORD
+  value: {{ .Values.externalClickhouse.password | quote }}
+{{- end }}
+- name: CLICKHOUSE_SECURE
+  value: {{ .Values.externalClickhouse.secure | quote }}
+{{- end }}
+{{- end }}
 
 {*
    ------ CLICKHOUSE ------
@@ -64,14 +92,22 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 Set Clickhouse tcp port
 */}}
 {{- define "clickhouse.tcpPort" -}}
-{{- default 9000 .Values.clickhouse.service.tcpPort -}}
+{{- if .Values.clickhouse.enabled }}
+{{- default 9000 .Values.clickhouse.service.tcpPort }}
+{{- else }}
+{{- default 9000 .Values.externalClickhouse.tcpPort }}
+{{- end }}
 {{- end -}}
 
 {{/*
 Set Clickhouse http port
 */}}
 {{- define "clickhouse.httpPort" -}}
-{{- default 8123 .Values.clickhouse.service.httpPort -}}
+{{- if .Values.clickhouse.enabled }}
+{{- default 8123 .Values.clickhouse.service.httpPort }}
+{{- else }}
+{{- default 8123 .Values.externalClickhouse.httpPort }}
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -118,11 +154,20 @@ Return the external ClickHouse password
 Return the ClickHouse http URL
 */}}
 {{- define "clickhouse.httpUrl" -}}
-{{- if .Values.clickhouse.enabled -}}
-  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.httpPort" . }}
-{{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.httpPort" . }}
-{{- end -}}
+{{- $httpUrl := "" -}}
+{{- $httpPrefix := "" -}}
+{{- if .Values.clickhouse.enabled }}
+  {{- $httpUrl = printf "%s:%s" (include "clickhouse.servicename" .) (include "clickhouse.httpPort" .) }}
+  {{- if .Values.clickhouse.secure }}
+    {{- $httpPrefix = "https://" }}
+  {{- end }}
+{{- else }}
+  {{- $httpUrl = printf "%s:%s" (required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host) ( include "clickhouse.httpPort" .) }}
+  {{- if .Values.externalClickhouse.secure }}
+    {{- $httpPrefix = "https://" }}
+  {{- end }}
+{{- end }}
+{{- printf "%s%s" $httpPrefix $httpUrl }}
 {{- end -}}
 
 {{/*
