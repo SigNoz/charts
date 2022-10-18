@@ -512,12 +512,13 @@ Return structured list of ports config.
 {{- if $port.enabled }}
 - name: {{ $key }}
   port: {{ $port.servicePort }}
-  {{ include "service.ifClusterIP" $serviceType }}
   targetPort: {{ $key }}
   protocol: {{ $port.protocol }}
-  {{- if $serviceType := "nodePort" }}
+  {{- if (eq $serviceType "ClusterIP") }}
+  nodePort: null
+  {{- else if (eq $serviceType "NodePort") }}
   nodePort: {{ $port.nodePort }}
-  {{- end -}}
+  {{- end }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
