@@ -1897,7 +1897,7 @@ k8s-infra:
 # @ignored
 cert-manager:
   enabled: false
-  installCRDs: true
+  installCRDs: false
 
 ###
 ###
@@ -1954,6 +1954,7 @@ keycloak:
 
   postgresql:
     auth:
+      postgresPassword: pgadminpass123
       username: bn_keycloak
       password: bn_keycloak@123
       database: bitnami_keycloak
