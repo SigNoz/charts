@@ -13,7 +13,7 @@
 {{- range $host := .Values.frontend.ingress.hosts }}
 
   {{- range .paths }}
-  http{{ if $.Values.frontend.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
+  http{{ if $.Values.frontend.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
   {{- end }}
 
 {{- end }}
