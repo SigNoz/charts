@@ -174,7 +174,7 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 3
+    shardsCount: 5
     replicasCount: 1
 
   # -- ClickHouse settings configuration.
@@ -345,13 +345,8 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-<<<<<<< HEAD
     tag: test17
     pullPolicy: Always
-=======
-    tag: 0.11.2
-    pullPolicy: IfNotPresent
->>>>>>> main
   imagePullSecrets: []
   serviceAccount:
     # Specifies whether a service account should be created
@@ -428,7 +423,6 @@ queryService:
     #    hosts:
     #      - query-service.domain.com
 
-<<<<<<< HEAD
   # adjust the resource requests and limit as necessary
   # resources:
   #   requests:
@@ -437,18 +431,6 @@ queryService:
   #   limits:
   #     cpu: 750m
   #     memory: 1000Mi
-=======
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-    # limits:
-    #   cpu: 750m
-    #   memory: 1000Mi
->>>>>>> main
 
   nodeSelector: {}
 
@@ -484,11 +466,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-<<<<<<< HEAD
     tag: test1
-=======
-    tag: 0.11.2
->>>>>>> main
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -858,11 +836,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-<<<<<<< HEAD
-    tag: test17
-=======
-    tag: 0.55.3
->>>>>>> main
+    tag: test18
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -903,7 +877,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 1
+  replicaCount: 13
 
   initContainers:
     init:
@@ -1096,7 +1070,6 @@ otelCollector:
     #    hosts:
     #      - otelcollector.domain.com
 
-<<<<<<< HEAD
   # adjust the resource requests and limit as necessary
   # resources:
   #   requests:
@@ -1105,18 +1078,6 @@ otelCollector:
   #   limits:
   #     cpu: 2000m
   #     memory: 4Gi
-=======
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-    # limits:
-    #   cpu: 1000m
-    #   memory: 2Gi
->>>>>>> main
 
   nodeSelector: {}
 
@@ -1322,11 +1283,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-<<<<<<< HEAD
-    tag: test17
-=======
-    tag: 0.55.3
->>>>>>> main
+    tag: test18
     pullPolicy: Always
   imagePullSecrets: []
 
