@@ -9,7 +9,6 @@
 
 
 
-
 350K spans/s in 5 shards 16 CPUs each
 1VM with 16CPUs will ingest 70K spans/s => 70K spans/s * 0.2Kb => 14MB/s
 
@@ -21,7 +20,7 @@
 91 CPUs used by CH
 22 CPUs used by otels
 
-
+4.5 CPUs used by clickhouse
 
 THINGS TO DO
 1. GLOBAL INNER JOIN
