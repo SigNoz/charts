@@ -174,7 +174,7 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 5
+    shardsCount: 10
     replicasCount: 1
 
   # -- ClickHouse settings configuration.
@@ -836,7 +836,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: test18
+    tag: test19
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -877,7 +877,8 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 13
+  replicaCount: 30
+  # replicaCount: 0
 
   initContainers:
     init:
