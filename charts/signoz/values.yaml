@@ -1904,7 +1904,7 @@ cert-manager:
 
   # -- Whether to enable letsencrypt. Defaults to true if nginx and cert-manager are enabled otherwise false.
   letsencrypt:
-  
+
   # -- Ingress Class Name to be used to for single challenge solver, HTTP01
   ingressClassName: nginx
 
