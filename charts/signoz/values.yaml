@@ -1896,8 +1896,21 @@ k8s-infra:
 ###
 # @ignored
 cert-manager:
+  # --- Whether cert-manager dependency chart should be installed.
   enabled: false
+
+  # -- Whether to install CRDs. It is recommended to be set it to true for initial installation.
   installCRDs: false
+
+  # -- Whether to enable letsencrypt. Defaults to true if nginx and cert-manager are enabled otherwise false.
+  letsencrypt:
+  
+  # -- Ingress Class Name to be used to for single challenge solver, HTTP01
+  ingressClassName: nginx
+
+  # -- Whom to email when certificates are about to expire
+  # Defaults to noreply@<frontend-ingress-hostname>
+  email: null
 
 ###
 ###
