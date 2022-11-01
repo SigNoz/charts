@@ -26,7 +26,10 @@ THINGS TO DO
 1. GLOBAL INNER JOIN
 2. TTL
 3. Partition for traces/logs (hour or day?)
-4. 
+4. How many otel-collectors are needed? Auto scale based on req
+5. Tables are not auto created on adding shard as table creation logic is in otel-collector
+6. CPU, memory and disk I/O profile
+7. Query perf
 
 
 ## distributed_metrics.json
