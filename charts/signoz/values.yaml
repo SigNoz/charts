@@ -174,7 +174,7 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 10
+    shardsCount: 5
     replicasCount: 1
 
   # -- ClickHouse settings configuration.
@@ -345,7 +345,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: test17
+    tag: distributed-1
     pullPolicy: Always
   imagePullSecrets: []
   serviceAccount:
@@ -836,7 +836,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: test19
+    tag: test-metrics-3
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -877,7 +877,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 30
+  replicaCount: 10
   # replicaCount: 0
 
   initContainers:
@@ -1074,11 +1074,11 @@ otelCollector:
   # adjust the resource requests and limit as necessary
   # resources:
   #   requests:
-  #     cpu: 1000m
-  #     memory: 2000Mi
+  #     cpu: 4000m
+  #     memory: 8000Mi
   #   limits:
-  #     cpu: 2000m
-  #     memory: 4Gi
+  #     cpu: 8000m
+  #     memory: 10Gi
 
   nodeSelector: {}
 
@@ -1146,6 +1146,7 @@ otelCollector:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 128
           http:
             endpoint: 0.0.0.0:4318
       jaeger:
@@ -1179,8 +1180,12 @@ otelCollector:
     processors:
       batch:
         send_batch_size: 100000
-        timeout: 10s
+        timeout: 1s
       # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 8000
+        spike_limit_mib: 1600
       resourcedetection:
         detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
@@ -1264,7 +1269,7 @@ otelCollector:
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [memory_limiter, batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
           receivers: [hostmetrics, prometheus]
@@ -1284,7 +1289,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: test18
+    tag: test-metrics-3
     pullPolicy: Always
   imagePullSecrets: []
 
