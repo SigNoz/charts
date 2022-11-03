@@ -16,11 +16,12 @@
 
 
 500K spans/s in 10 shards with 10 VMs of 16CPUs each
-130 CPUs used out of 160 CPUs
+120 CPUs used out of 160 CPUs
 91 CPUs used by CH
 22 CPUs used by otels
 
-4.5 CPUs used by clickhouse
+Stiky connection to pods causes ingestion to not increase with increasing receiver nodes
+
 
 THINGS TO DO
 1. GLOBAL INNER JOIN
@@ -30,6 +31,8 @@ THINGS TO DO
 5. Tables are not auto created on adding shard as table creation logic is in otel-collector
 6. CPU, memory and disk I/O profile
 7. Query perf
+
+https://github.com/jaegertracing/jaeger/issues/1410
 
 
 ## distributed_metrics.json
