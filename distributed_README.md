@@ -40,3 +40,37 @@ https://github.com/jaegertracing/jaeger/issues/1410
 SELECT  toStartOfInterval(timestamp, INTERVAL 5 MINUTE) as ts, toFloat64(count()/300) FROM signoz_traces.distributed_signoz_index_v2 where timestamp>now64() - INTERVAL 240 MINUTE GROUP BY ts ORDER BY ts ASC;
 
 SELECT  ts, runningDifference(value)/runningDifference(ts) as value FROM(SELECT  toStartOfInterval(toDateTime(intDiv(timestamp_ms, 1000)), INTERVAL 60 SECOND) as ts, sum(value) as value FROM signoz_metrics.distributed_samples_v2 GLOBAL INNER JOIN (SELECT  fingerprint FROM signoz_metrics.distributed_time_series_v2 WHERE metric_name = 'otelcol_receiver_accepted_spans') as filtered_time_series USING fingerprint WHERE metric_name = 'otelcol_receiver_accepted_spans' AND timestamp_ms > toUnixTimestamp(now() - INTERVAL 30 MINUTE)*1000 GROUP BY ts ORDER BY  ts) ORDER BY ts OFFSET 1 ROW FETCH FIRST 29 ROWS ONLY;
+
+
+SELECT  toStartOfInterval(fromUnixTimestamp(toInt32(timestamp_ms/1000)), INTERVAL 1 MINUTE) as ts, toFloat64(count()/60) FROM signoz_metrics.distributed_samples_v2 where timestamp_ms>toUnixTimestamp(now() - INTERVAL 30 MINUTE)*1000 GROUP BY ts ORDER BY ts ASC;
+
+
+SELECT
+    ts,
+    sum(runningDifference(value) / runningDifference(ts)) AS value,
+    instance
+FROM
+(
+    SELECT
+        toStartOfInterval(toDateTime(intDiv(timestamp_ms, 1000)), toIntervalMinute(1)) AS ts,
+        max(value) AS value,
+        labels_values[indexOf(labels_keys, 'instance')] AS instance
+    FROM signoz_metrics.distributed_samples_v2
+    WHERE (metric_name = 'node_cpu_seconds_total') AND (fingerprint GLOBAL IN (
+        SELECT fingerprint
+        FROM signoz_metrics.distributed_time_series_v2
+        WHERE (metric_name = 'node_cpu_seconds_total') AND ((labels['instance']) LIKE 'host%')
+    )) AND (timestamp_ms > toUnixTimestamp(now() - INTERVAL 60 MINTUTE)*1000)
+    GROUP BY
+        instance,
+        ts
+    ORDER BY
+        instance ASC,
+        ts ASC
+)
+GROUP BY
+    instance,
+    ts
+ORDER BY
+    instance ASC,
+    ts ASC

@@ -867,6 +867,8 @@ otelCollector:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
+  selectorLabels:
+    type: 'otel-collector'
   # -- OtelColector Deployment annotation.
   annotations: {}
   # -- OtelColector pod(s) annotation.
@@ -1084,7 +1086,17 @@ otelCollector:
 
   tolerations: []
 
-  affinity: {}
+  affinity: 
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: type
+            operator: In
+            values:
+            - otel-collector
+        topologyKey: kubernetes.io/hostname
+  
 
   podSecurityContext: {}
     # fsGroup: 2000
