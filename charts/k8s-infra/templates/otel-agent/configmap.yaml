@@ -7,4 +7,4 @@ metadata:
     {{- include "otelAgent.labels" . | nindent 4 }}
 data:
   otel-agent-config.yaml: |-
-    {{- toYaml .Values.otelAgent.config | nindent 4 }}
+    {{- include "otelAgent.config" . | nindent 4 }}
