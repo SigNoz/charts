@@ -66,6 +66,8 @@ spec:
               value: {{ include "otel.insecure" . }}
             - name: SIGNOZ_API_KEY
               value: {{ include "otel.signozApiKey" . }}
+            - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
+              value: {{ include "otel.insecureSkipVerify" . }}
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf

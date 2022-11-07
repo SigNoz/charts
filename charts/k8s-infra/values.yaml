@@ -26,6 +26,9 @@ otelCollectorEndpoint: null
 # Set this to false, in case of secure OTLP endpoint.
 otelInsecure: true
 
+# -- Whether to skip verifying the certificate.
+insecureSkipVerify: false
+
 # -- API key of SigNoz SaaS
 signozApiKey: ""
 
@@ -396,6 +399,7 @@ otelAgent:
         endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
         tls:
           insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+          insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
         headers:
           "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:
@@ -687,6 +691,7 @@ otelDeployment:
         endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
         tls:
           insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+          insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
         headers:
           "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:

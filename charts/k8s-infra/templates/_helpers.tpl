@@ -256,6 +256,13 @@ Whether OtelCollector endpoint is insecure.
 {{- end }}
 
 {{/*
+Whether to skip verifying the TLS certificates.
+*/}}
+{{- define "otel.insecureSkipVerify" -}}
+{{- default "true" (.Values.insecureSkipVerify | quote) }}
+{{- end }}
+
+{{/*
 Return API key of SigNoz SAAS
 */}}
 {{- define "otel.signozApiKey" -}}
