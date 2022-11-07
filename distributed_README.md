@@ -60,7 +60,7 @@ FROM
         SELECT fingerprint
         FROM signoz_metrics.distributed_time_series_v2
         WHERE (metric_name = 'node_cpu_seconds_total') AND ((labels['instance']) LIKE 'host%')
-    )) AND (timestamp_ms > toUnixTimestamp(now() - INTERVAL 60 MINTUTE)*1000)
+    )) AND (timestamp_ms > toUnixTimestamp(now() - INTERVAL 5 MINUTE)*1000)
     GROUP BY
         instance,
         ts

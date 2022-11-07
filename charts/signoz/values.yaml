@@ -879,7 +879,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 10
+  replicaCount: 12
   # replicaCount: 0
 
   initContainers:
