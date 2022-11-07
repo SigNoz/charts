@@ -7,4 +7,4 @@ metadata:
     {{- include "otelDeployment.labels" . | nindent 4 }}
 data:
   otel-deployment-config.yaml: |-
-    {{- toYaml .Values.otelDeployment.config | nindent 4 }}
+    {{- include "otelDeployment.config" . | nindent 4 }}
