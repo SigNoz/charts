@@ -255,7 +255,7 @@ receivers:
 {{- define "opentelemetry-collector.kubernetesAttributesConfig" -}}
 processors:
   k8sattributes:
-    passthrough: false
+    passthrough: {{ .Values.presets.kubernetesAttributes.passthrough }}
     pod_association:
     - sources:
       - from: resource_attribute
@@ -266,11 +266,8 @@ processors:
     - sources:
       - from: connection
     extract:
-      metadata: 
-        - "k8s.namespace.name"
-        - "k8s.deployment.name"
-        - "k8s.statefulset.name"
-        - "k8s.daemonset.name"
-        - "k8s.cronjob.name"
-        - "k8s.job.name"
+      metadata:
+      {{ range $metadata := .Values.presets.kubernetesAttributes.extractMetadatas }}
+        - {{ $metadata }}
+      {{ end }}
 {{- end }}
