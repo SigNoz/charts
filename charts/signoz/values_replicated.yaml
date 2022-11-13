@@ -174,7 +174,7 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 3
+    shardsCount: 5
     replicasCount: 1
 
   # -- ClickHouse settings configuration.
@@ -345,7 +345,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: distributed-test-1
+    tag: distributed-1
     pullPolicy: Always
   imagePullSecrets: []
   serviceAccount:
@@ -466,7 +466,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: develop
+    tag: test1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -836,7 +836,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: distributed-test-1
+    tag: test-metrics-3
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -879,7 +879,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 5
+  replicaCount: 12
   # replicaCount: 0
 
   initContainers:
@@ -1301,7 +1301,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: distributed-test-1
+    tag: test-metrics-3
     pullPolicy: Always
   imagePullSecrets: []
 
