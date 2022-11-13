@@ -512,12 +512,13 @@ Return structured list of ports config.
 {{- if $port.enabled }}
 - name: {{ $key }}
   port: {{ $port.servicePort }}
-  {{ include "service.ifClusterIP" $serviceType }}
   targetPort: {{ $key }}
   protocol: {{ $port.protocol }}
-  {{- if $serviceType := "nodePort" }}
+  {{- if (eq $serviceType "ClusterIP") }}
+  nodePort: null
+  {{- else if (eq $serviceType "NodePort") }}
   nodePort: {{ $port.nodePort }}
-  {{- end -}}
+  {{- end }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -548,4 +549,18 @@ Return if ingress is stable.
 */}}
 {{- define "ingress.isStable" -}}
   {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
+{{- end -}}
+
+{{/*
+Return true if Let's Encrypt ClusterIssuer of `cert-manager` should be created.
+*/}}
+{{- define "ingress.letsencrypt" -}}
+{{- $clusterIssuerEnabled := index (index .Values "cert-manager") "letsencrypt" -}}
+{{- if ne ($clusterIssuerEnabled | toString) "<nil>" -}}
+  {{ $clusterIssuerEnabled }}
+{{- else if and (index (index .Values "ingress-nginx") "enabled") (index (index .Values "cert-manager") "enabled") -}}
+  true
+{{- else -}}
+  false
+{{- end -}}
 {{- end -}}

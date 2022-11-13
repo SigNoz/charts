@@ -1606,6 +1606,9 @@ k8s-infra:
   # Set this to false, in case of secure OTLP endpoint.
   otelInsecure: true
 
+  # -- Whether to skip verifying the certificate.
+  insecureSkipVerify: false
+
   # -- API key of SigNoz SaaS
   signozApiKey: ""
 
@@ -1615,6 +1618,62 @@ k8s-infra:
   # -- Which namespace to install k8s-infra components.
   # By default installed to the namespace same as the chart.
   namespace: ""
+
+  # -- Presets to easily set up OtelCollector configurations.
+  presets:
+    loggingExporter:
+      enabled: false
+    logsCollection:
+      enabled: true
+      blacklist:
+        enabled: true
+        signozLogs: false
+        namespaces:
+          - kube-system
+        pods:
+          - hotrod
+          - locust
+        containers: []
+    hostMetrics:
+      enabled: true
+      collectionInterval: 30s
+      scrapers:
+        cpu: {}
+        load: {}
+        memory: {}
+        disk: {}
+        filesystem: {}
+        network: {}
+    kubeletMetrics:
+      enabled: true
+      collectionInterval: 30s
+    kubernetesAttributes:
+      enabled: true
+      # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
+      # Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+      passthrough: true
+      # -- Which pod/namespace metadata to extract from a list of default metadata fields.
+      extractMetadatas:
+        - k8s.namespace.name
+        - k8s.pod.name
+        - k8s.pod.uid
+        - k8s.pod.start_time
+        - k8s.deployment.name
+        - k8s.node.name
+    clusterMetrics:
+      enabled: true
+      collectionInterval: 30s
+      nodeConditionsToReport:
+        - Ready
+        - MemoryPressure
+        # - DiskPressure
+        # - NetworkUnavailable
+        # - PIDPressure
+      allocatableTypesToReport:
+        - cpu
+        - memory
+        # - ephemeral-storage
+        # - storage
 
   # Default values for OtelAgent
   otelAgent:
@@ -1666,90 +1725,6 @@ k8s-infra:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
-        hostmetrics:
-          collection_interval: 30s
-          scrapers:
-            cpu: {}
-            load: {}
-            memory: {}
-            disk: {}
-            filesystem: {}
-            network: {}
-        filelog/k8s:
-          include:
-            # Include logs from all container
-            - /var/log/pods/*/*/*.log
-          exclude:
-            # Exclude logs from all containers from kube-system namespace
-            - /var/log/pods/kube-system_*/*/*.log
-            # Exclude logs from all hotrod containers
-            - /var/log/pods/*_hotrod-*/*/*.log
-            - /var/log/pods/*_locust-*_*/*/*.log
-          start_at: beginning
-          include_file_path: true
-          include_file_name: false
-          operators:
-          # Find out which format is used by kubernetes
-          - type: router
-            id: get-format
-            routes:
-              - output: parser-docker
-                expr: 'body matches "^\\{"'
-              - output: parser-crio
-                expr: 'body matches "^[^ Z]+ "'
-              - output: parser-containerd
-                expr: 'body matches "^[^ Z]+Z"'
-          # Parse CRI-O format
-          - type: regex_parser
-            id: parser-crio
-            regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout_type: gotime
-              layout: '2006-01-02T15:04:05.000000000-07:00'
-          # Parse CRI-Containerd format
-          - type: regex_parser
-            id: parser-containerd
-            regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-          # Parse Docker format
-          - type: json_parser
-            id: parser-docker
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-          # Extract metadata from file path
-          - type: regex_parser
-            id: extract_metadata_from_filepath
-            regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
-            parse_from: attributes["log.file.path"]
-          # Rename attributes
-          - type: move
-            from: attributes.stream
-            to: attributes["log.iostream"]
-          - type: move
-            from: attributes.container_name
-            to: attributes["k8s.container.name"]
-          - type: move
-            from: attributes.namespace
-            to: attributes["k8s.namespace.name"]
-          - type: move
-            from: attributes.pod_name
-            to: attributes["k8s.pod.name"]
-          - type: move
-            from: attributes.restart_count
-            to: attributes["k8s.container.restart_count"]
-          - type: move
-            from: attributes.uid
-            to: attributes["k8s.pod.uid"]
-          - type: move
-            from: attributes.log
-            to: body
         prometheus:
           config:
             global:
@@ -1787,6 +1762,7 @@ k8s-infra:
           endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
           tls:
             insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
           headers:
             "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
       service:
@@ -1804,11 +1780,11 @@ k8s-infra:
             processors: [batch]
             exporters: [otlp]
           metrics/generic:
-            receivers: [hostmetrics, prometheus]
+            receivers: [prometheus]
             processors: [resourcedetection, batch]
             exporters: [otlp]
           logs:
-            receivers: [filelog/k8s, otlp]
+            receivers: [otlp]
             processors: [batch]
             exporters: [otlp]
 
@@ -1856,11 +1832,6 @@ k8s-infra:
     # @default -- See `values.yaml` for defaults
     config:
       receivers:
-        # k8s cluster metrics
-        k8s_cluster:
-          collection_interval: 30s
-          node_conditions_to_report: [Ready, MemoryPressure]
-          allocatable_types_to_report: [cpu, memory]
         # prometheus scrape config
         prometheus:
           config:
@@ -1890,6 +1861,7 @@ k8s-infra:
           endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
           tls:
             insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
           headers:
             "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
       service:
@@ -1899,7 +1871,7 @@ k8s-infra:
         extensions: [health_check, zpages, pprof]
         pipelines:
           metrics:
-            receivers: [k8s_cluster, prometheus]
+            receivers: [prometheus]
             processors: [batch]
             exporters: [otlp]
 
@@ -1910,8 +1882,21 @@ k8s-infra:
 ###
 # @ignored
 cert-manager:
+  # --- Whether cert-manager dependency chart should be installed.
   enabled: false
-  installCRDs: true
+
+  # -- Whether to install CRDs. It is recommended to be set it to true for initial installation.
+  installCRDs: false
+
+  # -- Whether to enable letsencrypt. Defaults to true if nginx and cert-manager are enabled otherwise false.
+  letsencrypt:
+
+  # -- Ingress Class Name to be used to for single challenge solver, HTTP01
+  ingressClassName: nginx
+
+  # -- Whom to email when certificates are about to expire
+  # Defaults to noreply@<frontend-ingress-hostname>
+  email: null
 
 ###
 ###
@@ -1968,6 +1953,7 @@ keycloak:
 
   postgresql:
     auth:
+      postgresPassword: pgadminpass123
       username: bn_keycloak
       password: bn_keycloak@123
       database: bitnami_keycloak
