@@ -38,6 +38,17 @@ Return namespace of the release
 {{- end -}}
 
 {{/*
+Common labels for the chart.
+*/}}
+{{- define "k8s-infra.labels" -}}
+helm.sh/chart: {{ include "k8s-infra.chart" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name for the agent.
 */}}
 {{- define "otelAgent.fullname" -}}
@@ -48,12 +59,8 @@ Create a default fully qualified app name for the agent.
 Common labels for agent.
 */}}
 {{- define "otelAgent.labels" -}}
-helm.sh/chart: {{ include "k8s-infra.chart" . }}
+{{ include "k8s-infra.labels" . }}
 {{ include "otelAgent.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
@@ -132,12 +139,8 @@ Create a default fully qualified app name for the deployment.
 Common labels for deployment.
 */}}
 {{- define "otelDeployment.labels" -}}
-helm.sh/chart: {{ include "k8s-infra.chart" . }}
+{{ include "k8s-infra.labels" . }}
 {{ include "otelDeployment.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
@@ -270,6 +273,13 @@ Return API key of SigNoz SAAS
 {{- end }}
 
 {{/*
+Return path of the TLS secrets
+*/}}
+{{- define "otel.secretsPath" -}}
+{{- default "/secrets" .Values.otelTlsSecrets.path }}
+{{- end }}
+
+{{/*
 Return structured list of ports config for Service.
 */}}
 {{- define "otel.portsConfig" -}}
@@ -315,4 +325,15 @@ Return if ingress is stable.
 */}}
 {{- define "ingress.isStable" -}}
   {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
+{{- end -}}
+
+{{/*
+Return if ingress is stable.
+*/}}
+{{- define "k8s-infra.secretName" -}}
+{{- if .Values.otelTlsSecrets.existingSecretName }}
+{{- .Values.otelTlsSecrets.existingSecretName }}
+{{- else }}
+{{- include "k8s-infra.fullname" . }}-secrets
+{{- end }}
 {{- end -}}
