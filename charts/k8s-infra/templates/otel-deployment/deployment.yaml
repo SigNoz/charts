@@ -68,11 +68,15 @@ spec:
               value: {{ include "otel.signozApiKey" . }}
             - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
               value: {{ include "otel.insecureSkipVerify" . }}
+            - name: OTEL_SECRETS_PATH
+              value: {{ include "otel.secretsPath" . }}
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf
-            # - name: otel-collector-secrets
-            #   mountPath: /secrets
+            {{- if .Values.otelTlsSecrets.enabled }}
+            - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+              mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
+            {{- end }}
           {{- if .Values.otelDeployment.livenessProbe.enabled }}
           livenessProbe:
             {{- with .Values.otelDeployment.livenessProbe }}
@@ -123,10 +127,13 @@ spec:
         - name: otel-deployment-config-vol
           configMap:
             name: {{ include "otelDeployment.fullname" . }}
-#        - secret:
-#            name: otel-deployment-secrets
-#            items:
-#              - key: cert.pem
-#                path: cert.pem
-#              - key: key.pem
-#                path: key.pem
+        {{- if .Values.otelTlsSecrets.enabled }}
+        - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+          secret:
+            secretName: {{ include "k8s-infra.secretName" . }}
+            items:
+              - key: cert.pem
+                path: cert.pem
+              - key: key.pem
+                path: key.pem
+        {{- end }}

@@ -32,6 +32,25 @@ insecureSkipVerify: false
 # -- API key of SigNoz SaaS
 signozApiKey: ""
 
+# OTLP receivers TLS
+otelTlsSecrets:
+  # -- Whether to enable OpenTelemetry OTLP secrets
+  enabled: false
+
+  # -- Path for the secrets volume
+  path: /secrets
+
+  # -- Name of the existing secret with TLS certificate and key
+  existingSecretName:
+
+  # -- TLS certificate to be included in the secret
+  certificate: |
+    <INCLUDE_CERTIFICATE_HERE>
+
+  # -- TLS private key to be included in the secret
+  key: |
+    <INCLUDE_PRIVATE_KEY_HERE>
+
 # -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
 clusterDomain: cluster.local
 
@@ -411,6 +430,8 @@ otelAgent:
         tls:
           insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
           insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+          cert_file: ${OTEL_SECRETS_PATH}/cert.pem
+          key_file: ${OTEL_SECRETS_PATH}/key.pem
         headers:
           "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:
@@ -703,6 +724,8 @@ otelDeployment:
         tls:
           insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
           insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+          cert_file: ${OTEL_SECRETS_PATH}/cert.pem
+          key_file: ${OTEL_SECRETS_PATH}/key.pem
         headers:
           "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
     service:
