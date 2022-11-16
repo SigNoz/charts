@@ -1598,6 +1598,25 @@ k8s-infra:
   # -- API key of SigNoz SaaS
   signozApiKey: ""
 
+  # OTLP receivers TLS
+  otelTlsSecrets:
+    # -- Whether to enable OpenTelemetry OTLP secrets
+    enabled: false
+
+    # -- Path for the secrets volume
+    path: /secrets
+
+    # -- Name of the existing secret with TLS certificate and key
+    existingSecretName:
+
+    # -- TLS certificate to be included in the secret
+    certificate: |
+      <INCLUDE_CERTIFICATE_HERE>
+
+    # -- TLS private key to be included in the secret
+    key: |
+      <INCLUDE_PRIVATE_KEY_HERE>
+
   # -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
   clusterDomain: cluster.local
 
