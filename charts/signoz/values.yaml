@@ -65,7 +65,7 @@ clickhouse:
     # -- Clickhouse image tag to use (example: `21.8`).
     # SigNoz is not always tested with latest version of ClickHouse.
     # Only if you know what you are doing, proceed with overriding.
-    tag: 22.4.5-alpine
+    tag: 22.8.8-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
@@ -345,7 +345,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.2
+    tag: 0.11.3
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -468,7 +468,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.2
+    tag: 0.11.3
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -838,7 +838,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.3
+    tag: 0.63.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1287,7 +1287,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.55.3
+    tag: 0.63.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1598,6 +1598,25 @@ k8s-infra:
   # -- API key of SigNoz SaaS
   signozApiKey: ""
 
+  # OTLP receivers TLS
+  otelTlsSecrets:
+    # -- Whether to enable OpenTelemetry OTLP secrets
+    enabled: false
+
+    # -- Path for the secrets volume
+    path: /secrets
+
+    # -- Name of the existing secret with TLS certificate and key
+    existingSecretName:
+
+    # -- TLS certificate to be included in the secret
+    certificate: |
+      <INCLUDE_CERTIFICATE_HERE>
+
+    # -- TLS private key to be included in the secret
+    key: |
+      <INCLUDE_PRIVATE_KEY_HERE>
+
   # -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
   clusterDomain: cluster.local
 
@@ -1667,7 +1686,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.55.0
+      tag: 0.63.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
@@ -1743,14 +1762,7 @@ k8s-infra:
           endpoint: localhost:55679
         pprof:
           endpoint: localhost:1777
-      exporters:
-        otlp:
-          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-          tls:
-            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          headers:
-            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      exporters: {}
       service:
         telemetry:
           metrics:
@@ -1760,19 +1772,19 @@ k8s-infra:
           traces:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
           metrics:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
           metrics/generic:
             receivers: [prometheus]
             processors: [resourcedetection, batch]
-            exporters: [otlp]
+            exporters: []
           logs:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
 
   # Default values for OtelDeployment
   otelDeployment:
@@ -1780,7 +1792,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.55.0
+      tag: 0.63.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
@@ -1842,14 +1854,7 @@ k8s-infra:
           endpoint: localhost:55679
         pprof:
           endpoint: localhost:1777
-      exporters:
-        otlp:
-          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-          tls:
-            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          headers:
-            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      exporters: {}
       service:
         telemetry:
           metrics:
@@ -1859,7 +1864,7 @@ k8s-infra:
           metrics:
             receivers: [prometheus]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
 
 ###
 ###

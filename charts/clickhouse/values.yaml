@@ -121,7 +121,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 22.4.5-alpine
+  tag: 22.8.8-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
