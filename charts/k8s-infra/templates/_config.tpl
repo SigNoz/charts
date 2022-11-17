@@ -34,6 +34,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.otlpExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
@@ -59,6 +62,38 @@ exporters:
   logging: {}
 {{- end }}
 
+
+{{- define "opentelemetry-collector.applyOtlpExporterConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.otlpExporterConfig" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "exporters" (append $config.service.pipelines.logs.exporters "otlp" | uniq)  }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "exporters" (prepend $config.service.pipelines.metrics.exporters "otlp" | uniq)  }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "exporters" (prepend $config.service.pipelines.traces.exporters "otlp" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/generic" }}
+{{- $_ := set (index $config.service.pipelines "metrics/generic") "exporters" (prepend (index (index $config.service.pipelines "metrics/generic") "exporters") "otlp" | uniq)  }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.otlpExporterConfig" -}}
+exporters:
+  otlp:
+    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
+      insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      cert_file: ${OTEL_SECRETS_PATH}/cert.pem
+      key_file: ${OTEL_SECRETS_PATH}/key.pem
+    headers:
+      "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+{{- end }}
+
+
 {{/*
 Build config file for deployment OpenTelemetry Collector: OtelDeployment
 */}}
@@ -71,6 +106,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.otlpExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
