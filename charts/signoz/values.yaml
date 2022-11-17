@@ -65,7 +65,7 @@ clickhouse:
     # -- Clickhouse image tag to use (example: `21.8`).
     # SigNoz is not always tested with latest version of ClickHouse.
     # Only if you know what you are doing, proceed with overriding.
-    tag: 22.4.5-alpine
+    tag: 22.8.8-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
