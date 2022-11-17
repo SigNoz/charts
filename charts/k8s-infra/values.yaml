@@ -62,6 +62,8 @@ namespace: ""
 presets:
   loggingExporter:
     enabled: false
+  otlpExporter:
+    enabled: true
   logsCollection:
     enabled: true
     blacklist:
@@ -424,16 +426,7 @@ otelAgent:
         endpoint: localhost:55679
       pprof:
         endpoint: localhost:1777
-    exporters:
-      otlp:
-        endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-        tls:
-          insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-          insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          cert_file: ${OTEL_SECRETS_PATH}/cert.pem
-          key_file: ${OTEL_SECRETS_PATH}/key.pem
-        headers:
-          "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+    exporters: {}
     service:
       telemetry:
         metrics:
@@ -443,19 +436,19 @@ otelAgent:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp]
+          exporters: []
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp]
+          exporters: []
         metrics/generic:
           receivers: [prometheus]
           processors: [resourcedetection, batch]
-          exporters: [otlp]
+          exporters: []
         logs:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp]
+          exporters: []
 
 # Default values for OtelDeployment
 otelDeployment:
@@ -718,16 +711,7 @@ otelDeployment:
         endpoint: localhost:55679
       pprof:
         endpoint: localhost:1777
-    exporters:
-      otlp:
-        endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-        tls:
-          insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-          insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          cert_file: ${OTEL_SECRETS_PATH}/cert.pem
-          key_file: ${OTEL_SECRETS_PATH}/key.pem
-        headers:
-          "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+    exporters: {}
     service:
       telemetry:
         metrics:
@@ -737,4 +721,4 @@ otelDeployment:
         metrics:
           receivers: [prometheus]
           processors: [batch]
-          exporters: [otlp]
+          exporters: []
