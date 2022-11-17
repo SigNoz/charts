@@ -1686,7 +1686,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.55.0
+      tag: 0.63.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
@@ -1762,14 +1762,7 @@ k8s-infra:
           endpoint: localhost:55679
         pprof:
           endpoint: localhost:1777
-      exporters:
-        otlp:
-          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-          tls:
-            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          headers:
-            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      exporters: {}
       service:
         telemetry:
           metrics:
@@ -1779,19 +1772,19 @@ k8s-infra:
           traces:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
           metrics:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
           metrics/generic:
             receivers: [prometheus]
             processors: [resourcedetection, batch]
-            exporters: [otlp]
+            exporters: []
           logs:
             receivers: [otlp]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
 
   # Default values for OtelDeployment
   otelDeployment:
@@ -1799,7 +1792,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.55.0
+      tag: 0.63.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
@@ -1861,14 +1854,7 @@ k8s-infra:
           endpoint: localhost:55679
         pprof:
           endpoint: localhost:1777
-      exporters:
-        otlp:
-          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-          tls:
-            insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-            insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-          headers:
-            "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      exporters: {}
       service:
         telemetry:
           metrics:
@@ -1878,7 +1864,7 @@ k8s-infra:
           metrics:
             receivers: [prometheus]
             processors: [batch]
-            exporters: [otlp]
+            exporters: []
 
 ###
 ###
