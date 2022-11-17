@@ -10,8 +10,6 @@ on:
 jobs:
   test-chart:
     runs-on: ubuntu-latest
-    env:
-      CT_CONFIG: ct-test.yaml
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,12 +26,12 @@ jobs:
           python-version: 3.7
 
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.2.0
+        uses: helm/chart-testing-action@v2.3.1
 
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --config ct-test.yaml)
+          changed=$(ct list-changed --config ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
           fi
@@ -46,5 +44,5 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
-        run: ct install --config ct-test.yaml --namespace default
+        run: ct install --config ct.yaml --namespace default --helm-extra-set-args --set=presets.otlpExporter.enabled=false,presets.loggingExporter.enabled=true
         if: steps.list-changed.outputs.changed == 'true'
