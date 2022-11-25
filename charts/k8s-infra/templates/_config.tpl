@@ -161,8 +161,8 @@ receivers:
 receivers:
   kubeletstats:
     collection_interval: {{ .Values.presets.kubeletMetrics.collectionInterval }}
-    auth_type: "serviceAccount"
-    endpoint: "${K8S_NODE_NAME}:10250"
+    auth_type: {{ .Values.presets.kubeletMetrics.authType }}
+    endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
     insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
 {{- end }}
 
@@ -178,12 +178,13 @@ receivers:
 receivers:
   filelog/k8s:
     # Include logs from all container
-    include: [ /var/log/pods/*/*/*.log ]
+    include: {{ .Values.presets.logsCollection.include }}
     # Blacklist specific namespaces, pods or containers if enabled
     {{- if .Values.presets.logsCollection.blacklist.enabled }}
     {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
     {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
     {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
+    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
     # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
@@ -202,75 +203,19 @@ receivers:
       {{- range $container := $containers }}
       - /var/log/pods/*_*_*/{{ $container }}/*.log
       {{- end }}
+      {{- range $exclude := $additionalExclude }}
+      - {{ $exclude }}
+      {{- end }}
     {{- else }}
     exclude: []
     {{- end }}
-    start_at: beginning
-    include_file_path: true
-    include_file_name: false
+    start_at: {{ .Values.presets.logsCollection.startAt }}
+    include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
+    include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
     operators:
-      # Find out which format is used by kubernetes
-      - type: router
-        id: get-format
-        routes:
-          - output: parser-docker
-            expr: 'body matches "^\\{"'
-          - output: parser-crio
-            expr: 'body matches "^[^ Z]+ "'
-          - output: parser-containerd
-            expr: 'body matches "^[^ Z]+Z"'
-      # Parse CRI-O format
-      - type: regex_parser
-        id: parser-crio
-        regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout_type: gotime
-          layout: '2006-01-02T15:04:05.000000000-07:00'
-      # Parse CRI-Containerd format
-      - type: regex_parser
-        id: parser-containerd
-        regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Parse Docker format
-      - type: json_parser
-        id: parser-docker
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Extract metadata from file path
-      - type: regex_parser
-        id: extract_metadata_from_filepath
-        regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
-        parse_from: attributes["log.file.path"]
-      # Rename attributes
-      - type: move
-        from: attributes.stream
-        to: attributes["log.iostream"]
-      - type: move
-        from: attributes.container_name
-        to: resource["k8s.container.name"]
-      - type: move
-        from: attributes.namespace
-        to: resource["k8s.namespace.name"]
-      - type: move
-        from: attributes.pod_name
-        to: resource["k8s.pod.name"]
-      - type: move
-        from: attributes.restart_count
-        to: resource["k8s.container.restart_count"]
-      - type: move
-        from: attributes.uid
-        to: resource["k8s.pod.uid"]
-      # Clean up log body
-      - type: move
-        from: attributes.log
-        to: body
+    {{ range $operators := .Values.presets.logsCollection.operators }}
+      - {{ toYaml $operators | nindent 8 }}
+    {{ end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyKubernetesAttributesConfig" -}}
@@ -295,14 +240,9 @@ processors:
   k8sattributes:
     passthrough: {{ .Values.presets.kubernetesAttributes.passthrough }}
     pod_association:
-    - sources:
-      - from: resource_attribute
-        name: k8s.pod.ip
-    - sources:
-      - from: resource_attribute
-        name: k8s.pod.uid
-    - sources:
-      - from: connection
+    {{ range $association := .Values.presets.kubernetesAttributes.podAssociation }}
+      - {{ toYaml $association | nindent 8 }}
+    {{ end }}
     extract:
       metadata:
       {{ range $metadata := .Values.presets.kubernetesAttributes.extractMetadatas }}
