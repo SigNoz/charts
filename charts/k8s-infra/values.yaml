@@ -66,6 +66,11 @@ presets:
     enabled: true
   logsCollection:
     enabled: true
+    include:
+      - /var/log/pods/*/*/*.log
+    startAt: beginning
+    includeFilePath: true
+    includeFileName: false
     blacklist:
       enabled: true
       signozLogs: true
@@ -75,6 +80,70 @@ presets:
         - hotrod
         - locust
       containers: []
+      additionalExclude: []
+    operators:
+      # Find out which format is used by kubernetes
+      - type: router
+        id: get-format
+        routes:
+          - output: parser-docker
+            expr: 'body matches "^\\{"'
+          - output: parser-crio
+            expr: 'body matches "^[^ Z]+ "'
+          - output: parser-containerd
+            expr: 'body matches "^[^ Z]+Z"'
+      # Parse CRI-O format
+      - type: regex_parser
+        id: parser-crio
+        regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+        output: extract_metadata_from_filepath
+        timestamp:
+          parse_from: attributes.time
+          layout_type: gotime
+          layout: '2006-01-02T15:04:05.000000000-07:00'
+      # Parse CRI-Containerd format
+      - type: regex_parser
+        id: parser-containerd
+        regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+        output: extract_metadata_from_filepath
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+      # Parse Docker format
+      - type: json_parser
+        id: parser-docker
+        output: extract_metadata_from_filepath
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+      # Extract metadata from file path
+      - type: regex_parser
+        id: extract_metadata_from_filepath
+        regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
+        parse_from: attributes["log.file.path"]
+      # Rename attributes
+      - type: move
+        from: attributes.stream
+        to: attributes["log.iostream"]
+      - type: move
+        from: attributes.container_name
+        to: resource["k8s.container.name"]
+      - type: move
+        from: attributes.namespace
+        to: resource["k8s.namespace.name"]
+      - type: move
+        from: attributes.pod_name
+        to: resource["k8s.pod.name"]
+      - type: move
+        from: attributes.restart_count
+        to: resource["k8s.container.restart_count"]
+      - type: move
+        from: attributes.uid
+        to: resource["k8s.pod.uid"]
+      # Clean up log body
+      - type: move
+        from: attributes.log
+        to: body
   hostMetrics:
     enabled: true
     collectionInterval: 30s
@@ -88,11 +157,22 @@ presets:
   kubeletMetrics:
     enabled: true
     collectionInterval: 30s
+    authType: serviceAccount
+    endpoint: ${K8S_NODE_NAME}:10250
+    insecureSkipVerify: true
   kubernetesAttributes:
     enabled: true
     # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
     # Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
     passthrough: true
+    # -- Pod Association section allows to define rules for tagging spans, metrics,
+    # and logs with Pod metadata.
+    podAssociation:
+      - from: resource_attribute
+        name: k8s.pod.ip
+      - from: resource_attribute
+        name: k8s.pod.uid
+      - from: connection
     # -- Which pod/namespace metadata to extract from a list of default metadata fields.
     extractMetadatas:
       - k8s.namespace.name

@@ -2,7 +2,7 @@ apiVersion: v2
 name: k8s-infra
 description: Helm chart for collecting metrics and logs in K8s
 type: application
-version: 0.3.0
+version: 0.3.1
 appVersion: "0.63.0"
 home: https://signoz.io
 icon: https://signoz.io/img/SigNozLogo-orange.svg
