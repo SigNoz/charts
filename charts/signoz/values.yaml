@@ -991,7 +991,7 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for Zipkin
       protocol: TCP
-    prometheus-metrics:
+    prometheus:
       # -- Whether to enable service port for SigNoz exported prometheus metrics
       enabled: false
       # -- Container port for SigNoz exported prometheus metrics
