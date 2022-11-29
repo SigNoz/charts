@@ -349,7 +349,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.3
+    tag: 0.11.4
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -472,7 +472,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.3
+    tag: 0.11.4
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
