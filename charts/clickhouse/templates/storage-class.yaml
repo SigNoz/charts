@@ -1,4 +1,4 @@
-{{- if .Values.installCustomStorageClass -}}
+{{- if .Values.installCustomStorageClass.enabled -}}
 
 {{- if (eq (.Values.cloud | toString) "gcp" ) -}}
 #
@@ -10,7 +10,7 @@ metadata:
   name: gce-resizable
 provisioner: kubernetes.io/gce-pd
 parameters:
-  type: pd-standard
+  type: {{ .Values.installCustomStorageClass.storageType }}
   fstype: ext4
   replication-type: none
 reclaimPolicy: Retain
@@ -26,7 +26,7 @@ metadata:
   name: gp2-resizable
 provisioner: kubernetes.io/aws-ebs
 parameters:
-  type: gp2
+  type: {{ .Values.installCustomStorageClass.storageType }}
 reclaimPolicy: Retain
 allowVolumeExpansion: true
 {{- end -}}

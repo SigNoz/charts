@@ -287,7 +287,9 @@ coldStorage:
 # -- When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`,
 # it creates custom storage class with volume expansion permission.
 #
-installCustomStorageClass: false
+installCustomStorageClass: 
+  enabled: false
+  storageType: pd-ssd
 
 
 ###
