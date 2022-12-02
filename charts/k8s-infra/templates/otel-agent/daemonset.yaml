@@ -79,6 +79,8 @@ spec:
               value: {{ include "otel.signozApiKey" . }}
             - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
               value: {{ include "otel.insecureSkipVerify" . }}
+            - name: OTEL_SECRETS_PATH
+              value: {{ include "otel.secretsPath" . }}
           volumeMounts:
             - name: otel-agent-config-vol
               mountPath: /conf
@@ -88,8 +90,10 @@ spec:
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
-            # - name: otel-agent-secrets
-            #   mountPath: /secrets
+            {{- if .Values.otelTlsSecrets.enabled }}
+            - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+              mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
+            {{- end }}
           {{- if .Values.otelAgent.livenessProbe.enabled }}
           livenessProbe:
             {{- with .Values.otelDeployment.livenessProbe }}
@@ -144,10 +148,13 @@ spec:
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
-#        - secret:
-#            name: otel-agent-secrets
-#            items:
-#              - key: cert.pem
-#                path: cert.pem
-#              - key: key.pem
-#                path: key.pem
+        {{- if .Values.otelTlsSecrets.enabled }}
+        - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+          secret:
+           secretName: {{ include "k8s-infra.secretName" . }}
+           items:
+             - key: cert.pem
+               path: cert.pem
+             - key: key.pem
+               path: key.pem
+        {{- end }}

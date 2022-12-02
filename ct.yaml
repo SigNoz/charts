@@ -4,6 +4,10 @@ target-branch: main
 debug: true
 check-version-increment: false
 helm-extra-args: --timeout 600s
+charts:
+  - charts/clickhouse
+  - charts/k8s-infra
+  - charts/signoz
 chart-repos:
   - signoz=https://signoz.github.io/charts
   - bitnamipre2022=https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
