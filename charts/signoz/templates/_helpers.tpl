@@ -64,7 +64,7 @@ Selector labels
 {{- define "queryService.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.queryService.name }}
+app.kubernetes.io/component: {{ default "query-service" .Values.queryService.name }}
 {{- end -}}
 
 {{/*
@@ -160,7 +160,7 @@ Selector labels
 {{- define "frontend.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.frontend.name }}
+app.kubernetes.io/component: {{ default "frontend" .Values.frontend.name }}
 {{- end -}}
 
 {{/*
@@ -229,7 +229,7 @@ Selector labels
 {{- define "alertmanager.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.alertmanager.name }}
+app.kubernetes.io/component: {{ default "alertmanager" .Values.alertmanager.name }}
 {{- end -}}
 
 {{/*
@@ -312,7 +312,7 @@ Selector labels
 {{- define "otelCollector.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.otelCollector.name }}
+app.kubernetes.io/component: {{ default "otel-collector" .Values.otelCollector.name }}
 {{- end -}}
 
 {{/*
@@ -404,7 +404,7 @@ Selector labels
 {{- define "otelCollectorMetrics.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.otelCollectorMetrics.name }}
+app.kubernetes.io/component: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name }}
 {{- end -}}
 
 {{/*
