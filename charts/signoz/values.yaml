@@ -50,7 +50,7 @@ clickhouse:
   fullnameOverride: ""
 
   # -- Clickhouse cluster
-  cluster: signoz
+  cluster: cluster
   # -- Clickhouse database (SigNoz Metrics)
   database: signoz_metrics
   # -- Clickhouse trace database (SigNoz Traces)
@@ -94,21 +94,25 @@ clickhouse:
     # - host: signoz-signoz-zookeeper
     #   port: 2181
 
+  # -- Node selector for settings for clickhouse pod
+  nodeSelector: {}
   # -- Toleration labels for clickhouse pod assignment
   tolerations: []
   # -- Affinity settings for clickhouse pod
   affinity: {}
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  resources: {}
-  #   requests:
-  #     cpu: 1000m
-  #     memory: 4Gi
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 500m
+      memory: 500Mi
   #   limits:
   #     cpu: 4000m
-  #     memory: 16Gi
+  #     memory: 4Gi
 
   # -- Security context for Clickhouse node
   securityContext:
@@ -116,9 +120,6 @@ clickhouse:
     runAsUser: 101
     runAsGroup: 101
     fsGroup: 101
-
-  # -- If enabled, operator will prefer k8s nodes with tag `clickhouse:true`
-  useNodeSelector: false
 
   # -- An allowlist of IP addresses or network masks the ClickHouse user is
   # allowed to access from. By default anything within a private network will be
@@ -158,7 +159,7 @@ clickhouse:
       - ReadWriteOnce
 
     # -- Persistent Volume size
-    size: 100Gi
+    size: 20Gi
 
   # -- Clickhouse user profile configuration.
   # You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
@@ -178,7 +179,7 @@ clickhouse:
   # section on clusters and layouts.
   #
   layout:
-    shardsCount: 3
+    shardsCount: 1
     replicasCount: 1
 
   # -- ClickHouse settings configuration.
@@ -427,20 +428,27 @@ queryService:
     #    hosts:
     #      - query-service.domain.com
 
-  # adjust the resource requests and limit as necessary
-  # resources:
-  #   requests:
-  #     cpu: 200m
-  #     memory: 300Mi
-  #   limits:
-  #     cpu: 750m
-  #     memory: 1000Mi
+  # -- Configure resource requests and limits. Update according to your own use
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 750m
+    #   memory: 1000Mi
 
+  # -- Node selector for settings for QueryService pod
   nodeSelector: {}
-
+  # -- Toleration labels for QueryService pod assignment
   tolerations: []
-
+  # -- Affinity settings for QueryService pod
   affinity: {}
+  # -- TopologySpreadConstraints describes how QueryService pods ought to spread
+  topologySpreadConstraints: []
 
   persistence:
     # -- Enable data persistence using PVC for SQLiteDB data.
@@ -551,7 +559,7 @@ frontend:
     # -- Annotations to use by service associated to Frontend
     annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: LoadBalancer
+    type: ClusterIP
     # -- Frontend HTTP port
     port: 3301
 
@@ -584,8 +592,10 @@ frontend:
       large_client_header_buffers 8 16k;
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
   resources:
     requests:
       cpu: 100m
@@ -594,11 +604,14 @@ frontend:
     #   cpu: 200m
     #   memory: 200Mi
 
+  # -- Node selector for settings for Frontend pod
   nodeSelector: {}
-
+  # -- Toleration labels for Frontend pod assignment
   tolerations: []
-
+  # -- Affinity settings for Frontend pod
   affinity: {}
+  # -- TopologySpreadConstraints describes how Frontend pods ought to spread
+  topologySpreadConstraints: []
 
 # Default values for Alertmanager
 alertmanager:
@@ -708,8 +721,10 @@ alertmanager:
     #      - alertmanager.domain.com
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
   resources:
     requests:
       cpu: 100m
@@ -718,11 +733,14 @@ alertmanager:
     #   cpu: 200m
     #   memory: 200Mi
 
+  # -- Node selector for settings for Alertmanager pod
   nodeSelector: {}
-
+  # -- Toleration labels for Alertmanager pod assignment
   tolerations: []
-
+  # -- Affinity settings for Alertmanager pod
   affinity: {}
+  # -- TopologySpreadConstraints describes how Alertmanager pods ought to spread
+  topologySpreadConstraints: []
 
   statefulSet:
     annotations: {}
@@ -829,10 +847,17 @@ alertmanager:
 
     # containerPort: 9533
 
-    # -- Configure resource requests and limits. Update according to your own use
-    # case as these values might be too low for a typical deployment.
-    # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-    resources: {}
+    # -- Configure resource requests and limits. Update as per your need.
+    # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    #
+    # @default -- See `values.yaml` for defaults
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      # limits:
+      #   cpu: 200m
+      #   memory: 200Mi
 
 # Default values for OtelCollector
 otelCollector:
@@ -860,7 +885,7 @@ otelCollector:
     # -- Annotations to use by service associated to OtelCollector
     annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: LoadBalancer
+    type: ClusterIP
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -871,8 +896,6 @@ otelCollector:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
-  selectorLabels:
-    type: 'otel-collector'
   # -- OtelColector Deployment annotation.
   annotations: {}
   # -- OtelColector pod(s) annotation.
@@ -883,8 +906,7 @@ otelCollector:
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  replicaCount: 5
-  # replicaCount: 0
+  replicaCount: 1
 
   initContainers:
     init:
@@ -1077,20 +1099,25 @@ otelCollector:
     #    hosts:
     #      - otelcollector.domain.com
 
-  # adjust the resource requests and limit as necessary
-  # resources:
-  #   requests:
-  #     cpu: 4000m
-  #     memory: 8000Mi
-  #   limits:
-  #     cpu: 8000m
-  #     memory: 10Gi
+  # -- Configure resource requests and limits. Update according to your own use
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 200m
+      memory: 400Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
 
+  # -- Node selector for settings for OtelCollector pod
   nodeSelector: {}
-
+  # -- Toleration labels for OtelCollector pod assignment
   tolerations: []
-
-  affinity: 
+  # -- Affinity settings for OtelCollector pod
+  affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
@@ -1100,7 +1127,8 @@ otelCollector:
             values:
             - otel-collector
         topologyKey: kubernetes.io/hostname
-  
+  # -- TopologySpreadConstraints describes how OtelCollector pods ought to spread
+  topologySpreadConstraints: []
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1162,7 +1190,7 @@ otelCollector:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
-            max_recv_msg_size_mib: 128
+            max_recv_msg_size_mib: 4
           http:
             endpoint: 0.0.0.0:4318
       jaeger:
@@ -1197,11 +1225,21 @@ otelCollector:
       batch:
         send_batch_size: 100000
         timeout: 1s
+
+      # memory_limiter:
+      #   check_interval: 1s
+      #   # 80% of maximum memory up to 2G
+      #   limit_mib: 1500
+      #   # 25% of limit up to 2G
+      #   spike_limit_mib: 512
+      #   check_interval: 5s
+      #
+      #   # 80% of the maximum memory
+      #   limit_percentage: 80
+      #   # 60% of max memory usage spike expected
+      #   spike_limit_percentage: 60
+
       # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
-      memory_limiter:
-        check_interval: 1s
-        limit_mib: 8000
-        spike_limit_mib: 1600
       resourcedetection:
         detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
@@ -1236,17 +1274,6 @@ otelCollector:
             default: default
           - name: deployment.environment
             default: default
-      # memory_limiter:
-      #   # 80% of maximum memory up to 2G
-      #   limit_mib: 1500
-      #   # 25% of limit up to 2G
-      #   spike_limit_mib: 512
-      #   check_interval: 5s
-      #
-      #   # 50% of the maximum memory
-      #   limit_percentage: 50
-      #   # 20% of max memory usage spike expected
-      #   spike_limit_percentage: 20
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1285,7 +1312,7 @@ otelCollector:
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
           receivers: [hostmetrics, prometheus]
@@ -1464,21 +1491,26 @@ otelCollectorMetrics:
     #      - otelcollector-metrics.domain.com
 
   # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might be too low for a typical deployment.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
   resources:
     requests:
       cpu: 100m
       memory: 100Mi
-    # limits:
-    #   cpu: 1000m
-    #   memory: 2Gi
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
+  # -- Node selector for settings for OtelCollectorMetrics pod
   nodeSelector: {}
-
+  # -- Toleration labels for OtelCollectorMetrics pod assignment
   tolerations: []
-
+  # -- Affinity settings for OtelCollectorMetrics pod
   affinity: {}
+  # -- TopologySpreadConstraints describes how OtelCollectorMetrics pods ought to spread
+  topologySpreadConstraints: []
 
   # OtelCollectorMetrics RBAC config
   clusterRole:
@@ -1808,15 +1840,16 @@ k8s-infra:
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
-    # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    #
     # @default -- See `values.yaml` for defaults
     resources:
       requests:
         cpu: 100m
-        memory: 100Mi
-      # limits:
-      #   cpu: 1000m
-      #   memory: 1Gi
+        memory: 200Mi
+      limits:
+        cpu: 250m
+        memory: 500Mi
 
     # -- Configurations for OtelAgent
     # @default -- See `values.yaml` for defaults
@@ -1914,7 +1947,8 @@ k8s-infra:
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
-    # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    #
     # @default -- See `values.yaml` for defaults
     resources:
       requests:
@@ -2025,7 +2059,11 @@ minio:
 
   resources:
     requests:
-      memory: 2Gi
+      cpu: 250m
+      memory: 500Mi
+    # limits:
+    #   cpu: "1"
+    #   memory: 2Gi
 
 ###
 ###

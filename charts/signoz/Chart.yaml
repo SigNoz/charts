@@ -20,7 +20,7 @@ sources:
   - https://github.com/signoz/signoz-otel-collector
 dependencies:
   - name: clickhouse
-    repository: "file://../clickhouse"
+    repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
     version: 23.5.6
   - name: k8s-infra

@@ -146,12 +146,13 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
+# -- Node selector for settings for clickhouse pod
+nodeSelector: {}
 # -- Toleration labels for clickhouse pod assignment
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
-# -- node selector for settings for clickhouse pod
-nodeSelector: {}
+
 # -- Configure resource requests and limits. Update according to your own use
 # case as these values might be too low for a typical deployment.
 # ref: http://kubernetes.io/docs/user-guide/compute-resources/
