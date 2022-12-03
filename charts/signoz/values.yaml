@@ -1122,7 +1122,7 @@ otelCollector:
       requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
           matchExpressions:
-          - key: type
+          - key: app.kubernetes.io/component
             operator: In
             values:
             - otel-collector
