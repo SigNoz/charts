@@ -5,6 +5,9 @@ global:
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: &GLOBAL_SC null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
 
 # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
 # Based on the cloud, storage class for the persistent volume is selected.

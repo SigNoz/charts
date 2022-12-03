@@ -484,7 +484,7 @@ Return the service name of Clickhouse
 {{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- $namespace := .Values.clickhouse.namespace -}}
-{{- $clusterDomain := default "cluster.local" .Values.clusterDomain -}}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
 {{- if and $namespace (ne $namespace .Release.Namespace) -}}
 {{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
 {{- else -}}

@@ -5,15 +5,15 @@ global:
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
 
 # -- SigNoz chart name override
 nameOverride: ""
 
 # -- SigNoz chart full name override
 fullnameOverride: ""
-
-# -- Kubernetes cluster domain used when Clickhouse installed in different namespace
-clusterDomain: cluster.local
 
 # Clickhouse default values
 # For complete list of configurations, check `values.yaml` of `clickhouse` chart.
@@ -204,6 +204,13 @@ clickhouse:
     signoz.io/scrape: 'true'
     signoz.io/port: '9363'
     signoz.io/path: /metrics
+
+  # -- Topologies on how to distribute the ClickHouse pod.
+  # Possible values can be found here:
+  # - https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
+  podDistribution:
+    - type: ClickHouseAntiAffinity
+      topologyKey: kubernetes.io/hostname
 
   # Cold storage configuration
   coldStorage:

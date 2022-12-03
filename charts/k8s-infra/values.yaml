@@ -5,6 +5,9 @@ global:
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -50,9 +53,6 @@ otelTlsSecrets:
   # -- TLS private key to be included in the secret
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
-
-# -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
-clusterDomain: cluster.local
 
 # -- Which namespace to install k8s-infra components.
 # By default installed to the namespace same as the chart.
