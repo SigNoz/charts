@@ -111,12 +111,12 @@ spec:
             {{- include "clickhouse.labels" . | nindent 12 }}
           {{- with .Values.podAnnotations }}
           annotations:
-            {{- toYaml . | nindent 12 -}}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- with .Values.podDistribution }}
         podDistribution:
-          - type: ClickHouseAntiAffinity
-            topologyKey: "kubernetes.io/hostname"
-
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
           serviceAccountName: {{ include "clickhouse.fullname" . }}-instance
