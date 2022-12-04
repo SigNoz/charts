@@ -70,8 +70,22 @@ Set zookeeper host
 Set zookeeper port
 */}}
 {{- define "clickhouse.zookeeper.port" -}}
-{{- 2181 -}}
-{{- end -}}
+{{- default 2181 }}
+{{- end }}
+
+{{/*
+Return suffix part of the headless service
+*/}}
+{{- define "clickhouse.zookeeper.headlessSvcSuffix" -}}
+{{- $namespace := .Values.zookeeper.namespaceOverride }}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
+{{- $name := printf "%s-headless" (include "clickhouse.zookeeper.servicename" .) }}
+{{- if and $namespace (ne $namespace .Values.namespace) }}
+{{- printf "%s.svc.%s.%s" $name $namespace $clusterDomain }}
+{{- else -}}
+{{- $name }}
+{{- end }}
+{{- end }}
 
 {{/*
 Return the proper clickhouse image name

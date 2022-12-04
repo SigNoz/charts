@@ -32,6 +32,17 @@ zookeeper:
   # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
   enabled: true
 
+  # -- Name override for zookeeper app
+  nameOverride: ""
+  # -- Fullname override for zookeeper app
+  fullnameOverride: ""
+
+  # -- Whether to install zookeeper into a different namespace than the parent
+  namespaceOverride: ""
+
+  # -- Zookeeper pod(s) annotation.
+  podAnnotations: {}
+
   autopurge:
     # -- The time interval (in hours) for which the purge task has to be triggered
     purgeInterval: 1
@@ -43,14 +54,6 @@ zookeeper:
     service:
       # -- ZooKeeper metrics service annotation
       annotations: {}
-
-  ## -- Zookeeper pod(s) annotation.
-  podAnnotations: {}
-
-  # -- Name override for zookeeper app
-  nameOverride: ""
-  # -- Fullname override for zookeeper app
-  fullnameOverride: ""
 
   # -- Minimal SERVER_ID value, nodes increment their IDs respectively.
   # Servers increment their ID starting at this minimal value.
@@ -272,7 +275,8 @@ podAnnotations: {}
 # Possible values can be found here:
 # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
 podDistribution:
-  - type: ClickHouseAntiAffinity
+  - scope: ClickHouseInstallation
+    type: ShardAntiAffinity
     topologyKey: kubernetes.io/hostname
 
 # Cold storage configuration
