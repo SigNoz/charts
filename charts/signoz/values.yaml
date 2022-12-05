@@ -108,10 +108,10 @@ clickhouse:
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
-      cpu: 500m
-      memory: 500Mi
+      cpu: 100m
+      memory: 200Mi
   #   limits:
-  #     cpu: 4000m
+  #     cpu: 2000m
   #     memory: 4Gi
 
   # -- Security context for Clickhouse node
@@ -1114,11 +1114,11 @@ otelCollector:
   # @default -- See `values.yaml` for defaults
   resources:
     requests:
-      cpu: 200m
-      memory: 400Mi
-    limits:
-      cpu: "1"
-      memory: 2Gi
+      cpu: 100m
+      memory: 200Mi
+    # limits:
+    #   cpu: "1"
+    #   memory: 2Gi
 
   # -- Node selector for settings for OtelCollector pod
   nodeSelector: {}
@@ -1504,9 +1504,9 @@ otelCollectorMetrics:
     requests:
       cpu: 100m
       memory: 100Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
+    # limits:
+    #   cpu: "1"
+    #   memory: 2Gi
 
   # -- Node selector for settings for OtelCollectorMetrics pod
   nodeSelector: {}
@@ -1851,10 +1851,10 @@ k8s-infra:
     resources:
       requests:
         cpu: 100m
-        memory: 200Mi
-      limits:
-        cpu: 250m
-        memory: 500Mi
+        memory: 100Mi
+      # limits:
+      #   cpu: 250m
+      #   memory: 500Mi
 
     # -- Configurations for OtelAgent
     # @default -- See `values.yaml` for defaults
@@ -2064,8 +2064,8 @@ minio:
 
   resources:
     requests:
-      cpu: 250m
-      memory: 500Mi
+      cpu: 100m
+      memory: 200Mi
     # limits:
     #   cpu: "1"
     #   memory: 2Gi

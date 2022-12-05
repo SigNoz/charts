@@ -168,15 +168,17 @@ tolerations: []
 affinity: {}
 
 # -- Configure resource requests and limits. Update according to your own use
-# case as these values might be too low for a typical deployment.
-# ref: http://kubernetes.io/docs/user-guide/compute-resources/
-resources: {}
-  #   requests:
-  #     cpu: 1000m
-  #     memory: 4Gi
-  #   limits:
-  #     cpu: 4000m
-  #     memory: 16Gi
+# case as these values might not be suitable for your workload.
+# Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+#
+# @default -- See `values.yaml` for defaults
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+#   limits:
+#     cpu: 2000m
+#     memory: 4Gi
 
 # -- Security context for Clickhouse node
 securityContext:
