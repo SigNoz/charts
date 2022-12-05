@@ -209,7 +209,8 @@ clickhouse:
   # Possible values can be found here:
   # - https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
   podDistribution:
-    - type: ClickHouseAntiAffinity
+    - scope: ClickHouseInstallation
+      type: ShardAntiAffinity
       topologyKey: kubernetes.io/hostname
 
   # Cold storage configuration
