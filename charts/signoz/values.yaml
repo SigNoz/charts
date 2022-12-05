@@ -1124,18 +1124,15 @@ otelCollector:
   # -- Toleration labels for OtelCollector pod assignment
   tolerations: []
   # -- Affinity settings for OtelCollector pod
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-          - key: app.kubernetes.io/component
-            operator: In
-            values:
-            - otel-collector
-        topologyKey: kubernetes.io/hostname
+  affinity: {}
   # -- TopologySpreadConstraints describes how OtelCollector pods ought to spread
-  topologySpreadConstraints: []
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: otel-collector
 
   podSecurityContext: {}
     # fsGroup: 2000
