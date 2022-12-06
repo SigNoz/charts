@@ -168,7 +168,9 @@ clickhouse:
     size: 20Gi
 
   # -- Clickhouse user profile configuration.
-  # You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+  # You can use this to override profile settings, for example
+  # `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+  #
   # For the full list of settings, see:
   # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
   # - https://clickhouse.com/docs/en/operations/settings/settings/
