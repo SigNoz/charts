@@ -228,7 +228,9 @@ persistence:
   size: 20Gi
 
 # -- Clickhouse user profile configuration.
-# You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+# You can use this to override profile settings, for example
+# `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+#
 # For the full list of settings, see:
 # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
 # - https://clickhouse.com/docs/en/operations/settings/settings/
@@ -236,6 +238,7 @@ persistence:
 profiles: {}
 
 # -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
+# @default -- See `values.yaml` for defaults
 defaultProfiles:
   default/allow_experimental_window_functions: "1"
   default/allow_nondeterministic_mutations: "1"
@@ -262,6 +265,7 @@ settings: {}
   # prometheus/asynchronous_metrics: true
 
 # -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+# @default -- See `values.yaml` for defaults
 defaultSettings:
   format_schema_path: /etc/clickhouse-server/config.d/
 
@@ -276,10 +280,14 @@ podAnnotations: {}
 # -- Topologies on how to distribute the ClickHouse pod.
 # Possible values can be found here:
 # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-podDistribution:
-  - scope: ClickHouseInstallation
-    type: ShardAntiAffinity
-    topologyKey: kubernetes.io/hostname
+podDistribution: []
+  # - type: ShardAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: ReplicaAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: MaxNumberPerNode
+  #   number: 2
+  #   topologyKey: kubernetes.io/hostname
 
 # Cold storage configuration
 coldStorage:

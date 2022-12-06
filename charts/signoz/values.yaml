@@ -39,6 +39,12 @@ clickhouse:
     # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
     enabled: true
 
+    # -- Replica count for zookeeper
+    replicaCount: 1
+
+    # -- Whether to install zookeeper into a different namespace than the parent
+    namespaceOverride: ""
+
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
 
@@ -162,7 +168,9 @@ clickhouse:
     size: 20Gi
 
   # -- Clickhouse user profile configuration.
-  # You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+  # You can use this to override profile settings, for example
+  # `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+  #
   # For the full list of settings, see:
   # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
   # - https://clickhouse.com/docs/en/operations/settings/settings/
@@ -208,10 +216,14 @@ clickhouse:
   # -- Topologies on how to distribute the ClickHouse pod.
   # Possible values can be found here:
   # - https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-  podDistribution:
-    - scope: ClickHouseInstallation
-      type: ShardAntiAffinity
-      topologyKey: kubernetes.io/hostname
+  podDistribution: []
+    # - type: ShardAntiAffinity
+    #   topologyKey: kubernetes.io/hostname
+    # - type: ReplicaAntiAffinity
+    #   topologyKey: kubernetes.io/hostname
+    # - type: MaxNumberPerNode
+    #   number: 2
+    #   topologyKey: kubernetes.io/hostname
 
   # Cold storage configuration
   coldStorage:
