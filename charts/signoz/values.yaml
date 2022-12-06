@@ -1195,7 +1195,7 @@ otelCollector:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
-            max_recv_msg_size_mib: 4
+            max_recv_msg_size_mib: 16
           http:
             endpoint: 0.0.0.0:4318
       jaeger:
@@ -1228,7 +1228,7 @@ otelCollector:
                 - ${MY_POD_IP}:8888
     processors:
       batch:
-        send_batch_size: 100000
+        send_batch_size: 50000
         timeout: 1s
 
       # memory_limiter:
@@ -1592,8 +1592,9 @@ otelCollectorMetrics:
                   target_label: k8s_pod
     processors:
       batch:
-        send_batch_size: 1000
-        timeout: 10s
+        send_batch_size: 10000
+        timeout: 1s
+
       # -- Memory Limiter processor
       # If set to null, will be overridden with values based on k8s resource limits.
       memory_limiter: null
@@ -1877,8 +1878,8 @@ k8s-infra:
                   - ${MY_POD_IP}:8888
       processors:
         batch:
-          send_batch_size: 5000
-          timeout: 5s
+          send_batch_size: 10000
+          timeout: 200ms
         # Resource detection processor config.
         # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
         resourcedetection:
@@ -1979,8 +1980,8 @@ k8s-infra:
                     - ${MY_POD_IP}:8888
       processors:
         batch:
-          send_batch_size: 5000
-          timeout: 5s
+          send_batch_size: 10000
+          timeout: 1s
         # Memory Limiter processor.
         # If set to null, will be overridden with values based on k8s resource limits.
         memory_limiter: null
