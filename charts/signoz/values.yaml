@@ -39,6 +39,12 @@ clickhouse:
     # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
     enabled: true
 
+    # -- Replica count for zookeeper
+    replicaCount: 1
+
+    # -- Whether to install zookeeper into a different namespace than the parent
+    namespaceOverride: ""
+
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
 
