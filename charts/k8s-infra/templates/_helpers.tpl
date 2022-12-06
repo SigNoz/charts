@@ -234,7 +234,8 @@ Assuming defaults for overrides and otel component name.
 */}}
 {{- define "otel.servicename" -}}
 {{- if and .Values.namespace (ne .Values.namespace .Release.Namespace) }}
-{{- printf "%s.%s.svc.%s" (include "otel.qualifiedname" .) .Release.Namespace .Values.clusterDomain }}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
+{{- printf "%s.%s.svc.%s" (include "otel.qualifiedname" .) .Release.Namespace $clusterDomain }}
 {{- else }}
 {{- include "otel.qualifiedname" . }}
 {{- end }}

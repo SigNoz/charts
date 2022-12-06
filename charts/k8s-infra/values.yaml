@@ -5,6 +5,9 @@ global:
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -50,9 +53,6 @@ otelTlsSecrets:
   # -- TLS private key to be included in the secret
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
-
-# -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
-clusterDomain: cluster.local
 
 # -- Which namespace to install k8s-infra components.
 # By default installed to the namespace same as the chart.
@@ -472,6 +472,7 @@ otelAgent:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 4
           http:
             endpoint: 0.0.0.0:4318
       prometheus:
@@ -485,8 +486,8 @@ otelAgent:
                 - ${MY_POD_IP}:8888
     processors:
       batch:
-        send_batch_size: 5000
-        timeout: 5s
+        send_batch_size: 10000
+        timeout: 200ms
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
@@ -779,8 +780,9 @@ otelDeployment:
                   - ${MY_POD_IP}:8888
     processors:
       batch:
-        send_batch_size: 5000
-        timeout: 5s
+        send_batch_size: 10000
+        timeout: 1s
+
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       memory_limiter: null

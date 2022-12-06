@@ -2,8 +2,8 @@ apiVersion: v2
 name: clickhouse
 description: A Helm chart for ClickHouse
 type: application
-version: 23.5.4
-appVersion: "22.4.5"
+version: 23.6.0
+appVersion: "22.8.8"
 icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
 sources:
   - https://github.com/signoz/charts/

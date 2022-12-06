@@ -99,8 +99,13 @@ spec:
       {{- if .Values.externalZookeeper }}
         {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
       {{- else }}
-        - host: {{ include "clickhouse.zookeeper.servicename" . }}
+        {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
+        {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
+        {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) }}
+        {{- range $replicaIndex := until $replicaCount }}
+        - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
           port: {{ include "clickhouse.zookeeper.port" . }}
+        {{- end }}
       {{- end }}
 
   templates:
@@ -111,8 +116,12 @@ spec:
             {{- include "clickhouse.labels" . | nindent 12 }}
           {{- with .Values.podAnnotations }}
           annotations:
-            {{- toYaml . | nindent 12 -}}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- with .Values.podDistribution }}
+        podDistribution:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
           serviceAccountName: {{ include "clickhouse.fullname" . }}-instance

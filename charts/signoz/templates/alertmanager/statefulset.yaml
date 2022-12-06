@@ -50,6 +50,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+    {{- with .Values.alertmanager.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
       securityContext:
         {{- toYaml .Values.alertmanager.podSecurityContext | nindent 8 }}
       {{- if .Values.alertmanager.initContainers.init.enabled }}

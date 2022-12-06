@@ -5,6 +5,9 @@ global:
     registry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: &GLOBAL_SC null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
 
 # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
 # Based on the cloud, storage class for the persistent volume is selected.
@@ -17,6 +20,8 @@ cloud: other
 ### ---- ZOOKEEPER ----
 ###
 ###
+
+# Zookeeper default values
 zookeeper:
   #
   # Please DO NOT override this value.
@@ -26,6 +31,17 @@ zookeeper:
 
   # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
   enabled: true
+
+  # -- Name override for zookeeper app
+  nameOverride: ""
+  # -- Fullname override for zookeeper app
+  fullnameOverride: ""
+
+  # -- Whether to install zookeeper into a different namespace than the parent
+  namespaceOverride: ""
+
+  # -- Zookeeper pod(s) annotation.
+  podAnnotations: {}
 
   autopurge:
     # -- The time interval (in hours) for which the purge task has to be triggered
@@ -39,27 +55,25 @@ zookeeper:
       # -- ZooKeeper metrics service annotation
       annotations: {}
 
-  ## -- Zookeeper pod(s) annotation.
-  podAnnotations: {}
+  # -- Minimal SERVER_ID value, nodes increment their IDs respectively.
+  # Servers increment their ID starting at this minimal value.
+  # Eg. with `minServerId=10` and 3 replicas, server IDs will be 10,
+  # 11, 12 for z-0, z-1 and z-2 respectively.
+  minServerId: 1
 
-  # -- Name override for zookeeper app
-  nameOverride: ""
-  # -- Fullname override for zookeeper app
-  fullnameOverride: ""
-
-  # -- replica count for zookeeper
+  # -- Replica count for zookeeper
   replicaCount: 1
 
-  ## Enable persistence using Persistent Volume Claims
-  ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
-  ##
+  # Enable persistence using Persistent Volume Claims
+  #
+  # Ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
   persistence:
     # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
-    #
     enabled: true
+
     # -- Name of an existing PVC to use (only when deploying a single replica)
-    #
     existingClaim: ""
+
     # -- PVC Storage Class for ZooKeeper data volume
     # If defined, storageClassName: <storageClass>
     # If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -146,22 +160,25 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
+# -- Node selector for settings for clickhouse pod
+nodeSelector: {}
 # -- Toleration labels for clickhouse pod assignment
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
-# -- node selector for settings for clickhouse pod
-nodeSelector: {}
+
 # -- Configure resource requests and limits. Update according to your own use
-# case as these values might be too low for a typical deployment.
-# ref: http://kubernetes.io/docs/user-guide/compute-resources/
-resources: {}
-  #   requests:
-  #     cpu: 1000m
-  #     memory: 4Gi
-  #   limits:
-  #     cpu: 4000m
-  #     memory: 16Gi
+# case as these values might not be suitable for your workload.
+# Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+#
+# @default -- See `values.yaml` for defaults
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+#   limits:
+#     cpu: 2000m
+#     memory: 4Gi
 
 # -- Security context for Clickhouse node
 securityContext:
@@ -255,6 +272,14 @@ podAnnotations: {}
   # signoz.io/scrape: 'true'
   # signoz.io/port: '9363'
   # signoz.io/path: /metrics
+
+# -- Topologies on how to distribute the ClickHouse pod.
+# Possible values can be found here:
+# https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
+podDistribution:
+  - scope: ClickHouseInstallation
+    type: ShardAntiAffinity
+    topologyKey: kubernetes.io/hostname
 
 # Cold storage configuration
 coldStorage:
