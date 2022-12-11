@@ -370,7 +370,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.11.4
+    tag: 0.12.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -498,7 +498,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.11.4
+    tag: 0.12.0
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -885,7 +885,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.63.0
+    tag: 0.66.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1349,7 +1349,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.63.0
+    tag: 0.66.0
     pullPolicy: Always
   imagePullSecrets: []
 
@@ -1685,9 +1685,6 @@ k8s-infra:
     key: |
       <INCLUDE_PRIVATE_KEY_HERE>
 
-  # -- Kubernetes cluster domain used when k8s-infra component installed in different namespace
-  clusterDomain: cluster.local
-
   # -- Which namespace to install k8s-infra components.
   # By default installed to the namespace same as the chart.
   namespace: ""
@@ -1834,7 +1831,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.63.0
+      tag: 0.66.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
@@ -1941,7 +1938,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.63.0
+      tag: 0.66.0
       pullPolicy: IfNotPresent
     imagePullSecrets: []
 
