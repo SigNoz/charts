@@ -1213,7 +1213,7 @@ otelCollector:
             40s,
             60s,
           ]
-        dimensions_cache_size: 10000
+        dimensions_cache_size: 100000
         dimensions:
           - name: service.namespace
             default: default
