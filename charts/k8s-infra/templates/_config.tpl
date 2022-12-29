@@ -164,6 +164,10 @@ receivers:
     auth_type: {{ .Values.presets.kubeletMetrics.authType }}
     endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
     insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
+    extra_metadata_labels:
+      {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
+    metric_groups:
+      {{ toYaml .Values.presets.kubeletMetrics.metricGroups | nindent 6 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyLogsCollectionConfig" -}}
@@ -178,7 +182,8 @@ receivers:
 receivers:
   filelog/k8s:
     # Include logs from all container
-    include: {{ .Values.presets.logsCollection.include }}
+    include:
+      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
     # Blacklist specific namespaces, pods or containers if enabled
     {{- if .Values.presets.logsCollection.blacklist.enabled }}
     {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
@@ -245,7 +250,5 @@ processors:
     {{ end }}
     extract:
       metadata:
-      {{ range $metadata := .Values.presets.kubernetesAttributes.extractMetadatas }}
-        - {{ $metadata }}
-      {{ end }}
+        {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
 {{- end }}
