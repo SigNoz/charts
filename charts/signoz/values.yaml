@@ -1859,7 +1859,7 @@ k8s-infra:
       annotations: {}
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
-    
+
     # -- OtelAgent daemonset annotation.
     annotations: {}
     # -- OtelAgent pod(s) annotation.
@@ -1965,7 +1965,7 @@ k8s-infra:
       annotations: {}
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
-    
+
     # -- OtelDeployment daemonset annotation.
     annotations: {}
     # -- OtelDeployment pod(s) annotation.
