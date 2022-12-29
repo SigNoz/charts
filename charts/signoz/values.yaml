@@ -1859,6 +1859,14 @@ k8s-infra:
       annotations: {}
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
+    
+    # -- OtelAgent daemonset annotation.
+    annotations: {}
+    # -- OtelAgent pod(s) annotation.
+    podAnnotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+      signoz.io/path: /metrics
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
@@ -1883,15 +1891,6 @@ k8s-infra:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
-        prometheus:
-          config:
-            global:
-              scrape_interval: 60s
-            scrape_configs:
-              - job_name: otel-agent
-                static_configs:
-                - targets:
-                  - ${MY_POD_IP}:8888
       processors:
         batch:
           send_batch_size: 10000
@@ -1931,7 +1930,7 @@ k8s-infra:
             processors: [batch]
             exporters: []
           metrics/generic:
-            receivers: [prometheus]
+            receivers: []
             processors: [resourcedetection, batch]
             exporters: []
           logs:
@@ -1966,6 +1965,14 @@ k8s-infra:
       annotations: {}
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
+    
+    # -- OtelDeployment daemonset annotation.
+    annotations: {}
+    # -- OtelDeployment pod(s) annotation.
+    podAnnotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+      signoz.io/path: /metrics
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
@@ -1983,17 +1990,7 @@ k8s-infra:
     # -- Configurations for OtelDeployment
     # @default -- See `values.yaml` for defaults
     config:
-      receivers:
-        # prometheus scrape config
-        prometheus:
-          config:
-            scrape_configs:
-              # deployment internal metrics
-              - job_name: "otel-deployment"
-                scrape_interval: 60s
-                static_configs:
-                  - targets:
-                    - ${MY_POD_IP}:8888
+      receivers: {}
       processors:
         batch:
           send_batch_size: 10000
@@ -2016,7 +2013,7 @@ k8s-infra:
         extensions: [health_check, zpages, pprof]
         pipelines:
           metrics:
-            receivers: [prometheus]
+            receivers: []
             processors: [batch]
             exporters: []
 
