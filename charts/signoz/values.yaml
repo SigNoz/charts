@@ -1232,12 +1232,14 @@ otelCollector:
       prometheus:
         config:
           global:
-            scrape_interval: 30s
+            scrape_interval: 60s
           scrape_configs:
             - job_name: otel-collector
               static_configs:
-              - targets:
-                - ${MY_POD_IP}:8888
+                - targets:
+                    - ${MY_POD_IP}:8888
+                  labels:
+                    job_name: otel-collector
     processors:
       batch:
         send_batch_size: 50000
@@ -1305,6 +1307,8 @@ otelCollector:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         resource_to_telemetry_conversion:
           enabled: true
+      clickhousemetricswrite/prometheus:
+        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
@@ -1332,9 +1336,13 @@ otelCollector:
           processors: [batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
-          receivers: [hostmetrics, prometheus]
+          receivers: [hostmetrics]
           processors: [resourcedetection, batch]
           exporters: [clickhousemetricswrite]
+        metrics/prometheus:
+          receivers: [prometheus]
+          processors: [batch]
+          exporters: [clickhousemetricswrite/prometheus]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
@@ -1383,10 +1391,7 @@ otelCollectorMetrics:
   # -- OtelColectorMetrics Deployment annotation.
   annotations: {}
   # -- OtelColectorMetrics pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1570,7 +1575,9 @@ otelCollectorMetrics:
               scrape_interval: 60s
               static_configs:
                 - targets:
-                  - ${MY_POD_IP}:8888
+                    - ${MY_POD_IP}:8888
+                  labels:
+                    job_name: otel-collector-metrics
             # generic prometheus metrics scraper (scrapped when pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
