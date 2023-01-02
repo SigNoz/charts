@@ -74,7 +74,7 @@ spec:
             - name: otel-deployment-config-vol
               mountPath: /conf
             {{- if .Values.otelTlsSecrets.enabled }}
-            - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+            - name: {{ include "k8s-infra.fullname" . }}-deployment-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
             {{- end }}
           {{- if .Values.otelDeployment.livenessProbe.enabled }}
@@ -128,7 +128,7 @@ spec:
           configMap:
             name: {{ include "otelDeployment.fullname" . }}
         {{- if .Values.otelTlsSecrets.enabled }}
-        - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+        - name: {{ include "k8s-infra.fullname" . }}-deployment-secrets-vol
           secret:
             secretName: {{ include "k8s-infra.secretName" . }}
             items:

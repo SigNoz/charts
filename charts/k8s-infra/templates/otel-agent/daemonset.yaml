@@ -40,15 +40,15 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-          {{- with .Values.otelDeployment.command.name }}
+          {{- with .Values.otelAgent.command.name }}
           command:
             - {{ . | quote }}
           {{- end }}
           args:
-            {{- if .Values.otelDeployment.configMap.create }}
+            {{- if .Values.otelAgent.configMap.create }}
             - "--config=/conf/otel-agent-config.yaml"
             {{- end }}
-            {{- range .Values.otelDeployment.command.extraArgs }}
+            {{- range .Values.otelAgent.command.extraArgs }}
             - {{ . | quote }}
             {{- end }}
           env:
@@ -91,12 +91,12 @@ spec:
               mountPath: /var/lib/docker/containers
               readOnly: true
             {{- if .Values.otelTlsSecrets.enabled }}
-            - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+            - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
             {{- end }}
           {{- if .Values.otelAgent.livenessProbe.enabled }}
           livenessProbe:
-            {{- with .Values.otelDeployment.livenessProbe }}
+            {{- with .Values.otelAgent.livenessProbe }}
             httpGet:
               port: {{ .port }}
               path: {{ .path }}
@@ -111,7 +111,7 @@ spec:
           {{- end }}
           {{- if .Values.otelAgent.readinessProbe.enabled }}
           readinessProbe:
-            {{- with .Values.otelDeployment.readinessProbe }}
+            {{- with .Values.otelAgent.readinessProbe }}
             httpGet:
               port: {{ .port }}
               path: {{ .path }}
@@ -149,7 +149,7 @@ spec:
           hostPath:
             path: /var/lib/docker/containers
         {{- if .Values.otelTlsSecrets.enabled }}
-        - name: {{ include "k8s-infra.fullname" . }}-secrets-vol
+        - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
           secret:
            secretName: {{ include "k8s-infra.secretName" . }}
            items:
