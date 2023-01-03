@@ -5,7 +5,7 @@ metadata:
   namespace: {{ include "k8s-infra.namespace" . }}
   labels:
     {{- include "otelDeployment.labels" . | nindent 4 }}
-{{- with .Values.otelAgent }}
+{{- with .Values.otelDeployment }}
   {{- if .service.annotations }}
   annotations:
     {{- toYaml .service.annotations | nindent 4 }}
