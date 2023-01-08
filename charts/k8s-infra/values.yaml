@@ -244,7 +244,10 @@ otelAgent:
   # -- OtelAgent daemonset annotation.
   annotations: {}
   # -- OtelAgent pod(s) annotation.
-  podAnnotations: {}
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
+    signoz.io/path: /metrics
 
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.
@@ -483,15 +486,6 @@ otelAgent:
             max_recv_msg_size_mib: 4
           http:
             endpoint: 0.0.0.0:4318
-      prometheus:
-        config:
-          global:
-            scrape_interval: 60s
-          scrape_configs:
-            - job_name: otel-agent
-              static_configs:
-              - targets:
-                - ${MY_POD_IP}:8888
     processors:
       batch:
         send_batch_size: 10000
@@ -531,7 +525,7 @@ otelAgent:
           processors: [batch]
           exporters: []
         metrics/generic:
-          receivers: [prometheus]
+          receivers: []
           processors: [resourcedetection, batch]
           exporters: []
         logs:
@@ -579,7 +573,10 @@ otelDeployment:
   # -- OtelDeployment deployment annotation.
   annotations: {}
   # -- OtelDeployment pod(s) annotation.
-  podAnnotations: {}
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
+    signoz.io/path: /metrics
 
   # -- Pod-level security configuration
   podSecurityContext: {}
@@ -775,17 +772,7 @@ otelDeployment:
   # -- Configurations for OtelDeployment
   # @default -- See `values.yaml` for defaults
   config:
-    receivers:
-      # prometheus scrape config
-      prometheus:
-        config:
-          scrape_configs:
-            # deployment internal metrics
-            - job_name: "otel-deployment"
-              scrape_interval: 60s
-              static_configs:
-                - targets:
-                  - ${MY_POD_IP}:8888
+    receivers: {}
     processors:
       batch:
         send_batch_size: 10000
@@ -809,6 +796,6 @@ otelDeployment:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics:
-          receivers: [prometheus]
+          receivers: []
           processors: [batch]
           exporters: []

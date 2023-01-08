@@ -1232,12 +1232,14 @@ otelCollector:
       prometheus:
         config:
           global:
-            scrape_interval: 30s
+            scrape_interval: 60s
           scrape_configs:
             - job_name: otel-collector
               static_configs:
-              - targets:
-                - ${MY_POD_IP}:8888
+                - targets:
+                    - ${MY_POD_IP}:8888
+                  labels:
+                    job_name: otel-collector
     processors:
       batch:
         send_batch_size: 50000
@@ -1305,6 +1307,8 @@ otelCollector:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         resource_to_telemetry_conversion:
           enabled: true
+      clickhousemetricswrite/prometheus:
+        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
@@ -1332,9 +1336,13 @@ otelCollector:
           processors: [batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
-          receivers: [hostmetrics, prometheus]
+          receivers: [hostmetrics]
           processors: [resourcedetection, batch]
           exporters: [clickhousemetricswrite]
+        metrics/prometheus:
+          receivers: [prometheus]
+          processors: [batch]
+          exporters: [clickhousemetricswrite/prometheus]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
@@ -1383,10 +1391,7 @@ otelCollectorMetrics:
   # -- OtelColectorMetrics Deployment annotation.
   annotations: {}
   # -- OtelColectorMetrics pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1570,7 +1575,9 @@ otelCollectorMetrics:
               scrape_interval: 60s
               static_configs:
                 - targets:
-                  - ${MY_POD_IP}:8888
+                    - ${MY_POD_IP}:8888
+                  labels:
+                    job_name: otel-collector-metrics
             # generic prometheus metrics scraper (scrapped when pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
@@ -1853,6 +1860,14 @@ k8s-infra:
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
 
+    # -- OtelAgent daemonset annotation.
+    annotations: {}
+    # -- OtelAgent pod(s) annotation.
+    podAnnotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+      signoz.io/path: /metrics
+
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
     # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -1876,15 +1891,6 @@ k8s-infra:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
-        prometheus:
-          config:
-            global:
-              scrape_interval: 60s
-            scrape_configs:
-              - job_name: otel-agent
-                static_configs:
-                - targets:
-                  - ${MY_POD_IP}:8888
       processors:
         batch:
           send_batch_size: 10000
@@ -1924,7 +1930,7 @@ k8s-infra:
             processors: [batch]
             exporters: []
           metrics/generic:
-            receivers: [prometheus]
+            receivers: []
             processors: [resourcedetection, batch]
             exporters: []
           logs:
@@ -1960,6 +1966,14 @@ k8s-infra:
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
 
+    # -- OtelDeployment daemonset annotation.
+    annotations: {}
+    # -- OtelDeployment pod(s) annotation.
+    podAnnotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+      signoz.io/path: /metrics
+
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
     # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -1976,17 +1990,7 @@ k8s-infra:
     # -- Configurations for OtelDeployment
     # @default -- See `values.yaml` for defaults
     config:
-      receivers:
-        # prometheus scrape config
-        prometheus:
-          config:
-            scrape_configs:
-              # deployment internal metrics
-              - job_name: "otel-deployment"
-                scrape_interval: 60s
-                static_configs:
-                  - targets:
-                    - ${MY_POD_IP}:8888
+      receivers: {}
       processors:
         batch:
           send_batch_size: 10000
@@ -2009,7 +2013,7 @@ k8s-infra:
         extensions: [health_check, zpages, pprof]
         pipelines:
           metrics:
-            receivers: [prometheus]
+            receivers: []
             processors: [batch]
             exporters: []
 
