@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: busybox
+      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.35
       command: ['wget']
       args: ['{{ include "frontend.fullname" . }}:{{ .Values.frontend.service.port }}']
   restartPolicy: Never
