@@ -94,7 +94,7 @@ Create the name of the service account to use for agent.
 Return the proper image name of agent.
 */}}
 {{- define "otelAgent.image" -}}
-{{- $registryName := default .Values.otelAgent.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.otelAgent.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelAgent.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.otelAgent.image.tag | toString -}}
 {{- if $registryName -}}
@@ -174,7 +174,7 @@ Create the name of the service account to use for deployment.
 Return the proper image name of deployment.
 */}}
 {{- define "otelDeployment.image" -}}
-{{- $registryName := default .Values.otelDeployment.image.registry .Values.global.image.registry }}
+{{- $registryName := default .Values.otelDeployment.image.registry .Values.global.imageRegistry }}
 {{- $repositoryName := .Values.otelDeployment.image.repository }}
 {{- $tag := default .Chart.AppVersion .Values.otelDeployment.image.tag | toString }}
 {{- if $registryName }}
