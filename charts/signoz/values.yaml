@@ -8,6 +8,9 @@ global:
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
   clusterDomain: cluster.local
+  # -- Kubernetes cluster name
+  # It is used to attached to telemetry data via resource detection processor
+  clusterName: ""
 
 # -- SigNoz chart name override
 nameOverride: ""
@@ -15,15 +18,28 @@ nameOverride: ""
 # -- SigNoz chart full name override
 fullnameOverride: ""
 
+# -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach in telemetry data.
+clusterName: ""
+
 # Clickhouse default values
 # For complete list of configurations, check `values.yaml` of `clickhouse` chart.
 # @ignored
 clickhouse:
+  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+  enabled: true
+
   # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
   # Based on the cloud, storage class for the persistent volume is selected.
   # When set to 'aws' or 'gcp', new expandible storage class is created.
   # When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
   cloud: other
+
+  # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
+  namespace: ""
+  # -- Name override for clickhouse
+  nameOverride: ""
+  # -- Fullname override for clickhouse
+  fullnameOverride: ""
 
   # Zookeeper default values
   # @ignored
@@ -44,16 +60,6 @@ clickhouse:
 
     # -- Whether to install zookeeper into a different namespace than the parent
     namespaceOverride: ""
-
-  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
-  enabled: true
-
-  # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
-  namespace: ""
-  # -- Name override for clickhouse
-  nameOverride: ""
-  # -- Fullname override for clickhouse
-  fullnameOverride: ""
 
   # -- Clickhouse cluster
   cluster: cluster
@@ -921,8 +927,9 @@ otelCollector:
   # -- OtelColector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
-    signoz.io/port: '8889'
-    signoz.io/path: /metrics
+    signoz.io/port: '8888'
+    apm.signoz.io/scrape: 'true'
+    apm.signoz.io/port: '8889'
 
   minReadySeconds: 5
   progressDeadlineSeconds: 120
@@ -1229,42 +1236,25 @@ otelCollector:
           disk: {}
           filesystem: {}
           network: {}
-      prometheus:
-        config:
-          global:
-            scrape_interval: 60s
-          scrape_configs:
-            - job_name: otel-collector
-              static_configs:
-                - targets:
-                    - ${MY_POD_IP}:8888
-                  labels:
-                    job_name: otel-collector
     processors:
+      # Batch processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 50000
         timeout: 1s
-
-      # memory_limiter:
-      #   check_interval: 1s
-      #   # 80% of maximum memory up to 2G
-      #   limit_mib: 1500
-      #   # 25% of limit up to 2G
-      #   spike_limit_mib: 512
-      #   check_interval: 5s
-      #
-      #   # 80% of the maximum memory
-      #   limit_percentage: 80
-      #   # 60% of max memory usage spike expected
-      #   spike_limit_percentage: 60
-
-      # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      # Resource detection processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
         detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
         timeout: 2s
         system:
           hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+      # Memory Limiter processor config.
+      # If set to null, will be overridden with values based on k8s resource limits.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
+      memory_limiter: null
+      # SigNoz internal spanmetrics processor which generates metrics from traces
       signozspanmetrics/prometheus:
         metrics_exporter: prometheus
         latency_histogram_buckets:
@@ -1293,6 +1283,22 @@ otelCollector:
             default: default
           - name: deployment.environment
             default: default
+      k8sattributes:
+        passthrough: true
+        pod_association:
+          - from: resource_attribute
+            name: k8s.pod.ip
+          - from: resource_attribute
+            name: k8s.pod.uid
+          - from: connection
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.pod.start_time
+            - k8s.deployment.name
+            - k8s.node.name
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1307,8 +1313,6 @@ otelCollector:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         resource_to_telemetry_conversion:
           enabled: true
-      clickhousemetricswrite/prometheus:
-        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
@@ -1329,7 +1333,7 @@ otelCollector:
       pipelines:
         traces:
           receivers: [jaeger, otlp]
-          processors: [signozspanmetrics/prometheus, batch]
+          processors: [k8sattributes, signozspanmetrics/prometheus, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
@@ -1339,16 +1343,12 @@ otelCollector:
           receivers: [hostmetrics]
           processors: [resourcedetection, batch]
           exporters: [clickhousemetricswrite]
-        metrics/prometheus:
-          receivers: [prometheus]
-          processors: [batch]
-          exporters: [clickhousemetricswrite/prometheus]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [batch]
+          processors: [k8sattributes, batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
@@ -1391,7 +1391,10 @@ otelCollectorMetrics:
   # -- OtelColectorMetrics Deployment annotation.
   annotations: {}
   # -- OtelColectorMetrics pod(s) annotation.
-  podAnnotations: {}
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '8888'
+    signoz.io/path: /metrics
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1570,14 +1573,54 @@ otelCollectorMetrics:
       prometheus:
         config:
           scrape_configs:
-            # otel-collector-metrics internal metrics
-            - job_name: "otel-collector-metrics"
+            # internal signoz apm spanmetrics scraper (scrapped when pod annotations are set)
+            - job_name: "signoz-spanmetrics-collector"
               scrape_interval: 60s
-              static_configs:
-                - targets:
-                    - ${MY_POD_IP}:8888
-                  labels:
-                    job_name: otel-collector-metrics
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_apm_signoz_io_scrape]
+                  action: keep
+                  regex: true
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_apm_signoz_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - source_labels:
+                    [
+                      __meta_kubernetes_pod_ip,
+                      __meta_kubernetes_pod_annotation_apm_signoz_io_port,
+                    ]
+                  action: replace
+                  separator: ":"
+                  target_label: __address__
+                - target_label: job_name
+                  replacement: signoz-spanmetrics-collector
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: replace
+                  target_label: k8s_namespace_name
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: k8s_pod_name
+                - source_labels: [__meta_kubernetes_pod_uid]
+                  action: replace
+                  target_label: k8s_pod_uid
+                - source_labels: [__meta_kubernetes_pod_container_name]
+                  action: replace
+                  target_label: k8s_container_name
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  action: replace
+                  target_label: k8s_node_name
+                - source_labels: [__meta_kubernetes_pod_ready]
+                  action: replace
+                  target_label: k8s_pod_ready
+                - source_labels: [__meta_kubernetes_pod_phase]
+                  action: replace
+                  target_label: k8s_pod_phase
             # generic prometheus metrics scraper (scrapped when pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
@@ -1601,33 +1644,49 @@ otelCollectorMetrics:
                   action: replace
                   separator: ":"
                   target_label: __address__
+                - target_label: job_name
+                  replacement: generic-collector
                 - action: labelmap
                   regex: __meta_kubernetes_pod_label_(.+)
                 - source_labels: [__meta_kubernetes_namespace]
                   action: replace
-                  target_label: k8s_namespace
+                  target_label: k8s_namespace_name
                 - source_labels: [__meta_kubernetes_pod_name]
                   action: replace
-                  target_label: k8s_pod
+                  target_label: k8s_pod_name
+                - source_labels: [__meta_kubernetes_pod_uid]
+                  action: replace
+                  target_label: k8s_pod_uid
+                - source_labels: [__meta_kubernetes_pod_container_name]
+                  action: replace
+                  target_label: k8s_container_name
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  action: replace
+                  target_label: k8s_node_name
+                - source_labels: [__meta_kubernetes_pod_ready]
+                  action: replace
+                  target_label: k8s_pod_ready
+                - source_labels: [__meta_kubernetes_pod_phase]
+                  action: replace
+                  target_label: k8s_pod_phase
     processors:
+      # Batch processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 10000
         timeout: 1s
-
-      # -- Memory Limiter processor
+      # Resource detection processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      resourcedetection:
+        detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+        timeout: 2s
+        system:
+          hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+      # Memory Limiter processor config.
       # If set to null, will be overridden with values based on k8s resource limits.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
       memory_limiter: null
-      # memory_limiter:
-      #   # 80% of maximum memory up to 2G
-      #   limit_mib: 1500
-      #   # 25% of limit up to 2G
-      #   spike_limit_mib: 512
-      #   check_interval: 5s
-      #
-      #   # 50% of the maximum memory
-      #   limit_percentage: 50
-      #   # 20% of max memory usage spike expected
-      #   spike_limit_percentage: 20
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1646,6 +1705,9 @@ otelCollectorMetrics:
       pipelines:
         metrics:
           receivers: [prometheus]
+          # other processor which appends attributes would basically be no-op
+          # since resource to telemetry conversion is not enabled for the exporter
+          # processors: [batch]
           processors: [batch]
           exporters: [clickhousemetricswrite]
 
@@ -1892,6 +1954,8 @@ k8s-infra:
             http:
               endpoint: 0.0.0.0:4318
       processors:
+        # Batch processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
         batch:
           send_batch_size: 10000
           timeout: 200ms
@@ -1992,11 +2056,22 @@ k8s-infra:
     config:
       receivers: {}
       processors:
+        # Batch processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
         batch:
           send_batch_size: 10000
           timeout: 1s
-        # Memory Limiter processor.
+        # Resource detection processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+        resourcedetection:
+          detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+          # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+          timeout: 2s
+          system:
+            hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
+        # Memory Limiter processor config.
         # If set to null, will be overridden with values based on k8s resource limits.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
         memory_limiter: null
       extensions:
         health_check:

@@ -8,6 +8,12 @@ global:
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
   clusterDomain: cluster.local
+  # -- Kubernetes cluster name
+  # It is used to attached to telemetry data via resource detection processor
+  clusterName: ""
+
+# -- Whether to enable K8s infra chart
+enabled: true
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -15,8 +21,8 @@ nameOverride: ""
 # -- K8s infra chart full name override
 fullnameOverride: ""
 
-# -- Whether to enable K8s infra chart
-enabled: true
+# -- Name of the K8s cluster. Used by OtelCollectors to attach in telemetry data.
+clusterName: ""
 
 # -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 # Set it to `ingest.signoz.io:4317` for SigNoz SaaS.
