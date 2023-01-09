@@ -91,7 +91,7 @@ Return suffix part of the headless service
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
-{{- $registryName := default .Values.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
 {{- if $registryName -}}
@@ -150,7 +150,7 @@ app.kubernetes.io/component: {{ .Values.clickhouseOperator.name }}
 Return the proper clickhouseOperator image name
 */}}
 {{- define "clickhouseOperator.image" -}}
-{{- $registryName := default .Values.clickhouseOperator.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.clickhouseOperator.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.clickhouseOperator.image.repository -}}
 {{- $tag := default .Values.clickhouseOperator.version .Values.clickhouseOperator.image.tag | toString -}}
 {{- if $registryName -}}
@@ -183,7 +183,7 @@ Create a default fully qualified app name for metricsExporter.
 Return the proper metricsExporter image name
 */}}
 {{- define "metricsExporter.image" -}}
-{{- $registryName := default .Values.clickhouseOperator.metricsExporter.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.clickhouseOperator.metricsExporter.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.clickhouseOperator.metricsExporter.image.repository -}}
 {{- $tag := default .Values.clickhouseOperator.version .Values.clickhouseOperator.metricsExporter.image.tag | toString -}}
 {{- if $registryName -}}
