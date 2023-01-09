@@ -8,6 +8,9 @@ global:
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
   clusterDomain: cluster.local
+  # -- Kubernetes cluster name
+  # It is used to attached to telemetry data via resource detection processor
+  clusterName: ""
 
 # -- SigNoz chart name override
 nameOverride: ""
@@ -15,10 +18,16 @@ nameOverride: ""
 # -- SigNoz chart full name override
 fullnameOverride: ""
 
+# -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach in telemetry data.
+clusterName: ""
+
 # Clickhouse default values
 # For complete list of configurations, check `values.yaml` of `clickhouse` chart.
 # @ignored
 clickhouse:
+  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+  enabled: true
+
   # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
   # Based on the cloud, storage class for the persistent volume is selected.
   # When set to 'aws' or 'gcp', new expandible storage class is created.
@@ -44,9 +53,6 @@ clickhouse:
 
     # -- Whether to install zookeeper into a different namespace than the parent
     namespaceOverride: ""
-
-  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
-  enabled: true
 
   # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
   namespace: ""
