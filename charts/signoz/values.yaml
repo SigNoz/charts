@@ -1610,8 +1610,18 @@ otelCollectorMetrics:
                   target_label: __address__
                 - target_label: job_name
                   replacement: signoz-spanmetrics-collector
-                - action: labelmap
-                  regex: __meta_kubernetes_pod_label_(.+)
+                # Uncomment line below to include all labels of the pod
+                # - action: labelmap
+                #   regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                  action: replace
+                  target_label: signoz_k8s_name
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+                  action: replace
+                  target_label: signoz_k8s_instance
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+                  action: replace
+                  target_label: signoz_k8s_component
                 - source_labels: [__meta_kubernetes_namespace]
                   action: replace
                   target_label: k8s_namespace_name
@@ -1658,8 +1668,18 @@ otelCollectorMetrics:
                   target_label: __address__
                 - target_label: job_name
                   replacement: generic-collector
-                - action: labelmap
-                  regex: __meta_kubernetes_pod_label_(.+)
+                # Uncomment line below to include all labels of the pod
+                # - action: labelmap
+                #   regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                  action: replace
+                  target_label: signoz_k8s_name
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+                  action: replace
+                  target_label: signoz_k8s_instance
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+                  action: replace
+                  target_label: signoz_k8s_component
                 - source_labels: [__meta_kubernetes_namespace]
                   action: replace
                   target_label: k8s_namespace_name
