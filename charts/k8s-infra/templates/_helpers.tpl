@@ -338,3 +338,50 @@ Return if ingress is stable.
 {{- include "k8s-infra.fullname" . }}-secrets
 {{- end }}
 {{- end -}}
+
+{{/*
+Common K8s environment variables used by OtelAgent and OtelDeployment.
+*/}}
+{{- define "snippet.k8s-env" }}
+- name: K8S_NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: K8S_POD_IP
+  valueFrom:
+    fieldRef:
+      apiVersion: v1
+      fieldPath: status.podIP
+- name: K8S_HOST_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+- name: K8S_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: K8S_POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: K8S_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+{{- end }}
+
+{{/*
+OTLP exporter environment variables used by OtelAgent and OtelDeployment.
+*/}}
+{{- define "snippet.otlp-env" }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ include "otel.endpoint" . }}
+- name: OTEL_EXPORTER_OTLP_INSECURE
+  value: {{ include "otel.insecure" . }}
+- name: SIGNOZ_API_KEY
+  value: {{ include "otel.signozApiKey" . }}
+- name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
+  value: {{ include "otel.insecureSkipVerify" . }}
+- name: OTEL_SECRETS_PATH
+  value: {{ include "otel.secretsPath" . }}
+{{- end }}
