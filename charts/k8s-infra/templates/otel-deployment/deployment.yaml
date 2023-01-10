@@ -55,21 +55,12 @@ spec:
           securityContext:
             {{- toYaml .Values.otelDeployment.securityContext | nindent 12 }}
           env:
-            - name: MY_POD_IP
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: status.podIP
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ include "otel.endpoint" . }}
-            - name: OTEL_EXPORTER_OTLP_INSECURE
-              value: {{ include "otel.insecure" . }}
-            - name: SIGNOZ_API_KEY
-              value: {{ include "otel.signozApiKey" . }}
-            - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
-              value: {{ include "otel.insecureSkipVerify" . }}
-            - name: OTEL_SECRETS_PATH
-              value: {{ include "otel.secretsPath" . }}
+            {{- include "snippet.otlp-env" . | nindent 12 }}
+            {{- include "snippet.k8s-env" . | nindent 12 }}
+            - name: K8S_CLUSTER_NAME
+              value: {{ default .Values.global.clusterName .Values.clusterName }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: host.name=$(K8S_NODE_NAME),signoz.component=otel-deployment,k8s.cluster.name=${K8S_CLUSTER_NAME}
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf

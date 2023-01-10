@@ -7,6 +7,9 @@ global:
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
   clusterDomain: cluster.local
+  # -- Kubernetes cluster name
+  # It is used to attached to telemetry data via resource detection processor
+  clusterName: ""
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -16,6 +19,9 @@ fullnameOverride: ""
 
 # -- Whether to enable K8s infra chart
 enabled: true
+
+# -- Name of the K8s cluster. Used by OtelCollectors to attach in telemetry data.
+clusterName: ""
 
 # -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 # Set it to `ingest.signoz.io:4317` for SigNoz SaaS.
@@ -486,20 +492,23 @@ otelAgent:
           http:
             endpoint: 0.0.0.0:4318
     processors:
+      # Batch processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 10000
         timeout: 200ms
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        detectors: [env, system]  # Include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
-        # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels
+        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+        detectors: [env, system]
         timeout: 2s
         system:
-          hostname_sources: [os]  # Alternatively, use [dns,os] for setting FQDN as host.name and os as fallback
-      # Memory Limiter processor config.
+          hostname_sources: [os]
+      # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       memory_limiter: null
     extensions:
       health_check:
@@ -773,12 +782,23 @@ otelDeployment:
   config:
     receivers: {}
     processors:
+      # Batch processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 10000
         timeout: 1s
-
+      # Resource detection processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      resourcedetection:
+        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+        detectors: [env, system]
+        timeout: 2s
+        system:
+          hostname_sources: [os]
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       memory_limiter: null
     extensions:
       health_check:
@@ -796,5 +816,5 @@ otelDeployment:
       pipelines:
         metrics:
           receivers: []
-          processors: [batch]
+          processors: [resourcedetection, batch]
           exporters: []
