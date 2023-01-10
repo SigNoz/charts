@@ -76,7 +76,7 @@ spec:
             - name: K8S_CLUSTER_NAME
               value: {{ default .Values.global.clusterName .Values.clusterName }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=signoz-host,os.type=linux,signoz.component=otel-collector-metrics
+              value: host.name=signoz-host,os.type=linux,signoz.component=otel-collector-metrics,k8s.cluster.name=${K8S_CLUSTER_NAME}
             {{- include "snippet.k8s-env" . | nindent 12 }}
           volumeMounts:
             - name: otel-collector-metrics-config-vol
