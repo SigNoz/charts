@@ -82,7 +82,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "queryService.initContainers.init.image" -}}
-{{- $registryName := .Values.queryService.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.queryService.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.queryService.initContainers.init.image.repository -}}
 {{- $tag := .Values.queryService.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -96,7 +96,7 @@ Return the initContainers image name
 Return the proper queryService image name
 */}}
 {{- define "queryService.image" -}}
-{{- $registryName := default .Values.queryService.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.queryService.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.queryService.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.queryService.image.tag | toString -}}
 {{- if $registryName -}}
@@ -178,7 +178,7 @@ Create the name of the service account to use
 Return the proper frontend image name
 */}}
 {{- define "frontend.image" -}}
-{{- $registryName := default .Values.frontend.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.frontend.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.frontend.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.frontend.image.tag | toString -}}
 {{- if $registryName -}}
@@ -192,7 +192,7 @@ Return the proper frontend image name
 Return the initContainers image name
 */}}
 {{- define "frontend.initContainers.init.image" -}}
-{{- $registryName := .Values.frontend.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.frontend.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.frontend.initContainers.init.image.repository -}}
 {{- $tag := .Values.frontend.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -254,7 +254,7 @@ Set alertmanager port
 Return the initContainers image name
 */}}
 {{- define "alertmanager.initContainers.init.image" -}}
-{{- $registryName := .Values.alertmanager.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.alertmanager.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.alertmanager.initContainers.init.image.repository -}}
 {{- $tag := .Values.alertmanager.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -268,7 +268,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "alertmanager.image" -}}
-{{- $registryName := default .Values.alertmanager.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.alertmanager.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.alertmanager.image.repository -}}
 {{- $tag := .Values.alertmanager.image.tag | toString -}}
 {{- if $registryName -}}
@@ -330,7 +330,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollector.initContainers.init.image" -}}
-{{- $registryName := .Values.otelCollector.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.otelCollector.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollector.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollector.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -344,7 +344,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "otelCollector.image" -}}
-{{- $registryName := default .Values.otelCollector.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.otelCollector.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollector.image.repository -}}
 {{- $tag := .Values.otelCollector.image.tag | toString -}}
 {{- if $registryName -}}
@@ -422,7 +422,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollectorMetrics.initContainers.init.image" -}}
-{{- $registryName := .Values.otelCollectorMetrics.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -436,7 +436,7 @@ Return the initContainers image name
 Return the proper otelCollectorMetrics image name
 */}}
 {{- define "otelCollectorMetrics.image" -}}
-{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.image.tag | toString -}}
 {{- if $registryName -}}

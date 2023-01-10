@@ -1,8 +1,7 @@
 # Global override values
 global:
-  image:
-    # -- Overrides the Docker registry globally for all images
-    registry: null
+  # -- Overrides the Docker registry globally for all images
+  imageRegistry: null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
   # -- Kubernetes cluster domain

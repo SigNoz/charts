@@ -1,8 +1,7 @@
 # Global override values
 global:
-  image:
-    # -- Overrides the Docker registry globally for all images
-    registry: null
+  # -- Overrides the Docker registry globally for all images
+  imageRegistry: &GLOBAL_IMAGE_REGISTRY null
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
   # -- Kubernetes cluster domain
@@ -47,6 +46,17 @@ clickhouse:
 
     # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
     enabled: true
+
+    # Zookeeper image
+    image:
+      # -- Zookeeper image registry to use.
+      registry: *GLOBAL_IMAGE_REGISTRY
+      # -- Zookeeper image repository to use.
+      repository: bitnami/zookeeper
+      # -- Zookeeper image tag.
+      # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
+      # Please override the default only if you know what you are doing.
+      tag: 3.7.0-debian-10-r70
 
     # -- Replica count for zookeeper
     replicaCount: 1
@@ -376,7 +386,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.13.0
+    tag: 0.13.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
@@ -504,7 +514,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.13.0
+    tag: 0.13.1
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   serviceAccount:
