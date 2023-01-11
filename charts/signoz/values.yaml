@@ -1295,6 +1295,7 @@ otelCollector:
             default: default
           - name: deployment.environment
             default: default
+          - name: signoz.collector.id
       k8sattributes:
         passthrough: true
         pod_association:
