@@ -862,6 +862,62 @@ entries:
   signoz:
   - apiVersion: v2
     appVersion: 0.13.1
+    created: "2023-01-11T13:47:36.704653617Z"
+    dependencies:
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://signoz.github.io/charts
+      version: 23.7.0
+    - condition: k8s-infra.enabled
+      name: k8s-infra
+      repository: https://signoz.github.io/charts
+      version: 0.5.0
+    - condition: cert-manager.enabled
+      name: cert-manager
+      repository: https://charts.jetstack.io
+      version: 1.9.1
+    - condition: ingress-nginx.enabled
+      name: ingress-nginx
+      repository: https://kubernetes.github.io/ingress-nginx
+      version: 4.3.0
+    - condition: minio.enabled
+      name: minio
+      repository: https://charts.min.io
+      version: 4.0.9
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.1.5
+    description: SigNoz Observability Platform Helm Chart
+    digest: 9c4c788c3ef8a6b0734dfa6dea8e9337e5a6f34807568a42439c265c1f3c4042
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    - distributed logging
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/signoz/signoz
+    - https://github.com/signoz/alertmanager
+    - https://github.com/signoz/signoz-otel-collector
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.8.1/signoz-0.8.1.tgz
+    version: 0.8.1
+  - apiVersion: v2
+    appVersion: 0.13.1
     created: "2023-01-10T06:36:55.51850334Z"
     dependencies:
     - condition: clickhouse.enabled
@@ -2707,4 +2763,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2023-01-10T06:36:55.51903865Z"
+generated: "2023-01-11T13:47:36.70524342Z"
