@@ -222,6 +222,8 @@ clickhouse:
   # -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
+    user_scripts_path: /var/lib/clickhouse/user_scripts/
+    user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
 
   # -- ClickHouse pod(s) annotation.
   podAnnotations:
@@ -303,6 +305,14 @@ clickhouse:
       # -- The name of the service account to use.
       # If not set and create is true, a name is generated using the fullname template
       name:
+
+  initContainers:
+    init:
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
 
     # -- Clickhouse Operator pod(s) annotation.
     podAnnotations:
@@ -1423,6 +1433,7 @@ otelCollectorMetrics:
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicaCount: 1
+
   initContainers:
     init:
       enabled: true
