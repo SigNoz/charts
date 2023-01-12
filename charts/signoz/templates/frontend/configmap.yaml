@@ -9,15 +9,17 @@ data:
     server {
       listen       {{ .Values.frontend.service.port }};
       server_name  _;
-
+    {{- with .Values.frontend.nginxExtraConfig }}
+      {{ . | trim | nindent 6 }}
+    {{- end }}
       gzip on;
-      gzip_static on;    
+      gzip_static on;
       gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
       gzip_proxied  any;
       gzip_vary on;
       gzip_comp_level 6;
       gzip_buffers 16 8k;
-      gzip_http_version 1.1; 
+      gzip_http_version 1.1;
 
       location / {
           if ( $uri = '/index.html' ) {
@@ -36,6 +38,9 @@ data:
       location /api {
         proxy_pass http://{{ include "queryService.url" . }}/api;
         proxy_http_version 1.1;
+
+        # connection will be closed if no data is read for 600s between successive read operations
+        proxy_read_timeout 600s;
       }
 
       # redirect server error pages to the static page /50x.html

@@ -1,0 +1,16 @@
+{{- $healthCheckPort := index .Values.otelDeployment.ports "health-check" -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "otelDeployment.fullname" . }}-test-connection"
+  labels:
+    {{- include "otelDeployment.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.35
+      command: ['wget']
+      args: ['{{ include "otelDeployment.fullname" . }}:{{ $healthCheckPort.servicePort }}']
+  restartPolicy: Never

@@ -1,0 +1,13 @@
+{{- if .Values.otelDeployment.clusterRole.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "otelDeployment.clusterRoleName" . }}
+  namespace: {{ include "k8s-infra.namespace" . }}
+  {{- with .Values.otelDeployment.clusterRole.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.otelDeployment.clusterRole.rules | nindent 2 }}
+{{- end }}

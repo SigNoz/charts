@@ -1,19 +1,19 @@
 # Template Parameters:
 #
-# NAMESPACE={{ include "chOperator.namespace" . }}
+# NAMESPACE={{ include "clickhouse.namespace" . }}
 # COMMENT=#
 # ROLE_KIND=ClusterRole
-# ROLE_NAME=clickhouse-operator-{{ include "chOperator.namespace" . }}
+# ROLE_NAME={{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
 # ROLE_BINDING_KIND=ClusterRoleBinding
-# ROLE_BINDING_NAME=clickhouse-operator-{{ include "chOperator.namespace" . }}
+# ROLE_BINDING_NAME={{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
 #
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: clickhouse-operator-{{ include "chOperator.namespace" . }}
-  namespace: {{ include "chOperator.namespace" . }}
+  name: {{ include "clickhouseOperator.fullname" . }}-{{ include "clickhouse.namespace" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 rules:
 - apiGroups:
     - ""
@@ -88,7 +88,7 @@ rules:
 - apiGroups:
     - apps
   resourceNames:
-    - clickhouse-operator
+    - {{ include "clickhouseOperator.fullname" . }}
   resources:
     - deployments
   verbs:

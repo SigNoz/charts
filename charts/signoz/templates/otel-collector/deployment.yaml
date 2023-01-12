@@ -14,80 +14,103 @@ spec:
       {{- include "otelCollector.selectorLabels" . | nindent 6 }}
   minReadySeconds: {{ .Values.otelCollector.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelCollector.progressDeadlineSeconds }}
-  replicas: {{ .Values.otelCollector.replicaCount }} # adjust replica count to your own requirements
+  {{- if not .Values.otelCollector.autoscaling.enabled }}
+  replicas: {{ .Values.otelCollector.replicaCount }}
+  {{- end }}
   template:
     metadata:
       annotations:
         {{- if .Values.otelCollector.podAnnotations -}}
           {{- toYaml .Values.otelCollector.podAnnotations | nindent 8 -}}
         {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/otel-collector/config.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/otel-collector/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
       initContainers:
         {{- if .Values.otelCollector.initContainers.init.enabled }}
         - name: {{ include "otelCollector.fullname" . }}-init
           image: {{ include "otelCollector.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.initContainers.init.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           {{- with .Values.otelCollector.initContainers.init.command }}
           command:
             - sh
             - -c
-            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end -}}
         {{- end }}
       containers:
-      - name: {{ template "otelCollector.fullname" . }}
-        image: {{ template "otelCollector.image" . }}
-        imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
-        ports:
-          {{- range $key, $port := .Values.otelCollector.ports }}
-          {{- if $port.enabled }}
-          - name: {{ $key }}
-            containerPort: {{ $port.containerPort }}
-            protocol: {{ $port.protocol }}
+        - name: {{ template "otelCollector.fullname" . }}
+          image: {{ template "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          ports:
+            {{- range $key, $port := .Values.otelCollector.ports }}
+            {{- if $port.enabled }}
+            - name: {{ $key }}
+              containerPort: {{ $port.containerPort }}
+              protocol: {{ $port.protocol }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.otelCollector.command.name }}
+          command:
+            - {{ . | quote }}
           {{- end }}
+          args:
+            {{- if .Values.otelCollector.configMap.create }}
+            - "--config=/conf/otel-collector-config.yaml"
+            {{- end }}
+            {{- range .Values.otelCollector.command.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- with .Values.otelCollector.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-        command:
-          - "/otelcontribcol"
-          - "--config=/conf/otel-collector-config.yaml"
-        env:
-          {{- include "snippet.clickhouse-env" . | nindent 10 }}
-        volumeMounts:
-          - name: otel-collector-config-vol
-            mountPath: /conf
-          # - name: otel-collector-secrets
-          #   mountPath: /secrets
-        {{- if .Values.otelCollector.livenessProbe.enabled }}
-        livenessProbe:
-          httpGet:
-            port: {{ .Values.otelCollector.livenessProbe.port }}
-            path: {{ .Values.otelCollector.livenessProbe.path }}
-          initialDelaySeconds: {{ .Values.otelCollector.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.otelCollector.livenessProbe.periodSeconds }}
-          timeoutSeconds: {{ .Values.otelCollector.livenessProbe.timeoutSeconds }}
-          successThreshold: {{ .Values.otelCollector.livenessProbe.successThreshold }}
-          failureThreshold: {{ .Values.otelCollector.livenessProbe.failureThreshold }}
-        {{- else if .Values.otelCollector.customLivenessProbe }}
-        livenessProbe: {{- toYaml .Values.otelCollector.customLivenessProbe | nindent 10 }}
-        {{- end }}
-        {{- if .Values.otelCollector.readinessProbe.enabled }}
-        readinessProbe:
-          httpGet:
-            port: {{ .Values.otelCollector.readinessProbe.port }}
-            path: {{ .Values.otelCollector.readinessProbe.path }}
-          initialDelaySeconds: {{ .Values.otelCollector.readinessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.otelCollector.readinessProbe.periodSeconds }}
-          timeoutSeconds: {{ .Values.otelCollector.readinessProbe.timeoutSeconds }}
-          successThreshold: {{ .Values.otelCollector.readinessProbe.successThreshold }}
-          failureThreshold: {{ .Values.otelCollector.readinessProbe.failureThreshold }}
-        {{- else if .Values.otelCollector.customReadinessProbe }}
-        readinessProbe: {{- toYaml .Values.otelCollector.customReadinessProbe | nindent 10 }}
-        {{- end }}
-        resources:
-          {{- toYaml .Values.otelCollector.resources | nindent 10 }}
+          env:
+            {{- include "snippet.clickhouse-env" . | nindent 12 }}
+            - name: K8S_CLUSTER_NAME
+              value: {{ default .Values.global.clusterName .Values.clusterName }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: host.name=signoz-host,signoz.component=otel-collector,k8s.cluster.name=${K8S_CLUSTER_NAME}
+            {{- include "snippet.k8s-env" . | nindent 12 }}
+          volumeMounts:
+            - name: otel-collector-config-vol
+              mountPath: /conf
+            # - name: otel-collector-secrets
+            #   mountPath: /secrets
+          {{- if .Values.otelCollector.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.otelCollector.livenessProbe.port }}
+              path: {{ .Values.otelCollector.livenessProbe.path }}
+            initialDelaySeconds: {{ .Values.otelCollector.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.otelCollector.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.otelCollector.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.otelCollector.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.otelCollector.livenessProbe.failureThreshold }}
+          {{- else if .Values.otelCollector.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.otelCollector.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.otelCollector.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.otelCollector.readinessProbe.port }}
+              path: {{ .Values.otelCollector.readinessProbe.path }}
+            initialDelaySeconds: {{ .Values.otelCollector.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.otelCollector.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.otelCollector.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.otelCollector.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.otelCollector.readinessProbe.failureThreshold }}
+          {{- else if .Values.otelCollector.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.otelCollector.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.otelCollector.resources | nindent 12 }}
       {{- with .Values.otelCollector.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -99,6 +122,9 @@ spec:
       {{- with .Values.otelCollector.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
       {{- end }}
       volumes:
         - name: otel-collector-config-vol

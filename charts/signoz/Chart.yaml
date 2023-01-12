@@ -1,7 +1,7 @@
 apiVersion: v2
 name: signoz
-version: 0.2.4
-appVersion: "0.10.1"
+version: 0.9.0
+appVersion: "0.14.0"
 description: SigNoz Observability Platform Helm Chart
 type: application
 home: https://signoz.io/
@@ -12,16 +12,37 @@ keywords:
   - apm
   - monitoring
   - distributed tracing
+  - distributed logging
 sources:
-  - https://github.com/signoz/charts/
+  - https://github.com/signoz/charts
   - https://github.com/signoz/signoz
   - https://github.com/signoz/alertmanager
-  - https://github.com/signoz/opentelemetry-collector-contrib
+  - https://github.com/signoz/signoz-otel-collector
 dependencies:
   - name: clickhouse
     repository: "https://signoz.github.io/charts"
     condition: clickhouse.enabled
-    version: 23.4.0
+    version: 23.8.0
+  - name: k8s-infra
+    repository: "https://signoz.github.io/charts"
+    condition: k8s-infra.enabled
+    version: 0.5.0
+  - name: cert-manager
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled
+    version: 1.9.1
+  - name: ingress-nginx
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress-nginx.enabled
+    version: 4.3.0
+  - name: minio
+    repository: https://charts.min.io
+    condition: minio.enabled
+    version: 4.0.9
+  - name: keycloak
+    repository: https://charts.bitnami.com/bitnami
+    condition: keycloak.enabled
+    version: 10.1.5
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

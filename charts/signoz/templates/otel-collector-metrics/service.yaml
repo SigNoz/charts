@@ -5,10 +5,10 @@ metadata:
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 {{- with .Values.otelCollectorMetrics }}
-{{- if .annotations }}
+  {{- if .service.annotations }}
   annotations:
-    {{- toYaml .annotations | nindent 4 }}
-{{- end }}
+    {{- toYaml .service.annotations | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .service.type }}
   ports:

@@ -13,31 +13,35 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/query-service/prometheus-configmap.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/query-service/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
-    {{- if .Values.queryService.initContainers.init.enabled }}
+      securityContext:
+        {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
+      {{- if .Values.queryService.initContainers.init.enabled }}
       initContainers:
         - name: {{ include "queryService.fullname" . }}-init
           image: {{ include "queryService.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.queryService.initContainers.init.image.pullPolicy }}
-        {{- with .Values.queryService.initContainers.init.command }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+          {{- with .Values.queryService.initContainers.init.command }}
           command:
             - sh
             - -c
-            - until wget --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-        {{- end }}
-    {{- end }}
+            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
+      {{- end }}
       containers:
         - name: {{ include "queryService.fullname" . }}
-        {{- with .Values.queryService.imagePullSecrets }}
-          imagePullSecrets:
-            {{- toYaml . | nindent 8 }}
-        {{- end }}
           securityContext:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
+          {{- with .Values.queryService.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args: ["-config=/root/config/prometheus.yml"]
@@ -46,6 +50,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
             - name: STORAGE
               value: {{ .Values.queryService.configVars.storage }}
             - name: ClickHouseUrl
@@ -79,22 +84,26 @@ spec:
             mountPath: /root/config/dashboards
           resources:
             {{- toYaml .Values.queryService.resources | nindent 12 }}
-    {{- with .Values.queryService.nodeSelector }}
+      {{- with .Values.queryService.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.queryService.affinity }}
+      {{- end }}
+      {{- with .Values.queryService.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.queryService.tolerations }}
+      {{- end }}
+      {{- with .Values.queryService.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
+      {{- with .Values.queryService.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: prometheus
         configMap:
-          name: prometheus-config
+          name: {{ include "queryService.fullname" . }}
       - name: dashboards
         emptyDir: {}
 

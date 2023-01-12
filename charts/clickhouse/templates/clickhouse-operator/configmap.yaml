@@ -1,18 +1,17 @@
 ---
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   config.yaml: |
     #
@@ -21,7 +20,7 @@ data:
     #   chUsername
     #   chPassword
     #   password_sha256_hex
-    
+
     ################################################
     ##
     ## Watch Section
@@ -32,7 +31,7 @@ data:
       # Concurrently running operators should watch on different namespaces
       #namespaces: ["dev", "test"]
       namespaces: []
-    
+
     clickhouse:
       configuration:
         ################################################
@@ -97,7 +96,7 @@ data:
           name: ""
         # Port where to connect to ClickHouse instances to
         port: 8123
-    
+
     ################################################
     ##
     ## Templates Section
@@ -108,7 +107,7 @@ data:
         # Path to the folder where ClickHouseInstallation .yaml manifests are located.
         # Manifests are applied in sorted alpha-numeric order.
         path: templates.d
-    
+
     ################################################
     ##
     ## Reconcile Section
@@ -118,7 +117,7 @@ data:
       runtime:
         # Max number of concurrent reconciles in progress
         threadsNumber: 10
-    
+
       statefulSet:
         create:
           # What to do in case created StatefulSet is not in Ready after `statefulSetUpdateTimeout` seconds
@@ -127,7 +126,7 @@ data:
           # 2. delete - delete newly created problematic StatefulSet
           # 3. ignore - ignore error, pretend nothing happened and move on to the next StatefulSet
           onFailure: ignore
-    
+
         update:
           # How many seconds to wait for created/updated StatefulSet to be Ready
           timeout: 300
@@ -140,7 +139,7 @@ data:
           # Pod would be recreated by StatefulSet based on rollback-ed configuration
           # 3. ignore - ignore error, pretend nothing happened and move on to the next StatefulSet
           onFailure: rollback
-    
+
       host:
         # Whether reconciler should wait for host:
         # to be excluded from cluster OR
@@ -149,7 +148,7 @@ data:
         wait:
           exclude: true
           include: false
-    
+
     ################################################
     ##
     ## Annotations management
@@ -164,7 +163,7 @@ data:
       include: []
       # Exclude annotations from the following list:
       exclude: []
-    
+
     ################################################
     ##
     ## Labels management
@@ -192,7 +191,7 @@ data:
       #  LabelClusterScopeCycleIndex
       #  LabelClusterScopeCycleOffset
       appendScope: "no"
-    
+
     ################################################
     ##
     ## StatefulSet management
@@ -200,7 +199,7 @@ data:
     ################################################
     statefulSet:
       revisionHistoryLimit: 0
-    
+
     ################################################
     ##
     ## Pod management
@@ -212,7 +211,7 @@ data:
       # SIGTERM and SIGKILL during Pod termination process.
       # Increase this number is case of slow shutdown.
       terminationGracePeriod: 30
-    
+
     ################################################
     ##
     ## Log parameters
@@ -230,36 +229,34 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-confd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-confd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-confd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-confd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
 
 ---
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-configd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-configd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-configd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   01-clickhouse-01-listen.xml: |
     <yandex>
@@ -272,14 +269,16 @@ data:
   01-clickhouse-02-logger.xml: |
     <yandex>
         <logger>
+          {{- with .Values.clickhouseOperator.logger }}
             <!-- Possible levels: https://github.com/pocoproject/poco/blob/develop/Foundation/include/Poco/Logger.h#L105 -->
-            <level>debug</level>
+            <level>{{ .level }}</level>
             <log>/var/log/clickhouse-server/clickhouse-server.log</log>
             <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
-            <size>1000M</size>
-            <count>10</count>
+            <size>{{ .size }}</size>
+            <count>{{ .count }}</count>
             <!-- Default behavior is autodetection (log to console if not daemon mode and is tty) -->
-            <console>1</console>
+            <console>{{ .console }}</console>
+          {{- end }}
         </logger>
     </yandex>
 
@@ -308,18 +307,17 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-templatesd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-templatesd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   001-templates.json.example: |
     {
@@ -410,18 +408,17 @@ data:
 
 # Template Parameters:
 #
-# NAME=etc-clickhouse-operator-usersd-files
-# NAMESPACE= {{ include "chOperator.namespace" . }}
+# NAME={{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
+# NAMESPACE= {{ include "clickhouse.namespace" . }}
 # COMMENT=
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etc-clickhouse-operator-usersd-files
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
   01-clickhouse-user.xml: |
     <yandex>

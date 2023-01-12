@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prometheus-config
+  name: {{ include "queryService.fullname" . }}
 data:
   prometheus.yml: |
     # my global config
@@ -25,8 +25,7 @@ data:
 
     # A scrape configuration containing exactly one endpoint to scrape:
     # Here it's Prometheus itself.
-    scrape_configs:
-      
+    scrape_configs: []
 
     remote_read:
       - url: tcp://{{ include "clickhouse.metricsUrl" . }}

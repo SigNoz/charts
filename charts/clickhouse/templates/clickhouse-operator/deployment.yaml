@@ -1,56 +1,57 @@
 # Template Parameters:
 #
-# NAMESPACE={{ include "chOperator.namespace" . }}
+# NAMESPACE={{ include "clickhouse.namespace" . }}
 # COMMENT=
-# OPERATOR_IMAGE=altinity/clickhouse-operator:0.19.0
-# OPERATOR_IMAGE_PULL_POLICY=Always
-# METRICS_EXPORTER_IMAGE=altinity/metrics-exporter:0.19.0
-# METRICS_EXPORTER_IMAGE_PULL_POLICY=Always
+# OPERATOR_IMAGE={{ template "clickhouseOperator.image" . }}
+# OPERATOR_IMAGE_PULL_POLICY={{ .Values.clickhouseOperator.image.pullPolicy }}
+# METRICS_EXPORTER_IMAGE={{ include "metricsExporter.image" . }}
+# METRICS_EXPORTER_IMAGE_PULL_POLICY={{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
 #
 # Setup Deployment for clickhouse-operator
 # Deployment would be created in kubectl-specified namespace
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: clickhouse-operator
-  namespace: {{ include "chOperator.namespace" . }}
+  name: {{ include "clickhouseOperator.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
   labels:
-    clickhouse.altinity.com/chop: 0.19.0
-    app: clickhouse-operator
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: clickhouse-operator
+      {{- include "clickhouseOperator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels:
-        app: clickhouse-operator
       annotations:
-        signoz.io/port: '8888'
-        signoz.io/scrape: 'true'
+        {{- if .Values.clickhouseOperator.podAnnotations }}
+          {{- toYaml .Values.clickhouseOperator.podAnnotations | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/clickhouse-operator/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: clickhouse-operator
+      serviceAccountName: {{ include "clickhouseOperator.fullname" . }}
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
-            name: etc-clickhouse-operator-files
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-files
         - name: etc-clickhouse-operator-confd-folder
           configMap:
-            name: etc-clickhouse-operator-confd-files
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-confd-files
         - name: etc-clickhouse-operator-configd-folder
           configMap:
-            name: etc-clickhouse-operator-configd-files
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
         - name: etc-clickhouse-operator-templatesd-folder
           configMap:
-            name: etc-clickhouse-operator-templatesd-files
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-templatesd-files
         - name: etc-clickhouse-operator-usersd-folder
           configMap:
-            name: etc-clickhouse-operator-usersd-files
+            name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
       containers:
-        - name: clickhouse-operator
-          image: altinity/clickhouse-operator:0.19.0
-          imagePullPolicy: Always
+        - name: {{ include "clickhouseOperator.fullname" . }}
+          image: {{ template "clickhouseOperator.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.image.pullPolicy }}
           volumeMounts:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
@@ -84,8 +85,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            # spec.serviceAccount: clickhouse-operator
-            # spec.serviceAccountName: clickhouse-operator
+            # spec.serviceAccount: {{ include "clickhouseOperator.fullname" . }}
+            # spec.serviceAccountName: {{ include "clickhouseOperator.fullname" . }}
             - name: OPERATOR_POD_SERVICE_ACCOUNT
               valueFrom:
                 fieldRef:
@@ -95,27 +96,27 @@ spec:
             - name: OPERATOR_CONTAINER_CPU_REQUEST
               valueFrom:
                 resourceFieldRef:
-                  containerName: clickhouse-operator
+                  containerName: {{ include "clickhouseOperator.fullname" . }}
                   resource: requests.cpu
             - name: OPERATOR_CONTAINER_CPU_LIMIT
               valueFrom:
                 resourceFieldRef:
-                  containerName: clickhouse-operator
+                  containerName: {{ include "clickhouseOperator.fullname" . }}
                   resource: limits.cpu
             - name: OPERATOR_CONTAINER_MEM_REQUEST
               valueFrom:
                 resourceFieldRef:
-                  containerName: clickhouse-operator
+                  containerName: {{ include "clickhouseOperator.fullname" . }}
                   resource: requests.memory
             - name: OPERATOR_CONTAINER_MEM_LIMIT
               valueFrom:
                 resourceFieldRef:
-                  containerName: clickhouse-operator
+                  containerName: {{ include "clickhouseOperator.fullname" . }}
                   resource: limits.memory
 
-        - name: metrics-exporter
-          image: altinity/metrics-exporter:0.19.0
-          imagePullPolicy: Always
+        - name: {{ include "metricsExporter.fullname" . }}
+          image: {{ include "metricsExporter.image" . }}
+          imagePullPolicy: {{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
           volumeMounts:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
@@ -128,5 +129,5 @@ spec:
             - name: etc-clickhouse-operator-usersd-folder
               mountPath: /etc/clickhouse-operator/users.d
           ports:
-            - containerPort: 8888
+            - containerPort: {{ .Values.clickhouseOperator.metricsExporter.service.port }}
               name: metrics

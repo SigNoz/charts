@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "otelDeployment.fullname" . }}
+  namespace: {{ include "k8s-infra.namespace" . }}
+  labels:
+    {{- include "otelDeployment.labels" . | nindent 4 }}
+{{- with .Values.otelDeployment }}
+  {{- if .service.annotations }}
+  annotations:
+    {{- toYaml .service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .service.type }}
+  ports:
+    {{- include "otel.portsConfig" . | nindent 4 }}
+  selector:
+    {{- include "otelDeployment.selectorLabels" $ | nindent 4 }}
+{{- end }}
+
+

@@ -1,15 +1,19 @@
-apiVersion: "clickhouse.altinity.com/v1"
-kind: "ClickHouseInstallation"
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
 metadata:
-  name: "signoz"
+  name: {{ include "clickhouse.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
 spec:
   defaults:
     templates:
       {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
       dataVolumeClaimTemplate: data-volumeclaim-template
-      # logVolumeClaimTemplate: data-volumeclaim-template
+      # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
       serviceTemplate: service-template
+
   configuration:
     users:
       {{ .Values.user }}/password: {{ .Values.password }}
@@ -96,20 +100,32 @@ spec:
       {{- if .Values.externalZookeeper }}
         {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
       {{- else }}
-        - host: {{ include "clickhouse.zookeeper.servicename" . }}
+        {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
+        {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
+        {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) }}
+        {{- range $replicaIndex := until $replicaCount }}
+        - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
           port: {{ include "clickhouse.zookeeper.port" . }}
+        {{- end }}
       {{- end }}
 
   templates:
     podTemplates:
       - name: pod-template
-        {{- if .Values.podAnnotations }}
         metadata:
-          annotations: {{ toYaml .Values.podAnnotations | nindent 12 }}
+          labels:
+            {{- include "clickhouse.labels" . | nindent 12 }}
+          {{- with .Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.podDistribution }}
+        podDistribution:
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
           {{- if .Values.coldStorage.role.enabled }}
-          serviceAccountName: clickhouse-instance
+          serviceAccountName: {{ include "clickhouse.fullname" . }}-instance
           {{- end }}
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
@@ -121,8 +137,8 @@ spec:
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
           {{- end }}
 
-          {{- if .Values.persistence.enabled }}
           volumes:
+          {{- if .Values.persistence.enabled }}
           {{- if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
@@ -131,12 +147,35 @@ spec:
             - name: data-volumeclaim-template
               persistentVolumeClaim:
                 claimName: data-volumeclaim-template
+            # - name: log-volumeclaim-template
+            #   persistentVolumeClaim:
+            #     claimName: log-volumeclaim-template
           {{- end }}
           {{- end }}
+            - name: shared-binary-volume
+              emptyDir: {}
+            - name: custom-functions-volume
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-custom-functions
 
           {{- if .Values.securityContext.enabled }}
           securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
+          initContainers:
+            - name: {{ include "clickhouse.fullname" . }}-init
+              image: {{ include "clickhouse.initContainers.init.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+              command:
+                - sh
+                - -c
+                - |
+                  set -x
+                  wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+                  mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
+                  chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
           containers:
             - name: clickhouse
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
@@ -156,8 +195,8 @@ spec:
                 - name: interserver
                   containerPort: 9009
 
-              {{- if .Values.persistence.enabled }}
               volumeMounts:
+              {{- if .Values.persistence.enabled }}
               {{- if .Values.persistence.existingClaim }}
                 - name: existing-volumeclaim
               {{- else }}
@@ -165,6 +204,12 @@ spec:
               {{- end }}
                   mountPath: /var/lib/clickhouse
               {{- end }}
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                - name: custom-functions-volume
+                  mountPath: /etc/clickhouse-server/functions
+                # - name: log-volumeclaim-template
+                #   mountPath: /var/log/clickhouse-server
 
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
@@ -174,11 +219,13 @@ spec:
       - name: service-template
         generateName: {{ include "clickhouse.fullname" . }}
         {{- with .Values.service }}
-        {{- if .annotations }}
         metadata:
+          labels:
+            {{- include "clickhouse.labels" $ | nindent 12 }}
+          {{- with .annotations }}
           annotations:
-            {{- toYaml .annotations | nindent 12 }}
-        {{- end }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         spec:
           type: {{ .type }}
           ports:

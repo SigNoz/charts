@@ -32,6 +32,12 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/*
+Return namespace of the signoz release
+*/}}
+{{- define "signoz.namespace" -}}
+{{- .Release.Namespace -}}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for queryService.
@@ -58,7 +64,7 @@ Selector labels
 {{- define "queryService.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.queryService.name }}
+app.kubernetes.io/component: {{ default "query-service" .Values.queryService.name }}
 {{- end -}}
 
 {{/*
@@ -76,7 +82,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "queryService.initContainers.init.image" -}}
-{{- $registryName := .Values.queryService.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.queryService.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.queryService.initContainers.init.image.repository -}}
 {{- $tag := .Values.queryService.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -90,9 +96,9 @@ Return the initContainers image name
 Return the proper queryService image name
 */}}
 {{- define "queryService.image" -}}
-{{- $registryName := default .Values.queryService.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.queryService.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.queryService.image.repository -}}
-{{- $tag := .Values.queryService.image.tag | toString -}}
+{{- $tag := default .Chart.AppVersion .Values.queryService.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -154,7 +160,7 @@ Selector labels
 {{- define "frontend.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.frontend.name }}
+app.kubernetes.io/component: {{ default "frontend" .Values.frontend.name }}
 {{- end -}}
 
 {{/*
@@ -172,9 +178,9 @@ Create the name of the service account to use
 Return the proper frontend image name
 */}}
 {{- define "frontend.image" -}}
-{{- $registryName := default .Values.frontend.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.frontend.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.frontend.image.repository -}}
-{{- $tag := .Values.frontend.image.tag | toString -}}
+{{- $tag := default .Chart.AppVersion .Values.frontend.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -186,7 +192,7 @@ Return the proper frontend image name
 Return the initContainers image name
 */}}
 {{- define "frontend.initContainers.init.image" -}}
-{{- $registryName := .Values.frontend.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.frontend.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.frontend.initContainers.init.image.repository -}}
 {{- $tag := .Values.frontend.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -223,7 +229,7 @@ Selector labels
 {{- define "alertmanager.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.alertmanager.name }}
+app.kubernetes.io/component: {{ default "alertmanager" .Values.alertmanager.name }}
 {{- end -}}
 
 {{/*
@@ -248,7 +254,7 @@ Set alertmanager port
 Return the initContainers image name
 */}}
 {{- define "alertmanager.initContainers.init.image" -}}
-{{- $registryName := .Values.alertmanager.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.alertmanager.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.alertmanager.initContainers.init.image.repository -}}
 {{- $tag := .Values.alertmanager.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -262,7 +268,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "alertmanager.image" -}}
-{{- $registryName := default .Values.alertmanager.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.alertmanager.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.alertmanager.image.repository -}}
 {{- $tag := .Values.alertmanager.image.tag | toString -}}
 {{- if $registryName -}}
@@ -306,7 +312,7 @@ Selector labels
 {{- define "otelCollector.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.otelCollector.name }}
+app.kubernetes.io/component: {{ default "otel-collector" .Values.otelCollector.name }}
 {{- end -}}
 
 {{/*
@@ -324,7 +330,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollector.initContainers.init.image" -}}
-{{- $registryName := .Values.otelCollector.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.otelCollector.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollector.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollector.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -338,7 +344,7 @@ Return the initContainers image name
 Return the proper otelCollector image name
 */}}
 {{- define "otelCollector.image" -}}
-{{- $registryName := default .Values.otelCollector.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.otelCollector.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollector.image.repository -}}
 {{- $tag := .Values.otelCollector.image.tag | toString -}}
 {{- if $registryName -}}
@@ -348,6 +354,29 @@ Return the proper otelCollector image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Create the name of the clusterRole to use
+*/}}
+{{- define "otelCollector.clusterRoleName" -}}
+{{- if .Values.otelCollector.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollector.clusterRole.name }}
+{{- else }}
+{{- default "default" .Values.otelCollector.clusterRole.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the clusterRoleBinding to use
+*/}}
+{{- define "otelCollector.clusterRoleBindingName" -}}
+{{- if .Values.otelCollector.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
+{{- else }}
+{{- default "default" .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
+{{- end }}
+{{- end }}
 
 
 {{/*
@@ -375,7 +404,7 @@ Selector labels
 {{- define "otelCollectorMetrics.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.otelCollectorMetrics.name }}
+app.kubernetes.io/component: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name }}
 {{- end -}}
 
 {{/*
@@ -393,7 +422,7 @@ Create the name of the service account to use
 Return the initContainers image name
 */}}
 {{- define "otelCollectorMetrics.initContainers.init.image" -}}
-{{- $registryName := .Values.otelCollectorMetrics.initContainers.init.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.initContainers.init.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
@@ -407,7 +436,7 @@ Return the initContainers image name
 Return the proper otelCollectorMetrics image name
 */}}
 {{- define "otelCollectorMetrics.image" -}}
-{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.image.registry -}}
+{{- $registryName := default .Values.otelCollectorMetrics.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.otelCollectorMetrics.image.repository -}}
 {{- $tag := .Values.otelCollectorMetrics.image.tag | toString -}}
 {{- if $registryName -}}
@@ -417,6 +446,29 @@ Return the proper otelCollectorMetrics image name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Create the name of the clusterRole to use
+*/}}
+{{- define "otelCollectorMetrics.clusterRoleName" -}}
+{{- if .Values.otelCollectorMetrics.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollectorMetrics.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollectorMetrics.clusterRole.name }}
+{{- else }}
+{{- default "default" .Values.otelCollectorMetrics.clusterRole.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the clusterRoleBinding to use
+*/}}
+{{- define "otelCollectorMetrics.clusterRoleBindingName" -}}
+{{- if .Values.otelCollectorMetrics.clusterRole.create }}
+{{- $clusterRole := printf "%s-%s" (include "otelCollectorMetrics.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $clusterRole .Values.otelCollectorMetrics.clusterRole.clusterRoleBinding.name }}
+{{- else }}
+{{- default "default" .Values.otelCollectorMetrics.clusterRole.clusterRoleBinding.name }}
+{{- end }}
+{{- end }}
 
 {{/*
 Return the service name of Clickhouse
@@ -427,9 +479,16 @@ Return the service name of Clickhouse
 {{- else -}}
 {{- $name := default "clickhouse" .Values.clickhouse.nameOverride -}}
 {{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- $namespace := .Values.clickhouse.namespace -}}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
+{{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
+{{- else -}}
+{{ $name }}
 {{- end -}}
 {{- end -}}
 {{- end }}
@@ -444,6 +503,7 @@ nodePort: null
 {{- end -}}
 
 {{/*
+Return structured list of ports config.
 */}}
 {{- define "otelCollector.portsConfig" -}}
 {{- $serviceType := deepCopy .service.type -}}
@@ -452,9 +512,13 @@ nodePort: null
 {{- if $port.enabled }}
 - name: {{ $key }}
   port: {{ $port.servicePort }}
-  {{ include "service.ifClusterIP" $serviceType }}
   targetPort: {{ $key }}
   protocol: {{ $port.protocol }}
+  {{- if (eq $serviceType "ClusterIP") }}
+  nodePort: null
+  {{- else if (eq $serviceType "NodePort") }}
+  nodePort: {{ $port.nodePort }}
+  {{- end }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -486,3 +550,44 @@ Return if ingress is stable.
 {{- define "ingress.isStable" -}}
   {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
 {{- end -}}
+
+{{/*
+Return true if Let's Encrypt ClusterIssuer of `cert-manager` should be created.
+*/}}
+{{- define "ingress.letsencrypt" -}}
+{{- $clusterIssuerEnabled := index (index .Values "cert-manager") "letsencrypt" -}}
+{{- if ne ($clusterIssuerEnabled | toString) "<nil>" -}}
+  {{ $clusterIssuerEnabled }}
+{{- else if and (index (index .Values "ingress-nginx") "enabled") (index (index .Values "cert-manager") "enabled") -}}
+  true
+{{- else -}}
+  false
+{{- end -}}
+{{- end -}}
+
+{{/*
+Common K8s environment variables used by SigNoz OtelCollector.
+*/}}
+{{- define "snippet.k8s-env" }}
+- name: K8S_NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: K8S_POD_IP
+  valueFrom:
+    fieldRef:
+      apiVersion: v1
+      fieldPath: status.podIP
+- name: K8S_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: K8S_POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: K8S_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+{{- end }}
