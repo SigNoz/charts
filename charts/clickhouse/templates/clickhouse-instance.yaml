@@ -13,6 +13,7 @@ spec:
       # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
       serviceTemplate: service-template
+
   configuration:
     users:
       {{ .Values.user }}/password: {{ .Values.password }}
@@ -136,8 +137,8 @@ spec:
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
           {{- end }}
 
-          {{- if .Values.persistence.enabled }}
           volumes:
+          {{- if .Values.persistence.enabled }}
           {{- if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
@@ -151,10 +152,30 @@ spec:
             #     claimName: log-volumeclaim-template
           {{- end }}
           {{- end }}
+            - name: shared-binary-volume
+              emptyDir: {}
+            - name: custom-functions-volume
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-custom-functions
 
           {{- if .Values.securityContext.enabled }}
           securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
+          initContainers:
+            - name: {{ include "clickhouse.fullname" . }}-init
+              image: {{ include "clickhouse.initContainers.init.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+              command:
+                - sh
+                - -c
+                - |
+                  set -x
+                  wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+                  mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
+                  chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
           containers:
             - name: clickhouse
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
@@ -174,8 +195,8 @@ spec:
                 - name: interserver
                   containerPort: 9009
 
-              {{- if .Values.persistence.enabled }}
               volumeMounts:
+              {{- if .Values.persistence.enabled }}
               {{- if .Values.persistence.existingClaim }}
                 - name: existing-volumeclaim
               {{- else }}
@@ -183,6 +204,10 @@ spec:
               {{- end }}
                   mountPath: /var/lib/clickhouse
               {{- end }}
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                - name: custom-functions-volume
+                  mountPath: /etc/clickhouse-server/functions
                 # - name: log-volumeclaim-template
                 #   mountPath: /var/log/clickhouse-server
 

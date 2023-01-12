@@ -253,6 +253,14 @@ defaultProfiles:
   default/allow_experimental_window_functions: "1"
   default/allow_nondeterministic_mutations: "1"
 
+initContainers:
+  init:
+    # enabled: true
+    image:
+      registry: docker.io
+      repository: busybox
+      tag: 1.35
+      pullPolicy: IfNotPresent
 
 # -- Clickhouse cluster layout. (Experimental, use at own risk)
 # For a full list of options, see
@@ -278,6 +286,8 @@ settings: {}
 # @default -- See `values.yaml` for defaults
 defaultSettings:
   format_schema_path: /etc/clickhouse-server/config.d/
+  user_scripts_path: /var/lib/clickhouse/user_scripts/
+  user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
 
 # -- ClickHouse pod(s) annotation.
 podAnnotations: {}

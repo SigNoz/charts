@@ -88,6 +88,20 @@ Return suffix part of the headless service
 {{- end }}
 
 {{/*
+Return the initContainers image name
+*/}}
+{{- define "clickhouse.initContainers.init.image" -}}
+{{- $registryName := default .Values.initContainers.init.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.initContainers.init.image.repository -}}
+{{- $tag := .Values.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
