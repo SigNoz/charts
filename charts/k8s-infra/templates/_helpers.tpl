@@ -343,10 +343,6 @@ Return if ingress is stable.
 Common K8s environment variables used by OtelAgent and OtelDeployment.
 */}}
 {{- define "snippet.k8s-env" }}
-- name: K8S_NODE_NAME
-  valueFrom:
-    fieldRef:
-      fieldPath: spec.nodeName
 - name: K8S_POD_IP
   valueFrom:
     fieldRef:
