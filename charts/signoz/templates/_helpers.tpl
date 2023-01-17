@@ -569,6 +569,10 @@ Return true if Let's Encrypt ClusterIssuer of `cert-manager` should be created.
 Common K8s environment variables used by SigNoz OtelCollector.
 */}}
 {{- define "snippet.k8s-env" }}
+- name: K8S_NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
 - name: K8S_POD_IP
   valueFrom:
     fieldRef:

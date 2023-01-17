@@ -54,10 +54,6 @@ spec:
           env:
             {{- include "snippet.otlp-env" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}
-            - name: K8S_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
             - name: K8S_CLUSTER_NAME
               value: {{ default .Values.global.clusterName .Values.clusterName }}
             - name: SIGNOZ_COMPONENT
