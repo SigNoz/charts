@@ -176,8 +176,13 @@ presets:
   kubernetesAttributes:
     enabled: true
     # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
-    # Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
-    passthrough: true
+    # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+    passthrough: false
+    # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
+    # selector to only dramatically reducing resource requirements for very large clusters.
+    filter:
+      # -- Restrict each OpenTelemetry agent to query pods running on the same node
+      node_from_env_var: K8S_NODE_NAME
     # -- Pod Association section allows to define rules for tagging spans, metrics,
     # and logs with Pod metadata.
     podAssociation:
@@ -208,6 +213,29 @@ presets:
       - memory
       # - ephemeral-storage
       # - storage
+  resourceDetection:
+    enabled: true
+    timeout: 2s
+    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
+    override: true
+    # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+    detectors:
+      - env
+      # - elastic_beanstalk
+      # - eks
+      # - ecs
+      # - ec2
+      # - gke
+      # - gce
+      # - azure
+      # - heroku
+      - system
+    systemHostnameSources:
+      - dns
+      - os
+      # - cname
+      # - lookup
 
 # Default values for OtelAgent
 otelAgent:
@@ -269,9 +297,13 @@ otelAgent:
     name: ""
     # -- A set of rules as documented here.
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # @default -- See `values.yaml` for defaults
     rules:
       - apiGroups: [""]
-        resources: ["pods", "nodes", "endpoints"]
+        resources: ["pods", "namespaces"]
+        verbs: ["get", "watch", "list"]
+      - apiGroups: [""]
+        resources: ["nodes", "endpoints"]
         verbs: ["list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
@@ -497,15 +529,6 @@ otelAgent:
       batch:
         send_batch_size: 10000
         timeout: 200ms
-      # Resource detection processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
-      resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
-        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors: [env, system]
-        timeout: 2s
-        system:
-          hostname_sources: [os]
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -534,7 +557,7 @@ otelAgent:
           exporters: []
         metrics/generic:
           receivers: []
-          processors: [resourcedetection, batch]
+          processors: [batch]
           exporters: []
         logs:
           receivers: [otlp]
@@ -739,7 +762,8 @@ otelDeployment:
     # -- The name of the clusterRole to use.
     # If not set and create is true, a name is generated using the fullname template
     name: ""
-    # -- A set of rules as documented here : https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # -- A set of rules as documented here.
+    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     # @default -- See `values.yaml` for defaults
     rules:
       - apiGroups: [""]
@@ -787,15 +811,6 @@ otelDeployment:
       batch:
         send_batch_size: 10000
         timeout: 1s
-      # Resource detection processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
-      resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
-        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors: [env, system]
-        timeout: 2s
-        system:
-          hostname_sources: [os]
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -816,5 +831,9 @@ otelDeployment:
       pipelines:
         metrics:
           receivers: []
-          processors: [resourcedetection, batch]
+          processors: [batch]
+          exporters: []
+        metrics/generic:
+          receivers: []
+          processors: [batch]
           exporters: []

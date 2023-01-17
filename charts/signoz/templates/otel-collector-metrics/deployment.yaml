@@ -73,6 +73,7 @@ spec:
           {{- end }}
           env:
             {{- include "snippet.clickhouse-env" . | nindent 12 }}
+            {{- include "snippet.k8s-env" . | nindent 12 }}
             - name: K8S_NODE_NAME
               valueFrom:
                 fieldRef:
@@ -82,8 +83,7 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=signoz-host,signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME)
-            {{- include "snippet.k8s-env" . | nindent 12 }}
+              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
           volumeMounts:
             - name: otel-collector-metrics-config-vol
               mountPath: /conf
