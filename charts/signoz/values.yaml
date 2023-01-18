@@ -1980,8 +1980,8 @@ k8s-infra:
     kubernetesAttributes:
       enabled: true
       # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
-      # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
-      passthrough: false
+      # Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+      passthrough: true
       # -- Pod Association section allows to define rules for tagging spans, metrics,
       # and logs with Pod metadata.
       podAssociation:
@@ -2012,27 +2012,6 @@ k8s-infra:
         - memory
         # - ephemeral-storage
         # - storage
-    resourceDetection:
-      enabled: true
-      timeout: 2s
-      # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
-      # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-      detectors:
-        - env
-        # - elastic_beanstalk
-        # - eks
-        # - ecs
-        # - ec2
-        # - gke
-        # - gce
-        # - azure
-        # - heroku
-        - system
-      systemHostnameSources:
-        - dns
-        - os
-        # - cname
-        # - lookup
 
   # Default values for OtelAgent
   otelAgent:
@@ -2099,6 +2078,15 @@ k8s-infra:
         batch:
           send_batch_size: 10000
           timeout: 200ms
+        # Resource detection processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+        resourcedetection:
+          # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+          # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+          detectors: [env, system]
+          timeout: 2s
+          system:
+            hostname_sources: [os]
         # Memory Limiter processor.
         # If set to null, will be overridden with values based on k8s resource limits.
         # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -2127,7 +2115,7 @@ k8s-infra:
             exporters: []
           metrics/generic:
             receivers: []
-            processors: [batch]
+            processors: [resourcedetection, batch]
             exporters: []
           logs:
             receivers: [otlp]
@@ -2193,6 +2181,15 @@ k8s-infra:
         batch:
           send_batch_size: 10000
           timeout: 1s
+        # Resource detection processor config.
+        # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+        resourcedetection:
+          # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+          # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+          detectors: [env, system]
+          timeout: 2s
+          system:
+            hostname_sources: [os]
         # Memory Limiter processor.
         # If set to null, will be overridden with values based on k8s resource limits.
         # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -2213,11 +2210,7 @@ k8s-infra:
         pipelines:
           metrics:
             receivers: []
-            processors: [batch]
-            exporters: []
-          metrics/generic:
-            receivers: []
-            processors: [batch]
+            processors: [resourcedetection, batch]
             exporters: []
 
 ###
