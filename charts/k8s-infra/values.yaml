@@ -165,9 +165,9 @@ presets:
     authType: serviceAccount
     endpoint: ${K8S_NODE_NAME}:10250
     insecureSkipVerify: true
-    extraMetadataLabels: []
-      # - container.id
-      # - k8s.volume.type
+    extraMetadataLabels:
+      - container.id
+      - k8s.volume.type
     metricGroups:
       - container
       - pod
