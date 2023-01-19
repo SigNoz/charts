@@ -31,6 +31,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.kubernetesAttributes.enabled }}
 {{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.resourceDetection.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -101,6 +104,15 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
+{{- if .Values.presets.hostMetrics.enabled }}
+{{- $config = (include "opentelemetry-collector.applyHostMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.kubernetesAttributes.enabled }}
+{{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.resourceDetection.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -244,6 +256,8 @@ receivers:
 processors:
   k8sattributes:
     passthrough: {{ .Values.presets.kubernetesAttributes.passthrough }}
+    filter:
+      {{- toYaml .Values.presets.kubernetesAttributes.filter | nindent 6 }}
     pod_association:
     {{ range $association := .Values.presets.kubernetesAttributes.podAssociation }}
       - {{ toYaml $association | nindent 8 }}
@@ -251,4 +265,35 @@ processors:
     extract:
       metadata:
         {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfig" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/generic" }}
+{{- $_ := set (index $config.service.pipelines "metrics/generic") "processors" (prepend (index (index $config.service.pipelines "metrics/generic") "processors") "resourcedetection" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.resourceDetectionConfig" -}}
+processors:
+  resourcedetection:
+    detectors:
+      {{- toYaml .Values.presets.resourceDetection.detectors | nindent 6 }}
+    timeout: {{ .Values.presets.resourceDetection.timeout }}
+    override: {{ .Values.presets.resourceDetection.override }}
+    {{- if has "system" .Values.presets.resourceDetection.detectors }}
+    system:
+      hostname_sources:
+        {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
+    {{- end }}
 {{- end }}

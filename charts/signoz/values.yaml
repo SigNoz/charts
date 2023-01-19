@@ -974,7 +974,7 @@ otelCollector:
   # OtelCollector RBAC config
   clusterRole:
     # -- Specifies whether a clusterRole should be created
-    create: false
+    create: true
     # -- Annotations to add to the clusterRole
     annotations: {}
     # -- The name of the clusterRole to use.
@@ -982,10 +982,11 @@ otelCollector:
     name: ""
     # -- A set of rules as documented here.
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    rules: []
-      # - apiGroups: [""]
-      #   resources: ["pods", "nodes"]
-      #   verbs: ["get", "list", "watch"]
+    # @default -- See `values.yaml` for defaults
+    rules:
+      - apiGroups: [""]
+        resources: ["pods", "namespace"]
+        verbs: ["get", "list", "watch"]
 
     # OtelCollector clusterRoleBinding
     clusterRoleBinding:
@@ -1269,10 +1270,20 @@ otelCollector:
       resourcedetection:
         # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors: [env, system]
+        detectors:
+          - env
+          # - elastic_beanstalk
+          # - eks
+          # - ecs
+          # - ec2
+          # - gke
+          # - gce
+          # - azure
+          # - heroku
+          - system
         timeout: 2s
         system:
-          hostname_sources: [os]
+          hostname_sources: [dns, os]
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -1306,8 +1317,17 @@ otelCollector:
           - name: deployment.environment
             default: default
           - name: signoz.collector.id
+      # K8s Attribute processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
       k8sattributes:
-        passthrough: true
+        # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
+        # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+        passthrough: false
+        # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
+        # selector to only dramatically reducing resource requirements for very large clusters.
+        filter:
+          # -- Restrict each OpenTelemetry agent to query pods running on the same node
+          node_from_env_var: K8S_NODE_NAME
         pod_association:
           - from: resource_attribute
             name: k8s.pod.ip
@@ -1360,11 +1380,11 @@ otelCollector:
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [k8sattributes, batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
           receivers: [hostmetrics]
-          processors: [resourcedetection, batch]
+          processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
@@ -1570,10 +1590,12 @@ otelCollectorMetrics:
     # -- The name of the clusterRole to use.
     # If not set and create is true, a name is generated using the fullname template
     name: ""
-    # -- A set of rules as documented here : https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # -- A set of rules as documented here.
+    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # @default -- See `values.yaml` for defaults
     rules:
       - apiGroups: [""]
-        resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+        resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods", "namespace"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["extensions"]
         resources: ["ingresses"]
@@ -1593,6 +1615,15 @@ otelCollectorMetrics:
   # @default -- See `values.yaml` for defaults
   config:
     receivers:
+      hostmetrics:
+        collection_interval: 30s
+        scrapers:
+          cpu: {}
+          load: {}
+          memory: {}
+          disk: {}
+          filesystem: {}
+          network: {}
       # prometheus scrape config
       prometheus:
         config:
@@ -1727,14 +1758,49 @@ otelCollectorMetrics:
       resourcedetection:
         # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors: [env, system]
+        detectors:
+          - env
+          # - elastic_beanstalk
+          # - eks
+          # - ecs
+          # - ec2
+          # - gke
+          # - gce
+          # - azure
+          # - heroku
+          - system
         timeout: 2s
         system:
-          hostname_sources: [os]
+          hostname_sources: [dns, os]
       # Memory Limiter processor.
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       memory_limiter: null
+      # K8s Attribute processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
+      k8sattributes/hostmetrics:
+        # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
+        # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+        passthrough: false
+        # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
+        # selector to only dramatically reducing resource requirements for very large clusters.
+        filter:
+          # -- Restrict each OpenTelemetry agent to query pods running on the same node
+          node_from_env_var: K8S_NODE_NAME
+        pod_association:
+          - from: resource_attribute
+            name: k8s.pod.ip
+          - from: resource_attribute
+            name: k8s.pod.uid
+          - from: connection
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.pod.start_time
+            - k8s.deployment.name
+            - k8s.node.name
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1745,6 +1811,10 @@ otelCollectorMetrics:
     exporters:
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+      clickhousemetricswrite/hostmetrics:
+        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        resource_to_telemetry_conversion:
+          enabled: true
     service:
       telemetry:
         metrics:
@@ -1755,6 +1825,10 @@ otelCollectorMetrics:
           receivers: [prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
+        metrics/hostmetrics:
+          receivers: [hostmetrics]
+          processors: [resourcedetection, k8sattributes/hostmetrics, batch]
+          exporters: [clickhousemetricswrite/hostmetrics]
 
 # Default values for k8s-infra.
 # For complete list of configurations, check `values.yaml` of `k8s-infra` chart.

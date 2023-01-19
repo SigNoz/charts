@@ -57,16 +57,12 @@ spec:
           env:
             {{- include "snippet.otlp-env" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}
-            - name: K8S_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
             - name: K8S_CLUSTER_NAME
               value: {{ default .Values.global.clusterName .Values.clusterName }}
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-deployment" .Values.otelDeployment.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME)
+              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf
