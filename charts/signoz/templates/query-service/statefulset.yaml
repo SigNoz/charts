@@ -76,12 +76,20 @@ spec:
               path: /api/v1/version
               port: http
           volumeMounts:
-          - name: prometheus
-            mountPath: /root/config
-          - name: signoz-db
-            mountPath: /var/lib/signoz/
-          - name: dashboards
-            mountPath: /root/config/dashboards
+            - name: prometheus
+              mountPath: /root/config
+            - name: dashboards
+              mountPath: /root/config/dashboards
+          {{- if .Values.queryService.persistence.enabled }}
+          {{- if .Values.queryService.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz/
           resources:
             {{- toYaml .Values.queryService.resources | nindent 12 }}
       {{- with .Values.queryService.nodeSelector }}
@@ -101,13 +109,21 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-      - name: prometheus
-        configMap:
-          name: {{ include "queryService.fullname" . }}
-      - name: dashboards
-        emptyDir: {}
+        - name: prometheus
+          configMap:
+            name: {{ include "queryService.fullname" . }}
+        - name: dashboards
+          emptyDir: {}
+      {{- if (not .Values.queryService.persistence.enabled) }}
+        - name: signoz-db-volume
+          emptyDir: {}
+      {{- else if .Values.queryService.persistence.existingClaim }}
+        - name: signoz-db-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.queryService.persistence.existingClaim }}
+      {{- end }}
 
-{{- if .Values.queryService.persistence.enabled }}
+{{- if and (.Values.queryService.persistence.enabled) (not .Values.queryService.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: signoz-db
@@ -123,6 +139,6 @@ spec:
         storageClassName: ""
       {{- else }}
         storageClassName: {{ $storageClass }}
-      {{- end -}}
-      {{- end -}}
+      {{- end }}
+      {{- end }}
 {{- end }}
