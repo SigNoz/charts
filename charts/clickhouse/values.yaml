@@ -253,7 +253,10 @@ defaultProfiles:
   default/allow_experimental_window_functions: "1"
   default/allow_nondeterministic_mutations: "1"
 
+# -- Clickhouse init container to copy histogramQuantile UDF
+# @default -- See `values.yaml` for defaults
 initContainers:
+  enabled: true
   init:
     image:
       registry: docker.io
