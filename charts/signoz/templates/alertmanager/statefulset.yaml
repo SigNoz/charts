@@ -97,10 +97,10 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
-{{- if .Values.alertmanager.command }}
+          {{- if .Values.alertmanager.command }}
           command:
             {{- toYaml .Values.alertmanager.command | nindent 12 }}
-{{- end }}
+          {{- end }}
           args:
             - --storage.path=/alertmanager
             - --queryService.url=http://{{ include "queryService.internalUrl" . }}
@@ -133,19 +133,37 @@ spec:
           resources:
             {{- toYaml .Values.alertmanager.resources | nindent 12 }}
           volumeMounts:
-            {{- if .Values.alertmanager.config }}
+          {{- if .Values.alertmanager.config }}
             - name: config
               mountPath: /etc/alertmanager
-            {{- end }}
+          {{- end }}
+          {{- if .Values.alertmanager.persistence.enabled }}
+          {{- if .Values.alertmanager.persistence.existingClaim }}
+            - name: storage-existing-claim
+          {{- else }}
             - name: storage
+          {{- end }}
+          {{- else }}
+            - name: storage-volume
+          {{- end }}
               mountPath: /alertmanager
-      {{- if .Values.alertmanager.config }}
+    {{- if and (and .Values.alertmanager.config .Values.alertmanager.persistence.enabled) .Values.alertmanager.persistence.existingClaim }}
       volumes:
+      {{- if .Values.alertmanager.config }}
         - name: config
           configMap:
             name: {{ include "alertmanager.fullname" . }}
       {{- end }}
-  {{- if .Values.alertmanager.persistence.enabled }}
+      {{- if not .Values.alertmanager.persistence.enabled }}
+        - name: storage-volume
+          emptyDir: {}
+      {{- else if .Values.alertmanager.persistence.existingClaim }}
+        - name: storage-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.alertmanager.persistence.existingClaim }}
+      {{- end }}
+    {{- end }}
+  {{- if and .Values.alertmanager.persistence.enabled (not .Values.alertmanager.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: storage
@@ -155,15 +173,12 @@ spec:
         resources:
           requests:
             storage: {{ .Values.alertmanager.persistence.size }}
-      {{- $storageClass := default .Values.alertmanager.persistence.storageClass .Values.global.storageClass -}}
-      {{- if $storageClass -}}
+      {{- $storageClass := default .Values.alertmanager.persistence.storageClass .Values.global.storageClass }}
+      {{- if $storageClass }}
       {{- if (eq "-" $storageClass) }}
         storageClassName: ""
       {{- else }}
         storageClassName: {{ $storageClass }}
-      {{- end -}}
       {{- end }}
-  {{- else }}
-        - name: storage
-          emptyDir: {}
-  {{- end -}}
+      {{- end }}
+  {{- end }}

@@ -165,6 +165,7 @@ clickhouse:
 
     # -- Use a manually managed Persistent Volume and Claim.
     # If defined, PVC must be created manually before volume will be bound.
+    # (only when deploying a single replica).
     #
     existingClaim: ""
 
@@ -500,6 +501,9 @@ queryService:
     # -- Enable data persistence using PVC for SQLiteDB data.
     enabled: true
 
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    existingClaim: ""
+
     # -- Persistent Volume Storage Class to use.
     # If defined, `storageClassName: <storageClass>`.
     # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
@@ -802,6 +806,9 @@ alertmanager:
   persistence:
     # -- Enable data persistence using PVC for Alertmanager data.
     enabled: true
+
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    existingClaim: ""
 
     # -- Persistent Volume Storage Class to use.
     # If defined, `storageClassName: <storageClass>`.
