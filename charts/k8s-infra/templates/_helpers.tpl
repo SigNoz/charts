@@ -129,6 +129,21 @@ Create the name of the clusterRoleBinding to use for agent.
 {{- end }}
 
 {{/*
+Return the proper Image Registry Secret Names for agent.
+*/}}
+{{- define "otelAgent.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.otelAgent.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.otelAgent.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name for the deployment.
 */}}
 {{- define "otelDeployment.fullname" -}}
@@ -205,6 +220,21 @@ Create the name of the clusterRoleBinding to use for deployment.
 {{- default $clusterRole .Values.otelDeployment.clusterRole.clusterRoleBinding.name }}
 {{- else }}
 {{- default "default" .Values.otelDeployment.clusterRole.clusterRoleBinding.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the proper Image Registry Secret Names for deployment.
+*/}}
+{{- define "otelDeployment.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.otelDeployment.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.otelDeployment.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
 {{- end }}
 {{- end }}
 

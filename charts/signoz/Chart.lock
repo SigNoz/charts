@@ -1,10 +1,10 @@
 dependencies:
 - name: clickhouse
   repository: https://signoz.github.io/charts
-  version: 23.8.1
+  version: 23.8.2
 - name: k8s-infra
   repository: https://signoz.github.io/charts
-  version: 0.6.1
+  version: 0.6.2
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v1.9.1
@@ -17,5 +17,5 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 10.1.5
-digest: sha256:be0730a80430b19cd4078143904cfdc91ad156fdf0cd05f9d54bf5df3528dff7
-generated: "2023-01-20T20:25:08.691766921+05:30"
+digest: sha256:193a272984f43d2d5cb19ef22ed6f58ca4100c99c0ae1bbd6ae2be88d982ae78
+generated: "2023-02-01T00:28:02.953521523+05:30"

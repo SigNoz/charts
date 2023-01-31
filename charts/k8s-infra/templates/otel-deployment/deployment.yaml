@@ -26,6 +26,7 @@ spec:
       labels:
         {{- include "otelDeployment.selectorLabels" . | nindent 8 }}
     spec:
+      {{- include "otelDeployment.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "otelDeployment.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.otelDeployment.podSecurityContext | nindent 8 }}

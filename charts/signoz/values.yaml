@@ -1,7 +1,9 @@
 # Global override values
 global:
-  # -- Overrides the Docker registry globally for all images
+  # -- Overrides the Image registry globally
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
   # -- Kubernetes cluster domain
@@ -19,6 +21,12 @@ fullnameOverride: ""
 
 # -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach in telemetry data.
 clusterName: ""
+
+# -- Image Registry Secret Names for all SigNoz components.
+# If global.imagePullSecrets is set as well, it will merged.
+# However, this has lower precedence than the imagePullSecrets at inner component level.
+imagePullSecrets: []
+# - "signoz-pull-secret"
 
 # Clickhouse default values
 # For complete list of configurations, check `values.yaml` of `clickhouse` chart.
@@ -94,6 +102,21 @@ clickhouse:
     tag: 22.8.8-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
+
+  # -- Image Registry Secret Names for ClickHouse.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouse-pull-secret"
+
+  # ClickHouse Service Account
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   # Clickhouse service
   service:
@@ -298,6 +321,12 @@ clickhouse:
       # -- Clickhouse Operator image pull policy.
       pullPolicy: IfNotPresent
 
+    # -- Image Registry Secret Names for Clickhouse Operator.
+    # If global.imagePullSecrets is set as well, it will merged.
+    imagePullSecrets: []
+      # - "clickhouseOperator-pull-secret"
+
+    # ClickHouse Operator Service Account
     serviceAccount:
       # -- Specifies whether a service account should be created
       create: true
@@ -398,9 +427,14 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.14.0
+    tag: 0.15.0
     pullPolicy: IfNotPresent
+
+  # -- Image Registry Secret Names for Query-Service
+  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
+
+  # Query-Service Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -409,6 +443,18 @@ queryService:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # Query-Service service
+  service:
+    # -- Annotations to use by service associated to Query-Service
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+    # -- Query-Service HTTP port
+    port: 8080
+    # -- Query-Service Internal port
+    internalPort: 8085
+
   initContainers:
     init:
       enabled: true
@@ -422,6 +468,14 @@ queryService:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
+
   configVars:
     storage: clickhouse
     # ClickHouse URL is set and applied internally.
@@ -441,17 +495,6 @@ queryService:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-
-  # Query-Service service
-  service:
-    # -- Annotations to use by service associated to Query-Service
-    annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-    # -- Query-Service HTTP port
-    port: 8080
-    # -- Query-Service Internal port
-    internalPort: 8085
 
   ingress:
     # -- Enable ingress for Query-Service
@@ -529,9 +572,14 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.14.0
+    tag: 0.15.0
     pullPolicy: IfNotPresent
+
+  # -- Image Registry Secret Names for Frontend
+  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
+
+  # Frontend Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -540,6 +588,15 @@ frontend:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # Frontend service
+  service:
+    # -- Annotations to use by service associated to Frontend
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+    # -- Frontend HTTP port
+    port: 3301
 
   initContainers:
     init:
@@ -554,6 +611,13 @@ frontend:
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting frontend now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   autoscaling:
     enabled: false
@@ -604,15 +668,6 @@ frontend:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-
-  # Frontend service
-  service:
-    # -- Annotations to use by service associated to Frontend
-    annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-    # -- Frontend HTTP port
-    port: 3301
 
   ingress:
     # -- Enable ingress for Frontend
@@ -676,10 +731,24 @@ alertmanager:
     # Overrides the image tag whose default is the chart appVersion.
     tag: 0.23.0-0.2
 
+  # -- Image Registry Secret Names for Alertmanager
+  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
+  imagePullSecrets: []
+
+  # -- Alertmanager custom command override
   command: []
+  # -- Alertmanager extra Arguments
   extraArgs: {}
 
-  imagePullSecrets: []
+  # Alertmanager Service Account
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
   # Alertmanager service
   service:
@@ -691,15 +760,6 @@ alertmanager:
     port: 9093
     # -- Set this to you want to force a specific nodePort. Must be use with service.type=NodePort
     nodePort: null
-
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
 
   initContainers:
     init:
@@ -714,6 +774,13 @@ alertmanager:
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting alertmanager now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   podSecurityContext:
     fsGroup: 65534
@@ -919,8 +986,11 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.2
+    tag: 0.66.3
     pullPolicy: Always
+
+  # -- Image Registry Secret Names for OtelCollector
+  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
 
   # OpenTelemetry Collector executable
@@ -934,13 +1004,7 @@ otelCollector:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
 
-  # OtelCollector service
-  service:
-    # -- Annotations to use by service associated to OtelCollector
-    annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-
+  # OtelCollector Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -949,6 +1013,13 @@ otelCollector:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # OtelCollector service
+  service:
+    # -- Annotations to use by service associated to OtelCollector
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
 
   # -- OtelColector Deployment annotation.
   annotations: {}
@@ -978,6 +1049,13 @@ otelCollector:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   # OtelCollector RBAC config
   clusterRole:
@@ -1408,8 +1486,11 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.2
+    tag: 0.66.3
     pullPolicy: Always
+
+  # -- Image Registry Secret Names for OtelCollector
+  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
 
   # OpenTelemetry Collector executable
@@ -1423,13 +1504,7 @@ otelCollectorMetrics:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
 
-  # OtelCollectorMetrics service
-  service:
-    # -- Annotations to use by service associated to OtelCollectorMetrics
-    annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-
+  # OtelCollectorMetrics Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -1438,6 +1513,13 @@ otelCollectorMetrics:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
+
+  # OtelCollectorMetrics service
+  service:
+    # -- Annotations to use by service associated to OtelCollectorMetrics
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
 
   # -- OtelColectorMetrics Deployment annotation.
   annotations: {}
@@ -1475,6 +1557,13 @@ otelCollectorMetrics:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   # Configuration for ports
   ports:
@@ -2050,7 +2139,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelAgent.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelAgent-pull-secret"
 
     # OpenTelemetry Collector executable
     command:
@@ -2150,7 +2243,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelDeployment.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelDeployment-pull-secret"
 
     # OpenTelemetry Collector executable
     command:

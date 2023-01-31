@@ -31,7 +31,9 @@ spec:
     spec:
     {{- with .Values.alertmanager.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
     {{- end }}
       serviceAccountName: {{ include "alertmanager.serviceAccountName" . }}
     {{- with .Values.alertmanager.dnsConfig }}
@@ -67,6 +69,8 @@ spec:
             - -c
             - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
+          resources:
+            {{- toYaml .Values.alertmanager.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
         {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}
@@ -147,7 +151,7 @@ spec:
             - name: storage-volume
           {{- end }}
               mountPath: /alertmanager
-    {{- if and (and .Values.alertmanager.config .Values.alertmanager.persistence.enabled) .Values.alertmanager.persistence.existingClaim }}
+    {{- if or .Values.alertmanager.config (not .Values.alertmanager.persistence.enabled) .Values.alertmanager.persistence.existingClaim }}
       volumes:
       {{- if .Values.alertmanager.config }}
         - name: config
