@@ -2,6 +2,8 @@
 global:
   # -- Overrides the Docker registry globally for all images
   imageRegistry: null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: null
   # -- Kubernetes cluster domain
@@ -245,7 +247,11 @@ otelAgent:
     repository: otel/opentelemetry-collector-contrib
     tag: 0.66.0
     pullPolicy: IfNotPresent
+  
+  # -- Image Registry Secret Names for OtelAgent.
+  # If global.imagePullSecrets is set as well, it will merged.
   imagePullSecrets: []
+    # - "otelAgent-pull-secret"
 
   # OpenTelemetry Collector executable
   command:
@@ -572,7 +578,11 @@ otelDeployment:
     repository: otel/opentelemetry-collector-contrib
     tag: 0.66.0
     pullPolicy: IfNotPresent
+  
+  # -- Image Registry Secret Names for OtelDeployment.
+  # If global.imagePullSecrets is set as well, it will merged.
   imagePullSecrets: []
+    # - "otelDeployment-pull-secret"
 
   # OpenTelemetry Collector executable
   command:
