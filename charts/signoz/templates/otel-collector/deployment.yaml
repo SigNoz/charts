@@ -27,6 +27,12 @@ spec:
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.otelCollector.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}

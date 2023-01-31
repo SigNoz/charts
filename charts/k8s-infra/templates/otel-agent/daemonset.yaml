@@ -24,6 +24,7 @@ spec:
       labels:
         {{- include "otelAgent.selectorLabels" . | nindent 8 }}
     spec:
+      {{- include "otelAgent.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "otelAgent.serviceAccountName" . }}
       containers:
         - name: {{ include "otelAgent.fullname" . }}

@@ -17,6 +17,12 @@ spec:
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.queryService.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
@@ -40,10 +46,6 @@ spec:
         - name: {{ include "queryService.fullname" . }}
           securityContext:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
-          {{- with .Values.queryService.imagePullSecrets }}
-          imagePullSecrets:
-            {{- toYaml . | nindent 8 }}
-          {{- end }}
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args: ["-config=/root/config/prometheus.yml"]

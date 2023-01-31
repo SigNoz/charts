@@ -591,3 +591,18 @@ Common K8s environment variables used by SigNoz OtelCollector.
     fieldRef:
       fieldPath: metadata.namespace
 {{- end }}
+
+{{/*
+Return the proper Image Registry Secret Names.
+*/}}
+{{- define "signoz.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}

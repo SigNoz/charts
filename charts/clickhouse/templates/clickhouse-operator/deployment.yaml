@@ -31,7 +31,8 @@ spec:
       labels:
         {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "clickhouseOperator.fullname" . }}
+      {{- include "clickhouseOperator.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "clickhouseOperator.serviceAccountName" . }}
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
