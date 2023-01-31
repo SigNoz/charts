@@ -448,6 +448,13 @@ queryService:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   configVars:
     storage: clickhouse
@@ -584,6 +591,13 @@ frontend:
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting frontend now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   autoscaling:
     enabled: false
@@ -740,6 +754,13 @@ alertmanager:
         endpoint: /api/v1/version
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting alertmanager now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   podSecurityContext:
     fsGroup: 65534
@@ -1008,6 +1029,13 @@ otelCollector:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   # OtelCollector RBAC config
   clusterRole:
@@ -1509,6 +1537,13 @@ otelCollectorMetrics:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   # Configuration for ports
   ports:

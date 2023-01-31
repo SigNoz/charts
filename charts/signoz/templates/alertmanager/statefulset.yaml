@@ -69,6 +69,8 @@ spec:
             - -c
             - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
+          resources:
+            {{- toYaml .Values.alertmanager.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
         {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}

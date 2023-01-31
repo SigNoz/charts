@@ -39,6 +39,8 @@ spec:
             - -c
             - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
+          resources:
+            {{- toYaml .Values.queryService.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
         - name: {{ include "queryService.fullname" . }}
