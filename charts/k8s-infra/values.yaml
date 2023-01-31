@@ -247,7 +247,7 @@ otelAgent:
     repository: otel/opentelemetry-collector-contrib
     tag: 0.66.0
     pullPolicy: IfNotPresent
-  
+
   # -- Image Registry Secret Names for OtelAgent.
   # If global.imagePullSecrets is set as well, it will merged.
   imagePullSecrets: []
@@ -578,7 +578,7 @@ otelDeployment:
     repository: otel/opentelemetry-collector-contrib
     tag: 0.66.0
     pullPolicy: IfNotPresent
-  
+
   # -- Image Registry Secret Names for OtelDeployment.
   # If global.imagePullSecrets is set as well, it will merged.
   imagePullSecrets: []
