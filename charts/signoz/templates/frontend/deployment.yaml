@@ -18,9 +18,11 @@ spec:
       labels:
         {{- include "frontend.selectorLabels" . | nindent 8 }}
     spec:
-      {{- range .Values.frontend.imagePullSecrets }}
+      {{- with .Values.frontend.imagePullSecrets }}
       imagePullSecrets:
+      {{- range . }}
         - name: {{ . | quote }}
+      {{- end }}
       {{- end }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       securityContext:

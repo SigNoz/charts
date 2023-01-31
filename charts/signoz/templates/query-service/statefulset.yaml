@@ -17,9 +17,11 @@ spec:
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
-      {{- range .Values.queryService.imagePullSecrets }}
+      {{- with .Values.queryService.imagePullSecrets }}
       imagePullSecrets:
+      {{- range . }}
         - name: {{ . | quote }}
+      {{- end }}
       {{- end }}
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
       securityContext:
