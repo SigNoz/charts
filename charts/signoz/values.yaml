@@ -103,6 +103,21 @@ clickhouse:
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
+  # -- Image Registry Secret Names for ClickHouse.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouse-pull-secret"
+
+  # ClickHouse Service Account
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
   # Clickhouse service
   service:
     # -- Annotations to use by service associated to Clickhouse instance
@@ -306,6 +321,11 @@ clickhouse:
       # -- Clickhouse Operator image pull policy.
       pullPolicy: IfNotPresent
 
+    # -- Image Registry Secret Names for Clickhouse Operator.
+    # If global.imagePullSecrets is set as well, it will merged.
+    imagePullSecrets: []
+      # - "clickhouseOperator-pull-secret"
+
     # ClickHouse Operator Service Account
     serviceAccount:
       # -- Specifies whether a service account should be created
@@ -407,7 +427,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.14.0
+    tag: 0.15.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -552,7 +572,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.14.0
+    tag: 0.15.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -966,7 +986,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.2
+    tag: 0.66.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1466,7 +1486,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.2
+    tag: 0.66.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2119,7 +2139,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelAgent.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelAgent-pull-secret"
 
     # OpenTelemetry Collector executable
     command:
@@ -2219,7 +2243,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelDeployment.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelDeployment-pull-secret"
 
     # OpenTelemetry Collector executable
     command:
