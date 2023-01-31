@@ -124,9 +124,8 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- if .Values.coldStorage.role.enabled }}
-          serviceAccountName: {{ include "clickhouse.fullname" . }}-instance
-          {{- end }}
+          {{- include "clickhouse.imagePullSecrets" . | nindent 10 }}
+          serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
           {{- end }}

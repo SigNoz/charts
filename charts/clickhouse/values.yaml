@@ -1,6 +1,8 @@
 global:
   # -- Overrides the Docker registry globally for all images
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: &GLOBAL_SC null
   # -- Kubernetes cluster domain
@@ -148,6 +150,21 @@ image:
   tag: 22.8.8-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
+
+# -- Image Registry Secret Names for ClickHouse.
+# If global.imagePullSecrets is set as well, it will merged.
+imagePullSecrets: []
+  # - "clickhouse-pull-secret"
+
+# ClickHouse Service Account
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
 
 # Clickhouse service
 service:
@@ -368,6 +385,12 @@ clickhouseOperator:
     # -- Clickhouse Operator image pull policy.
     pullPolicy: IfNotPresent
 
+  # -- Image Registry Secret Names for Clickhouse Operator.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouseOperator-pull-secret"
+
+  # ClickHouse Operator Service Account
   serviceAccount:
     # -- Specifies whether a service account should be created
     create: true
