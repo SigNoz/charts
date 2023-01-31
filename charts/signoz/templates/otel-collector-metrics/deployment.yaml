@@ -40,7 +40,9 @@ spec:
             - sh
             - -c
             - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-          {{- end -}}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.otelCollectorMetrics.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
         - name: {{ template "otelCollectorMetrics.fullname" . }}
