@@ -26,6 +26,7 @@ clusterName: ""
 # If global.imagePullSecrets is set as well, it will merged.
 # However, this has lower precedence than the imagePullSecrets at inner component level.
 imagePullSecrets: []
+# - "signoz-pull-secret"
 
 # Clickhouse default values
 # For complete list of configurations, check `values.yaml` of `clickhouse` chart.
