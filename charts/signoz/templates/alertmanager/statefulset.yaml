@@ -29,9 +29,9 @@ spec:
         {{- toYaml .Values.alertmanager.podAnnotations | nindent 8 }}
 {{- end }}
     spec:
-    {{- with .Values.alertmanager.imagePullSecrets }}
+    {{- range .Values.alertmanager.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        - name: {{ . | quote }}
     {{- end }}
       serviceAccountName: {{ include "alertmanager.serviceAccountName" . }}
     {{- with .Values.alertmanager.dnsConfig }}

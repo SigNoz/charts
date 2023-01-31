@@ -18,11 +18,11 @@ spec:
       labels:
         {{- include "frontend.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "frontend.serviceAccountName" . }}
-      {{- with .Values.frontend.imagePullSecrets }}
+      {{- range .Values.frontend.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        - name: {{ . | quote }}
       {{- end }}
+      serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.frontend.podSecurityContext | nindent 8 }}
       volumes:
