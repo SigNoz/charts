@@ -103,6 +103,21 @@ clickhouse:
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
+  # -- Image Registry Secret Names for ClickHouse.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouse-pull-secret"
+
+  # ClickHouse Service Account
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
   # Clickhouse service
   service:
     # -- Annotations to use by service associated to Clickhouse instance
@@ -305,6 +320,11 @@ clickhouse:
       tag: 0.19.1
       # -- Clickhouse Operator image pull policy.
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for Clickhouse Operator.
+    # If global.imagePullSecrets is set as well, it will merged.
+    imagePullSecrets: []
+      # - "clickhouseOperator-pull-secret"
 
     # ClickHouse Operator Service Account
     serviceAccount:
@@ -2119,7 +2139,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelAgent.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelAgent-pull-secret"
 
     # OpenTelemetry Collector executable
     command:
@@ -2219,7 +2243,11 @@ k8s-infra:
       repository: otel/opentelemetry-collector-contrib
       tag: 0.66.0
       pullPolicy: IfNotPresent
+
+    # -- Image Registry Secret Names for OtelDeployment.
+    # If global.imagePullSecrets is set as well, it will merged.
     imagePullSecrets: []
+      # - "otelDeployment-pull-secret"
 
     # OpenTelemetry Collector executable
     command:
