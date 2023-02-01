@@ -13,13 +13,13 @@ spec:
   type: {{ .type }}
   ports:
     - port: {{ .port }}
-      {{- include "service.ifClusterIP" .type | nindent 6 }}
+      {{- include "signoz.service.ifClusterIP" .type | nindent 6 }}
       targetPort: http
       protocol: TCP
       name: http
-    {{- if (and (eq .type "NodePort") .nodePort) }}
+      {{- if (and (eq .type "NodePort") .nodePort) }}
       nodePort: {{ .nodePort }}
-    {{- end }}
+      {{- end }}
 {{- end }}
   selector:
     {{- include "alertmanager.selectorLabels" . | nindent 4 }}
@@ -39,12 +39,12 @@ spec:
       protocol: TCP
       name: http
     {{- if or (gt (int .replicaCount) 1) (.additionalPeers) }}
-    - port: 9094
-      targetPort: 9094
+    - port: {{ .service.clusterPort }}
+      targetPort: {{ .service.clusterPort }}
       protocol: TCP
       name: cluster-tcp
-    - port: 9094
-      targetPort: 9094
+    - port: {{ .service.clusterPort }}
+      targetPort: {{ .service.clusterPort }}
       protocol: UDP
       name: cluster-udp
     {{- end }}

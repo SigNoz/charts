@@ -454,6 +454,12 @@ queryService:
     port: 8080
     # -- Query-Service Internal port
     internalPort: 8085
+    # -- Set this to you want to force a specific nodePort for http.
+    # Must be use with service.type=NodePort
+    nodePort: null
+    # -- Set this to you want to force a specific nodePort for internal.
+    # Must be use with service.type=NodePort
+    internalNodePort: null
 
   initContainers:
     init:
@@ -758,6 +764,8 @@ alertmanager:
     type: ClusterIP
     # -- Alertmanager HTTP port
     port: 9093
+    # -- Alertmanager cluster port
+    clusterPort: 9094
     # -- Set this to you want to force a specific nodePort. Must be use with service.type=NodePort
     nodePort: null
 

@@ -496,11 +496,11 @@ Return the service name of Clickhouse
 {{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
-{{- define "service.ifClusterIP" -}}
-{{- if (eq . "ClusterIP") -}}
+{{- define "signoz.service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") }}
 nodePort: null
-{{- end -}}
-{{- end -}}
+{{- end }}
+{{- end }}
 
 {{/*
 Return structured list of ports config.

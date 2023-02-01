@@ -13,7 +13,7 @@ spec:
   type: {{ .type }}
   ports:
     - port: {{ .port }}
-      {{- include "service.ifClusterIP" .type | nindent 6 }}
+      {{- include "signoz.service.ifClusterIP" .type | nindent 6 }}
       targetPort: http
       protocol: TCP
       name: http
