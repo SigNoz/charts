@@ -12,16 +12,22 @@ metadata:
 spec:
   type: {{ .type }}
   ports:
-    - port: {{ .port }}
-      {{- include "service.ifClusterIP" .type | nindent 6 }}
-      targetPort: http
+    - name: http
+      port: {{ .port }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
       protocol: TCP
-      name: http
-    - port: {{ .internalPort }}
-      {{- include "service.ifClusterIP" .type | nindent 6 }}
       targetPort: http
+      {{- if (and (eq .type "NodePort") .nodePort) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+    - name: http-internal
+      port: {{ .internalPort }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
       protocol: TCP
-      name: http-internal
+      targetPort: http-internal
+      {{- if (and (eq .type "NodePort") .internalNodePort) }}
+      nodePort: {{ .internalNodePort }}
+      {{- end }}
 {{- end }}
   selector:
     {{- include "queryService.selectorLabels" . | nindent 4 }}

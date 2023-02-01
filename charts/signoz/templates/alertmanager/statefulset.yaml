@@ -1,3 +1,4 @@
+{{- $svcClusterPort := .Values.alertmanager.service.clusterPort }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -109,13 +110,13 @@ spec:
             - --storage.path=/alertmanager
             - --queryService.url=http://{{ include "queryService.internalUrl" . }}
             {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
-            - --cluster.advertise-address=$(POD_IP):9094
-            - --cluster.listen-address=0.0.0.0:9094
+            - --cluster.advertise-address=$(POD_IP):{{ $svcClusterPort }}
+            - --cluster.listen-address=0.0.0.0:{{ $svcClusterPort }}
             {{- end }}
             {{- if gt (int .Values.alertmanager.replicaCount) 1 }}
             {{- $fullName := include "alertmanager.fullname" . }}
             {{- range $i := until (int .Values.alertmanager.replicaCount) }}
-            - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:9094
+            - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:{{ $svcClusterPort }}
             {{- end }}
             {{- end }}
             {{- if .Values.alertmanager.additionalPeers }}
@@ -128,7 +129,7 @@ spec:
             {{- end }}
           ports:
             - name: http
-              containerPort: 9093
+              containerPort: {{ default 9093 .Values.alertmanager.service.port }}
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.alertmanager.livenessProbe | nindent 12 }}
