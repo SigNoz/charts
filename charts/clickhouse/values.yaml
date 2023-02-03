@@ -349,8 +349,8 @@ coldStorage:
   # -- AWS Secret Access Key
   secretAccess: <secret_access_key>
 
-# -- Clickhouse configuration files. 
-# 
+# -- Clickhouse configuration files.
+#
 # Refs:
 # - https://clickhouse.com/docs/en/operations/configuration-files/
 # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
