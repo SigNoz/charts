@@ -426,8 +426,18 @@ clickhouseOperator:
     signoz.io/port: '8888'
     signoz.io/scrape: 'true'
 
-  # -- Clickhouse Operator node selector
+  # -- Clickhouse Operator pod-level security attributes and common container settings.
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  # -- Node selector for settings for Clickhouse Operator pod
   nodeSelector: {}
+  # -- Toleration labels for Clickhouse Operator pod assignment
+  tolerations: []
+  # -- Affinity settings for Clickhouse Operator pod
+  affinity: {}
+  # -- TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread
+  topologySpreadConstraints: []
 
   # -- Clickhouse logging config
   logger:
