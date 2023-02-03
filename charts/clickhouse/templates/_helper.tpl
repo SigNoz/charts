@@ -180,6 +180,16 @@ Return namespace of clickhouse
 {{- end -}}
 
 {{/*
+Return list of files and contents.
+*/}}
+{{- define "clickhouse.files" -}}
+{{- range $key,$value := .Values.files }}
+{{ $key }}: |
+  {{ $value }}
+{{- end }}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "clickhouseOperator.labels" -}}
