@@ -94,6 +94,7 @@ spec:
           </storage_configuration>
         </clickhouse>
       {{- end }}
+      {{ include "clickhouse.files" . | indent 6 }}
 
     zookeeper:
       nodes:
