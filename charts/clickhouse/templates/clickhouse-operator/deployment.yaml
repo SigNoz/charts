@@ -33,6 +33,23 @@ spec:
     spec:
       {{- include "clickhouseOperator.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "clickhouseOperator.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.clickhouseOperator.podSecurityContext | nindent 8 }}
+      {{- with .Values.clickhouseOperator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouseOperator.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: etc-clickhouse-operator-folder
           configMap:
