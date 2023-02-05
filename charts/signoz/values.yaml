@@ -2437,3 +2437,12 @@ keycloak:
 
     tls: true
     selfSigned: false
+
+###
+###
+### ---- KEDA ----
+###
+###
+# @ignored
+keda:
+  enabled: false

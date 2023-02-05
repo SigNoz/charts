@@ -17,5 +17,8 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 10.1.5
-digest: sha256:e844fcb2c4237a516c15d27470b65209193862538c59b3097f5c566e3c5a1b85
-generated: "2023-02-01T16:21:32.275360132+05:30"
+- name: keda
+  repository: https://kedacore.github.io/charts
+  version: 2.9.4
+digest: sha256:a1ce3049c8f064bdabd659da075caa5c4bc8b89d12f65278e43bdb428c8993b7
+generated: "2023-02-05T17:32:13.147133138+05:30"
