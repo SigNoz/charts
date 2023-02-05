@@ -1345,7 +1345,7 @@ otelCollector:
           metadata:
             type: Utilization
             value: "80"   # hpa make sure average Utlization <=80 by adding new pods
-        
+
         # # prometheus type trigger to scale based on prometheus metrics. Enable keda.bearer.enabled to use this.
         # - type: prometheus
         #   metadata:
