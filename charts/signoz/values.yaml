@@ -288,6 +288,28 @@ clickhouse:
     # -- AWS Secret Access Key
     secretAccess: <secret_access_key>
 
+  # -- Clickhouse configuration files.
+  #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/configuration-files/
+  # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+  files: {}
+    # config.d/log_rotation.xml: |
+    #   <clickhouse>
+    #     <logger>
+    #       <level>trace</level>
+    #       <console>true</console>
+    #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+    #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+    #       <size>100M</size>
+    #       <count>10</count>
+    #     </logger>
+    #   </clickhouse>
+    # test.xml: |
+    #   <clickhouse>
+    #     <some-setting>some-value</some-setting>
+    #   </clickhouse>
+
   ###
   ###
   ### ---- MISC ----
