@@ -46,6 +46,31 @@ entries:
   clickhouse:
   - apiVersion: v2
     appVersion: 22.8.8
+    created: "2023-02-07T10:37:50.045961939Z"
+    dependencies:
+    - name: zookeeper
+      repository: https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
+      version: 7.0.5
+    description: A Helm chart for ClickHouse
+    digest: 1ffc1187240e8c90800d0f36e462056d95e0609db270014e8ebf12a25a9ec8e7
+    icon: https://raw.githubusercontent.com/ClickHouse/ClickHouse/master/website/images/logo-400x240.png
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: clickhouse
+    sources:
+    - https://github.com/signoz/charts/
+    - https://github.com/ClickHouse/ClickHouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-23.8.4/clickhouse-23.8.4.tgz
+    version: 23.8.4
+  - apiVersion: v2
+    appVersion: 22.8.8
     created: "2023-02-03T08:47:25.385986035Z"
     dependencies:
     - name: zookeeper
@@ -567,6 +592,34 @@ entries:
     - https://github.com/SigNoz/charts/releases/download/clickhouse-9.1.0/clickhouse-9.1.0.tgz
     version: 9.1.0
   k8s-infra:
+  - apiVersion: v2
+    appVersion: 0.66.0
+    created: "2023-02-07T10:37:50.217685846Z"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: 29b1ea87841b0226be901e464d53249e371c4847b57bbe9b47986f5013598719
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.6.4/k8s-infra-0.6.4.tgz
+    version: 0.6.4
   - apiVersion: v2
     appVersion: 0.66.0
     created: "2023-02-01T10:50:22.906215619Z"
@@ -3255,4 +3308,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2023-02-03T08:47:25.386720737Z"
+generated: "2023-02-07T10:37:50.21841736Z"
