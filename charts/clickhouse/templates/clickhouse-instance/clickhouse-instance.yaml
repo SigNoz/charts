@@ -125,8 +125,9 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- include "clickhouse.imagePullSecrets" . | nindent 10 }}
+          {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
           serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
+          priorityClassName: {{ .Values.priorityClassName | quote }}
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
           {{- end }}
@@ -135,6 +136,9 @@ spec:
           {{- end }}
           {{- if .Values.nodeSelector }}
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
 
           volumes:
@@ -154,9 +158,6 @@ spec:
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-custom-functions
 
-          {{- if .Values.securityContext.enabled }}
-          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
-          {{- end }}
           {{- if .Values.initContainers.enabled }}
           initContainers:
             - name: {{ include "clickhouse.fullname" . }}-init
