@@ -187,6 +187,8 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
+# -- Clickhouse priority class name
+priorityClassName: ""
 # -- Node selector for settings for clickhouse pod
 nodeSelector: {}
 # -- Toleration labels for clickhouse pod assignment
@@ -430,6 +432,8 @@ clickhouseOperator:
   podSecurityContext: {}
     # fsGroup: 2000
 
+  # -- Clickhouse Operator priority class name
+  priorityClassName: ""
   # -- Node selector for settings for Clickhouse Operator pod
   nodeSelector: {}
   # -- Toleration labels for Clickhouse Operator pod assignment

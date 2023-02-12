@@ -560,6 +560,8 @@ queryService:
     #   cpu: 750m
     #   memory: 1000Mi
 
+  # -- QueryService priority class name
+  priorityClassName: ""
   # -- Node selector for settings for QueryService pod
   nodeSelector: {}
   # -- Toleration labels for QueryService pod assignment
@@ -738,6 +740,8 @@ frontend:
     #   cpu: 200m
     #   memory: 200Mi
 
+  # -- Frontend priority class name
+  priorityClassName: ""
   # -- Node selector for settings for Frontend pod
   nodeSelector: {}
   # -- Toleration labels for Frontend pod assignment
@@ -881,6 +885,8 @@ alertmanager:
     #   cpu: 200m
     #   memory: 200Mi
 
+  # -- Alertmanager priority class name
+  priorityClassName: ""
   # -- Node selector for settings for Alertmanager pod
   nodeSelector: {}
   # -- Toleration labels for Alertmanager pod assignment
@@ -1283,6 +1289,8 @@ otelCollector:
     #   cpu: "1"
     #   memory: 2Gi
 
+  # -- OtelCollector priority class name
+  priorityClassName: ""
   # -- Node selector for settings for OtelCollector pod
   nodeSelector: {}
   # -- Toleration labels for OtelCollector pod assignment
@@ -1705,6 +1713,8 @@ otelCollectorMetrics:
     #   cpu: "1"
     #   memory: 2Gi
 
+  # -- OtelCollectorMetrics priority class name
+  priorityClassName: ""
   # -- Node selector for settings for OtelCollectorMetrics pod
   nodeSelector: {}
   # -- Toleration labels for OtelCollectorMetrics pod assignment

@@ -24,6 +24,23 @@ spec:
       {{- end }}
       {{- end }}
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
+      priorityClassName: {{ .Values.queryService.priorityClassName | quote }}
+      {{- with .Values.queryService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
       {{- if .Values.queryService.initContainers.init.enabled }}
@@ -99,22 +116,6 @@ spec:
               mountPath: /var/lib/signoz/
           resources:
             {{- toYaml .Values.queryService.resources | nindent 12 }}
-      {{- with .Values.queryService.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.topologySpreadConstraints }}
-      topologySpreadConstraints:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       volumes:
         - name: prometheus
           configMap:
