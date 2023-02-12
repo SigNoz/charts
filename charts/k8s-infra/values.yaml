@@ -496,6 +496,9 @@ otelAgent:
     #   cpu: 1000m
     #   memory: 1Gi
 
+  # -- OtelAgent priority class name
+  priorityClassName: ""
+
   # -- OtelAgent node selector
   nodeSelector: {}
 
@@ -753,6 +756,9 @@ otelDeployment:
     # limits:
     #   cpu: 1000m
     #   memory: 1Gi
+
+  # -- OtelDeployment priority class name
+  priorityClassName: ""
 
   # -- OtelDeployment node selector
   nodeSelector: {}

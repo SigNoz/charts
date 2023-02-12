@@ -34,6 +34,22 @@ spec:
       {{- end }}
       {{- end }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
+      priorityClassName: {{ .Values.otelCollector.priorityClassName | quote }}
+      {{- with .Values.otelCollector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
       initContainers:
@@ -121,21 +137,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelCollector.resources | nindent 12 }}
-      {{- with .Values.otelCollector.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.topologySpreadConstraints }}
-      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
-      {{- end }}
       volumes:
         - name: otel-collector-config-vol
           configMap:
