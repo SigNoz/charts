@@ -184,8 +184,7 @@ Return list of files and contents.
 */}}
 {{- define "clickhouse.files" -}}
 {{- range $key,$value := .Values.files }}
-{{ $key }}: |
-  {{ $value }}
+{{ $key }}: {{ $value | toYaml }}
 {{- end }}
 {{- end }}
 
