@@ -104,6 +104,8 @@ spec:
               value: {{ default "otel-collector" .Values.otelCollector.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+            - name: LOW_CARDINAL_EXCEPTION_GROUPING
+              value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
           volumeMounts:
             - name: otel-collector-config-vol
               mountPath: /conf
