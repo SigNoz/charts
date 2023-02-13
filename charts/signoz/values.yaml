@@ -1820,6 +1820,9 @@ otelCollectorMetrics:
                 - source_labels: [__meta_kubernetes_pod_container_name]
                   action: replace
                   target_label: k8s_container_name
+                - source_labels: [__meta_kubernetes_pod_container_name]
+                  regex: (.+)-init
+                  action: drop
                 - source_labels: [__meta_kubernetes_pod_node_name]
                   action: replace
                   target_label: k8s_node_name
