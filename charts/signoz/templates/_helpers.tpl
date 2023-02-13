@@ -496,11 +496,11 @@ Return the service name of Clickhouse
 {{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
-{{- define "service.ifClusterIP" -}}
-{{- if (eq . "ClusterIP") -}}
+{{- define "signoz.service.ifClusterIP" -}}
+{{- if (eq . "ClusterIP") }}
 nodePort: null
-{{- end -}}
-{{- end -}}
+{{- end }}
+{{- end }}
 
 {{/*
 Return structured list of ports config.
@@ -590,4 +590,19 @@ Common K8s environment variables used by SigNoz OtelCollector.
   valueFrom:
     fieldRef:
       fieldPath: metadata.namespace
+{{- end }}
+
+{{/*
+Return the proper Image Registry Secret Names.
+*/}}
+{{- define "signoz.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
 {{- end }}

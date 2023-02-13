@@ -1,6 +1,8 @@
 global:
   # -- Overrides the Docker registry globally for all images
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
   storageClass: &GLOBAL_SC null
   # -- Kubernetes cluster domain
@@ -149,6 +151,21 @@ image:
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
+# -- Image Registry Secret Names for ClickHouse.
+# If global.imagePullSecrets is set as well, it will merged.
+imagePullSecrets: []
+  # - "clickhouse-pull-secret"
+
+# ClickHouse Service Account
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
 # Clickhouse service
 service:
   # -- Annotations to use by service associated to Clickhouse instance
@@ -170,6 +187,8 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
+# -- Clickhouse priority class name
+priorityClassName: ""
 # -- Node selector for settings for clickhouse pod
 nodeSelector: {}
 # -- Toleration labels for clickhouse pod assignment
@@ -253,7 +272,10 @@ defaultProfiles:
   default/allow_experimental_window_functions: "1"
   default/allow_nondeterministic_mutations: "1"
 
+# -- Clickhouse init container to copy histogramQuantile UDF
+# @default -- See `values.yaml` for defaults
 initContainers:
+  enabled: true
   init:
     image:
       registry: docker.io
@@ -329,6 +351,27 @@ coldStorage:
   # -- AWS Secret Access Key
   secretAccess: <secret_access_key>
 
+# -- Clickhouse configuration files.
+#
+# Refs:
+# - https://clickhouse.com/docs/en/operations/configuration-files/
+# - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+files: {}
+  # config.d/log_rotation.xml: |
+  #   <clickhouse>
+  #     <logger>
+  #       <level>trace</level>
+  #       <console>true</console>
+  #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+  #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+  #       <size>100M</size>
+  #       <count>10</count>
+  #     </logger>
+  #   </clickhouse>
+  # test.xml: |
+  #   <clickhouse>
+  #     <some-setting>some-value</some-setting>
+  #   </clickhouse>
 
 ###
 ###
@@ -365,6 +408,12 @@ clickhouseOperator:
     # -- Clickhouse Operator image pull policy.
     pullPolicy: IfNotPresent
 
+  # -- Image Registry Secret Names for Clickhouse Operator.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouseOperator-pull-secret"
+
+  # ClickHouse Operator Service Account
   serviceAccount:
     # -- Specifies whether a service account should be created
     create: true
@@ -379,8 +428,20 @@ clickhouseOperator:
     signoz.io/port: '8888'
     signoz.io/scrape: 'true'
 
-  # -- Clickhouse Operator node selector
+  # -- Clickhouse Operator pod-level security attributes and common container settings.
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  # -- Clickhouse Operator priority class name
+  priorityClassName: ""
+  # -- Node selector for settings for Clickhouse Operator pod
   nodeSelector: {}
+  # -- Toleration labels for Clickhouse Operator pod assignment
+  tolerations: []
+  # -- Affinity settings for Clickhouse Operator pod
+  affinity: {}
+  # -- TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread
+  topologySpreadConstraints: []
 
   # -- Clickhouse logging config
   logger:

@@ -1,3 +1,4 @@
+{{- $svcClusterPort := .Values.alertmanager.service.clusterPort }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -31,9 +32,12 @@ spec:
     spec:
     {{- with .Values.alertmanager.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
     {{- end }}
       serviceAccountName: {{ include "alertmanager.serviceAccountName" . }}
+      priorityClassName: {{ .Values.alertmanager.priorityClassName | quote }}
     {{- with .Values.alertmanager.dnsConfig }}
       dnsConfig:
         {{- toYaml . | nindent 8 }}
@@ -67,6 +71,8 @@ spec:
             - -c
             - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
+          resources:
+            {{- toYaml .Values.alertmanager.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
         {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}
@@ -97,21 +103,21 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
-{{- if .Values.alertmanager.command }}
+          {{- if .Values.alertmanager.command }}
           command:
             {{- toYaml .Values.alertmanager.command | nindent 12 }}
-{{- end }}
+          {{- end }}
           args:
             - --storage.path=/alertmanager
             - --queryService.url=http://{{ include "queryService.internalUrl" . }}
             {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
-            - --cluster.advertise-address=$(POD_IP):9094
-            - --cluster.listen-address=0.0.0.0:9094
+            - --cluster.advertise-address=$(POD_IP):{{ $svcClusterPort }}
+            - --cluster.listen-address=0.0.0.0:{{ $svcClusterPort }}
             {{- end }}
             {{- if gt (int .Values.alertmanager.replicaCount) 1 }}
             {{- $fullName := include "alertmanager.fullname" . }}
             {{- range $i := until (int .Values.alertmanager.replicaCount) }}
-            - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:9094
+            - --cluster.peer={{ $fullName }}-{{ $i }}.{{ $fullName }}-headless:{{ $svcClusterPort }}
             {{- end }}
             {{- end }}
             {{- if .Values.alertmanager.additionalPeers }}
@@ -124,7 +130,7 @@ spec:
             {{- end }}
           ports:
             - name: http
-              containerPort: 9093
+              containerPort: {{ default 9093 .Values.alertmanager.service.port }}
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.alertmanager.livenessProbe | nindent 12 }}
@@ -133,19 +139,37 @@ spec:
           resources:
             {{- toYaml .Values.alertmanager.resources | nindent 12 }}
           volumeMounts:
-            {{- if .Values.alertmanager.config }}
+          {{- if .Values.alertmanager.config }}
             - name: config
               mountPath: /etc/alertmanager
-            {{- end }}
+          {{- end }}
+          {{- if .Values.alertmanager.persistence.enabled }}
+          {{- if .Values.alertmanager.persistence.existingClaim }}
+            - name: storage-existing-claim
+          {{- else }}
             - name: storage
+          {{- end }}
+          {{- else }}
+            - name: storage-volume
+          {{- end }}
               mountPath: /alertmanager
-      {{- if .Values.alertmanager.config }}
+    {{- if or .Values.alertmanager.config (not .Values.alertmanager.persistence.enabled) .Values.alertmanager.persistence.existingClaim }}
       volumes:
+      {{- if .Values.alertmanager.config }}
         - name: config
           configMap:
             name: {{ include "alertmanager.fullname" . }}
       {{- end }}
-  {{- if .Values.alertmanager.persistence.enabled }}
+      {{- if not .Values.alertmanager.persistence.enabled }}
+        - name: storage-volume
+          emptyDir: {}
+      {{- else if .Values.alertmanager.persistence.existingClaim }}
+        - name: storage-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.alertmanager.persistence.existingClaim }}
+      {{- end }}
+    {{- end }}
+  {{- if and .Values.alertmanager.persistence.enabled (not .Values.alertmanager.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: storage
@@ -155,15 +179,12 @@ spec:
         resources:
           requests:
             storage: {{ .Values.alertmanager.persistence.size }}
-      {{- $storageClass := default .Values.alertmanager.persistence.storageClass .Values.global.storageClass -}}
-      {{- if $storageClass -}}
+      {{- $storageClass := default .Values.alertmanager.persistence.storageClass .Values.global.storageClass }}
+      {{- if $storageClass }}
       {{- if (eq "-" $storageClass) }}
         storageClassName: ""
       {{- else }}
         storageClassName: {{ $storageClass }}
-      {{- end -}}
       {{- end }}
-  {{- else }}
-        - name: storage
-          emptyDir: {}
-  {{- end -}}
+      {{- end }}
+  {{- end }}

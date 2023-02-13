@@ -25,7 +25,29 @@ spec:
       labels:
         {{- include "otelCollectorMetrics.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.otelCollectorMetrics.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
       serviceAccountName: {{ include "otelCollectorMetrics.serviceAccountName" . }}
+      priorityClassName: {{ .Values.otelCollectorMetrics.priorityClassName | quote }}
+      {{- with .Values.otelCollectorMetrics.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollectorMetrics.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollectorMetrics.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollectorMetrics.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollectorMetrics.podSecurityContext | nindent 8 }}
       initContainers:
@@ -40,7 +62,9 @@ spec:
             - sh
             - -c
             - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-          {{- end -}}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.otelCollectorMetrics.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
         - name: {{ template "otelCollectorMetrics.fullname" . }}
@@ -73,11 +97,13 @@ spec:
           {{- end }}
           env:
             {{- include "snippet.clickhouse-env" . | nindent 12 }}
+            {{- include "snippet.k8s-env" . | nindent 12 }}
             - name: K8S_CLUSTER_NAME
               value: {{ default .Values.global.clusterName .Values.clusterName }}
+            - name: SIGNOZ_COMPONENT
+              value: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=signoz-host,os.type=linux,signoz.component=otel-collector-metrics,k8s.cluster.name=${K8S_CLUSTER_NAME}
-            {{- include "snippet.k8s-env" . | nindent 12 }}
+              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
           volumeMounts:
             - name: otel-collector-metrics-config-vol
               mountPath: /conf
@@ -113,21 +139,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelCollectorMetrics.resources | nindent 12 }}
-      {{- with .Values.otelCollectorMetrics.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollectorMetrics.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollectorMetrics.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollectorMetrics.topologySpreadConstraints }}
-      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
-      {{- end }}
       volumes:
         - name: otel-collector-metrics-config-vol
           configMap:

@@ -17,7 +17,30 @@ spec:
       labels:
         {{- include "queryService.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.queryService.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
       serviceAccountName: {{ include "queryService.serviceAccountName" . }}
+      priorityClassName: {{ .Values.queryService.priorityClassName | quote }}
+      {{- with .Values.queryService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queryService.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
       {{- if .Values.queryService.initContainers.init.enabled }}
@@ -33,21 +56,22 @@ spec:
             - -c
             - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
+          resources:
+            {{- toYaml .Values.queryService.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
         - name: {{ include "queryService.fullname" . }}
           securityContext:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
-          {{- with .Values.queryService.imagePullSecrets }}
-          imagePullSecrets:
-            {{- toYaml . | nindent 8 }}
-          {{- end }}
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args: ["-config=/root/config/prometheus.yml"]
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ default 8080  .Values.queryService.service.port }}
+              protocol: TCP
+            - name: http-internal
+              containerPort: {{ default 8085 .Values.queryService.service.internalPort }}
               protocol: TCP
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
@@ -76,38 +100,38 @@ spec:
               path: /api/v1/version
               port: http
           volumeMounts:
-          - name: prometheus
-            mountPath: /root/config
-          - name: signoz-db
-            mountPath: /var/lib/signoz/
-          - name: dashboards
-            mountPath: /root/config/dashboards
+            - name: prometheus
+              mountPath: /root/config
+            - name: dashboards
+              mountPath: /root/config/dashboards
+          {{- if .Values.queryService.persistence.enabled }}
+          {{- if .Values.queryService.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz/
           resources:
             {{- toYaml .Values.queryService.resources | nindent 12 }}
-      {{- with .Values.queryService.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.queryService.topologySpreadConstraints }}
-      topologySpreadConstraints:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       volumes:
-      - name: prometheus
-        configMap:
-          name: {{ include "queryService.fullname" . }}
-      - name: dashboards
-        emptyDir: {}
+        - name: prometheus
+          configMap:
+            name: {{ include "queryService.fullname" . }}
+        - name: dashboards
+          emptyDir: {}
+      {{- if (not .Values.queryService.persistence.enabled) }}
+        - name: signoz-db-volume
+          emptyDir: {}
+      {{- else if .Values.queryService.persistence.existingClaim }}
+        - name: signoz-db-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.queryService.persistence.existingClaim }}
+      {{- end }}
 
-{{- if .Values.queryService.persistence.enabled }}
+{{- if and (.Values.queryService.persistence.enabled) (not .Values.queryService.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: signoz-db
@@ -123,6 +147,6 @@ spec:
         storageClassName: ""
       {{- else }}
         storageClassName: {{ $storageClass }}
-      {{- end -}}
-      {{- end -}}
+      {{- end }}
+      {{- end }}
 {{- end }}

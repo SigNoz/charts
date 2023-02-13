@@ -94,6 +94,7 @@ spec:
           </storage_configuration>
         </clickhouse>
       {{- end }}
+      {{ include "clickhouse.files" . | indent 6 }}
 
     zookeeper:
       nodes:
@@ -124,9 +125,9 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- if .Values.coldStorage.role.enabled }}
-          serviceAccountName: {{ include "clickhouse.fullname" . }}-instance
-          {{- end }}
+          {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
+          serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
+          priorityClassName: {{ .Values.priorityClassName | quote }}
           {{- if .Values.affinity }}
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
           {{- end }}
@@ -136,21 +137,20 @@ spec:
           {{- if .Values.nodeSelector }}
           nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
           {{- end }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
 
           volumes:
-          {{- if .Values.persistence.enabled }}
-          {{- if .Values.persistence.existingClaim }}
+          {{- if not .Values.persistence.enabled }}
+            - name: data-volume
+              emptyDir: {}
+            # - name: log-volume
+            #   emptyDir: {}
+          {{- else if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
                 claimName: {{ .Values.persistence.existingClaim }}
-          {{- else }}
-            - name: data-volumeclaim-template
-              persistentVolumeClaim:
-                claimName: data-volumeclaim-template
-            # - name: log-volumeclaim-template
-            #   persistentVolumeClaim:
-            #     claimName: log-volumeclaim-template
-          {{- end }}
           {{- end }}
             - name: shared-binary-volume
               emptyDir: {}
@@ -158,9 +158,7 @@ spec:
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-custom-functions
 
-          {{- if .Values.securityContext.enabled }}
-          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
-          {{- end }}
+          {{- if .Values.initContainers.enabled }}
           initContainers:
             - name: {{ include "clickhouse.fullname" . }}-init
               image: {{ include "clickhouse.initContainers.init.image" . }}
@@ -176,6 +174,7 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+          {{- end }}
           containers:
             - name: clickhouse
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
@@ -196,14 +195,14 @@ spec:
                   containerPort: 9009
 
               volumeMounts:
-              {{- if .Values.persistence.enabled }}
-              {{- if .Values.persistence.existingClaim }}
+              {{- if not .Values.persistence.enabled }}
+                - name: data-volume
+              {{- else if .Values.persistence.existingClaim }}
                 - name: existing-volumeclaim
               {{- else }}
                 - name: data-volumeclaim-template
               {{- end }}
                   mountPath: /var/lib/clickhouse
-              {{- end }}
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
                 - name: custom-functions-volume
@@ -252,6 +251,6 @@ spec:
           storageClassName: ""
         {{- else }}
           storageClassName: {{ $storageClass }}
-        {{- end -}}
         {{- end }}
     {{- end }}
+  {{- end }}

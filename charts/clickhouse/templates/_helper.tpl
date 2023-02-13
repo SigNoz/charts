@@ -54,6 +54,17 @@ app.kubernetes.io/component: {{ default "clickhouse" .Values.name }}
 {{- end -}}
 
 {{/*
+Create the name of the service account to use
+*/}}
+{{- define "clickhouse.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+    {{ default (include "clickhouse.fullname" .) .Values.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Set zookeeper host
 */}}
 {{- define "clickhouse.zookeeper.servicename" -}}
@@ -125,6 +136,36 @@ nodePort: null
 {{- end -}}
 
 {{/*
+Return the proper Image Registry Secret Names.
+*/}}
+{{- define "clickhouse.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return service account annotations of ClickHouse instance.
+*/}}
+{{- define "clickhouse.serviceAccountAnnotations" -}}
+{{- $annotations := dict }}
+{{- if .Values.serviceAccount.create }}
+{{- $annotations = merge $annotations .Values.serviceAccount.annotations }}
+{{- end }}
+{{- if and .Values.coldStorage.enabled .Values.coldStorage.role.enabled }}
+{{- $annotations = merge $annotations .Values.coldStorage.role.annotations }}
+{{- end -}}
+annotations:
+  {{- toYaml $annotations | nindent 2 }}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name for clickhouseOperator.
 */}}
 {{- define "clickhouseOperator.fullname" -}}
@@ -137,6 +178,15 @@ Return namespace of clickhouse
 {{- define "clickhouse.namespace" -}}
 {{- default .Release.Namespace .Values.namespace -}}
 {{- end -}}
+
+{{/*
+Return list of files and contents.
+*/}}
+{{- define "clickhouse.files" -}}
+{{- range $key,$value := .Values.files }}
+{{ $key }}: {{ $value | toYaml }}
+{{- end }}
+{{- end }}
 
 {{/*
 Common labels
@@ -174,7 +224,6 @@ Return the proper clickhouseOperator image name
 {{- end -}}
 {{- end -}}
 
-
 {{/*
 Create the name of the service account to use
 */}}
@@ -185,6 +234,21 @@ Create the name of the service account to use
     {{ default "default" .Values.clickhouseOperator.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the proper Image Registry Secret Names.
+*/}}
+{{- define "clickhouseOperator.imagePullSecrets" -}}
+{{- if or .Values.global.imagePullSecrets .Values.clickhouseOperator.imagePullSecrets }}
+imagePullSecrets:
+{{- range .Values.global.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.clickhouseOperator.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}
 
 {{/*
 Create a default fully qualified app name for metricsExporter.
