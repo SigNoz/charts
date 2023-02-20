@@ -1,6 +1,6 @@
 {{- if .Values.installCustomStorageClass -}}
 
-{{- if (eq (.Values.cloud | toString) "gcp" ) -}}
+{{- if hasPrefix "gcp" .Values.global.cloud -}}
 #
 # GCP resizable storage class
 #
@@ -16,7 +16,7 @@ parameters:
 reclaimPolicy: Retain
 allowVolumeExpansion: true
 
-{{- else if (eq (.Values.cloud | toString) "aws") -}}
+{{- else if hasPrefix "aws" .Values.global.cloud -}}
 #
 # AWS resizable storage class
 #
