@@ -1458,11 +1458,14 @@ otelCollector:
           # -- Restrict each OpenTelemetry agent to query pods running on the same node
           node_from_env_var: K8S_NODE_NAME
         pod_association:
-          - from: resource_attribute
-            name: k8s.pod.ip
-          - from: resource_attribute
-            name: k8s.pod.uid
-          - from: connection
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -1934,11 +1937,14 @@ otelCollectorMetrics:
           # -- Restrict each OpenTelemetry agent to query pods running on the same node
           node_from_env_var: K8S_NODE_NAME
         pod_association:
-          - from: resource_attribute
-            name: k8s.pod.ip
-          - from: resource_attribute
-            name: k8s.pod.uid
-          - from: connection
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -2131,11 +2137,14 @@ k8s-infra:
       # -- Pod Association section allows to define rules for tagging spans, metrics,
       # and logs with Pod metadata.
       podAssociation:
-        - from: resource_attribute
-          name: k8s.pod.ip
-        - from: resource_attribute
-          name: k8s.pod.uid
-        - from: connection
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
       # -- Which pod/namespace metadata to extract from a list of default metadata fields.
       extractMetadatas:
         - k8s.namespace.name
