@@ -336,9 +336,12 @@ coldStorage:
   # -- Whether to enable S3 cold storage
   enabled: false
   # -- Reserve free space on default disk (in bytes)
+  # Default value set below is 10MiB
   defaultKeepFreeSpaceBytes: "10485760"
-  # -- AWS S3 endpoint
-  endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+  # -- AWS S3 endpoint.
+  # If region is us-east-1, endpoint can be https://s3.amazonaws.com
+  # If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+  endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
   # AWS role configuration - to use environment variables instead of passing access and secret keys
   role:
     # -- Whether to enable AWS IAM ARN role.
