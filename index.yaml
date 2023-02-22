@@ -693,6 +693,34 @@ entries:
     version: 9.1.0
   k8s-infra:
   - apiVersion: v2
+    appVersion: 0.70.0
+    created: "2023-02-22T22:55:37.569416252+05:30"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: c4d2a296b87d87ce0567de216cd8fabe9114b5dd0865b7238202f668363633f6
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.7.0/k8s-infra-0.7.0.tgz
+    version: 0.7.0
+  - apiVersion: v2
     appVersion: 0.66.0
     created: "2023-02-21T19:58:11.872944379Z"
     description: Helm chart for collecting metrics and logs in K8s
