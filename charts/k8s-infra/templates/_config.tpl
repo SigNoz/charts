@@ -90,8 +90,10 @@ exporters:
     tls:
       insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
       insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      {{- if .Values.otelTlsSecrets.enabled }}
       cert_file: ${OTEL_SECRETS_PATH}/cert.pem
       key_file: ${OTEL_SECRETS_PATH}/key.pem
+      {{- end }}
     headers:
       "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
 {{- end }}
