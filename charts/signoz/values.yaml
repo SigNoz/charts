@@ -12,6 +12,9 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  cloud: other
 
 # -- SigNoz chart name override
 nameOverride: ""
@@ -2198,7 +2201,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.70.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelAgent.
@@ -2302,7 +2305,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.70.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelDeployment.
