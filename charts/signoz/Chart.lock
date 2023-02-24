@@ -4,7 +4,7 @@ dependencies:
   version: 23.8.6
 - name: k8s-infra
   repository: https://signoz.github.io/charts
-  version: 0.6.5
+  version: 0.7.0
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v1.9.1
@@ -17,5 +17,5 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 10.1.5
-digest: sha256:40fbed98dd6c9f4c60f7ad994c10eb7ccffc4f84aca3310569188d82ae91c4af
-generated: "2023-02-12T21:51:27.696931574+05:30"
+digest: sha256:2d9c8be0f85e0456f43c7550b84e8d24fb0c45325e69d34ce5826c001791b21c
+generated: "2023-02-24T20:47:44.612261+05:30"
