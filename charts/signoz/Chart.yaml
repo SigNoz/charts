@@ -26,7 +26,7 @@ dependencies:
   - name: k8s-infra
     repository: "https://signoz.github.io/charts"
     condition: k8s-infra.enabled
-    version: 0.6.5
+    version: 0.7.0
   - name: cert-manager
     repository: https://charts.jetstack.io
     condition: cert-manager.enabled
