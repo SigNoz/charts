@@ -5,6 +5,8 @@ global:
   # -- Global Image Pull Secrets
   imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
+  # If not set, the default storage class is used.
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
   storageClass: null
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
@@ -12,6 +14,11 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
+  cloud: other
 
 # -- SigNoz chart name override
 nameOverride: ""
@@ -452,7 +459,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.16.1
+    tag: 0.16.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -605,7 +612,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.16.1
+    tag: 0.16.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1025,7 +1032,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.4
+    tag: 0.66.5
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1536,7 +1543,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.4
+    tag: 0.66.5
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2198,7 +2205,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.70.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelAgent.
@@ -2302,7 +2309,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.70.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelDeployment.
