@@ -18,6 +18,6 @@ spec:
     # Add a single challenge solver, HTTP01 using ingress controller (default: nginx)
     solvers:
       - http01:
-        ingress:
-          class: {{ index (index .Values "cert-manager") "ingressClassName" }}
+          ingress:
+            class: {{ index (index .Values "cert-manager") "ingressClassName" }}
 {{- end }}
