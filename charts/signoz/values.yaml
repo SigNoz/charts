@@ -1518,12 +1518,12 @@ otelCollector:
       extensions: [health_check, zpages]
       pipelines:
         traces:
-          receivers: [jaeger, otlp]
-          processors: [signozspanmetrics/prometheus, k8sattributes, batch]
+          receivers: [otlp, jaeger]
+          processors: [signozspanmetrics/prometheus, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
-          processors: [k8sattributes, batch]
+          processors: [batch]
           exporters: [clickhousemetricswrite]
         metrics/generic:
           receivers: [hostmetrics]
@@ -1534,7 +1534,7 @@ otelCollector:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [k8sattributes, batch]
+          processors: [batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
