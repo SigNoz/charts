@@ -4,16 +4,17 @@ global:
   # -- Global Image Pull Secrets
   imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
+  # If not set, the default storage class is used.
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
   storageClass: &GLOBAL_SC null
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
   clusterDomain: cluster.local
-
-# -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
-# Based on the cloud, storage class for the persistent volume is selected.
-# When set to 'aws' or 'gcp', new expandible storage class is created.
-# When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
-cloud: other
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
+  cloud: other
 
 ###
 ###
@@ -92,7 +93,7 @@ zookeeper:
     # If undefined (the default) or set to null, no storageClassName spec is
     #   set, choosing the default provisioner.  (gp2 on AWS, standard on
     #   GKE, AWS & OpenStack)
-    #
+    # @default -- See `values.yaml` for defaults
     storageClass: *GLOBAL_SC
 
     # -- PVC Access modes
@@ -187,6 +188,8 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
+# -- Clickhouse priority class name
+priorityClassName: ""
 # -- Node selector for settings for clickhouse pod
 nodeSelector: {}
 # -- Toleration labels for clickhouse pod assignment
@@ -333,9 +336,12 @@ coldStorage:
   # -- Whether to enable S3 cold storage
   enabled: false
   # -- Reserve free space on default disk (in bytes)
+  # Default value set below is 10MiB
   defaultKeepFreeSpaceBytes: "10485760"
-  # -- AWS S3 endpoint
-  endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+  # -- AWS S3 endpoint.
+  # If region is us-east-1, endpoint can be https://s3.amazonaws.com
+  # If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+  endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
   # AWS role configuration - to use environment variables instead of passing access and secret keys
   role:
     # -- Whether to enable AWS IAM ARN role.
@@ -430,6 +436,8 @@ clickhouseOperator:
   podSecurityContext: {}
     # fsGroup: 2000
 
+  # -- Clickhouse Operator priority class name
+  priorityClassName: ""
   # -- Node selector for settings for Clickhouse Operator pod
   nodeSelector: {}
   # -- Toleration labels for Clickhouse Operator pod assignment

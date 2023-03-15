@@ -12,6 +12,9 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  cloud: other
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -188,11 +191,14 @@ presets:
     # -- Pod Association section allows to define rules for tagging spans, metrics,
     # and logs with Pod metadata.
     podAssociation:
-      - from: resource_attribute
-        name: k8s.pod.ip
-      - from: resource_attribute
-        name: k8s.pod.uid
-      - from: connection
+      - sources:
+        - from: resource_attribute
+          name: k8s.pod.ip
+      - sources:
+        - from: resource_attribute
+          name: k8s.pod.uid
+      - sources:
+        - from: connection
     # -- Which pod/namespace metadata to extract from a list of default metadata fields.
     extractMetadatas:
       - k8s.namespace.name
@@ -245,7 +251,7 @@ otelAgent:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.66.0
+    tag: 0.70.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelAgent.
@@ -496,6 +502,9 @@ otelAgent:
     #   cpu: 1000m
     #   memory: 1Gi
 
+  # -- OtelAgent priority class name
+  priorityClassName: ""
+
   # -- OtelAgent node selector
   nodeSelector: {}
 
@@ -576,7 +585,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.66.0
+    tag: 0.70.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -753,6 +762,9 @@ otelDeployment:
     # limits:
     #   cpu: 1000m
     #   memory: 1Gi
+
+  # -- OtelDeployment priority class name
+  priorityClassName: ""
 
   # -- OtelDeployment node selector
   nodeSelector: {}

@@ -34,6 +34,22 @@ spec:
       {{- end }}
       {{- end }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
+      priorityClassName: {{ .Values.otelCollector.priorityClassName | quote }}
+      {{- with .Values.otelCollector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.otelCollector.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
       initContainers:
@@ -88,6 +104,8 @@ spec:
               value: {{ default "otel-collector" .Values.otelCollector.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+            - name: LOW_CARDINAL_EXCEPTION_GROUPING
+              value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
           volumeMounts:
             - name: otel-collector-config-vol
               mountPath: /conf
@@ -121,21 +139,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelCollector.resources | nindent 12 }}
-      {{- with .Values.otelCollector.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.otelCollector.topologySpreadConstraints }}
-      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
-      {{- end }}
       volumes:
         - name: otel-collector-config-vol
           configMap:
