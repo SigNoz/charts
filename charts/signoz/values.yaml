@@ -1367,13 +1367,17 @@ otelCollector:
       minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       # -- KEDA maxReplicaCount for HPA to scale up
       maxReplicaCount: "5"
-      # KEDA bearer authentication for HPA.
-      bearer:
+      # KEDA custom authentication for HPA.
+      auth:
         enabled: false
         # -- KEDA trigger authentication name. This should match authentication ref name in prometheus trigger.
         triggerAuth: signoz-keda-auth
-        # -- KEDA bearer token for authentication.
-        token: "BEARER_TOKEN"
+        # -- KEDA header name for authentication.
+        # In case of SigNoz, we set it to `SIGNOZ-API-KEY`.
+        customHeaderName: "SIGNOZ-API-KEY"
+        # -- KEDA header value for authentication.
+        # In case of SigNoz, we set it to personal access token of an user from SigNoz UI. (Enterprise)
+        customHeaderValue: "<personal-access-token>"
         # might be required if you're using a custom CA
         customCA: ""
       # -- KEDA triggers for HPA.
@@ -1390,13 +1394,12 @@ otelCollector:
           metadata:
             type: Utilization
             value: "80"   # hpa make sure average Utlization <=80 by adding new pods
-
-        # # prometheus type trigger to scale based on prometheus metrics. Enable keda.bearer.enabled to use this.
+        # prometheus type trigger to scale based on prometheus metrics. Enable keda.auth.enabled to use this.
         # - type: prometheus
         #   metadata:
         #     serverAddress: http://my-release-signoz-query-service.platform.svc.cluster.local:8080
         #     metricName: total_datapoints
-        #     authModes: bearer
+        #     authModes: custom
         #     threshold: '10000'  # threshold for total number of data points to consider for scaling
         #     query: sum(rate(otelcol_receiver_accepted_spans{signoz_k8s_component="otel-collector"}[5m]))+sum(rate(otelcol_receiver_accepted_metric_points{signoz_k8s_component="otel-collector"}[5m]))+sum(rate(otelcol_receiver_accepted_log_records{signoz_k8s_component="otel-collector"}[5m]))
         #   authenticationRef:

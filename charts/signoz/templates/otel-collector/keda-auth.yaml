@@ -1,24 +1,28 @@
-{{- if and .Values.otelCollector.autoscaling.keda.enabled .Values.otelCollector.autoscaling.keda.bearer.enabled }}
+{{- if and .Values.otelCollector.autoscaling.keda.enabled .Values.otelCollector.autoscaling.keda.auth.enabled }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ include "otelCollector.fullname" . }}-keda-secret
 data:
-  bearerToken: {{ .Values.otelCollector.autoscaling.keda.bearer.token | b64enc }}
-  {{- with .Values.otelCollector.autoscaling.keda.bearer.customCA }}
+  customAuthHeader: {{ .Values.otelCollector.autoscaling.keda.auth.customHeaderName | b64enc }}
+  customAuthValue: {{ .Values.otelCollector.autoscaling.keda.auth.customHeaderValue | b64enc }}
+  {{- with .Values.otelCollector.autoscaling.keda.auth.customCA }}
   ca: {{ . | b64enc }}
   {{- end }}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
-  name: {{ .Values.otelCollector.autoscaling.keda.bearer.triggerAuth }}
+  name: {{ .Values.otelCollector.autoscaling.keda.auth.triggerAuth }}
 spec:
   secretTargetRef:
-    - parameter: bearerToken
+    - parameter: customAuthHeader
       name: {{ include "otelCollector.fullname" . }}-keda-secret
-      key: bearerToken
-    {{- if .Values.otelCollector.autoscaling.keda.bearer.customCA }}
+      key: customAuthHeader
+    - parameter: customAuthValue
+      name: {{ include "otelCollector.fullname" . }}-keda-secret
+      key: customAuthValue
+    {{- if .Values.otelCollector.autoscaling.keda.auth.customCA }}
     - parameter: ca
       name: {{ include "otelCollector.fullname" . }}-keda-secret
       key: ca
