@@ -208,13 +208,13 @@ receivers:
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
       {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_*.log
+      - /var/log/pods/{{ .Release.Namespace }}_*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Values.namespace }}_*.log
+      - /var/log/pods/{{ .Values.namespace }}_*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
-      - /var/log/pods/{{ $namespace }}_*.log
+      - /var/log/pods/{{ $namespace }}_*/*/*.log
       {{- end }}
       {{- range $pod := $pods }}
       - /var/log/pods/*_{{ $pod }}*_*/*/*.log
