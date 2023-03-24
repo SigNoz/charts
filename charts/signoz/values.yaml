@@ -682,15 +682,24 @@ frontend:
     autoscalingTemplate: []
     keda:
       enabled: false
+      # -- KEDA polling interval in seconds
       pollingInterval: "30"   # check 30sec periodically for metrics data
+      # -- KEDA cooldown period in seconds
       cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      # -- KEDA minReplicaCount for HPA to scale down
       minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
+      # -- KEDA maxReplicaCount for HPA to scale up
       maxReplicaCount: "5"
+      # -- KEDA triggers for HPA.
+      # Ref: https://keda.sh/docs/2.0/scalers
+      # @default -- See `values.yaml` for defaults
       triggers:
+        # memory type trigger to scale based on memory utilization
         - type: memory
           metadata:
             type: Utilization
             value: "80"   # hpa make sure average Utilization <=80 by adding new pods
+        # cpu type trigger to scale based on cpu utilization
         - type: cpu
           metadata:
             type: Utilization
@@ -1350,19 +1359,51 @@ otelCollector:
     autoscalingTemplate: []
     keda:
       enabled: false
+      # -- KEDA polling interval in seconds
       pollingInterval: "30"   # check 30sec periodically for metrics data
+      # -- KEDA cooldown period in seconds
       cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
+      # -- KEDA minReplicaCount for HPA to scale down
       minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
+      # -- KEDA maxReplicaCount for HPA to scale up
       maxReplicaCount: "5"
+      # KEDA custom authentication for HPA.
+      auth:
+        enabled: false
+        # -- KEDA trigger authentication name. This should match authentication ref name in prometheus trigger.
+        triggerAuth: signoz-keda-auth
+        # -- KEDA header name for authentication.
+        # In case of SigNoz, we set it to `SIGNOZ-API-KEY`.
+        customHeaderName: "SIGNOZ-API-KEY"
+        # -- KEDA header value for authentication.
+        # In case of SigNoz, we set it to personal access token of an user from SigNoz UI. (Enterprise)
+        customHeaderValue: "<personal-access-token>"
+        # might be required if you're using a custom CA
+        customCA: ""
+      # -- KEDA triggers for HPA.
+      # Ref: https://keda.sh/docs/2.0/scalers
+      # @default -- See `values.yaml` for defaults
       triggers:
+        # memory type trigger to scale based on memory utilization
         - type: memory
           metadata:
             type: Utilization
             value: "80"   # hpa make sure average Utilization <=80 by adding new pods
+        # cpu type trigger to scale based on cpu utilization
         - type: cpu
           metadata:
             type: Utilization
             value: "80"   # hpa make sure average Utlization <=80 by adding new pods
+        # prometheus type trigger to scale based on prometheus metrics. Enable keda.auth.enabled to use this.
+        # - type: prometheus
+        #   metadata:
+        #     serverAddress: http://my-release-signoz-query-service.platform.svc.cluster.local:8080
+        #     metricName: total_datapoints
+        #     authModes: custom
+        #     threshold: '10000'  # threshold for total number of data points to consider for scaling
+        #     query: sum(rate(otelcol_receiver_accepted_spans{signoz_k8s_component="otel-collector"}[5m]))+sum(rate(otelcol_receiver_accepted_metric_points{signoz_k8s_component="otel-collector"}[5m]))+sum(rate(otelcol_receiver_accepted_log_records{signoz_k8s_component="otel-collector"}[5m]))
+        #   authenticationRef:
+        #     name: signoz-keda-auth
 
   # -- Configurations for OtelCollector
   # @default -- See `values.yaml` for defaults
@@ -2497,3 +2538,12 @@ keycloak:
 
     tls: true
     selfSigned: false
+
+###
+###
+### ---- KEDA ----
+###
+###
+# @ignored
+keda:
+  enabled: false
