@@ -1,5 +1,5 @@
 RELEASE_NAME := my-release
-NAMESPACE := platform # k8s namespace for installing the chart
+NAMESPACE := default # k8s namespace for installing the chart
 
 delete-namespace:
 	kubectl delete namespace $(NAMESPACE)
@@ -19,7 +19,7 @@ local-setup: dependency-update
 
 # print resulting manifests to console without applying them
 debug:
-	helm install --dry-run --debug $(RELEASE_NAME) signoz/signoz
+	helm install --dry-run --debug $(RELEASE_NAME) charts/signoz
 
 # install the chart to configured namespace
 install: setup

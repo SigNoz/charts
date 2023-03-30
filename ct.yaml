@@ -15,3 +15,4 @@ chart-repos:
   - ingress-nginx=https://kubernetes.github.io/ingress-nginx
   - minio=https://charts.min.io
   - bitnami=https://charts.bitnami.com/bitnami
+  - prometheus-community=https://prometheus-community.github.io/helm-charts

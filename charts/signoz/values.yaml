@@ -1586,6 +1586,12 @@ otelCollectorMetrics:
     signoz.io/port: '8888'
     signoz.io/path: /metrics
 
+  blackboxexporter:
+    enabled: true
+    targets:
+      - https://signoz.io
+    fullname: blackbox-exporter
+
   podSecurityContext: {}
     # fsGroup: 2000
 
@@ -1780,132 +1786,6 @@ otelCollectorMetrics:
           disk: {}
           filesystem: {}
           network: {}
-      # prometheus scrape config
-      prometheus:
-        config:
-          scrape_configs:
-            # internal signoz apm spanmetrics scraper (scrapped when apm.signoz.io pod annotations are set)
-            - job_name: "signoz-spanmetrics-collector"
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_scrape]
-                  action: keep
-                  regex: true
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels:
-                    [
-                      __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_apm_signoz_io_port,
-                    ]
-                  action: replace
-                  separator: ":"
-                  target_label: __address__
-                - target_label: job_name
-                  replacement: signoz-spanmetrics-collector
-                # Uncomment line below to include all labels of the pod
-                # - action: labelmap
-                #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-                  action: replace
-                  target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
-                  action: replace
-                  target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
-                  action: replace
-                  target_label: signoz_k8s_component
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: replace
-                  target_label: k8s_namespace_name
-                - source_labels: [__meta_kubernetes_pod_name]
-                  action: replace
-                  target_label: k8s_pod_name
-                - source_labels: [__meta_kubernetes_pod_uid]
-                  action: replace
-                  target_label: k8s_pod_uid
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  action: replace
-                  target_label: k8s_container_name
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  regex: (.+)-init
-                  action: drop
-                - source_labels: [__meta_kubernetes_pod_node_name]
-                  action: replace
-                  target_label: k8s_node_name
-                - source_labels: [__meta_kubernetes_pod_ready]
-                  action: replace
-                  target_label: k8s_pod_ready
-                - source_labels: [__meta_kubernetes_pod_phase]
-                  action: replace
-                  target_label: k8s_pod_phase
-            # generic prometheus metrics scraper (scrapped when signoz.io pod annotations are set)
-            - job_name: "generic-collector"
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_signoz_io_scrape]
-                  action: keep
-                  regex: true
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_signoz_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels:
-                    [
-                      __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_signoz_io_port,
-                    ]
-                  action: replace
-                  separator: ":"
-                  target_label: __address__
-                - target_label: job_name
-                  replacement: generic-collector
-                # Uncomment line below to include all labels of the pod
-                # - action: labelmap
-                #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-                  action: replace
-                  target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
-                  action: replace
-                  target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
-                  action: replace
-                  target_label: signoz_k8s_component
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: replace
-                  target_label: k8s_namespace_name
-                - source_labels: [__meta_kubernetes_pod_name]
-                  action: replace
-                  target_label: k8s_pod_name
-                - source_labels: [__meta_kubernetes_pod_uid]
-                  action: replace
-                  target_label: k8s_pod_uid
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  action: replace
-                  target_label: k8s_container_name
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  regex: (.+)-init
-                  action: drop
-                - source_labels: [__meta_kubernetes_pod_node_name]
-                  action: replace
-                  target_label: k8s_node_name
-                - source_labels: [__meta_kubernetes_pod_ready]
-                  action: replace
-                  target_label: k8s_pod_ready
-                - source_labels: [__meta_kubernetes_pod_phase]
-                  action: replace
-                  target_label: k8s_pod_phase
     processors:
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
@@ -2497,3 +2377,97 @@ keycloak:
 
     tls: true
     selfSigned: false
+
+# Used for SSL certificate expiry monitoring and alerting
+prometheus-blackbox-exporter:
+  enabled: 
+
+  # -- Blackbox Exporter image
+  image:
+    registry: docker.io
+    repository: prom/blackbox-exporter
+    tag: v0.23.0
+    pullPolicy: IfNotPresent
+
+  # -- Blackbox Exporter image pull secrets
+  imagePullSecrets: []
+
+  # -- Blackbox Exporter service
+  service:
+    # -- Blackbox Exporter service type
+    type: ClusterIP
+    # -- Blackbox Exporter service port
+    port: 9115
+    # -- Blackbox Exporter service port name
+    portName: http
+    # -- Blackbox Exporter service annotations
+    annotations: {}
+
+  # -- Blackbox Exporter pod annotations
+  podAnnotations: {}
+
+  # -- Blackbox Exporter pod security context
+  podSecurityContext: {}
+
+  # -- Blackbox Exporter security context
+  securityContext: {}
+
+  # -- Blackbox Exporter resource requests and limits
+  resources: {}
+
+  # -- Blackbox Exporter configuration
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        http:
+          preferred_ip_protocol: ip4
+      http_post_2xx:
+        prober: http
+        http:
+          method: POST
+      tcp_connect:
+        prober: tcp
+      pop3s_banner:
+        prober: tcp
+        tcp:
+          query_response:
+          - expect: "^+OK"
+          tls: true
+          tls_config:
+            insecure_skip_verify: false
+      grpc:
+        prober: grpc
+        grpc:
+          tls: true
+          preferred_ip_protocol: "ip4"
+      grpc_plain:
+        prober: grpc
+        grpc:
+          tls: false
+          service: "service1"
+      ssh_banner:
+        prober: tcp
+        tcp:
+          query_response:
+          - expect: "^SSH-2.0-"
+          - send: "SSH-2.0-blackbox-ssh-check"
+      irc_banner:
+        prober: tcp
+        tcp:
+          query_response:
+          - send: "NICK prober"
+          - send: "USER prober prober prober :prober"
+          - expect: "PING :([^ ]+)"
+            send: "PONG ${1}"
+          - expect: "^:[^ ]+ 001"
+      icmp:
+        prober: icmp
+      icmp_ttl5:
+        prober: icmp
+        timeout: 5s
+        icmp:
+          ttl: 5
+
+  pod:
+    labels: {}
