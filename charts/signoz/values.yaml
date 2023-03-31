@@ -380,15 +380,6 @@ clickhouse:
       # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
       console: 1
 
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-
     # -- Clickhouse Operator pod(s) annotation.
     podAnnotations:
       signoz.io/port: '8888'
