@@ -368,23 +368,6 @@ clickhouse:
       # If not set and create is true, a name is generated using the fullname template
       name:
 
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-
-    # -- Clickhouse Operator pod(s) annotation.
-    podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
-
-    # -- Clickhouse Operator node selector
-    nodeSelector: {}
-
     # Clickhouse logging config
     logger:
       # -- Logging level. Acceptable values: trace, debug, information, warning, error.
@@ -396,6 +379,14 @@ clickhouse:
       count: 10
       # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
       console: 1
+
+    # -- Clickhouse Operator pod(s) annotation.
+    podAnnotations:
+      signoz.io/port: '8888'
+      signoz.io/scrape: 'true'
+
+    # -- Clickhouse Operator node selector
+    nodeSelector: {}
 
     # -- Metrics Exporter config.
     metricsExporter:
