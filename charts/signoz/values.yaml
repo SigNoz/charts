@@ -1587,9 +1587,8 @@ otelCollectorMetrics:
     signoz.io/path: /metrics
 
   blackboxexporter:
-    enabled: true
+    enabled: false
     targets:
-      - https://signoz.io
     fullname: blackbox-exporter
 
   podSecurityContext: {}
@@ -2380,7 +2379,7 @@ keycloak:
 
 # Used for SSL certificate expiry monitoring and alerting
 prometheus-blackbox-exporter:
-  enabled: true
+  enabled: false
 
   # -- Blackbox Exporter image
   image:
