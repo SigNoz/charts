@@ -2380,7 +2380,7 @@ keycloak:
 
 # Used for SSL certificate expiry monitoring and alerting
 prometheus-blackbox-exporter:
-  enabled: 
+  enabled: true
 
   # -- Blackbox Exporter image
   image:

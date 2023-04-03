@@ -12,7 +12,7 @@
     - source_labels: [__param_target]
       target_label: endpoint
     - target_label: __address__
-      replacement: blackbox-exporter:9115
+      replacement: my-release-prometheus-blackbox-exporter:9115
 {{- end }}
 
 {{- define "prometheus-receiver" -}}
