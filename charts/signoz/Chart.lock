@@ -4,7 +4,7 @@ dependencies:
   version: 23.8.8
 - name: k8s-infra
   repository: https://signoz.github.io/charts
-  version: 0.7.0
+  version: 0.7.1
 - name: cert-manager
   repository: https://charts.jetstack.io
   version: v1.9.1
@@ -17,8 +17,5 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 10.1.5
-- name: prometheus-blackbox-exporter
-  repository: https://prometheus-community.github.io/helm-charts
-  version: 7.7.0
-digest: sha256:1685fd46f36a6a61e79e31a2c457dd15ca7d2dbe99b44ce17efe00991d965b2d
-generated: "2023-03-30T18:12:19.53538+05:30"
+digest: sha256:a2056dea59f72dc965d3c154925ff5bd13697c0ec9545dabeb8ba064430c334e
+generated: "2023-03-31T17:07:30.454673+05:45"
