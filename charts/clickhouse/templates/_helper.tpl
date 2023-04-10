@@ -113,6 +113,20 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
+Return the initContainers image name for UDF
+*/}}
+{{- define "clickhouse.initContainers.udf.image" -}}
+{{- $registryName := default .Values.initContainers.udf.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.initContainers.udf.image.repository -}}
+{{- $tag := .Values.initContainers.udf.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}

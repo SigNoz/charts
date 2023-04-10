@@ -277,12 +277,28 @@ defaultProfiles:
 # @default -- See `values.yaml` for defaults
 initContainers:
   enabled: true
-  init:
+  udf:
+    enabled: true
     image:
       registry: docker.io
       repository: busybox
       tag: 1.35
       pullPolicy: IfNotPresent
+  init:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: busybox
+      tag: 1.35
+      pullPolicy: IfNotPresent
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        until curl -s -o /dev/null http://signoz-clickhouse:8123/
+        do sleep 1
+        done
 
 # -- Clickhouse cluster layout. (Experimental, use at own risk)
 # For a full list of options, see

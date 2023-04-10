@@ -160,9 +160,10 @@ spec:
 
           {{- if .Values.initContainers.enabled }}
           initContainers:
-            - name: {{ include "clickhouse.fullname" . }}-init
-              image: {{ include "clickhouse.initContainers.init.image" . }}
-              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+            {{- if .Values.initContainers.udf.enabled }}
+            - name: {{ include "clickhouse.fullname" . }}-udf-init
+              image: {{ include "clickhouse.initContainers.udf.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
               command:
                 - sh
                 - -c
@@ -174,6 +175,14 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+            {{- end }}
+            {{- if .Values.initContainers.init.enabled }}
+            - name: {{ include "clickhouse.fullname" . }}-init
+              image: {{ include "clickhouse.initContainers.init.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+              command:
+                {{- toYaml .Values.initContainers.init.command | nindent 16 }}
+            {{- end }}
           {{- end }}
           containers:
             - name: clickhouse
