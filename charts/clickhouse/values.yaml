@@ -333,26 +333,27 @@ podDistribution: []
 
 # Cold storage configuration
 coldStorage:
-  # -- Whether to enable S3 cold storage
+  # -- Whether to enable S3 or GCS cold storage
   enabled: false
   # -- Reserve free space on default disk (in bytes)
   # Default value set below is 10MiB
   defaultKeepFreeSpaceBytes: "10485760"
-  # -- AWS S3 endpoint.
-  # If region is us-east-1, endpoint can be https://s3.amazonaws.com
-  # If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+  # -- Endpoint for S3 or GCS
+  # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
+  #         If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+  # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
   endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
   # AWS role configuration - to use environment variables instead of passing access and secret keys
   role:
-    # -- Whether to enable AWS IAM ARN role.
+    # -- Whether to enable AWS IAM ARN role
     enabled: false
     # -- Annotations to use by service account associated to Clickhouse instance
     annotations:
       # aws role arn
       eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-  # -- AWS Access Key
+  # -- Access Key for S3 or GCS
   accessKey: <access_key_id>
-  # -- AWS Secret Access Key
+  # -- Secret Access Key for S3 or GCS
   secretAccess: <secret_access_key>
 
 # -- Clickhouse configuration files.
