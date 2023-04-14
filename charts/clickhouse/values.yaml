@@ -354,6 +354,8 @@ coldStorage:
   # -- Reserve free space on default disk (in bytes)
   # Default value set below is 10MiB
   defaultKeepFreeSpaceBytes: "10485760"
+  # -- Type of cold storage: s3 or gcs
+  type: s3
   # -- Endpoint for S3 or GCS
   # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
   #         If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
