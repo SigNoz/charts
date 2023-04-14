@@ -17,5 +17,8 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 10.1.5
-digest: sha256:a2056dea59f72dc965d3c154925ff5bd13697c0ec9545dabeb8ba064430c334e
-generated: "2023-03-31T17:07:30.454673+05:45"
+- name: prometheus-blackbox-exporter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 7.7.0
+digest: sha256:dc2062dcdae4bae56364948c79fb0161913df9030c327c6e9fb43513ff0cd153
+generated: "2023-04-04T01:44:05.579243+05:30"

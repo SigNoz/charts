@@ -6,4 +6,4 @@ metadata:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 data:
   otel-collector-metrics-config.yaml: |-
-    {{- toYaml .Values.otelCollectorMetrics.config | nindent 4 }}
+    {{ include "otelCollectorMetrics" . | nindent 4 }}
