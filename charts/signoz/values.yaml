@@ -281,10 +281,17 @@ clickhouse:
     # -- Reserve free space on default disk (in bytes)
     # Default value is 10MiB
     defaultKeepFreeSpaceBytes: "10485760"
-    # -- AWS S3 endpoint.
-    # If region is us-east-1, endpoint can be https://s3.amazonaws.com
-    # If region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+    # -- Type of cold storage: s3 or gcs
+    type: s3
+    # -- Endpoint for S3 or GCS
+    # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
+    #         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+    # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
     endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+    # -- Access Key for S3 or GCS
+    accessKey: <access_key_id>
+    # -- Secret Access Key for S3 or GCS
+    secretAccess: <secret_access_key>
     # AWS role configuration - to use environment variables instead of passing access and secret keys
     role:
       # -- Whether to enable AWS IAM ARN role.
@@ -293,10 +300,6 @@ clickhouse:
       annotations:
         # aws role arn
         eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-    # -- AWS Access Key
-    accessKey: <access_key_id>
-    # -- AWS Secret Access Key
-    secretAccess: <secret_access_key>
 
   # -- Clickhouse configuration files.
   #
