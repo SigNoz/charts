@@ -42,12 +42,6 @@ clickhouse:
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
 
-  # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
-  # Based on the cloud, storage class for the persistent volume is selected.
-  # When set to 'aws' or 'gcp', new expandible storage class is created.
-  # When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
-  cloud: other
-
   # Zookeeper default values
   # @ignored
   zookeeper:

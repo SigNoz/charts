@@ -129,6 +129,8 @@ fullnameOverride: ""
 cluster: cluster
 # -- Clickhouse database
 database: signoz_metrics
+# -- Clickhouse trace database (SigNoz Traces)
+traceDatabase: signoz_traces
 # -- Clickhouse user
 user: admin
 # -- Clickhouse password
