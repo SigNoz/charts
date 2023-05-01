@@ -65,7 +65,12 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 
 {{- define "opentelemetry-collector.loggingExporterConfig" -}}
 exporters:
-  logging: {}
+  logging:
+    {{- with .Values.presets.loggingExporter }}
+    verbosity: {{ .verbosity }}
+    sampling_initial: {{ .samplingInitial }}
+    sampling_thereafter: {{ .samplingThereafter }}
+    {{- end }}
 {{- end }}
 
 
