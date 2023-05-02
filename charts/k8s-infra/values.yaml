@@ -881,10 +881,6 @@ otelDeployment:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
-        metrics:
-          receivers: []
-          processors: [batch]
-          exporters: []
         metrics/generic:
           receivers: []
           processors: [batch]

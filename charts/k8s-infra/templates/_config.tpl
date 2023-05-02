@@ -114,17 +114,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.hostMetrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyHostMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.kubernetesAttributes.enabled }}
-{{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
 {{- if .Values.presets.resourceDetectionInternal.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.resourceDetection.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -140,8 +131,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.clusterMetricsConfig" .Values | fromYaml) .config }}
-{{- if $config.service.pipelines.metrics }}
-{{- $_ := set $config.service.pipelines.metrics "receivers" (append $config.service.pipelines.metrics.receivers "k8s_cluster" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/generic" }}
+{{- $_ := set (index $config.service.pipelines "metrics/generic") "receivers" (append (index (index $config.service.pipelines "metrics/generic") "receivers") "k8s_cluster" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
