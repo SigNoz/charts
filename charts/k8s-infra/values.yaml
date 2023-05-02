@@ -600,7 +600,7 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []
@@ -881,7 +881,7 @@ otelDeployment:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []
