@@ -75,9 +75,9 @@ presets:
     # Verbosity of the logging export: basic, normal, detailed
     verbosity: basic
     # Number of messages initially logged each second
-    sampling_initial: 2
+    samplingInitial: 2
     # Sampling rate after the initial messages are logged
-    sampling_thereafter: 500
+    samplingThereafter: 500
   otlpExporter:
     enabled: true
   logsCollection:
