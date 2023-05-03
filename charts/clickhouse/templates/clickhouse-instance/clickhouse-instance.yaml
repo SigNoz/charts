@@ -9,10 +9,10 @@ spec:
   defaults:
     templates:
       {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
-      dataVolumeClaimTemplate: data-volumeclaim-template
-      # logVolumeClaimTemplate: log-volumeclaim-template
+      dataVolumeClaimTemplate: default
+      # logVolumeClaimTemplate: default-log
       {{- end }}
-      serviceTemplate: service-template
+      serviceTemplate: default
 
   configuration:
     users:
@@ -30,7 +30,7 @@ spec:
     clusters:
       - name: {{ .Values.cluster | quote }}
         templates:
-          podTemplate: pod-template
+          podTemplate: default
         layout:
           {{- toYaml .Values.layout | nindent 10 }}
 
@@ -121,7 +121,7 @@ spec:
 
   templates:
     podTemplates:
-      - name: pod-template
+      - name: default
         metadata:
           labels:
             {{- include "clickhouse.labels" . | nindent 12 }}
@@ -218,14 +218,14 @@ spec:
               {{- else if .Values.persistence.existingClaim }}
                 - name: existing-volumeclaim
               {{- else }}
-                - name: data-volumeclaim-template
+                - name: default
               {{- end }}
                   mountPath: /var/lib/clickhouse
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
                 - name: custom-functions-volume
                   mountPath: /etc/clickhouse-server/functions
-                # - name: log-volumeclaim-template
+                # - name: default-log
                 #   mountPath: /var/log/clickhouse-server
 
               {{- if .Values.resources }}
@@ -233,7 +233,7 @@ spec:
               {{- end }}
 
     serviceTemplates:
-      - name: service-template
+      - name: default
         generateName: {{ include "clickhouse.fullname" . }}
         {{- with .Values.service }}
         metadata:
@@ -256,7 +256,7 @@ spec:
 
     {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
     volumeClaimTemplates:
-      - name: data-volumeclaim-template
+      - name: default
         spec:
           accessModes:
             {{- toYaml .Values.persistence.accessModes | nindent 12 }}
