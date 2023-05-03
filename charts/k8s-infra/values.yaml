@@ -72,6 +72,12 @@ namespace: ""
 presets:
   loggingExporter:
     enabled: false
+    # Verbosity of the logging export: basic, normal, detailed
+    verbosity: basic
+    # Number of messages initially logged each second
+    samplingInitial: 2
+    # Sampling rate after the initial messages are logged
+    samplingThereafter: 500
   otlpExporter:
     enabled: true
   logsCollection:
@@ -131,6 +137,12 @@ presets:
         id: extract_metadata_from_filepath
         regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
         parse_from: attributes["log.file.path"]
+        output: add_cluster_name
+      # Add cluster name attribute from environment variable
+      - id: add_cluster_name
+        type: add
+        field: resource["k8s.cluster.name"]
+        value: EXPR(env("K8S_CLUSTER_NAME"))
         output: move_stream
       # Rename attributes
       - type: move
@@ -235,6 +247,11 @@ presets:
       - memory
       # - ephemeral-storage
       # - storage
+  resourceDetectionInternal:
+    enabled: true
+    timeout: 2s
+    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
+    override: true
   resourceDetection:
     enabled: true
     timeout: 2s
@@ -243,7 +260,6 @@ presets:
     # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
     # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
     detectors:
-      - env
       # - elastic_beanstalk
       # - eks
       # - ecs
@@ -574,7 +590,7 @@ otelAgent:
       telemetry:
         metrics:
           address: 0.0.0.0:8888
-      extensions: [health_check, zpages]
+      extensions: [health_check, zpages, pprof]
       pipelines:
         traces:
           receivers: [otlp]
@@ -584,7 +600,7 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []
@@ -865,11 +881,7 @@ otelDeployment:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
-        metrics:
-          receivers: []
-          processors: [batch]
-          exporters: []
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []
