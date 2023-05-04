@@ -26,6 +26,9 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/otel-collector/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
+        {{- if .Values.otelCollector.podLabels -}}
+          {{- toYaml .Values.otelCollector.podLabels | nindent 8 -}}
+        {{- end }}
     spec:
       {{- with .Values.otelCollector.imagePullSecrets }}
       imagePullSecrets:
