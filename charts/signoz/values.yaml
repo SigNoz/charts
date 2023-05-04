@@ -1065,6 +1065,8 @@ otelCollector:
     apm.signoz.io/scrape: 'true'
     apm.signoz.io/port: '8889'
     apm.signoz.io/path: /metrics
+  # -- OtelCollector pod(s) labels.
+  podLabels: {}
 
   # -- Whether to enable grouping of exceptions with same name and different stack trace.
   # This is useful when you have a lot of exceptions with same name but different stack trace.
