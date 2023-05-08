@@ -1224,6 +1224,17 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for Zpages
       protocol: TCP
+    pprof:
+      # -- Whether to enable service port for pprof
+      enabled: false
+      # -- Container port for pprof
+      containerPort: 1777
+      # -- Service port for pprof
+      servicePort: 1777
+      # -- Node port for pprof
+      nodePort: ""
+      # -- Protocol to use for pprof
+      protocol: TCP
 
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1505,7 +1516,7 @@ otelCollector:
       telemetry:
         metrics:
           address: 0.0.0.0:8888
-      extensions: [health_check, zpages]
+      extensions: [health_check, zpages, pprof]
       pipelines:
         traces:
           receivers: [otlp, jaeger]
@@ -2033,6 +2044,12 @@ k8s-infra:
   presets:
     loggingExporter:
       enabled: false
+      # Verbosity of the logging export: basic, normal, detailed
+      verbosity: basic
+      # Number of messages initially logged each second
+      samplingInitial: 2
+      # Sampling rate after the initial messages are logged
+      samplingThereafter: 500
     logsCollection:
       enabled: true
       include:
@@ -2090,27 +2107,47 @@ k8s-infra:
           id: extract_metadata_from_filepath
           regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
           parse_from: attributes["log.file.path"]
+          output: add_cluster_name
+        # Add cluster name attribute from environment variable
+        - id: add_cluster_name
+          type: add
+          field: resource["k8s.cluster.name"]
+          value: EXPR(env("K8S_CLUSTER_NAME"))
+          output: move_stream
         # Rename attributes
         - type: move
+          id: move_stream
           from: attributes.stream
           to: attributes["log.iostream"]
+          output: move_container_name
         - type: move
+          id: move_container_name
           from: attributes.container_name
           to: resource["k8s.container.name"]
+          output: move_namespace
         - type: move
+          id: move_namespace
           from: attributes.namespace
           to: resource["k8s.namespace.name"]
+          output: move_pod_name
         - type: move
+          id: move_pod_name
           from: attributes.pod_name
           to: resource["k8s.pod.name"]
+          output: move_restart_count
         - type: move
+          id: move_restart_count
           from: attributes.restart_count
           to: resource["k8s.container.restart_count"]
+          output: move_uid
         - type: move
+          id: move_uid
           from: attributes.uid
           to: resource["k8s.pod.uid"]
+          output: move_log
         # Clean up log body
         - type: move
+          id: move_log
           from: attributes.log
           to: body
     hostMetrics:
@@ -2167,13 +2204,17 @@ k8s-infra:
         - memory
         # - ephemeral-storage
         # - storage
+    resourceDetectionInternal:
+      enabled: true
+      timeout: 2s
+      # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
+      override: true
     resourceDetection:
       enabled: true
       timeout: 2s
       # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
       # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
       detectors:
-        - env
         # - elastic_beanstalk
         # - eks
         # - ecs
@@ -2274,7 +2315,7 @@ k8s-infra:
         telemetry:
           metrics:
             address: 0.0.0.0:8888
-        extensions: [health_check, zpages]
+        extensions: [health_check, zpages, pprof]
         pipelines:
           traces:
             receivers: [otlp]
