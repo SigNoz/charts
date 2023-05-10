@@ -1526,7 +1526,7 @@ otelCollector:
           receivers: [otlp]
           processors: [batch]
           exporters: [clickhousemetricswrite]
-        metrics/generic:
+        metrics/internal:
           receivers: [hostmetrics]
           processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
