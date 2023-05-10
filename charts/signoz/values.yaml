@@ -2325,7 +2325,7 @@ k8s-infra:
             receivers: [otlp]
             processors: [batch]
             exporters: []
-          metrics/generic:
+          metrics/internal:
             receivers: []
             processors: [batch]
             exporters: []
@@ -2415,11 +2415,7 @@ k8s-infra:
             address: 0.0.0.0:8888
         extensions: [health_check, zpages, pprof]
         pipelines:
-          metrics:
-            receivers: []
-            processors: [batch]
-            exporters: []
-          metrics/generic:
+          metrics/internal:
             receivers: []
             processors: [batch]
             exporters: []
