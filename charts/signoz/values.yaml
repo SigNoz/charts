@@ -1055,9 +1055,9 @@ otelCollector:
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
-  # -- OtelColector Deployment annotation.
+  # -- OtelCollector Deployment annotation.
   annotations: {}
-  # -- OtelColector pod(s) annotation.
+  # -- OtelCollector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
@@ -1066,6 +1066,10 @@ otelCollector:
 
   # -- OtelCollector pod(s) labels.
   podLabels: {}
+
+  # -- Additional environments to set for OtelCollector
+  additionalEnvs: {}
+    # env_key: env_value
 
   # -- Whether to enable grouping of exceptions with same name and different stack trace.
   # This is useful when you have a lot of exceptions with same name but different stack trace.
@@ -1578,12 +1582,16 @@ otelCollectorMetrics:
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
-  # -- OtelColectorMetrics Deployment annotation.
+  # -- OtelCollectorMetrics Deployment annotation.
   annotations: {}
-  # -- OtelColectorMetrics pod(s) annotation.
+  # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
+
+  # -- Additional environments to set for OtelCollectorMetrics
+  additionalEnvs: {}
+    # env_key: env_value
 
   podSecurityContext: {}
     # fsGroup: 2000

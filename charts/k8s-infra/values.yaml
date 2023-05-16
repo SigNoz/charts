@@ -324,6 +324,10 @@ otelAgent:
     # signoz.io/port: '8888'
     # signoz.io/path: /metrics
 
+  # -- Additional environments to set for OtelAgent
+  additionalEnvs: {}
+    # env_key: env_value
+
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.
   minReadySeconds: 5
@@ -657,6 +661,10 @@ otelDeployment:
     # signoz.io/scrape: 'true'
     # signoz.io/port: '8888'
     # signoz.io/path: /metrics
+
+  # -- Additional environments to set for OtelDeployment
+  additionalEnvs: {}
+    # env_key: env_value
 
   # -- Pod-level security configuration
   podSecurityContext: {}
