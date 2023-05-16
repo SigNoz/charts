@@ -104,6 +104,10 @@ spec:
               value: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+            {{- range $key, $val := .Values.otelCollectorMetrics.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           volumeMounts:
             - name: otel-collector-metrics-config-vol
               mountPath: /conf
