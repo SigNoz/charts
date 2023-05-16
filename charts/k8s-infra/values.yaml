@@ -319,10 +319,10 @@ otelAgent:
   # -- OtelAgent daemonset annotation.
   annotations: {}
   # -- OtelAgent pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
 
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.
@@ -653,10 +653,10 @@ otelDeployment:
   # -- OtelDeployment deployment annotation.
   annotations: {}
   # -- OtelDeployment pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
 
   # -- Pod-level security configuration
   podSecurityContext: {}
