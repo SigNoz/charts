@@ -332,7 +332,7 @@ defaultSettings:
 # -- ClickHouse pod(s) annotation.
 podAnnotations: {}
   # Uncomment lines below to enable scraping of ClickHouse metrics.
-  # Be sure to uncomment `setting` to enable built-in Prometheus HTTP endpoint.
+  # Be sure to uncomment `settings` to enable built-in Prometheus HTTP endpoint.
   # signoz.io/scrape: 'true'
   # signoz.io/port: '9363'
   # signoz.io/path: /metrics
@@ -449,9 +449,9 @@ clickhouseOperator:
     name:
 
   # -- Clickhouse Operator pod(s) annotation.
-  podAnnotations:
-    signoz.io/port: '8888'
-    signoz.io/scrape: 'true'
+  podAnnotations: {}
+    # signoz.io/port: '8888'
+    # signoz.io/scrape: 'true'
 
   # -- Clickhouse Operator pod-level security attributes and common container settings.
   podSecurityContext: {}

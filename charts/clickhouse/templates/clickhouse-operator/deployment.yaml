@@ -24,8 +24,8 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.clickhouseOperator.podAnnotations }}
-          {{- toYaml .Values.clickhouseOperator.podAnnotations | nindent 8 }}
+        {{- with .Values.clickhouseOperator.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/clickhouse-operator/configmap.yaml") . | sha256sum }}
       labels:
