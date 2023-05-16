@@ -1590,7 +1590,7 @@ otelCollectorMetrics:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
     signoz.io/path: /metrics
-  
+
   # -- Additional environments to set for OtelCollectorMetrics
   additionalEnvs: {}
     # env_key: env_value
