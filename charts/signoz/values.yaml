@@ -1574,7 +1574,7 @@ otelCollector:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [logstransform/default, batch]
+          processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
