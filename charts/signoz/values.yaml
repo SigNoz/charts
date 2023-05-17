@@ -1405,7 +1405,7 @@ otelCollector:
           network: {}
     processors:
       # default parsing of logs
-      logstransform/default:
+      logstransform/internal:
         operators:
           - type: trace_parser
             if: '"trace_id" in attributes or "span_id" in attributes'
