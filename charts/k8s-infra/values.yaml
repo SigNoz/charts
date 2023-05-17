@@ -319,10 +319,10 @@ otelAgent:
   # -- OtelAgent daemonset annotation.
   annotations: {}
   # -- OtelAgent pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
 
   # -- Additional environments to set for OtelAgent
   additionalEnvs: {}
@@ -657,10 +657,10 @@ otelDeployment:
   # -- OtelDeployment deployment annotation.
   annotations: {}
   # -- OtelDeployment pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
 
   # -- Additional environments to set for OtelDeployment
   additionalEnvs: {}

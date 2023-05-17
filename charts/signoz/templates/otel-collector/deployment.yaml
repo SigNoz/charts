@@ -20,14 +20,14 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.otelCollector.podAnnotations -}}
-          {{- toYaml .Values.otelCollector.podAnnotations | nindent 8 -}}
+        {{- with .Values.otelCollector.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-collector/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "otelCollector.selectorLabels" . | nindent 8 }}
-        {{- if .Values.otelCollector.podLabels -}}
-          {{- toYaml .Values.otelCollector.podLabels | nindent 8 -}}
+        {{- with .Values.otelCollector.podLabels }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       {{- with .Values.otelCollector.imagePullSecrets }}
