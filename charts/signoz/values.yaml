@@ -2275,6 +2275,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+    
+    # -- Additional environments to set for OtelAgent
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
@@ -2379,6 +2383,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+    
+    # -- Additional environments to set for OtelDeployment
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
