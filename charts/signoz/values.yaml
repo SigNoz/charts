@@ -1061,10 +1061,9 @@ otelCollector:
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    signoz.io/path: /metrics
     apm.signoz.io/scrape: 'true'
     apm.signoz.io/port: '8889'
-    apm.signoz.io/path: /metrics
+
   # -- OtelCollector pod(s) labels.
   podLabels: {}
 
@@ -1565,7 +1564,7 @@ otelCollector:
           receivers: [otlp]
           processors: [batch]
           exporters: [clickhousemetricswrite]
-        metrics/generic:
+        metrics/internal:
           receivers: [hostmetrics]
           processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
@@ -1624,7 +1623,6 @@ otelCollectorMetrics:
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    signoz.io/path: /metrics
 
   # -- Additional environments to set for OtelCollectorMetrics
   additionalEnvs: {}

@@ -19,8 +19,8 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.otelDeployment.podAnnotations }}
-          {{- toYaml .Values.otelDeployment.podAnnotations | nindent 8 }}
+        {{- with .Values.otelDeployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-deployment/configmap.yaml") . | sha256sum }}
       labels:
