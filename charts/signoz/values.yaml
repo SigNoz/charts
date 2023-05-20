@@ -1032,7 +1032,8 @@ otelCollector:
     # -- OtelCollector command name
     name: /signoz-collector
     # -- OtelCollector command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -1559,7 +1560,8 @@ otelCollectorMetrics:
     # -- OtelCollectorMetrics command name
     name: /signoz-collector
     # -- OtelCollectorMetrics command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
