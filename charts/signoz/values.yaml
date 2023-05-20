@@ -447,7 +447,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.18.3
+    tag: 0.19.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -600,7 +600,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.18.3
+    tag: 0.19.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1020,7 +1020,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.7
+    tag: 0.76.1
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1032,7 +1032,8 @@ otelCollector:
     # -- OtelCollector command name
     name: /signoz-collector
     # -- OtelCollector command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -1582,7 +1583,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.7
+    tag: 0.76.1
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1594,7 +1595,8 @@ otelCollectorMetrics:
     # -- OtelCollectorMetrics command name
     name: /signoz-collector
     # -- OtelCollectorMetrics command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -2311,6 +2313,10 @@ k8s-infra:
       signoz.io/port: '8888'
       signoz.io/path: /metrics
 
+    # -- Additional environments to set for OtelAgent
+    additionalEnvs: {}
+      # env_key: env_value
+
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
     # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -2414,6 +2420,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+
+    # -- Additional environments to set for OtelDeployment
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
