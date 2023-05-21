@@ -447,7 +447,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.18.3
+    tag: 0.19.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -600,7 +600,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.18.3
+    tag: 0.19.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1020,7 +1020,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.7
+    tag: 0.76.1
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1032,7 +1032,8 @@ otelCollector:
     # -- OtelCollector command name
     name: /signoz-collector
     # -- OtelCollector command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -1403,6 +1404,41 @@ otelCollector:
           filesystem: {}
           network: {}
     processors:
+      # default parsing of logs
+      logstransform/internal:
+        operators:
+          - type: trace_parser
+            if: '"trace_id" in attributes or "span_id" in attributes'
+            trace_id:
+              parse_from: attributes.trace_id
+            span_id:
+              parse_from: attributes.span_id
+            output: remove_trace_id
+          - type: trace_parser
+            if: '"traceId" in attributes or "spanId" in attributes'
+            trace_id:
+              parse_from: attributes.traceId
+            span_id:
+              parse_from: attributes.spanId
+            output: remove_traceId
+          - id: remove_traceId
+            type: remove
+            if: '"traceId" in attributes'
+            field: attributes.traceId
+            output: remove_spanId
+          - id: remove_spanId
+            type: remove
+            if: '"spanId" in attributes'
+            field: attributes.spanId
+          - id: remove_trace_id
+            type: remove
+            if: '"trace_id" in attributes'
+            field: attributes.trace_id
+            output: remove_span_id
+          - id: remove_span_id
+            type: remove
+            if: '"span_id" in attributes'
+            field: attributes.span_id
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
@@ -1538,7 +1574,7 @@ otelCollector:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [batch]
+          processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
@@ -1547,7 +1583,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.7
+    tag: 0.76.1
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1559,7 +1595,8 @@ otelCollectorMetrics:
     # -- OtelCollectorMetrics command name
     name: /signoz-collector
     # -- OtelCollectorMetrics command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -2276,6 +2313,10 @@ k8s-infra:
       signoz.io/port: '8888'
       signoz.io/path: /metrics
 
+    # -- Additional environments to set for OtelAgent
+    additionalEnvs: {}
+      # env_key: env_value
+
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
     # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -2379,6 +2420,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+
+    # -- Additional environments to set for OtelDeployment
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
