@@ -1447,7 +1447,7 @@ otelCollector:
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
         detectors:
           - env
@@ -1455,8 +1455,7 @@ otelCollector:
           # - eks
           # - ecs
           # - ec2
-          # - gke
-          # - gce
+          # - gcp
           # - azure
           # - heroku
           - system
@@ -1959,7 +1958,7 @@ otelCollectorMetrics:
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
         detectors:
           - env
@@ -1967,8 +1966,7 @@ otelCollectorMetrics:
           # - eks
           # - ecs
           # - ec2
-          # - gke
-          # - gce
+          # - gcp
           # - azure
           # - heroku
           - system
@@ -2255,15 +2253,14 @@ k8s-infra:
     resourceDetection:
       enabled: true
       timeout: 2s
-      # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+      # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
       # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
       detectors:
         # - elastic_beanstalk
         # - eks
         # - ecs
         # - ec2
-        # - gke
-        # - gce
+        # - gcp
         # - azure
         # - heroku
         - system
