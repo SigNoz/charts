@@ -2297,7 +2297,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.71.0
+      tag: 0.76.1
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelAgent.
@@ -2405,7 +2405,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.71.0
+      tag: 0.76.1
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelDeployment.
