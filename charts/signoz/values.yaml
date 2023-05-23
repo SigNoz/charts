@@ -501,6 +501,27 @@ queryService:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
+    migration:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - |
+          echo "Running migration"
+          sleep 10  # Replace with actual migration command
+          echo "Migration completed"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   configVars:
     storage: clickhouse
