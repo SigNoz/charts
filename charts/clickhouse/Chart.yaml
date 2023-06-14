@@ -10,8 +10,8 @@ sources:
   - https://github.com/ClickHouse/ClickHouse
 dependencies:
   - name: zookeeper
-    repository: https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami
-    version: 7.0.5
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 11.4.2
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
