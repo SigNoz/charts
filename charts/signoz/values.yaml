@@ -65,7 +65,7 @@ clickhouse:
       # -- Zookeeper image tag.
       # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
       # Please override the default only if you know what you are doing.
-      tag: 3.7.0-debian-10-r70
+      tag: 3.7.1
 
     # -- Replica count for zookeeper
     replicaCount: 1
@@ -780,7 +780,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.23.0-0.2
+    tag: 0.23.1
 
   # -- Image Registry Secret Names for Alertmanager
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
