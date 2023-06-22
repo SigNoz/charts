@@ -135,7 +135,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.name`                      | Alertmanager component name                                             | `alertmanager`                    |
 | `alertmanager.image.registry`            | Alertmanager image registry name                                        | `docker.io`                       |
 | `alertmanager.image.repository`          | Container image name                                                    | `signoz/alertmanager`             |
-| `alertmanager.image.tag`                 | Container image tag                                                     | `0.23.0-0.2`                      |
+| `alertmanager.image.tag`                 | Container image tag                                                     | `0.23.1`                          |
 | `alertmanager.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `alertmanager.replicaCount`              | Number of Alertmanager nodes                                            | `1`                               |
 | `alertmanager.command`                   | Set container command to execute                                        | `[]`                              |
