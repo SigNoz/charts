@@ -420,7 +420,7 @@ clickhouseOperator:
   name: operator
 
   # -- Version of the operator
-  version: 0.19.1
+  version: 0.21.2
 
   # -- Clickhouse Operator image
   image:
@@ -429,7 +429,7 @@ clickhouseOperator:
     # -- Clickhouse Operator image repository to use.
     repository: altinity/clickhouse-operator
     # -- Clickhouse Operator image tag.
-    tag: 0.19.1
+    tag: 0.21.2
     # -- Clickhouse Operator image pull policy.
     pullPolicy: IfNotPresent
 
@@ -457,6 +457,15 @@ clickhouseOperator:
   podSecurityContext: {}
     # fsGroup: 2000
 
+  # Clickhouse Operator secret for ClickHouse user password
+  secret:
+    # -- Specifies whether a secret should be created
+    create: true
+    # -- User name for Clickhouse Operator
+    username: clickhouse_operator
+    # -- User password for Clickhouse Operator
+    password: clickhouse_operator_password
+
   # -- Clickhouse Operator priority class name
   priorityClassName: ""
   # -- Node selector for settings for Clickhouse Operator pod
@@ -480,6 +489,11 @@ clickhouseOperator:
     # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
     console: true
 
+  # -- Additional environment variables for Clickhouse Operator container.
+  env: []
+    #  - name: SAMPLE_ENV
+    #    value: "sample-value"
+
   # -- Metrics Exporter config.
   metricsExporter:
     # -- name of the component
@@ -501,6 +515,16 @@ clickhouseOperator:
       # -- Metrics Exporter image repository to use.
       repository: altinity/metrics-exporter
       # -- Metrics Exporter image tag.
-      tag: 0.19.1
+      tag: 0.21.2
       # -- Metrics Exporter image pull policy.
       pullPolicy: IfNotPresent
+
+    # -- Additional environment variables for Metrics Exporter container.
+    env: []
+      #  - name: SAMPLE_ENV
+      #    value: "sample-value"
+
+  # ClickHouse Operator configuration files
+  configs:
+    # -- ClickHouse Operator confd files
+    confdFiles: null
