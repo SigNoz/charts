@@ -23,6 +23,8 @@ global:
 ###
 
 # Zookeeper default values
+# Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+#
 # @ignored
 zookeeper:
   #
@@ -67,6 +69,9 @@ zookeeper:
     service:
       # -- ZooKeeper metrics service annotation
       annotations: {}
+        # signoz.io/scrape: 'true'
+        # signoz.io/port: '9141'
+        # signoz.io/path: /metrics
 
   # -- Minimal SERVER_ID value, nodes increment their IDs respectively.
   # Servers increment their ID starting at this minimal value.
@@ -76,6 +81,12 @@ zookeeper:
 
   # -- Replica count for zookeeper
   replicaCount: 1
+
+  # ZooKeeper Pod Disruption Budget
+  # Ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
+  pdb:
+    # -- Specifies whether a Pod Disruption Budget should be created
+    create: false
 
   # Enable persistence using Persistent Volume Claims
   #
