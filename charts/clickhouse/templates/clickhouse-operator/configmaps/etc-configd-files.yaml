@@ -33,8 +33,8 @@ data:
         <query_log replace="1">
             <database>system</database>
             <table>query_log</table>
-            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
-            <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.queryLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.queryLog.flushInterval }}</flush_interval_milliseconds>
         </query_log>
         <query_thread_log remove="1"/>
     </yandex>
@@ -43,8 +43,8 @@ data:
         <part_log replace="1">
             <database>system</database>
             <table>part_log</table>
-            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
-            <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.partLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.partLog.flushInterval }}</flush_interval_milliseconds>
         </part_log>
     </yandex>
   01-clickhouse-05-trace_log.xml: |-
@@ -52,8 +52,8 @@ data:
         <trace_log replace="1">
             <database>system</database>
             <table>trace_log</table>
-            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
-            <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.traceLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.traceLog }}</flush_interval_milliseconds>
         </trace_log>
     </yandex>
 

@@ -488,6 +488,11 @@ clickhouseOperator:
   # -- TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread
   topologySpreadConstraints: []
 
+  # -- Additional environment variables for Clickhouse Operator container.
+  env: []
+    #  - name: SAMPLE_ENV
+    #    value: "sample-value"
+
   # -- Clickhouse logging config
   logger:
     # -- Logging level. Acceptable values: trace, debug, information, warning, error.
@@ -499,11 +504,26 @@ clickhouseOperator:
     count: 10
     # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
     console: true
+  
+  # Query Log table configuration
+  queryLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  # Part Log table configuration
+  partLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  # Trace Log table configuration
+  traceLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
 
-  # -- Additional environment variables for Clickhouse Operator container.
-  env: []
-    #  - name: SAMPLE_ENV
-    #    value: "sample-value"
 
   # -- Metrics Exporter config.
   metricsExporter:
