@@ -481,6 +481,10 @@ queryService:
     # Must be use with service.type=NodePort
     internalNodePort: null
 
+  # -- Additional environments to set for queryService
+  additionalEnvs: {}
+    # env_key: env_value
+
   initContainers:
     init:
       enabled: true
