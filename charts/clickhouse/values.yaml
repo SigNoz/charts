@@ -504,7 +504,7 @@ clickhouseOperator:
     count: 10
     # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
     console: true
-  
+
   # Query Log table configuration
   queryLog:
     # -- The number of days to keep the data in the query_log table.
