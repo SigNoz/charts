@@ -117,6 +117,10 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
+            {{- range $key, $val := .Values.queryService.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /api/v1/version
