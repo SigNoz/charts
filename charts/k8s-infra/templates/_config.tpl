@@ -101,6 +101,9 @@ exporters:
       {{- if .Values.otelTlsSecrets.enabled }}
       cert_file: ${OTEL_SECRETS_PATH}/cert.pem
       key_file: ${OTEL_SECRETS_PATH}/key.pem
+      {{- if .Values.otelTlsSecrets.ca }}
+      ca_file: ${OTEL_SECRETS_PATH}/ca.pem
+      {{- end }}
       {{- end }}
     headers:
       "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
