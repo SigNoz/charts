@@ -1,13 +1,3 @@
-# Template Parameters:
-#
-# NAMESPACE={{ include "clickhouse.namespace" . }}
-# COMMENT=
-#
-# Setup ClusterIP Service to provide monitoring metrics for Prometheus
-# Service would be created in kubectl-specified namespace
-# In order to get access outside of k8s it should be exposed as:
-# kubectl --namespace prometheus port-forward service/prometheus 9090
-# and point browser to localhost:9090
 kind: Service
 apiVersion: v1
 metadata:
