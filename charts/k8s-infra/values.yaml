@@ -64,7 +64,7 @@ otelTlsSecrets:
   # -- TLS private key to be included in the secret
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
-  
+
   # -- TLS certificate authority (CA) certificate to be included in the secret
   ca: ""
 
