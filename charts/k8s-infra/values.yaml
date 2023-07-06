@@ -53,7 +53,8 @@ otelTlsSecrets:
   # -- Path for the secrets volume
   path: /secrets
 
-  # -- Name of the existing secret with TLS certificate and key
+  # -- Name of the existing secret with TLS certificate, key and CA to be used.
+  # Files in the secret must be named `cert.pem`, `key.pem` and `ca.pem`.
   existingSecretName:
 
   # -- TLS certificate to be included in the secret
@@ -63,6 +64,9 @@ otelTlsSecrets:
   # -- TLS private key to be included in the secret
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
+  
+  # -- TLS certificate authority (CA) certificate to be included in the secret
+  ca: ""
 
 # -- Which namespace to install k8s-infra components.
 # By default installed to the namespace same as the chart.
