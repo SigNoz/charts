@@ -43,6 +43,8 @@ clickhouse:
   enabled: true
 
   # Zookeeper default values
+  # Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+  #
   # @ignored
   zookeeper:
     # Refer to zookeeper section in values.yaml of clickhouse chart
@@ -337,7 +339,7 @@ clickhouse:
     name: operator
 
     # -- Version of the operator
-    version: 0.19.1
+    version: 0.21.2
 
     # -- Clickhouse Operator image
     image:
@@ -346,7 +348,7 @@ clickhouse:
       # -- Clickhouse Operator image repository to use.
       repository: altinity/clickhouse-operator
       # -- Clickhouse Operator image tag.
-      tag: 0.19.1
+      tag: 0.21.2
       # -- Clickhouse Operator image pull policy.
       pullPolicy: IfNotPresent
 
@@ -377,6 +379,25 @@ clickhouse:
       # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
       console: 1
 
+    # Query Log table configuration
+    queryLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+    # Part Log table configuration
+    partLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+    # Trace Log table configuration
+    traceLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+
     # -- Clickhouse Operator pod(s) annotation.
     podAnnotations:
       signoz.io/port: '8888'
@@ -406,7 +427,7 @@ clickhouse:
         # -- Metrics Exporter image repository to use.
         repository: altinity/metrics-exporter
         # -- Metrics Exporter image tag.
-        tag: 0.19.1
+        tag: 0.21.2
         # -- Metrics Exporter image pull policy.
         pullPolicy: IfNotPresent
 
@@ -2091,7 +2112,8 @@ k8s-infra:
     # -- Path for the secrets volume
     path: /secrets
 
-    # -- Name of the existing secret with TLS certificate and key
+    # -- Name of the existing secret with TLS certificate, key and CA to be used.
+    # Files in the secret must be named `cert.pem`, `key.pem` and `ca.pem`.
     existingSecretName:
 
     # -- TLS certificate to be included in the secret
@@ -2101,6 +2123,9 @@ k8s-infra:
     # -- TLS private key to be included in the secret
     key: |
       <INCLUDE_PRIVATE_KEY_HERE>
+
+    # -- TLS certificate authority (CA) certificate to be included in the secret
+    ca: ""
 
   # -- Which namespace to install k8s-infra components.
   # By default installed to the namespace same as the chart.

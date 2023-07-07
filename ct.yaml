@@ -3,7 +3,7 @@ remote: origin
 target-branch: main
 debug: true
 check-version-increment: false
-helm-extra-args: --timeout 600s
+helm-extra-args: --timeout 15m
 charts:
   - charts/clickhouse
   - charts/k8s-infra
