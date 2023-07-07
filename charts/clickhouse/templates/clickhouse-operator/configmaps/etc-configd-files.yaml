@@ -53,7 +53,7 @@ data:
             <database>system</database>
             <table>trace_log</table>
             <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.traceLog.ttl }} day</engine>
-            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.traceLog }}</flush_interval_milliseconds>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.traceLog.flushInterval }}</flush_interval_milliseconds>
         </trace_log>
     </yandex>
 
