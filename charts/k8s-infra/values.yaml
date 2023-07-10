@@ -348,14 +348,19 @@ otelAgent:
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     # @default -- See `values.yaml` for defaults
     rules:
+      # k8sattributes processor requires these permissions
       - apiGroups: [""]
         resources: ["pods", "namespaces"]
-        verbs: ["get", "watch", "list"]
-      - apiGroups: [""]
-        resources: ["nodes", "endpoints"]
-        verbs: ["list", "watch"]
+        verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      # other processors and receivers require these permissions
+      - apiGroups: [""]
+        resources: ["nodes", "endpoints"]
         verbs: ["list", "watch"]
       - apiGroups: ["batch"]
         resources: ["jobs"]
