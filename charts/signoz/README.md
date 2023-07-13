@@ -176,7 +176,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.name`                     | Otel Collector component name                                           | `otel-collector`                  |
 | `otelCollector.image.registry`           | Otel Collector image registry name                                      | `docker.io`                       |
 | `otelCollector.image.repository`         | Container image name                                                    | `signoz/signoz-otel-collector`    |
-| `otelCollector.image.tag`                | Container image tag                                                     | `0.79.2`                          |
+| `otelCollector.image.tag`                | Container image tag                                                     | `0.79.3`                          |
 | `otelCollector.image.pullPolicy`         | Container pull policy                                                   | `IfNotPresent`                    |
 | `otelCollector.replicaCount`             | Number of otel-collector nodes                                          | `1`                               |
 | `otelCollector.service.type`             | Otel Collector service type                                             | `ClusterIP`                       |
@@ -212,7 +212,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.name`              | Otel Collector Metrics component name                                   | `otel-collector-metrics`          |
 | `otelCollectorMetrics.image.registry`    | Otel Collector Metrics image registry name                              | `docker.io`                       |
 | `otelCollectorMetrics.image.repository`  | Container image name                                                    | `signoz/signoz-otel-collector`    |
-| `otelCollectorMetrics.image.tag`         | Container image tag                                                     | `0.79.2`                          |
+| `otelCollectorMetrics.image.tag`         | Container image tag                                                     | `0.79.3`                          |
 | `otelCollectorMetrics.image.pullPolicy`  | Container pull policy                                                   | `IfNotPresent`                    |
 | `otelCollectorMetrics.replicaCount`      | Number of otel-collector-metrics nodes                                  | `1`                               |
 | `otelCollectorMetrics.service.type`         | Otel Collector service type                                          | `ClusterIP`                       |
