@@ -225,6 +225,33 @@ clickhouse:
     default/allow_experimental_window_functions: "1"
     default/allow_nondeterministic_mutations: "1"
 
+  # -- Clickhouse init container to copy histogramQuantile UDF
+  # @default -- See `values.yaml` for defaults
+  initContainers:
+    enabled: true
+    udf:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: alpine
+        tag: 3.18.2
+        pullPolicy: IfNotPresent
+    init:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          until curl -s -o /dev/null http://signoz-clickhouse:8123/
+          do sleep 1
+          done
+
   # -- Clickhouse cluster layout. (Experimental, use at own risk)
   # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
   # section on clusters and layouts.
@@ -468,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.22.0
+    tag: 0.23.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -646,7 +673,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.22.0
+    tag: 0.23.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1066,7 +1093,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.2
+    tag: 0.79.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1635,7 +1662,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.2
+    tag: 0.79.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
