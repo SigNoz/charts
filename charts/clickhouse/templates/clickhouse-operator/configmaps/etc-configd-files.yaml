@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}-etc-configd-files
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+data:
+  01-clickhouse-01-listen.xml: |
+    <yandex>
+        <!-- Listen wildcard address to allow accepting connections from other containers and host network. -->
+        <listen_host>::</listen_host>
+        <listen_host>0.0.0.0</listen_host>
+        <listen_try>1</listen_try>
+    </yandex>
+  01-clickhouse-02-logger.xml: |
+    <yandex>
+        <logger>
+          {{- with .Values.clickhouseOperator.logger }}
+            <!-- Possible levels: https://github.com/pocoproject/poco/blob/devel/Foundation/include/Poco/Logger.h#L105 -->
+            <level>{{ .level }}</level>
+            <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+            <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+            <size>{{ .size }}</size>
+            <count>{{ .count }}</count>
+            <!-- Default behavior is autodetection (log to console if not daemon mode and is tty) -->
+            <console>{{ .console }}</console>
+          {{- end }}
+        </logger>
+    </yandex>
+  01-clickhouse-03-query_log.xml: |
+    <yandex>
+        <query_log replace="1">
+            <database>system</database>
+            <table>query_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.queryLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.queryLog.flushInterval }}</flush_interval_milliseconds>
+        </query_log>
+        <query_thread_log remove="1"/>
+    </yandex>
+  01-clickhouse-04-part_log.xml: |
+    <yandex>
+        <part_log replace="1">
+            <database>system</database>
+            <table>part_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.partLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.partLog.flushInterval }}</flush_interval_milliseconds>
+        </part_log>
+    </yandex>
+  01-clickhouse-05-trace_log.xml: |-
+    <yandex>
+        <trace_log replace="1">
+            <database>system</database>
+            <table>trace_log</table>
+            <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval {{ .Values.clickhouseOperator.traceLog.ttl }} day</engine>
+            <flush_interval_milliseconds>{{ .Values.clickhouseOperator.traceLog.flushInterval }}</flush_interval_milliseconds>
+        </trace_log>
+    </yandex>
+

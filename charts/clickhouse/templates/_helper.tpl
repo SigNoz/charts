@@ -113,6 +113,20 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
+Return the initContainers image name for UDF
+*/}}
+{{- define "clickhouse.initContainers.udf.image" -}}
+{{- $registryName := default .Values.initContainers.udf.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.initContainers.udf.image.repository -}}
+{{- $tag := .Values.initContainers.udf.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
@@ -270,3 +284,58 @@ Return the proper metricsExporter image name
     {{- printf "%s:%s" $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return common environment variables for ClickHouse Operator
+*/}}
+{{- define "clickhouseOperator.commonEnv" -}}
+# Pod-specific
+# spec.nodeName: ip-172-20-52-62.ec2.internal
+- name: OPERATOR_POD_NODE_NAME
+  valueFrom:
+    fieldRef:
+        fieldPath: spec.nodeName
+# metadata.name: clickhouse-operator-6f87589dbb-ftcsf
+- name: OPERATOR_POD_NAME
+  valueFrom:
+    fieldRef:
+        fieldPath: metadata.name
+# metadata.namespace: kube-system
+- name: OPERATOR_POD_NAMESPACE
+  valueFrom:
+    fieldRef:
+        fieldPath: metadata.namespace
+# status.podIP: 100.96.3.2
+- name: OPERATOR_POD_IP
+  valueFrom:
+    fieldRef:
+        fieldPath: status.podIP
+# spec.serviceAccount: {{ include "clickhouseOperator.fullname" . }}
+# spec.serviceAccountName: {{ include "clickhouseOperator.fullname" . }}
+- name: OPERATOR_POD_SERVICE_ACCOUNT
+  valueFrom:
+    fieldRef:
+        fieldPath: spec.serviceAccountName
+
+# Container-specific
+- name: OPERATOR_CONTAINER_CPU_REQUEST
+  valueFrom:
+    resourceFieldRef:
+        containerName: {{ include "clickhouseOperator.fullname" . }}
+        resource: requests.cpu
+- name: OPERATOR_CONTAINER_CPU_LIMIT
+  valueFrom:
+    resourceFieldRef:
+        containerName: {{ include "clickhouseOperator.fullname" . }}
+        resource: limits.cpu
+- name: OPERATOR_CONTAINER_MEM_REQUEST
+  valueFrom:
+    resourceFieldRef:
+        containerName: {{ include "clickhouseOperator.fullname" . }}
+        resource: requests.memory
+- name: OPERATOR_CONTAINER_MEM_LIMIT
+  valueFrom:
+    resourceFieldRef:
+        containerName: {{ include "clickhouseOperator.fullname" . }}
+        resource: limits.memory
+{{- end }}

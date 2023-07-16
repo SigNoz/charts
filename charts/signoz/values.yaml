@@ -5,6 +5,8 @@ global:
   # -- Global Image Pull Secrets
   imagePullSecrets: []
   # -- Overrides the storage class for all PVC with persistence enabled.
+  # If not set, the default storage class is used.
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
   storageClass: null
   # -- Kubernetes cluster domain
   # It is used only when components are installed in different namespace
@@ -12,6 +14,11 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
+  cloud: other
 
 # -- SigNoz chart name override
 nameOverride: ""
@@ -35,13 +42,9 @@ clickhouse:
   # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
   enabled: true
 
-  # -- Cloud service being deployed on (example: `aws`, `azure`, `gcp`, `hcloud`, `other`).
-  # Based on the cloud, storage class for the persistent volume is selected.
-  # When set to 'aws' or 'gcp', new expandible storage class is created.
-  # When set to something else or not set, the default storage class (if any) from the k8s cluster is selected.
-  cloud: other
-
   # Zookeeper default values
+  # Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+  #
   # @ignored
   zookeeper:
     # Refer to zookeeper section in values.yaml of clickhouse chart
@@ -64,7 +67,7 @@ clickhouse:
       # -- Zookeeper image tag.
       # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
       # Please override the default only if you know what you are doing.
-      tag: 3.7.0-debian-10-r70
+      tag: 3.7.1
 
     # -- Replica count for zookeeper
     replicaCount: 1
@@ -222,6 +225,33 @@ clickhouse:
     default/allow_experimental_window_functions: "1"
     default/allow_nondeterministic_mutations: "1"
 
+  # -- Clickhouse init container to copy histogramQuantile UDF
+  # @default -- See `values.yaml` for defaults
+  initContainers:
+    enabled: true
+    udf:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: alpine
+        tag: 3.18.2
+        pullPolicy: IfNotPresent
+    init:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          until curl -s -o /dev/null http://signoz-clickhouse:8123/
+          do sleep 1
+          done
+
   # -- Clickhouse cluster layout. (Experimental, use at own risk)
   # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
   # section on clusters and layouts.
@@ -272,9 +302,19 @@ clickhouse:
     # -- Whether to enable S3 cold storage
     enabled: false
     # -- Reserve free space on default disk (in bytes)
+    # Default value is 10MiB
     defaultKeepFreeSpaceBytes: "10485760"
-    # -- AWS S3 endpoint
-    endpoint: https://<bucket-name>.s3.amazonaws.com/data/
+    # -- Type of cold storage: s3 or gcs
+    type: s3
+    # -- Endpoint for S3 or GCS
+    # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
+    #         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+    # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
+    endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+    # -- Access Key for S3 or GCS
+    accessKey: <access_key_id>
+    # -- Secret Access Key for S3 or GCS
+    secretAccess: <secret_access_key>
     # AWS role configuration - to use environment variables instead of passing access and secret keys
     role:
       # -- Whether to enable AWS IAM ARN role.
@@ -283,10 +323,6 @@ clickhouse:
       annotations:
         # aws role arn
         eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-    # -- AWS Access Key
-    accessKey: <access_key_id>
-    # -- AWS Secret Access Key
-    secretAccess: <secret_access_key>
 
   # -- Clickhouse configuration files.
   #
@@ -330,7 +366,7 @@ clickhouse:
     name: operator
 
     # -- Version of the operator
-    version: 0.19.1
+    version: 0.21.2
 
     # -- Clickhouse Operator image
     image:
@@ -339,7 +375,7 @@ clickhouse:
       # -- Clickhouse Operator image repository to use.
       repository: altinity/clickhouse-operator
       # -- Clickhouse Operator image tag.
-      tag: 0.19.1
+      tag: 0.21.2
       # -- Clickhouse Operator image pull policy.
       pullPolicy: IfNotPresent
 
@@ -358,23 +394,6 @@ clickhouse:
       # If not set and create is true, a name is generated using the fullname template
       name:
 
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-
-    # -- Clickhouse Operator pod(s) annotation.
-    podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
-
-    # -- Clickhouse Operator node selector
-    nodeSelector: {}
-
     # Clickhouse logging config
     logger:
       # -- Logging level. Acceptable values: trace, debug, information, warning, error.
@@ -386,6 +405,33 @@ clickhouse:
       count: 10
       # -- Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true.
       console: 1
+
+    # Query Log table configuration
+    queryLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+    # Part Log table configuration
+    partLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+    # Trace Log table configuration
+    traceLog:
+      # -- The number of days to keep the data in the query_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the query_log table.
+      flushInterval: 7500
+
+    # -- Clickhouse Operator pod(s) annotation.
+    podAnnotations:
+      signoz.io/port: '8888'
+      signoz.io/scrape: 'true'
+
+    # -- Clickhouse Operator node selector
+    nodeSelector: {}
 
     # -- Metrics Exporter config.
     metricsExporter:
@@ -408,7 +454,7 @@ clickhouse:
         # -- Metrics Exporter image repository to use.
         repository: altinity/metrics-exporter
         # -- Metrics Exporter image tag.
-        tag: 0.19.1
+        tag: 0.21.2
         # -- Metrics Exporter image pull policy.
         pullPolicy: IfNotPresent
 
@@ -449,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.16.0
+    tag: 0.23.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -483,6 +529,10 @@ queryService:
     # Must be use with service.type=NodePort
     internalNodePort: null
 
+  # -- Additional environments to set for queryService
+  additionalEnvs: {}
+    # env_key: env_value
+
   initContainers:
     init:
       enabled: true
@@ -496,6 +546,27 @@ queryService:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
+    migration:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - |
+          echo "Running migration"
+          sleep 10  # Replace with actual migration command
+          echo "Migration completed"
       resources: {}
         # requests:
         #   cpu: 100m
@@ -602,7 +673,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.16.0
+    tag: 0.23.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -761,7 +832,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.23.0-0.2
+    tag: 0.23.1
 
   # -- Image Registry Secret Names for Alertmanager
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1022,7 +1093,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.4
+    tag: 0.79.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1034,7 +1105,8 @@ otelCollector:
     # -- OtelCollector command name
     name: /signoz-collector
     # -- OtelCollector command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -1057,16 +1129,21 @@ otelCollector:
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
-  # -- OtelColector Deployment annotation.
+  # -- OtelCollector Deployment annotation.
   annotations: {}
-  # -- OtelColector pod(s) annotation.
+  # -- OtelCollector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    signoz.io/path: /metrics
     apm.signoz.io/scrape: 'true'
     apm.signoz.io/port: '8889'
-    apm.signoz.io/path: /metrics
+
+  # -- OtelCollector pod(s) labels.
+  podLabels: {}
+
+  # -- Additional environments to set for OtelCollector
+  additionalEnvs: {}
+    # env_key: env_value
 
   # -- Whether to enable grouping of exceptions with same name and different stack trace.
   # This is useful when you have a lot of exceptions with same name but different stack trace.
@@ -1111,8 +1188,15 @@ otelCollector:
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     # @default -- See `values.yaml` for defaults
     rules:
+      # k8sattributes processor requires these permissions
       - apiGroups: [""]
         resources: ["pods", "namespace"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["apps"]
+        resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources: ["replicasets"]
         verbs: ["get", "list", "watch"]
 
     # OtelCollector clusterRoleBinding
@@ -1223,6 +1307,17 @@ otelCollector:
       # -- Node port for Zpages
       nodePort: ""
       # -- Protocol to use for Zpages
+      protocol: TCP
+    pprof:
+      # -- Whether to enable service port for pprof
+      enabled: false
+      # -- Container port for pprof
+      containerPort: 1777
+      # -- Service port for pprof
+      servicePort: 1777
+      # -- Node port for pprof
+      nodePort: ""
+      # -- Protocol to use for pprof
       protocol: TCP
 
   # -- Configure liveness and readiness probes.
@@ -1389,6 +1484,41 @@ otelCollector:
           filesystem: {}
           network: {}
     processors:
+      # default parsing of logs
+      logstransform/internal:
+        operators:
+          - type: trace_parser
+            if: '"trace_id" in attributes or "span_id" in attributes'
+            trace_id:
+              parse_from: attributes.trace_id
+            span_id:
+              parse_from: attributes.span_id
+            output: remove_trace_id
+          - type: trace_parser
+            if: '"traceId" in attributes or "spanId" in attributes'
+            trace_id:
+              parse_from: attributes.traceId
+            span_id:
+              parse_from: attributes.spanId
+            output: remove_traceId
+          - id: remove_traceId
+            type: remove
+            if: '"traceId" in attributes'
+            field: attributes.traceId
+            output: remove_spanId
+          - id: remove_spanId
+            type: remove
+            if: '"spanId" in attributes'
+            field: attributes.spanId
+          - id: remove_trace_id
+            type: remove
+            if: '"trace_id" in attributes'
+            field: attributes.trace_id
+            output: remove_span_id
+          - id: remove_span_id
+            type: remove
+            if: '"span_id" in attributes'
+            field: attributes.span_id
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
@@ -1397,7 +1527,7 @@ otelCollector:
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
         detectors:
           - env
@@ -1405,8 +1535,7 @@ otelCollector:
           # - eks
           # - ecs
           # - ec2
-          # - gke
-          # - gce
+          # - gcp
           # - azure
           # - heroku
           - system
@@ -1458,11 +1587,14 @@ otelCollector:
           # -- Restrict each OpenTelemetry agent to query pods running on the same node
           node_from_env_var: K8S_NODE_NAME
         pod_association:
-          - from: resource_attribute
-            name: k8s.pod.ip
-          - from: resource_attribute
-            name: k8s.pod.uid
-          - from: connection
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -1502,17 +1634,17 @@ otelCollector:
       telemetry:
         metrics:
           address: 0.0.0.0:8888
-      extensions: [health_check, zpages]
+      extensions: [health_check, zpages, pprof]
       pipelines:
         traces:
-          receivers: [jaeger, otlp]
-          processors: [signozspanmetrics/prometheus, k8sattributes, batch]
+          receivers: [otlp, jaeger]
+          processors: [signozspanmetrics/prometheus, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
-          processors: [k8sattributes, batch]
+          processors: [batch]
           exporters: [clickhousemetricswrite]
-        metrics/generic:
+        metrics/internal:
           receivers: [hostmetrics]
           processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
@@ -1521,7 +1653,7 @@ otelCollector:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          processors: [k8sattributes, batch]
+          processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
@@ -1530,7 +1662,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.66.4
+    tag: 0.79.3
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1542,7 +1674,8 @@ otelCollectorMetrics:
     # -- OtelCollectorMetrics command name
     name: /signoz-collector
     # -- OtelCollectorMetrics command extra arguments
-    extraArgs: []
+    extraArgs:
+      - --feature-gates=-pkg.translator.prometheus.NormalizeName
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
@@ -1565,13 +1698,16 @@ otelCollectorMetrics:
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
-  # -- OtelColectorMetrics Deployment annotation.
+  # -- OtelCollectorMetrics Deployment annotation.
   annotations: {}
-  # -- OtelColectorMetrics pod(s) annotation.
+  # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    signoz.io/path: /metrics
+
+  # -- Additional environments to set for OtelCollectorMetrics
+  additionalEnvs: {}
+    # env_key: env_value
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1737,8 +1873,19 @@ otelCollectorMetrics:
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     # @default -- See `values.yaml` for defaults
     rules:
+      # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods", "namespace"]
+        resources: ["pods", "namespaces"]
+        verbs: ["get", "watch", "list"]
+      - apiGroups: ["apps"]
+        resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      # other processors and receivers require these permissions
+      - apiGroups: [""]
+        resources: ["nodes", "nodes/proxy", "services", "endpoints"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["extensions"]
         resources: ["ingresses"]
@@ -1820,6 +1967,9 @@ otelCollectorMetrics:
                 - source_labels: [__meta_kubernetes_pod_container_name]
                   action: replace
                   target_label: k8s_container_name
+                - source_labels: [__meta_kubernetes_pod_container_name]
+                  regex: (.+)-init
+                  action: drop
                 - source_labels: [__meta_kubernetes_pod_node_name]
                   action: replace
                   target_label: k8s_node_name
@@ -1899,7 +2049,7 @@ otelCollectorMetrics:
       # Resource detection processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
       resourcedetection:
-        # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
         # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
         detectors:
           - env
@@ -1907,8 +2057,7 @@ otelCollectorMetrics:
           # - eks
           # - ecs
           # - ec2
-          # - gke
-          # - gce
+          # - gcp
           # - azure
           # - heroku
           - system
@@ -1931,11 +2080,14 @@ otelCollectorMetrics:
           # -- Restrict each OpenTelemetry agent to query pods running on the same node
           node_from_env_var: K8S_NODE_NAME
         pod_association:
-          - from: resource_attribute
-            name: k8s.pod.ip
-          - from: resource_attribute
-            name: k8s.pod.uid
-          - from: connection
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -2005,7 +2157,8 @@ k8s-infra:
     # -- Path for the secrets volume
     path: /secrets
 
-    # -- Name of the existing secret with TLS certificate and key
+    # -- Name of the existing secret with TLS certificate, key and CA to be used.
+    # Files in the secret must be named `cert.pem`, `key.pem` and `ca.pem`.
     existingSecretName:
 
     # -- TLS certificate to be included in the secret
@@ -2016,6 +2169,9 @@ k8s-infra:
     key: |
       <INCLUDE_PRIVATE_KEY_HERE>
 
+    # -- TLS certificate authority (CA) certificate to be included in the secret
+    ca: ""
+
   # -- Which namespace to install k8s-infra components.
   # By default installed to the namespace same as the chart.
   namespace: ""
@@ -2024,6 +2180,12 @@ k8s-infra:
   presets:
     loggingExporter:
       enabled: false
+      # Verbosity of the logging export: basic, normal, detailed
+      verbosity: basic
+      # Number of messages initially logged each second
+      samplingInitial: 2
+      # Sampling rate after the initial messages are logged
+      samplingThereafter: 500
     logsCollection:
       enabled: true
       include:
@@ -2081,27 +2243,47 @@ k8s-infra:
           id: extract_metadata_from_filepath
           regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
           parse_from: attributes["log.file.path"]
+          output: add_cluster_name
+        # Add cluster name attribute from environment variable
+        - id: add_cluster_name
+          type: add
+          field: resource["k8s.cluster.name"]
+          value: EXPR(env("K8S_CLUSTER_NAME"))
+          output: move_stream
         # Rename attributes
         - type: move
+          id: move_stream
           from: attributes.stream
           to: attributes["log.iostream"]
+          output: move_container_name
         - type: move
+          id: move_container_name
           from: attributes.container_name
           to: resource["k8s.container.name"]
+          output: move_namespace
         - type: move
+          id: move_namespace
           from: attributes.namespace
           to: resource["k8s.namespace.name"]
+          output: move_pod_name
         - type: move
+          id: move_pod_name
           from: attributes.pod_name
           to: resource["k8s.pod.name"]
+          output: move_restart_count
         - type: move
+          id: move_restart_count
           from: attributes.restart_count
           to: resource["k8s.container.restart_count"]
+          output: move_uid
         - type: move
+          id: move_uid
           from: attributes.uid
           to: resource["k8s.pod.uid"]
+          output: move_log
         # Clean up log body
         - type: move
+          id: move_log
           from: attributes.log
           to: body
     hostMetrics:
@@ -2128,11 +2310,14 @@ k8s-infra:
       # -- Pod Association section allows to define rules for tagging spans, metrics,
       # and logs with Pod metadata.
       podAssociation:
-        - from: resource_attribute
-          name: k8s.pod.ip
-        - from: resource_attribute
-          name: k8s.pod.uid
-        - from: connection
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
       # -- Which pod/namespace metadata to extract from a list of default metadata fields.
       extractMetadatas:
         - k8s.namespace.name
@@ -2155,19 +2340,22 @@ k8s-infra:
         - memory
         # - ephemeral-storage
         # - storage
+    resourceDetectionInternal:
+      enabled: true
+      timeout: 2s
+      # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
+      override: true
     resourceDetection:
       enabled: true
       timeout: 2s
-      # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+      # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
       # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
       detectors:
-        - env
         # - elastic_beanstalk
         # - eks
         # - ecs
         # - ec2
-        # - gke
-        # - gce
+        # - gcp
         # - azure
         # - heroku
         - system
@@ -2183,7 +2371,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.79.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelAgent.
@@ -2216,6 +2404,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+
+    # -- Additional environments to set for OtelAgent
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
@@ -2262,7 +2454,7 @@ k8s-infra:
         telemetry:
           metrics:
             address: 0.0.0.0:8888
-        extensions: [health_check, zpages]
+        extensions: [health_check, zpages, pprof]
         pipelines:
           traces:
             receivers: [otlp]
@@ -2272,7 +2464,7 @@ k8s-infra:
             receivers: [otlp]
             processors: [batch]
             exporters: []
-          metrics/generic:
+          metrics/internal:
             receivers: []
             processors: [batch]
             exporters: []
@@ -2287,7 +2479,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.66.0
+      tag: 0.79.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelDeployment.
@@ -2320,6 +2512,10 @@ k8s-infra:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
       signoz.io/path: /metrics
+
+    # -- Additional environments to set for OtelDeployment
+    additionalEnvs: {}
+      # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
     # case as these values might not be suitable for your workload.
@@ -2362,11 +2558,7 @@ k8s-infra:
             address: 0.0.0.0:8888
         extensions: [health_check, zpages, pprof]
         pipelines:
-          metrics:
-            receivers: []
-            processors: [batch]
-            exporters: []
-          metrics/generic:
+          metrics/internal:
             receivers: []
             processors: [batch]
             exporters: []

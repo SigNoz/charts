@@ -43,21 +43,47 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.queryService.podSecurityContext | nindent 8 }}
-      {{- if .Values.queryService.initContainers.init.enabled }}
+      {{- with .Values.queryService.initContainers }}
       initContainers:
-        - name: {{ include "queryService.fullname" . }}-init
-          image: {{ include "queryService.initContainers.init.image" . }}
-          imagePullPolicy: {{ .Values.queryService.initContainers.init.image.pullPolicy }}
+        {{- if .init.enabled }}
+        - name: {{ include "queryService.fullname" $ }}-init
+          image: {{ include "queryService.initContainers.init.image" $ }}
+          imagePullPolicy: {{ .init.image.pullPolicy }}
           env:
-            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-          {{- with .Values.queryService.initContainers.init.command }}
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- with .init.command }}
           command:
             - sh
             - -c
             - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
           resources:
-            {{- toYaml .Values.queryService.initContainers.init.resources | nindent 12 }}
+            {{- toYaml .init.resources | nindent 12 }}
+        {{- end }}
+        {{- if .migration.enabled }}
+        - name: {{ include "queryService.fullname" $ }}-migration
+          image: {{ include "queryService.initContainers.migration.image" $ }}
+          imagePullPolicy: {{ .migration.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- if .migration.command }}
+          command:
+            {{- toYaml .migration.command | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .migration.resources | nindent 12 }}
+          volumeMounts:
+          {{- if $.Values.queryService.persistence.enabled }}
+          {{- if $.Values.queryService.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz
+        {{- end }}
       {{- end }}
       containers:
         - name: {{ include "queryService.fullname" . }}
@@ -91,6 +117,10 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
+            {{- range $key, $val := .Values.queryService.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /api/v1/version

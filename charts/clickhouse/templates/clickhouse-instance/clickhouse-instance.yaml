@@ -66,7 +66,7 @@ spec:
                 -->
                 <keep_free_space_bytes>{{ .Values.coldStorage.defaultKeepFreeSpaceBytes }}</keep_free_space_bytes>
               </default>
-
+              {{- if eq .Values.coldStorage.type "s3" }}
               <s3>
                 <type>s3</type>
                 <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
@@ -77,6 +77,15 @@ spec:
                 <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
                 {{- end }}
               </s3>
+              {{- else if eq .Values.coldStorage.type "gcs" }}
+              <gcs>
+                <support_batch_delete>false</support_batch_delete>
+                <type>s3</type>
+                <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
+                <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
+              </gcs>
+              {{- end }}
             </disks>
             <policies>
               <tiered>
@@ -85,7 +94,7 @@ spec:
                     <disk>default</disk>
                   </default>
                   <s3>
-                    <disk>s3</disk>
+                    <disk>{{ .Values.coldStorage.type }}</disk>
                     <perform_ttl_move_on_insert>0</perform_ttl_move_on_insert>
                   </s3>
                 </volumes>
@@ -160,9 +169,10 @@ spec:
 
           {{- if .Values.initContainers.enabled }}
           initContainers:
-            - name: {{ include "clickhouse.fullname" . }}-init
-              image: {{ include "clickhouse.initContainers.init.image" . }}
-              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+            {{- if .Values.initContainers.udf.enabled }}
+            - name: {{ include "clickhouse.fullname" . }}-udf-init
+              image: {{ include "clickhouse.initContainers.udf.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
               command:
                 - sh
                 - -c
@@ -174,6 +184,14 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+            {{- end }}
+            {{- if .Values.initContainers.init.enabled }}
+            - name: {{ include "clickhouse.fullname" . }}-init
+              image: {{ include "clickhouse.initContainers.init.image" . }}
+              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+              command:
+                {{- toYaml .Values.initContainers.init.command | nindent 16 }}
+            {{- end }}
           {{- end }}
           containers:
             - name: clickhouse

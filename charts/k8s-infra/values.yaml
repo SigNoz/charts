@@ -12,6 +12,9 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  cloud: other
 
 # -- K8s infra chart name override
 nameOverride: ""
@@ -50,7 +53,8 @@ otelTlsSecrets:
   # -- Path for the secrets volume
   path: /secrets
 
-  # -- Name of the existing secret with TLS certificate and key
+  # -- Name of the existing secret with TLS certificate, key and CA to be used.
+  # Files in the secret must be named `cert.pem`, `key.pem` and `ca.pem`.
   existingSecretName:
 
   # -- TLS certificate to be included in the secret
@@ -61,6 +65,9 @@ otelTlsSecrets:
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
 
+  # -- TLS certificate authority (CA) certificate to be included in the secret
+  ca: ""
+
 # -- Which namespace to install k8s-infra components.
 # By default installed to the namespace same as the chart.
 namespace: ""
@@ -69,6 +76,12 @@ namespace: ""
 presets:
   loggingExporter:
     enabled: false
+    # Verbosity of the logging export: basic, normal, detailed
+    verbosity: basic
+    # Number of messages initially logged each second
+    samplingInitial: 2
+    # Sampling rate after the initial messages are logged
+    samplingThereafter: 500
   otlpExporter:
     enabled: true
   logsCollection:
@@ -128,27 +141,47 @@ presets:
         id: extract_metadata_from_filepath
         regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
         parse_from: attributes["log.file.path"]
+        output: add_cluster_name
+      # Add cluster name attribute from environment variable
+      - id: add_cluster_name
+        type: add
+        field: resource["k8s.cluster.name"]
+        value: EXPR(env("K8S_CLUSTER_NAME"))
+        output: move_stream
       # Rename attributes
       - type: move
+        id: move_stream
         from: attributes.stream
         to: attributes["log.iostream"]
+        output: move_container_name
       - type: move
+        id: move_container_name
         from: attributes.container_name
         to: resource["k8s.container.name"]
+        output: move_namespace
       - type: move
+        id: move_namespace
         from: attributes.namespace
         to: resource["k8s.namespace.name"]
+        output: move_pod_name
       - type: move
+        id: move_pod_name
         from: attributes.pod_name
         to: resource["k8s.pod.name"]
+        output: move_restart_count
       - type: move
+        id: move_restart_count
         from: attributes.restart_count
         to: resource["k8s.container.restart_count"]
+        output: move_uid
       - type: move
+        id: move_uid
         from: attributes.uid
         to: resource["k8s.pod.uid"]
+        output: move_log
       # Clean up log body
       - type: move
+        id: move_log
         from: attributes.log
         to: body
   hostMetrics:
@@ -188,11 +221,14 @@ presets:
     # -- Pod Association section allows to define rules for tagging spans, metrics,
     # and logs with Pod metadata.
     podAssociation:
-      - from: resource_attribute
-        name: k8s.pod.ip
-      - from: resource_attribute
-        name: k8s.pod.uid
-      - from: connection
+      - sources:
+        - from: resource_attribute
+          name: k8s.pod.ip
+      - sources:
+        - from: resource_attribute
+          name: k8s.pod.uid
+      - sources:
+        - from: connection
     # -- Which pod/namespace metadata to extract from a list of default metadata fields.
     extractMetadatas:
       - k8s.namespace.name
@@ -215,21 +251,24 @@ presets:
       - memory
       # - ephemeral-storage
       # - storage
+  resourceDetectionInternal:
+    enabled: true
+    timeout: 2s
+    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
+    override: true
   resourceDetection:
     enabled: true
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
-    # detectors: include ec2/eks for AWS, gce/gke for GCP and azure/aks for Azure
+    # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
     # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
     detectors:
-      - env
       # - elastic_beanstalk
       # - eks
       # - ecs
       # - ec2
-      # - gke
-      # - gce
+      # - gcp
       # - azure
       # - heroku
       - system
@@ -245,7 +284,7 @@ otelAgent:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.66.0
+    tag: 0.79.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelAgent.
@@ -283,10 +322,14 @@ otelAgent:
   # -- OtelAgent daemonset annotation.
   annotations: {}
   # -- OtelAgent pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
+
+  # -- Additional environments to set for OtelAgent
+  additionalEnvs: {}
+    # env_key: env_value
 
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.
@@ -305,14 +348,19 @@ otelAgent:
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     # @default -- See `values.yaml` for defaults
     rules:
+      # k8sattributes processor requires these permissions
       - apiGroups: [""]
         resources: ["pods", "namespaces"]
-        verbs: ["get", "watch", "list"]
-      - apiGroups: [""]
-        resources: ["nodes", "endpoints"]
-        verbs: ["list", "watch"]
+        verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions"]
+        resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      # other processors and receivers require these permissions
+      - apiGroups: [""]
+        resources: ["nodes", "endpoints"]
         verbs: ["list", "watch"]
       - apiGroups: ["batch"]
         resources: ["jobs"]
@@ -554,7 +602,7 @@ otelAgent:
       telemetry:
         metrics:
           address: 0.0.0.0:8888
-      extensions: [health_check, zpages]
+      extensions: [health_check, zpages, pprof]
       pipelines:
         traces:
           receivers: [otlp]
@@ -564,7 +612,7 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []
@@ -579,7 +627,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.66.0
+    tag: 0.79.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -617,10 +665,14 @@ otelDeployment:
   # -- OtelDeployment deployment annotation.
   annotations: {}
   # -- OtelDeployment pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
+    # signoz.io/path: /metrics
+
+  # -- Additional environments to set for OtelDeployment
+  additionalEnvs: {}
+    # env_key: env_value
 
   # -- Pod-level security configuration
   podSecurityContext: {}
@@ -845,11 +897,7 @@ otelDeployment:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
-        metrics:
-          receivers: []
-          processors: [batch]
-          exporters: []
-        metrics/generic:
+        metrics/internal:
           receivers: []
           processors: [batch]
           exporters: []

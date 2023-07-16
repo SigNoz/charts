@@ -17,8 +17,8 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.otelAgent.podAnnotations }}
-          {{- toYaml .Values.otelAgent.podAnnotations | nindent 8 }}
+        {{- with .Values.otelAgent.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-agent/configmap.yaml") . | sha256sum }}
       labels:
@@ -46,9 +46,11 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
+        {{- if ne .Values.global.cloud "gcp/autogke" }}
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
+        {{- end }}
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
           secret:
@@ -69,7 +71,7 @@ spec:
             - name: {{ $key }}
               containerPort: {{ $port.containerPort }}
               protocol: {{ $port.protocol }}
-              {{- if $port.hostPort }}
+              {{- if and $port.hostPort (ne $.Values.global.cloud "gcp/autogke") }}
               hostPort: {{ $port.hostPort }}
               {{- end }}
             {{- end }}
@@ -93,16 +95,22 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-agent" .Values.otelAgent.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+              value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+            {{- range $key, $val := .Values.otelAgent.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           volumeMounts:
             - name: otel-agent-config-vol
               mountPath: /conf
             - name: varlog
               mountPath: /var/log
               readOnly: true
+            {{- if ne .Values.global.cloud "gcp/autogke" }}
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
+            {{- end }}
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}

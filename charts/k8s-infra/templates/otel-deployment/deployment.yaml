@@ -19,8 +19,8 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.otelDeployment.podAnnotations }}
-          {{- toYaml .Values.otelDeployment.podAnnotations | nindent 8 }}
+        {{- with .Values.otelDeployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-deployment/configmap.yaml") . | sha256sum }}
       labels:
@@ -90,7 +90,11 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-deployment" .Values.otelDeployment.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+              value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME)
+            {{- range $key, $val := .Values.otelDeployment.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           volumeMounts:
             - name: otel-deployment-config-vol
               mountPath: /conf

@@ -93,6 +93,20 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
+Return the initContainers image name for migration
+*/}}
+{{- define "queryService.initContainers.migration.image" -}}
+{{- $registryName := default .Values.queryService.initContainers.migration.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.queryService.initContainers.migration.image.repository -}}
+{{- $tag := .Values.queryService.initContainers.migration.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper queryService image name
 */}}
 {{- define "queryService.image" -}}

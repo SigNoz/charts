@@ -18,8 +18,8 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.otelCollectorMetrics.podAnnotations -}}
-          {{- toYaml .Values.otelCollectorMetrics.podAnnotations | nindent 8 -}}
+        {{- with .Values.otelCollectorMetrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/otel-collector-metrics/configmap.yaml") . | sha256sum }}
       labels:
@@ -103,7 +103,11 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-collector-metrics" .Values.otelCollectorMetrics.name}}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: host.name=$(K8S_NODE_NAME),signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+              value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+            {{- range $key, $val := .Values.otelCollectorMetrics.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           volumeMounts:
             - name: otel-collector-metrics-config-vol
               mountPath: /conf

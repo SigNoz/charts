@@ -34,6 +34,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.resourceDetectionInternal.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -54,15 +57,20 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if $config.service.pipelines.traces }}
 {{- $_ := set $config.service.pipelines.traces "exporters" (prepend $config.service.pipelines.traces.exporters "logging" | uniq)  }}
 {{- end }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "exporters" (prepend (index (index $config.service.pipelines "metrics/generic") "exporters") "logging" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "logging" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
 
 {{- define "opentelemetry-collector.loggingExporterConfig" -}}
 exporters:
-  logging: {}
+  logging:
+    {{- with .Values.presets.loggingExporter }}
+    verbosity: {{ .verbosity }}
+    sampling_initial: {{ .samplingInitial }}
+    sampling_thereafter: {{ .samplingThereafter }}
+    {{- end }}
 {{- end }}
 
 
@@ -77,8 +85,8 @@ exporters:
 {{- if $config.service.pipelines.traces }}
 {{- $_ := set $config.service.pipelines.traces "exporters" (prepend $config.service.pipelines.traces.exporters "otlp" | uniq)  }}
 {{- end }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "exporters" (prepend (index (index $config.service.pipelines "metrics/generic") "exporters") "otlp" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -90,8 +98,13 @@ exporters:
     tls:
       insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
       insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      {{- if .Values.otelTlsSecrets.enabled }}
       cert_file: ${OTEL_SECRETS_PATH}/cert.pem
       key_file: ${OTEL_SECRETS_PATH}/key.pem
+      {{- if .Values.otelTlsSecrets.ca }}
+      ca_file: ${OTEL_SECRETS_PATH}/ca.pem
+      {{- end }}
+      {{- end }}
     headers:
       "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
 {{- end }}
@@ -104,14 +117,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.hostMetrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyHostMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.kubernetesAttributes.enabled }}
-{{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.resourceDetection.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if .Values.presets.resourceDetectionInternal.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -127,8 +134,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.clusterMetricsConfig" .Values | fromYaml) .config }}
-{{- if $config.service.pipelines.metrics }}
-{{- $_ := set $config.service.pipelines.metrics "receivers" (append $config.service.pipelines.metrics.receivers "k8s_cluster" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "k8s_cluster" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -145,8 +152,8 @@ receivers:
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.hostMetricsConfig" .Values | fromYaml) .config }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "receivers" (append (index (index $config.service.pipelines "metrics/generic") "receivers") "hostmetrics" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "hostmetrics" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -163,8 +170,8 @@ receivers:
 
 {{- define "opentelemetry-collector.applyKubeletMetricsConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.kubeletMetricsConfig" .Values | fromYaml) .config }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "receivers" (append (index (index $config.service.pipelines "metrics/generic") "receivers") "kubeletstats" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "kubeletstats" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -206,13 +213,13 @@ receivers:
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
       {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_*.log
+      - /var/log/pods/{{ .Release.Namespace }}_*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Values.namespace }}_*.log
+      - /var/log/pods/{{ .Values.namespace }}_*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
-      - /var/log/pods/{{ $namespace }}_*.log
+      - /var/log/pods/{{ $namespace }}_*/*/*.log
       {{- end }}
       {{- range $pod := $pods }}
       - /var/log/pods/*_{{ $pod }}*_*/*/*.log
@@ -246,8 +253,8 @@ receivers:
 {{- if $config.service.pipelines.traces }}
 {{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "k8sattributes" | uniq) }}
 {{- end }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "processors" (prepend (index (index $config.service.pipelines "metrics/generic") "processors") "k8sattributes" | uniq) }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "k8sattributes" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -269,17 +276,8 @@ processors:
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfig" .Values | fromYaml) .config }}
-{{- if $config.service.pipelines.logs }}
-{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resourcedetection" | uniq) }}
-{{- end }}
-{{- if $config.service.pipelines.metrics }}
-{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resourcedetection" | uniq) }}
-{{- end }}
-{{- if $config.service.pipelines.traces }}
-{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resourcedetection" | uniq) }}
-{{- end }}
-{{- if index $config.service.pipelines "metrics/generic" }}
-{{- $_ := set (index $config.service.pipelines "metrics/generic") "processors" (prepend (index (index $config.service.pipelines "metrics/generic") "processors") "resourcedetection" | uniq) }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -296,4 +294,21 @@ processors:
       hostname_sources:
         {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
     {{- end }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyResourceDetectionInternalConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionInternalConfig" .Values | fromYaml) .config }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection/internal" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.resourceDetectionInternalConfig" -}}
+processors:
+  resourcedetection/internal:
+    detectors:
+      - env
+    timeout: {{ .Values.presets.resourceDetectionInternal.timeout }}
+    override: {{ .Values.presets.resourceDetectionInternal.override }}
 {{- end }}
