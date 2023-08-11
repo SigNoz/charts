@@ -1346,6 +1346,11 @@ otelCollector:
   # -- Custom readiness probe
   customReadinessProbe: {}
 
+  # -- Extra volumes mount for OtelCollector pod
+  extraVolumeMounts: []
+  # -- Extra volumes for OtelCollector pod
+  extraVolumes: []
+
   ingress:
     # -- Enable ingress for OtelCollector
     enabled: false
@@ -1810,6 +1815,11 @@ otelCollectorMetrics:
   ## Custom liveness and readiness probes
   customLivenessProbe: {}
   customReadinessProbe: {}
+
+  # -- Extra volumes mount for OtelCollectorMetrics pod
+  extraVolumeMounts: []
+  # -- Extra volumes for OtelCollectorMetrics pod
+  extraVolumes: []
 
   ingress:
     # -- Enable ingress for OtelCollectorMetrics
