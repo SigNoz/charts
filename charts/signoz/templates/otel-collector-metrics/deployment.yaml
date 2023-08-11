@@ -111,9 +111,9 @@ spec:
           volumeMounts:
             - name: otel-collector-metrics-config-vol
               mountPath: /conf
-{{- if .Values.otelCollectorMetrics.extraVolumeMounts }}
-{{- toYaml .Values.otelCollectorMetrics.extraVolumeMounts | nindent 12 }}
-{{- end }}
+              {{- if .Values.otelCollectorMetrics.extraVolumeMounts }}
+              {{- toYaml .Values.otelCollectorMetrics.extraVolumeMounts | nindent 12 }}
+              {{- end }}
             # - name: otel-collector-secrets
             #   mountPath: /secrets
           {{- if .Values.otelCollectorMetrics.livenessProbe.enabled }}
