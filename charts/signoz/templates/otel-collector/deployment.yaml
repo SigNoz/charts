@@ -154,7 +154,7 @@ spec:
           configMap:
             name: {{ include "otelCollector.fullname" . }}
         {{- if .Values.otelCollector.extraVolumes }}
-        {{ toYaml .Values.otelCollector.extraVolumes | indent 8 }}
+        {{ toYaml .Values.otelCollector.extraVolumes | nindent 8 }}
         {{- end }}
 #        - secret:
 #            name: otel-collector-secrets
