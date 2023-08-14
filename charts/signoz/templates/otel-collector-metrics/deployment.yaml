@@ -150,9 +150,9 @@ spec:
         - name: otel-collector-metrics-config-vol
           configMap:
             name: {{ include "otelCollectorMetrics.fullname" . }}
-{{- if .Values.otelCollectorMetrics.extraVolumes }}
-{{ toYaml .Values.otelCollectorMetrics.extraVolumes | indent 8 }}
-{{- end }}
+        {{- if .Values.otelCollectorMetrics.extraVolumes }}
+        {{ toYaml .Values.otelCollectorMetrics.extraVolumes | nindent 8 }}
+        {{- end }}
 #        - secret:
 #            name: otel-collector-secrets
 #            items:
