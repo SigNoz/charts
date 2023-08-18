@@ -91,6 +91,9 @@ exporters:
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
 {{- end }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "exporters" (prepend (index (index $config.service.pipelines "metrics/hostmetrics") "exporters") "otlp" | uniq)  }}
+{{- end }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -290,15 +293,16 @@ processors:
   filter/hostmetrics:
     error_mode: {{ .Values.presets.filterHostMetrics.errorMode }}
     metrics:
-      {{ range $filter := .Values.presets.filterHostMetrics.metrics }}
-        - {{ toYaml $filter | nindent 8 }}
-      {{ end }}
+      {{ toYaml .Values.presets.filterHostMetrics.metrics | nindent 8 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfig" .Values | fromYaml) .config }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "processors" (prepend (index (index $config.service.pipelines "metrics/hostmetrics") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
