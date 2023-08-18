@@ -1524,6 +1524,15 @@ otelCollector:
             type: remove
             if: '"span_id" in attributes'
             field: attributes.span_id
+
+      filter/hostmetrics:
+        error_mode: ignore
+        metrics:
+          datapoint:
+              - 'IsMatch(attributes["device"], "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"'
+              - 'IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"'
+              - 'IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"'
+
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
@@ -1651,7 +1660,7 @@ otelCollector:
           exporters: [clickhousemetricswrite]
         metrics/internal:
           receivers: [hostmetrics]
-          processors: [resourcedetection, k8sattributes, batch]
+          processors: [resourcedetection, filter/hostmetrics, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
         metrics/spanmetrics:
           receivers: [otlp/spanmetrics]
@@ -2051,6 +2060,13 @@ otelCollectorMetrics:
                   action: replace
                   target_label: k8s_pod_phase
     processors:
+    filter/hostmetrics:
+      error_mode: ignore
+      metrics:
+        datapoint:
+            - 'IsMatch(attributes["device"], "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"'
+            - 'IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"'
+            - 'IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"'
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
@@ -2132,7 +2148,7 @@ otelCollectorMetrics:
           exporters: [clickhousemetricswrite]
         metrics/hostmetrics:
           receivers: [hostmetrics]
-          processors: [resourcedetection, k8sattributes/hostmetrics, batch]
+          processors: [resourcedetection, filter/hostmetrics, k8sattributes/hostmetrics, batch]
           exporters: [clickhousemetricswrite/hostmetrics]
 
 # Default values for k8s-infra.
@@ -2306,6 +2322,14 @@ k8s-infra:
         disk: {}
         filesystem: {}
         network: {}
+    filterHostMetrics:
+      enabled: true
+      errorMode: ignore
+      metrics:
+        datapoint:
+            - 'IsMatch(attributes["device"], "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"'
+            - 'IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"'
+            - 'IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"'
     kubeletMetrics:
       enabled: true
       collectionInterval: 30s
