@@ -71,7 +71,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.name`                      | Query Service component name                                            | `query-service`                   |
 | `queryService.image.registry`            | Query Service image registry name                                       | `docker.io`                       |
 | `queryService.image.repository`          | Container image name                                                    | `signoz/query-service`            |
-| `queryService.image.tag`                 | Container image tag                                                     | `0.25.5`                          |
+| `queryService.image.tag`                 | Container image tag                                                     | `0.26.0`                          |
 | `queryService.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `queryService.replicaCount`              | Number of query-service nodes                                           | `1`                               |
 | `queryService.initContainers.init.enabled`      | Query Service initContainer enabled                              | `true`                            |
@@ -104,7 +104,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.name`                          | Frontend component name                                                 | `frontend`                        |
 | `frontend.image.registry`                | Frontend image registry name                                            | `docker.io`                       |
 | `frontend.image.repository`              | Container image name                                                    | `signoz/frontend`                 |
-| `frontend.image.tag`                     | Container image tag                                                     | `0.25.5`                          |
+| `frontend.image.tag`                     | Container image tag                                                     | `0.26.0`                          |
 | `frontend.image.pullPolicy`              | Container pull policy                                                   | `IfNotPresent`                    |
 | `frontend.replicaCount`                  | Number of query-service nodes                                           | `1`                               |
 | `frontend.initContainers.init.enabled`   | Frontend initContainer enabled                                          | `true`                            |
@@ -135,7 +135,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.name`                      | Alertmanager component name                                             | `alertmanager`                    |
 | `alertmanager.image.registry`            | Alertmanager image registry name                                        | `docker.io`                       |
 | `alertmanager.image.repository`          | Container image name                                                    | `signoz/alertmanager`             |
-| `alertmanager.image.tag`                 | Container image tag                                                     | `0.23.1`                          |
+| `alertmanager.image.tag`                 | Container image tag                                                     | `0.23.2`                          |
 | `alertmanager.image.pullPolicy`          | Container pull policy                                                   | `IfNotPresent`                    |
 | `alertmanager.replicaCount`              | Number of Alertmanager nodes                                            | `1`                               |
 | `alertmanager.command`                   | Set container command to execute                                        | `[]`                              |
