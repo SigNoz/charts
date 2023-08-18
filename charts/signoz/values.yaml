@@ -2327,9 +2327,9 @@ k8s-infra:
       errorMode: ignore
       metrics:
         datapoint:
-            - 'IsMatch(attributes["device"], "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"'
-            - 'IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"'
-            - 'IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"'
+          - 'IsMatch(attributes["device"], "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"'
+          - 'IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"'
+          - 'IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"'
     kubeletMetrics:
       enabled: true
       collectionInterval: 30s
