@@ -123,11 +123,11 @@ spec:
             {{- end }}
           livenessProbe:
             httpGet:
-              path: /api/v1/version
+              path: /api/v1/health
               port: http
           readinessProbe:
             httpGet:
-              path: /api/v1/version
+              path: /api/v1/health?live=1
               port: http
           volumeMounts:
             - name: prometheus
