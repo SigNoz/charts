@@ -709,7 +709,7 @@ frontend:
         pullPolicy: IfNotPresent
       command:
         delay: 5
-        endpoint: /api/v1/version
+        endpoint: /api/v1/health?live=1
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting frontend now"
       resources: {}
@@ -876,7 +876,7 @@ alertmanager:
         pullPolicy: IfNotPresent
       command:
         delay: 5
-        endpoint: /api/v1/version
+        endpoint: /api/v1/health?live=1
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting alertmanager now"
       resources: {}
