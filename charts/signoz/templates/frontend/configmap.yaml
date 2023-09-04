@@ -30,11 +30,6 @@ data:
           try_files $uri $uri/ /index.html;
       }
 
-      location /api/alertmanager {
-        proxy_pass http://{{ include "alertmanager.url" . }}/api/v2;
-        proxy_http_version 1.1;
-      }
-
       location  ~ ^/api/(v1|v3)/logs/(tail|livetail){
         proxy_pass http://{{ include "queryService.url" . }};
         proxy_http_version 1.1;
