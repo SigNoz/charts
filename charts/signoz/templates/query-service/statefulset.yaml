@@ -121,14 +121,32 @@ spec:
             - name: {{ $key }}
               value: {{ $val | toYaml }}
             {{- end }}
+          {{- if .Values.queryService.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              path: /api/v1/health
-              port: http
+              port: {{ .Values.queryService.livenessProbe.port }}
+              path: {{ .Values.queryService.livenessProbe.path }}
+            initialDelaySeconds: {{ .Values.queryService.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queryService.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queryService.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queryService.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queryService.livenessProbe.failureThreshold }}
+          {{- else if .Values.queryService.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.queryService.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.queryService.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              path: /api/v1/health?live=1
-              port: http
+              port: {{ .Values.queryService.readinessProbe.port }}
+              path: {{ .Values.queryService.readinessProbe.path }}
+            initialDelaySeconds: {{ .Values.queryService.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.queryService.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.queryService.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.queryService.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.queryService.readinessProbe.failureThreshold }}
+          {{- else if .Values.queryService.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.queryService.customReadinessProbe | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: prometheus
               mountPath: /root/config

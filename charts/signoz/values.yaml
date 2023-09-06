@@ -595,6 +595,32 @@ queryService:
     # runAsNonRoot: true
     # runAsUser: 1000
 
+  # -- Configure liveness and readiness probes.
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  livenessProbe:
+    enabled: true
+    port: http
+    path: /api/v1/health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    port: http
+    path: /api/v1/health?live=1
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  # -- Custom liveness probe
+  customLivenessProbe: {}
+  # -- Custom readiness probe
+  customReadinessProbe: {}
+
   ingress:
     # -- Enable ingress for Query-Service
     enabled: false
