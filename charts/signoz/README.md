@@ -81,6 +81,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.initContainers.init.image.pullPolicy` | Query Service initContainer pull policy                      | `IfNotPresent`                    |
 | `queryService.initContainers.init.command`      | Query Service initContainer command line to execute              | See `values.yaml` for defaults    |
 | `queryService.initContainers.init.resources`    | Resources requests and limits                                    | See `values.yaml` for defaults |
+| `queryService.additionalEnvs`            | Additional environment variables for query-service container            | `[]`                              |
 | `queryService.configVars`                | Query Service configurations                                            | See `values.yaml` for defaults    |
 | `queryService.imagePullSecrets`          | Reference to secrets to be used when pulling images                     | `[]`                              |
 | `queryService.serviceAccount.create`     | Service account for query-service nodes enabled                         | `true`                            |
@@ -93,6 +94,10 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.service.type`              | Query Service service type                                              | `ClusterIP`                       |
 | `queryService.service.port`              | Query Service service port                                              | `8080`                            |
 | `queryService.service.internalPort`      | Query Service service internal port                                     | `8085`                            |
+| `queryService.livenessProbe`             | Query Service liveness probes                                           | See `values.yaml` for defaults    |
+| `queryService.readinessProbe`            | Query Service readiness probes                                          | See `values.yaml` for defaults    |
+| `queryService.customLivenessProbe`       | Custom liveness probes (if `queryService.livenessProbe` not enabled)    | `{}`                              |
+| `queryService.customReadinessProbe`      | Custom readiness probes (if `queryService.readinessProbe` not enabled)  | `{}`                              |
 | `queryService.ingress.enabled`           | Query Service ingress resource enabled                                  | `false`                           |
 | `queryService.ingress.className`         | Query Service ingress class name                                        | `""`                              |
 | `queryService.ingress.hosts`             | Query Service ingress virtual hosts                                     | See `values.yaml` for defaults    |
@@ -182,6 +187,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.service.type`             | Otel Collector service type                                             | `ClusterIP`                       |
 | `otelCollector.service.annotations`      | Service annotations                                                     | `{}`                              |
 | `otelCollector.ports`                    | Lists of ports exposed by otel-collector service                        | See `values.yaml` for defaults    |
+| `otelCollector.additionalEnvs`           | Additional environment variables for otel-collector container           | `[]`                              |
 | `otelCollector.initContainers.init.enabled`    | Otel Collector initContainer enabled                              | `true`                            |
 | `otelCollector.initContainers.init.image.registry`   | Otel Collector initContainer registry name                  | `docker.io`                       |
 | `otelCollector.initContainers.init.image.repository` | Otel Collector initContainer image name                     | `busybox`                         |
@@ -202,6 +208,8 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.readinessProbe`           | Otel Collector readiness probes                                         | See `values.yaml` for defaults    |
 | `otelCollector.customLivenessProbe`      | Custom liveness probes (if `otelCollector.livenessProbe` not enabled)   | `{}`                              |
 | `otelCollector.customReadinessProbe`     | Custom readiness probes (if `otelCollector.readinessProbe` not enabled) | `{}`                              |
+| `otelCollector.extraVolumes`             | Extra volumes to be added to the otel-collector pods                    | `[]`                              |
+| `otelCollector.extraVolumeMounts`        | Extra volume mounts to be added to the otel-collector pods              | `[]`                              |
 | `otelCollector.ingress.enabled`          | Open Telemetry Collector ingress resource enabled                       | `false`                           |
 | `otelCollector.ingress.className`        | Open Telemetry Collector ingress class name                             | `""`                              |
 | `otelCollector.ingress.hosts`            | Open Telemetry Collector ingress virtual hosts                          | See `values.yaml` for defaults    |
@@ -218,6 +226,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.service.type`         | Otel Collector service type                                          | `ClusterIP`                       |
 | `otelCollectorMetrics.service.annotations`  | Service annotations                                                  | `{}`                              |
 | `otelCollectorMetrics.ports`                    | Lists of ports exposed by otel-collector-metrics service         | See `values.yaml` for defaults    |
+| `otelCollectorMetrics.additionalEnvs`    | Additional environment variables for otel-collector-metrics container   | `[]`                              |
 | `otelCollectorMetrics.initContainers.init.enabled`    | Otel Collector Metrics initContainer enabled               | `true`                            |
 | `otelCollectorMetrics.initContainers.init.image.registry`    | Otel Collector Metrics initContainer registry name  | `docker.io`                       |
 | `otelCollectorMetrics.initContainers.init.image.repository`  | Otel Collector Metrics initContainer image name     | `busybox`                         |
@@ -238,6 +247,8 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.readinessProbe`    | Otel Collector Metrics readiness probes                                 | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.customLivenessProbe`    | Custom liveness probes (if `otelCollectorMetrics.livenessProbe` not enabled)   | `{}`                  |
 | `otelCollectorMetrics.customReadinessProbe`   | Custom readiness probes (if `otelCollectorMetrics.readinessProbe` not enabled) | `{}`                  |
+| `otelCollectorMetrics.extraVolumes`      | Extra volumes to be added to the otel-collector-metrics pods            | `[]`                              |
+| `otelCollectorMetrics.extraVolumeMounts` | Extra volume mounts to be added to the otel-collector-metrics pods      | `[]`                              |
 | `otelCollectorMetrics.ingress.enabled`        | Open Telemetry Collector Metrics ingress resource enabled          | `false`                           |
 | `otelCollectorMetrics.ingress.className`      | Open Telemetry Collector Metrics ingress class name                | `""`                              |
 | `otelCollectorMetrics.ingress.hosts`          | Open Telemetry Collector Metrics ingress virtual hosts             | See `values.yaml` for defaults    |
