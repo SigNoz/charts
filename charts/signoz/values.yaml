@@ -495,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.28.0
+    tag: 0.29.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -699,7 +699,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.28.0
+    tag: 0.29.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -858,7 +858,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.23.3
+    tag: 0.23.4
 
   # -- Image Registry Secret Names for Alertmanager
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1119,7 +1119,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.6
+    tag: 0.79.7
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1693,7 +1693,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.6
+    tag: 0.79.7
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
