@@ -91,7 +91,14 @@ spec:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
-          args: ["-config=/root/config/prometheus.yml"]
+          args: [
+            "-config=/root/config/prometheus.yml",
+            {{- if ne (len .Values.queryService.additionalArgs) 0 }}
+            {{- range $arg := .Values.queryService.additionalArgs }}
+            "{{ $arg }}",
+            {{- end }}
+            {{- end }}
+          ]
           ports:
             - name: http
               containerPort: {{ default 8080  .Values.queryService.service.port }}
