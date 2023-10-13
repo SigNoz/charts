@@ -299,6 +299,12 @@ Set query-service url
 {{ include "alertmanager.fullname" . }}:{{ include "alertmanager.port" . }}
 {{- end -}}
 
+{{/*
+Create a default fully qualified app name for schema migrator.
+*/}}
+{{- define "schemaMigrator.fullname" -}}
+{{- printf "%s-%s" (include "signoz.fullname" .) .Values.schemaMigrator.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 
 
 {{/*

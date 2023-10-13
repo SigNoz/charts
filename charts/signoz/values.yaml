@@ -1117,6 +1117,41 @@ alertmanager:
       #   cpu: 200m
       #   memory: 200Mi
 
+# Default values for schemaMigrator
+schemaMigrator:
+  name: "schema-migrator"
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting schema migrator now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
+  image:
+    registry: docker.io
+    repository: signoz/signoz-schema-migrator
+    tag: 0.79.8
+    pullPolicy: Always
+  args:
+    - --cluster
+    - lulcluster
+  
+  
+
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"

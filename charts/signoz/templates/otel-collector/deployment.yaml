@@ -55,6 +55,8 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
+      # todo: add k8s-wait-for initContainer here
+      # this initContainer waits for the schema migrator job to finish
       initContainers:
         {{- if .Values.otelCollector.initContainers.init.enabled }}
         - name: {{ include "otelCollector.fullname" . }}-init
