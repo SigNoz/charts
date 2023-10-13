@@ -58,21 +58,12 @@ spec:
       # todo: add k8s-wait-for initContainer here
       # this initContainer waits for the schema migrator job to finish
       initContainers:
-        {{- if .Values.otelCollector.initContainers.init.enabled }}
-        - name: {{ include "otelCollector.fullname" . }}-init
-          image: {{ include "otelCollector.initContainers.init.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.initContainers.init.image.pullPolicy }}
-          env:
-            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-          {{- with .Values.otelCollector.initContainers.init.command }}
-          command:
-            - sh
-            - -c
-            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-          {{- end }}
-          resources:
-            {{- toYaml .Values.otelCollector.initContainers.init.resources | nindent 12 }}
-        {{- end }}
+        - name: "{{ include "otelCollector.fullname" . }}-init"
+          image: "groundnuty/k8s-wait-for:1.3"
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          args: 
+          - "job"
+          - "{{ include "schemaMigrator.fullname" . }}-{{ .Release.Revision }}"
       containers:
         - name: {{ template "otelCollector.fullname" . }}
           image: {{ template "otelCollector.image" . }}

@@ -15,7 +15,7 @@ spec:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: {{ include "schemaMigrator.fullname" . }}-init
           # todo: use schema migrator variables here
-          image: {{ include "otelCollector.initContainers.init.image" . }}
+          image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
