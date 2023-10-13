@@ -1149,9 +1149,6 @@ schemaMigrator:
     - --cluster
     - lulcluster
   
-  
-
-
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
