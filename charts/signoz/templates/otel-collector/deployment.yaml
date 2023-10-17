@@ -58,7 +58,7 @@ spec:
       # todo: add k8s-wait-for initContainer here
       # this initContainer waits for the schema migrator job to finish
       initContainers:
-        - name: "{{ include "otelCollector.fullname" . }}-init"
+        - name: "{{ include "otelCollector.fullname" . }}-migrate-init"
           image: "groundnuty/k8s-wait-for:1.3"
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           args: 
