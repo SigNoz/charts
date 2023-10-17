@@ -1145,9 +1145,7 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     tag: 0.79.8
     pullPolicy: Always
-  args:
-    - --cluster
-    - lulcluster
+  args: {}
   
 # Default values for OtelCollector
 otelCollector:
@@ -1260,6 +1258,9 @@ otelCollector:
         verbs: ["get", "list", "watch"]
       - apiGroups: ["extensions"]
         resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
         verbs: ["get", "list", "watch"]
 
     # OtelCollector clusterRoleBinding
