@@ -188,6 +188,13 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.service.annotations`      | Service annotations                                                     | `{}`                              |
 | `otelCollector.ports`                    | Lists of ports exposed by otel-collector service                        | See `values.yaml` for defaults    |
 | `otelCollector.additionalEnvs`           | Additional environment variables for otel-collector container           | `[]`                              |
+| `otelCollector.initContainers.init.enabled`    | Otel Collector initContainer enabled                              | `false`                            |
+| `otelCollector.initContainers.init.image.registry`   | Otel Collector initContainer registry name                  | `docker.io`                       |
+| `otelCollector.initContainers.init.image.repository` | Otel Collector initContainer image name                     | `busybox`                         |
+| `otelCollector.initContainers.init.image.tag`        | Otel Collector initContainer image tag                      | `1.35`                            |
+| `otelCollector.initContainers.init.image.pullPolicy` | Otel Collector initContainer pull policy                    | `IfNotPresent`                    |
+| `otelCollector.initContainers.init.command`    | Otel Collector initContainer command line to execute              | See `values.yaml` for defaults    |
+| `otelCollector.initContainers.init.resources`  | Resources requests and limits                                     | See `values.yaml` for defaults |
 | `schemaMigrator.initContainers.init.enabled`    | Schema migrator initContainer enabled                              | `true`                            |
 | `schemaMigrator.initContainers.init.image.registry`   | Schema migrator initContainer registry name                  | `docker.io`                       |
 | `schemaMigrator.initContainers.init.image.repository` | Schema migrator initContainer image name                     | `busybox`                         |
