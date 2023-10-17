@@ -1162,6 +1162,28 @@ otelCollector:
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
 
+  initContainers:
+    init:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
+
+  
   # OpenTelemetry Collector executable
   command:
     # -- OtelCollector command name
@@ -1772,7 +1794,7 @@ otelCollectorMetrics:
 
   initContainers:
     init:
-      enabled: true
+      enabled: false
       image:
         registry: docker.io
         repository: busybox
