@@ -110,8 +110,8 @@ spec:
           args:
             - --storage.path=/alertmanager
             - --queryService.url=http://{{ include "queryService.internalUrl" . }}
-            {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
             - --cluster.advertise-address=$(POD_IP):{{ $svcClusterPort }}
+            {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
             - --cluster.listen-address=0.0.0.0:{{ $svcClusterPort }}
             {{- end }}
             {{- if gt (int .Values.alertmanager.replicaCount) 1 }}
