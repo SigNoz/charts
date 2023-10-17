@@ -1146,7 +1146,7 @@ schemaMigrator:
     tag: 0.79.8
     pullPolicy: Always
   args: {}
-  
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
