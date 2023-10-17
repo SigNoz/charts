@@ -306,6 +306,21 @@ Create a default fully qualified app name for schema migrator.
 {{- printf "%s-%s" (include "signoz.fullname" .) .Values.schemaMigrator.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/*
+Common labels
+*/}}
+{{- define "schemaMigrator.labels" -}}
+helm.sh/chart: {{ include "signoz.chart" . }}
+app.kubernetes.io/name: {{ include "signoz.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+
 
 {{/*
 Create a default fully qualified app name for otelCollector.

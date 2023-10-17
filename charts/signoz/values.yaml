@@ -1794,7 +1794,7 @@ otelCollectorMetrics:
 
   initContainers:
     init:
-      enabled: false
+      enabled: true
       image:
         registry: docker.io
         repository: busybox

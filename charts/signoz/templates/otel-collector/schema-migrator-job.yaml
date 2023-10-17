@@ -3,13 +3,13 @@ kind: Job
 metadata:
   name: {{ include "schemaMigrator.fullname" . }}-{{ .Release.Revision }}
   labels:
-    jobType: schema-migrator
+    {{- include "schemaMigrator.labels" . | nindent 4 }}
 spec:
   backoffLimit: 0
   template:
     metadata:
       labels:
-        jobType: schema-migrator
+        {{- include "schemaMigrator.labels" . | nindent 8 }}
     spec:
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
