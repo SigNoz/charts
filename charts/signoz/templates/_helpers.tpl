@@ -347,6 +347,20 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
+Return the initContainers image name
+*/}}
+{{- define "otelCollector.initContainers.init.image" -}}
+{{- $registryName := default .Values.otelCollector.initContainers.init.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.otelCollector.initContainers.init.image.repository -}}
+{{- $tag := .Values.otelCollector.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the schema migrator's initContainer image name
 */}}
 {{- define "schemaMigrator.initContainers.init.image" -}}
