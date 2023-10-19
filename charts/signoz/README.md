@@ -178,6 +178,13 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.config`                    | Alertmanager configurations                                             | See `values.yaml` for defaults    |
 | `alertmanager.configmapReload`           | Configure ConfigMap reload                                              | See `values.yaml` for defaults    |
 | `alertmanager.templates`                 | Set alert templates                                                     | See `values.yaml` for defaults    |
+| `schemaMigrator.initContainers.init.enabled`    | Schema migrator initContainer enabled                              | `true`                            |
+| `schemaMigrator.initContainers.init.image.registry`   | Schema migrator initContainer registry name                  | `docker.io`                       |
+| `schemaMigrator.initContainers.init.image.repository` | Schema migrator initContainer image name                     | `busybox`                         |
+| `schemaMigrator.initContainers.init.image.tag`        | Schema migrator initContainer image tag                      | `1.35`                            |
+| `schemaMigrator.initContainers.init.image.pullPolicy` | Schema migrator initContainer pull policy                    | `IfNotPresent`                    |
+| `schemaMigrator.initContainers.init.command`    | Schema migrator initContainer command line to execute              | See `values.yaml` for defaults    |
+| `schemaMigrator.initContainers.init.resources`  | Resources requests and limits                                     | See `values.yaml` for defaults |
 | `otelCollector.name`                     | Otel Collector component name                                           | `otel-collector`                  |
 | `otelCollector.image.registry`           | Otel Collector image registry name                                      | `docker.io`                       |
 | `otelCollector.image.repository`         | Container image name                                                    | `signoz/signoz-otel-collector`    |
@@ -195,13 +202,6 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.initContainers.init.image.pullPolicy` | Otel Collector initContainer pull policy                    | `IfNotPresent`                    |
 | `otelCollector.initContainers.init.command`    | Otel Collector initContainer command line to execute              | See `values.yaml` for defaults    |
 | `otelCollector.initContainers.init.resources`  | Resources requests and limits                                     | See `values.yaml` for defaults |
-| `schemaMigrator.initContainers.init.enabled`    | Schema migrator initContainer enabled                              | `true`                            |
-| `schemaMigrator.initContainers.init.image.registry`   | Schema migrator initContainer registry name                  | `docker.io`                       |
-| `schemaMigrator.initContainers.init.image.repository` | Schema migrator initContainer image name                     | `busybox`                         |
-| `schemaMigrator.initContainers.init.image.tag`        | Schema migrator initContainer image tag                      | `1.35`                            |
-| `schemaMigrator.initContainers.init.image.pullPolicy` | Schema migrator initContainer pull policy                    | `IfNotPresent`                    |
-| `schemaMigrator.initContainers.init.command`    | Schema migrator initContainer command line to execute              | See `values.yaml` for defaults    |
-| `schemaMigrator.initContainers.init.resources`  | Resources requests and limits                                     | See `values.yaml` for defaults |
 | `otelCollector.config`                         | Otel Collector configurations                                     | See `values.yaml` for defaults    |
 | `otelCollector.imagePullSecrets`               | Reference to secrets to be used when pulling images               | `[]`                              |
 | `otelCollector.serviceAccount.create`          | Service account for otel-collector nodes enabled                  | `true`                            |
