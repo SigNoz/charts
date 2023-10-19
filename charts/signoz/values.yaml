@@ -1181,7 +1181,6 @@ otelCollector:
         #   cpu: 100m
         #   memory: 100Mi
 
-  
   # OpenTelemetry Collector executable
   command:
     # -- OtelCollector command name
