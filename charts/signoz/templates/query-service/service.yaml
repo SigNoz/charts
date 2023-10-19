@@ -28,6 +28,14 @@ spec:
       {{- if (and (eq .type "NodePort") .internalNodePort) }}
       nodePort: {{ .internalNodePort }}
       {{- end }}
+    - name: opamp-internal
+      port: {{ .opampPort }}
+      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
+      protocol: TCP
+      targetPort: opamp-internal
+      {{- if eq .type "NodePort" }}
+      nodePort: ""
+      {{- end }}
 {{- end }}
   selector:
     {{- include "queryService.selectorLabels" . | nindent 4 }}

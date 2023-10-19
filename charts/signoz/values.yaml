@@ -495,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.31.1
+    tag: develop
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -522,6 +522,8 @@ queryService:
     port: 8080
     # -- Query-Service Internal port
     internalPort: 8085
+    # -- Query-Service OpAMP Internal port
+    opampPort: 4320
     # -- Set this to you want to force a specific nodePort for http.
     # Must be use with service.type=NodePort
     nodePort: null
