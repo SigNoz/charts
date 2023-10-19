@@ -1349,6 +1349,17 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for pprof
       protocol: TCP
+    httpreceiver:
+      # -- Whether to enable service port for httpreceiver
+      enabled: true
+      # -- Container port for httpreceiver
+      containerPort: 8081
+      # -- Service port for httpreceiver
+      servicePort: 8081
+      # -- Node port for httpreceiver
+      nodePort: ""
+      # -- Protocol to use for httpreceiver
+      protocol: TCP
 
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1518,6 +1529,10 @@ otelCollector:
           disk: {}
           filesystem: {}
           network: {}
+      httpreceiver/heroku:
+        # endpoint specifies the network interface and port which will receive data
+        endpoint: 0.0.0.0:8081
+        source: heroku
     processors:
       # default parsing of logs
       logstransform/internal:
@@ -1687,7 +1702,7 @@ otelCollector:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
         logs:
-          receivers: [otlp]
+          receivers: [otlp, httpreceiver/heroku]
           processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
