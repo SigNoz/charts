@@ -1119,18 +1119,69 @@ alertmanager:
       #   cpu: 200m
       #   memory: 200Mi
 
+# Default values for schemaMigrator
+schemaMigrator:
+  name: "schema-migrator"
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting schema migrator now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
+  image:
+    registry: docker.io
+    repository: signoz/signoz-schema-migrator
+    tag: 0.79.10
+    pullPolicy: Always
+  args: {}
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.9
+    tag: 0.79.10
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
+
+  initContainers:
+    init:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        delay: 5
+        endpoint: /ping
+        waitMessage: "waiting for clickhouseDB"
+        doneMessage: "clickhouse ready, starting otel collector now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
   # OpenTelemetry Collector executable
   command:
@@ -1186,27 +1237,6 @@ otelCollector:
   progressDeadlineSeconds: 120
   replicaCount: 1
 
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting otel collector now"
-      resources: {}
-        # requests:
-        #   cpu: 100m
-        #   memory: 100Mi
-        # limits:
-        #   cpu: 100m
-        #   memory: 100Mi
-
   # OtelCollector RBAC config
   clusterRole:
     # -- Specifies whether a clusterRole should be created
@@ -1229,6 +1259,9 @@ otelCollector:
         verbs: ["get", "list", "watch"]
       - apiGroups: ["extensions"]
         resources: ["replicasets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
         verbs: ["get", "list", "watch"]
 
     # OtelCollector clusterRoleBinding
@@ -1714,7 +1747,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.9
+    tag: 0.79.10
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1778,7 +1811,7 @@ otelCollectorMetrics:
 
   initContainers:
     init:
-      enabled: true
+      enabled: false
       image:
         registry: docker.io
         repository: busybox
@@ -1934,6 +1967,9 @@ otelCollectorMetrics:
       - apiGroups: [""]
         resources: ["pods", "namespaces"]
         verbs: ["get", "watch", "list"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
         verbs: ["get", "list", "watch"]

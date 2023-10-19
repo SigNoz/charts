@@ -51,6 +51,12 @@ spec:
       securityContext:
         {{- toYaml .Values.otelCollectorMetrics.podSecurityContext | nindent 8 }}
       initContainers:
+        - name: "{{ include "otelCollectorMetrics.fullname" . }}-migrate-init"
+          image: "groundnuty/k8s-wait-for:v1.5.1"
+          imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
+          args: 
+          - "job"
+          - "{{ include "schemaMigrator.fullname" . }}-{{ .Release.Revision }}"
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
         - name: {{ include "otelCollectorMetrics.fullname" . }}-init
           image: {{ include "otelCollectorMetrics.initContainers.init.image" . }}
