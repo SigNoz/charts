@@ -90,6 +90,7 @@ spec:
           args:
             {{- if .Values.otelCollector.configMap.create }}
             - "--config=/conf/otel-collector-config.yaml"
+            - "--manager-config=/conf/otel-collector-opamp-config.yaml"
             {{- end }}
             {{- range .Values.otelCollector.command.extraArgs }}
             - {{ . | quote }}

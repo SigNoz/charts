@@ -1691,6 +1691,11 @@ otelCollector:
           processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
+  # -- OpAMP config for OtelCollector
+  # @default -- See `values.yaml` for defaults
+  opampConfig:
+    server_endpoint: ws://query-service:4320/v1/opamp
+
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
   name: "otel-collector-metrics"
