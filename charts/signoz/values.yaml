@@ -1123,7 +1123,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.8
+    tag: 0.79.9
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1702,7 +1702,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.8
+    tag: 0.79.9
     pullPolicy: Always
 
   # -- Image Registry Secret Names for OtelCollector
