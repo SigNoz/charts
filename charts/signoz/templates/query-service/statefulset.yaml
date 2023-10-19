@@ -106,6 +106,9 @@ spec:
             - name: http-internal
               containerPort: {{ default 8085 .Values.queryService.service.internalPort }}
               protocol: TCP
+            - name: opamp-internal
+              containerPort: {{ default 4320 .Values.queryService.service.opampPort }}
+              protocol: TCP
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
             - name: STORAGE
