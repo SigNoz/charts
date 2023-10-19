@@ -8,4 +8,4 @@ data:
   otel-collector-config.yaml: |-
     {{- toYaml .Values.otelCollector.config | nindent 4 }}
   otel-collector-opamp-config.yaml: |-
-    {{- toYaml .Values.otelCollector.opampConfig | nindent 4 }}
+    server_endpoint: "ws://{{ include "queryService.fullname" . }}:4320/v1/opamp"

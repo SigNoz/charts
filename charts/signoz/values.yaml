@@ -495,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.31.1
+    tag: develop
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -1690,11 +1690,6 @@ otelCollector:
           receivers: [otlp]
           processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
-
-  # -- OpAMP config for OtelCollector
-  # @default -- See `values.yaml` for defaults
-  opampConfig:
-    server_endpoint: ws://query-service:4320/v1/opamp
 
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
