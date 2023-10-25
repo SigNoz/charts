@@ -495,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.32.0
+    tag: 0.32.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -705,7 +705,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.32.0
+    tag: 0.32.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1145,8 +1145,8 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.79.11
-    pullPolicy: Always
+    tag: 0.79.12
+    pullPolicy: IfNotPresent
   args: {}
 
 # Default values for OtelCollector
@@ -1155,8 +1155,8 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.11
-    pullPolicy: Always
+    tag: 0.79.12
+    pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1395,6 +1395,17 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for httpreceiver
       protocol: TCP
+    logsjson:
+      # -- Whether to enable service port for logsjson
+      enabled: true
+      # -- Container port for logsjson
+      containerPort: 8082
+      # -- Service port for logsjson
+      servicePort: 8082
+      # -- Node port for logsjson
+      nodePort: ""
+      # -- Protocol to use for logsjson
+      protocol: TCP
 
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -1568,6 +1579,10 @@ otelCollector:
         # endpoint specifies the network interface and port which will receive data
         endpoint: 0.0.0.0:8081
         source: heroku
+      httpreceiver/json:
+        # endpoint specifies the network interface and port which will receive data
+        endpoint: 0.0.0.0:8082
+        source: json
     processors:
       # default parsing of logs
       logstransform/internal:
@@ -1737,7 +1752,7 @@ otelCollector:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
         logs:
-          receivers: [otlp, httpreceiver/heroku]
+          receivers: [otlp, httpreceiver/heroku, httpreceiver/json]
           processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
@@ -1747,8 +1762,8 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.11
-    pullPolicy: Always
+    tag: 0.79.12
+    pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
