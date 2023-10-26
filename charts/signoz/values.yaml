@@ -1122,6 +1122,8 @@ alertmanager:
 # Default values for schemaMigrator
 schemaMigrator:
   name: "schema-migrator"
+  # -- Number of seconds to wait after Job completion before deleting it. (default: 600)
+  ttlSecondsAfterFinished: 600
   initContainers:
     init:
       enabled: true
