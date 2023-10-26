@@ -320,7 +320,15 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
-
+{{- define "schemaMigrator.jobSuffix" -}}
+{{- $key := cat (include "schemaMigrator.labels" .) "" }}
+{{- $key := cat $key .Values.schemaMigrator.image.repository }}
+{{- $key := cat $key ( .Values.schemaMigrator.image.tag | default .Chart.AppVersion ) }}
+{{- $key := cat $key .Values.schemaMigrator.image.pullPolicy }}
+{{- $key := cat $key ( include "schemamigrator.dsn" . ) }}
+{{- $key := cat $key .Values.schemaMigrator.args }}
+{{- sha1sum $key | substr 0 12 }}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for otelCollector.

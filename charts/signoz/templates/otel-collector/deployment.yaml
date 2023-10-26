@@ -63,7 +63,7 @@ spec:
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           args: 
           - "job"
-          - "{{ include "schemaMigrator.fullname" . }}-{{ .Release.Revision }}"
+          - "{{ include "schemaMigrator.fullname" . }}-{{ include "schemaMigrator.jobSuffix" . }}"
         {{- if .Values.otelCollector.initContainers.init.enabled }}
         - name: {{ include "otelCollector.fullname" . }}-init
           image: {{ include "otelCollector.initContainers.init.image" . }}
