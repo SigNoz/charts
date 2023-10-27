@@ -1121,6 +1121,7 @@ alertmanager:
 
 # Default values for schemaMigrator
 schemaMigrator:
+  enabled: true
   name: "schema-migrator"
   initContainers:
     init:

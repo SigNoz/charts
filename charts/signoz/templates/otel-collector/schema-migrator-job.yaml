@@ -1,3 +1,4 @@
+{{- if .Values.schemaMigrator.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -38,3 +39,4 @@ spec:
             - {{ . | quote }}
             {{- end }}
       restartPolicy: OnFailure
+{{- end }}
