@@ -25,6 +25,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.hostMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyHostMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.filterHostMetrics.enabled }}
+{{- $config = (include "opentelemetry-collector.applyfilterHostMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.kubeletMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyKubeletMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -87,6 +90,9 @@ exporters:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "exporters" (prepend (index (index $config.service.pipelines "metrics/hostmetrics") "exporters") "otlp" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -152,8 +158,8 @@ receivers:
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.hostMetricsConfig" .Values | fromYaml) .config }}
-{{- if index $config.service.pipelines "metrics/internal" }}
-{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "hostmetrics" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "receivers" (append (index (index $config.service.pipelines "metrics/hostmetrics") "receivers") "hostmetrics" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -274,10 +280,29 @@ processors:
         {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
 {{- end }}
 
+{{- define "opentelemetry-collector.applyfilterHostMetricsConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.filterHostMetricsConfig" .Values | fromYaml) .config }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "processors" (prepend (index (index $config.service.pipelines "metrics/hostmetrics") "processors") "filter/hostmetrics" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.filterHostMetricsConfig" -}}
+processors:
+  filter/hostmetrics:
+    error_mode: {{ .Values.presets.filterHostMetrics.errorMode }}
+    metrics:
+      {{ toYaml .Values.presets.filterHostMetrics.metrics | nindent 8 }}
+{{- end }}
+
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfig" .Values | fromYaml) .config }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/hostmetrics" }}
+{{- $_ := set (index $config.service.pipelines "metrics/hostmetrics") "processors" (prepend (index (index $config.service.pipelines "metrics/hostmetrics") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
