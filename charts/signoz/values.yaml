@@ -1723,13 +1723,6 @@ otelCollector:
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
-        sending_queue:
-          queue_size: 100
-        retry_on_failure:
-          enabled: true
-          initial_interval: 5s
-          max_interval: 30s
-          max_elapsed_time: 300s
       prometheus:
         endpoint: 0.0.0.0:8889
     service:
