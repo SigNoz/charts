@@ -1,7 +1,8 @@
+{{- if .Values.schemaMigrator.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-{{ .Release.Revision }}
+  name: {{ include "schemaMigrator.fullname" . }}-{{ include "schemaMigrator.jobSuffix" . }}
   labels:
     {{- include "schemaMigrator.labels" . | nindent 4 }}
 spec:
@@ -38,3 +39,4 @@ spec:
             - {{ . | quote }}
             {{- end }}
       restartPolicy: OnFailure
+{{- end }}
