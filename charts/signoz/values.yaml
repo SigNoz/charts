@@ -1146,7 +1146,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.79.12
+    tag: 0.79.13
     pullPolicy: IfNotPresent
   args: {}
 
@@ -1156,7 +1156,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.12
+    tag: 0.79.13
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1385,16 +1385,16 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for pprof
       protocol: TCP
-    httpreceiver:
-      # -- Whether to enable service port for httpreceiver
+    logsheroku:
+      # -- Whether to enable service port for logsheroku
       enabled: true
-      # -- Container port for httpreceiver
+      # -- Container port for logsheroku
       containerPort: 8081
-      # -- Service port for httpreceiver
+      # -- Service port for logsheroku
       servicePort: 8081
-      # -- Node port for httpreceiver
+      # -- Node port for logsheroku
       nodePort: ""
-      # -- Protocol to use for httpreceiver
+      # -- Protocol to use for logsheroku
       protocol: TCP
     logsjson:
       # -- Whether to enable service port for logsjson
@@ -1576,11 +1576,11 @@ otelCollector:
           disk: {}
           filesystem: {}
           network: {}
-      httpreceiver/heroku:
+      httplogreceiver/heroku:
         # endpoint specifies the network interface and port which will receive data
         endpoint: 0.0.0.0:8081
         source: heroku
-      httpreceiver/json:
+      httplogreceiver/json:
         # endpoint specifies the network interface and port which will receive data
         endpoint: 0.0.0.0:8082
         source: json
@@ -1743,7 +1743,7 @@ otelCollector:
           receivers: [otlp/spanmetrics]
           exporters: [prometheus]
         logs:
-          receivers: [otlp, httpreceiver/heroku, httpreceiver/json]
+          receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [logstransform/internal, batch]
           exporters: [clickhouselogsexporter]
 
@@ -1753,7 +1753,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.12
+    tag: 0.79.13
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
