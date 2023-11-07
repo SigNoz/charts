@@ -1606,6 +1606,7 @@ otelCollector:
             output: trace_parser
           - type: trace_parser
             id: trace_parser
+            if: '"temp_trace" in attributes'
             trace_id:
               parse_from: attributes.temp_trace.trace_id
             span_id:
