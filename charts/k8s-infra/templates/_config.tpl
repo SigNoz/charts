@@ -211,8 +211,10 @@ receivers:
       # Include specific container's logs using whitelist config.
       # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
       {{- if .Values.presets.logsCollection.whitelist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
@@ -241,8 +243,10 @@ receivers:
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
       {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
