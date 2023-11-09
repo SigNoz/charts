@@ -280,10 +280,10 @@ clickhouse:
     user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
 
   # -- ClickHouse pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '9363'
-    signoz.io/path: /metrics
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '9363'
+    # signoz.io/path: /metrics
 
   # -- Topologies on how to distribute the ClickHouse pod.
   # Possible values can be found here:
@@ -426,9 +426,9 @@ clickhouse:
       flushInterval: 7500
 
     # -- Clickhouse Operator pod(s) annotation.
-    podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
+    podAnnotations: {}
+      # signoz.io/port: '8888'
+      # signoz.io/scrape: 'true'
 
     # -- Clickhouse Operator node selector
     nodeSelector: {}
@@ -1217,10 +1217,10 @@ otelCollector:
   annotations: {}
   # -- OtelCollector pod(s) annotation.
   podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
     apm.signoz.io/scrape: 'true'
     apm.signoz.io/port: '8889'
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
 
   # -- OtelCollector pod(s) labels.
   podLabels: {}
@@ -1790,9 +1790,9 @@ otelCollectorMetrics:
   # -- OtelCollectorMetrics Deployment annotation.
   annotations: {}
   # -- OtelCollectorMetrics pod(s) annotation.
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
+  podAnnotations: {}
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '8888'
 
   # -- Additional environments to set for OtelCollectorMetrics
   additionalEnvs: {}
@@ -2605,10 +2605,10 @@ k8s-infra:
     # -- OtelDeployment daemonset annotation.
     annotations: {}
     # -- OtelDeployment pod(s) annotation.
-    podAnnotations:
-      signoz.io/scrape: 'true'
-      signoz.io/port: '8888'
-      signoz.io/path: /metrics
+    podAnnotations: {}
+      # signoz.io/scrape: 'true'
+      # signoz.io/port: '8888'
+      # signoz.io/path: /metrics
 
     # -- Additional environments to set for OtelDeployment
     additionalEnvs: {}
