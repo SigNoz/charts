@@ -567,7 +567,7 @@ clickhouseOperator:
 ###
 backup:
   # Whether to install clickhouse-backup
-  enabled: true
+  enabled: false
 
   # Clickhouse Backup image
   image:
@@ -581,9 +581,9 @@ backup:
     pullPolicy: IfNotPresent
 
   # -- User name for the Clickhouse backup
-  user: "ch-backupuser"
+  user: "backup_user"
   # -- Password for the Clickhouse backup. Ignored if backup.existingSecret is set
-  password: "ch-backupuser-password"
+  password: "f4f02683-c887-42bb-be2d-c721afd567f7"
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret:
   # -- Name of the key pointing to the password in your Kubernetes secret
@@ -594,8 +594,4 @@ backup:
   # Default is to allow access from anywhere. Use cluster pod CIDR for more security
   allowedNetworkIps:
     - "0.0.0.0/0"
-  env:
-    CLICKHOUSE_URL: "http://signoz-clickhouse:8123"
-    CLICKHOUSE_USER: "admin"
-    CLICKHOUSE_PASSWORD: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
-    CLICKHOUSE_DATABASE: "signoz_metrics"
+  env: {}
