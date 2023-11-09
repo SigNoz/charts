@@ -339,3 +339,28 @@ Return common environment variables for ClickHouse Operator
         containerName: {{ include "clickhouseOperator.fullname" . }}
         resource: limits.memory
 {{- end }}
+
+{{/*
+Return the proper clickhouseBackup image name
+*/}}
+{{- define "clickhouseBackup.image" -}}
+{{- $registryName := default .Values.backup.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.backup.image.repository -}}
+{{- $tag := .Values.backup.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return ClickHouse backup password config value for ClickHouse Instance
+*/}}
+{{- define "clickhouseBackup.passwordValue" -}}
+{{- if .Values.backup.existingSecret }}
+    {{ .Values.backup.user }}/k8s_secret_password: {{ .Values.backup.existingSecret }}/{{ required "The backup.existingSecretPasswordKey needs to be set when using backup.existingSecret" .Values.backup.existingSecretPasswordKey }}
+{{- else -}}
+    {{ .Values.backup.user }}/password_sha256_hex: {{ .Values.backup.password | sha256sum }}
+{{- end}}
+{{- end}}

@@ -559,3 +559,43 @@ clickhouseOperator:
   configs:
     # -- ClickHouse Operator confd files
     confdFiles: null
+
+###
+###
+### ---- CLICKHOUSE BACKUP ----
+###
+###
+backup:
+  # Whether to install clickhouse-backup
+  enabled: true
+
+  # Clickhouse Backup image
+  image:
+    # -- Clickhouse Backup image registry to use
+    registry: docker.io
+    # -- Clickhouse Backup image repository to use
+    repository: altinity/clickhouse-backup
+    # -- Clickhouse Backup image tag
+    tag: 2.4.4
+    # -- Clickhouse Backup image pull policy
+    pullPolicy: IfNotPresent
+
+  # -- User name for the Clickhouse backup
+  user: "ch-backupuser"
+  # -- Password for the Clickhouse backup. Ignored if backup.existingSecret is set
+  password: "ch-backupuser-password"
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret:
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey:
+
+  # -- An allowlist of IP addresses or network masks the ClickHouse backup user is
+  # allowed to access from.
+  # Default is to allow access from anywhere. Use cluster pod CIDR for more security
+  allowedNetworkIps:
+    - "0.0.0.0/0"
+  env:
+    CLICKHOUSE_URL: "http://signoz-clickhouse:8123"
+    CLICKHOUSE_USER: "admin"
+    CLICKHOUSE_PASSWORD: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+    CLICKHOUSE_DATABASE: "signoz_metrics"
