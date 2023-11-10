@@ -86,11 +86,16 @@ presets:
     enabled: true
   logsCollection:
     enabled: true
-    include:
-      - /var/log/pods/*/*/*.log
     startAt: beginning
     includeFilePath: true
     includeFileName: false
+    # This include path patterns for log files to be collected.
+    # By default, all container logs are collected.
+    # If whitelist is set, this list is ignored.
+    include:
+      - /var/log/pods/*/*/*.log
+    # This can be used to exclude certain log files from being collected.
+    # By default, kube-system and hotrod, locust pods are excluded.
     blacklist:
       enabled: true
       signozLogs: true
@@ -101,6 +106,16 @@ presets:
         - locust
       containers: []
       additionalExclude: []
+    # This can be used to whitelist certain log files to be collected.
+    # By default this is disabled and all container logs are collected.
+    # If whitelist is enabled, `include` is ignored.
+    whitelist:
+      enabled: false
+      signozLogs: true
+      namespaces: []
+      pods: []
+      containers: []
+      additionalInclude: []
     operators:
       # Find out which format is used by kubernetes
       - type: router

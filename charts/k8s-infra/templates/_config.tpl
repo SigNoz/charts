@@ -202,20 +202,20 @@ receivers:
   filelog/k8s:
     # Include logs from all container
     include:
-      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
-    # Blacklist specific namespaces, pods or containers if enabled
-    {{- if .Values.presets.logsCollection.blacklist.enabled }}
-    {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
-    {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
-    {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
-    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
-    # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
-    # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
-    exclude:
-      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_*/*/*.log
+      # Whitelist specific namespaces, pods or containers if enabled
+      {{- if .Values.presets.logsCollection.whitelist.enabled }}
+      {{- $namespaces := .Values.presets.logsCollection.whitelist.namespaces }}
+      {{- $pods := .Values.presets.logsCollection.whitelist.pods }}
+      {{- $containers := .Values.presets.logsCollection.whitelist.containers }}
+      {{- $additionalInclude := .Values.presets.logsCollection.whitelist.additionalInclude }}
+      # Include specific container's logs using whitelist config.
+      # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
+      {{- if .Values.presets.logsCollection.whitelist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Values.namespace }}_*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
@@ -227,8 +227,40 @@ receivers:
       {{- range $container := $containers }}
       - /var/log/pods/*_*_*/{{ $container }}/*.log
       {{- end }}
-      {{- range $exclude := $additionalExclude }}
-      - {{ $exclude }}
+      {{- range $includes := $additionalInclude }}
+      - {{ $includes }}
+      {{- end }}
+      {{- else }}
+      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
+      {{- end }}
+    # Blacklist specific namespaces, pods or containers if enabled
+    {{- if .Values.presets.logsCollection.blacklist.enabled }}
+    {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
+    {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
+    {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
+    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
+    # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
+    # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
+    exclude:
+      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- end }}
+      {{- end }}
+      {{- range $namespace := $namespaces }}
+      - /var/log/pods/{{ $namespace }}_*/*/*.log
+      {{- end }}
+      {{- range $pod := $pods }}
+      - /var/log/pods/*_{{ $pod }}*_*/*/*.log
+      {{- end }}
+      {{- range $container := $containers }}
+      - /var/log/pods/*_*_*/{{ $container }}/*.log
+      {{- end }}
+      {{- range $excludes := $additionalExclude }}
+      - {{ $excludes }}
       {{- end }}
     {{- else }}
     exclude: []
