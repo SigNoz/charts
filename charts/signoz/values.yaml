@@ -1586,35 +1586,35 @@ otelCollector:
         source: json
     processors:
       # default parsing of logs
-      logstransform/internal:
-        operators:
-          - type: regex_parser
-            id: traceid
-            # https://regex101.com/r/yFW5UC/1
-            regex: '(?i)(^trace|(("| )+trace))((-|_||)id("|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)'
-            parse_from: body
-            parse_to: attributes.temp_trace
-            if: 'body matches "(?i)(^trace|((\"| )+trace))((-|_||)id(\"|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)"'
-            output: spanid
-          - type: regex_parser
-            id: spanid
-            # https://regex101.com/r/DZ2gng/1
-            regex: '(?i)(^span|(("| )+span))((-|_||)id("|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)'
-            parse_from: body
-            parse_to: attributes.temp_trace
-            if: 'body matches "(?i)(^span|((\"| )+span))((-|_||)id(\"|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)"'
-            output: trace_parser
-          - type: trace_parser
-            id: trace_parser
-            trace_id:
-              parse_from: attributes.temp_trace.trace_id
-            span_id:
-              parse_from: attributes.temp_trace.span_id
-            output: remove_temp
-          - type: remove
-            id: remove_temp
-            field: attributes.temp_trace
-            if: '"temp_trace" in attributes'
+      # logstransform/internal:
+      #   operators:
+      #     - type: regex_parser
+      #       id: traceid
+      #       # https://regex101.com/r/yFW5UC/1
+      #       regex: '(?i)(^trace|(("| )+trace))((-|_||)id("|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)'
+      #       parse_from: body
+      #       parse_to: attributes.temp_trace
+      #       if: 'body matches "(?i)(^trace|((\"| )+trace))((-|_||)id(\"|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)"'
+      #       output: spanid
+      #     - type: regex_parser
+      #       id: spanid
+      #       # https://regex101.com/r/DZ2gng/1
+      #       regex: '(?i)(^span|(("| )+span))((-|_||)id("|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)'
+      #       parse_from: body
+      #       parse_to: attributes.temp_trace
+      #       if: 'body matches "(?i)(^span|((\"| )+span))((-|_||)id(\"|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)"'
+      #       output: trace_parser
+      #     - type: trace_parser
+      #       id: trace_parser
+      #       trace_id:
+      #         parse_from: attributes.temp_trace.trace_id
+      #       span_id:
+      #         parse_from: attributes.temp_trace.span_id
+      #       output: remove_temp
+      #     - type: remove
+      #       id: remove_temp
+      #       field: attributes.temp_trace
+      #       if: '"temp_trace" in attributes'
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
@@ -1717,8 +1717,6 @@ otelCollector:
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
         timeout: 10s
-        sending_queue:
-          num_consumers: 1
       prometheus:
         endpoint: 0.0.0.0:8889
     service:
@@ -1744,7 +1742,7 @@ otelCollector:
           exporters: [prometheus]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
-          processors: [logstransform/internal, batch]
+          processors: [batch]
           exporters: [clickhouselogsexporter]
 
 # Default values for OtelCollectorMetrics
