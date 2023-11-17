@@ -495,7 +495,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.33.1
+    tag: 0.34.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -705,7 +705,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.33.1
+    tag: 0.34.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1146,7 +1146,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.79.13
+    tag: 0.88.0
     pullPolicy: IfNotPresent
   args: {}
 
@@ -1156,7 +1156,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.13
+    tag: 0.88.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1253,7 +1253,7 @@ otelCollector:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces"]
+        resources: ["pods", "namespaces", "nodes"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
@@ -1751,7 +1751,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.79.13
+    tag: 0.88.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1969,7 +1969,7 @@ otelCollectorMetrics:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces"]
+        resources: ["pods", "namespaces", "nodes"]
         verbs: ["get", "watch", "list"]
       - apiGroups: ["batch"]
         resources: ["jobs"]
@@ -2483,7 +2483,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.79.0
+      tag: 0.88.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelAgent.
@@ -2591,7 +2591,7 @@ k8s-infra:
     image:
       registry: docker.io
       repository: otel/opentelemetry-collector-contrib
-      tag: 0.79.0
+      tag: 0.88.0
       pullPolicy: IfNotPresent
 
     # -- Image Registry Secret Names for OtelDeployment.

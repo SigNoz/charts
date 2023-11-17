@@ -365,7 +365,7 @@ otelAgent:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces"]
+        resources: ["pods", "namespaces", "nodes"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
