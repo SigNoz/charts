@@ -311,21 +311,28 @@ Common labels
 */}}
 {{- define "schemaMigrator.labels" -}}
 helm.sh/chart: {{ include "signoz.chart" . }}
-app.kubernetes.io/name: {{ include "signoz.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
+{{ include "schemaMigrator.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
+{{/*
+Selector labels
+*/}}
+{{- define "schemaMigrator.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "signoz.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
+{{- end -}}
+
 {{- define "schemaMigrator.jobSuffix" -}}
-{{- $key := cat (include "schemaMigrator.labels" .) "" }}
+{{- $key := cat (include "schemaMigrator.selectorLabels" .) "" }}
 {{- $key := cat $key .Values.schemaMigrator.image.repository }}
-{{- $key := cat $key ( .Values.schemaMigrator.image.tag | default .Chart.AppVersion ) }}
+{{- $key := cat $key .Values.schemaMigrator.image.tag }}
 {{- $key := cat $key .Values.schemaMigrator.image.pullPolicy }}
-{{- $key := cat $key ( include "schemamigrator.dsn" . ) }}
+{{- $key := cat $key (include "schemamigrator.dsn" .) }}
 {{- $key := cat $key .Values.schemaMigrator.args }}
 {{- sha1sum $key | substr 0 12 }}
 {{- end -}}
