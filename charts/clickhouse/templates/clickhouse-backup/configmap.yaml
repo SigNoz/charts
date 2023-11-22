@@ -1,0 +1,8 @@
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-backup-script
+data:
+{{ (.Files.Glob "scripts/clickhouse_backup.sh").AsConfig | indent 2 }}
+{{- end }}

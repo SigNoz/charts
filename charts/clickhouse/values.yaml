@@ -147,11 +147,6 @@ user: admin
 # -- Clickhouse password
 password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
-# -- Clickhouse cluster replicas
-replicasCount: 1
-# -- Clickhouse cluster shards
-shardsCount: 1
-
 # -- Clickhouse image
 image:
   # -- Clickhouse image registry to use.
@@ -569,6 +564,9 @@ backup:
   # Whether to install clickhouse-backup
   enabled: false
 
+  # -- name of the component
+  name: backup
+
   # Clickhouse Backup image
   image:
     # -- Clickhouse Backup image registry to use
@@ -579,11 +577,18 @@ backup:
     tag: 2.4.4
     # -- Clickhouse Backup image pull policy
     pullPolicy: IfNotPresent
+  # -- Image Registry Secret Names for ClickHouse Backup
+  imagePullSecrets: []
+  # -- Additional environment variables for ClickHouse Backup container
+  env: {}
+
+  # -- Schedule for ClickHouse Backup CronJob
+  schedule: "0 0 * * *"   # every day at midnight
 
   # -- User name for the Clickhouse backup
   user: "backup_user"
   # -- Password for the Clickhouse backup. Ignored if backup.existingSecret is set
-  password: "f4f02683-c887-42bb-be2d-c721afd567f7"
+  password: "backup_password"
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret:
   # -- Name of the key pointing to the password in your Kubernetes secret
@@ -594,4 +599,17 @@ backup:
   # Default is to allow access from anywhere. Use cluster pod CIDR for more security
   allowedNetworkIps:
     - "0.0.0.0/0"
-  env: {}
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+  client:
+    image:
+      registry: docker.io
+      repository: clickhouse/clickhouse-server
+      tag: 23.7.3-alpine
+      pullPolicy: IfNotPresent

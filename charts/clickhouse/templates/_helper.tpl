@@ -221,7 +221,7 @@ Selector labels
 {{- define "clickhouseOperator.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "clickhouse.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ .Values.clickhouseOperator.name }}
+app.kubernetes.io/component: {{ default "operator" .Values.clickhouseOperator.name }}
 {{- end -}}
 
 {{/*
@@ -341,12 +341,68 @@ Return common environment variables for ClickHouse Operator
 {{- end }}
 
 {{/*
+Create a default fully qualified app name for clickhouseBackup
+*/}}
+{{- define "clickhouseBackup.fullname" -}}
+{{- printf "%s-%s" (include "clickhouse.fullname" .) .Values.backup.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "clickhouseBackup.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouseBackup.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "clickhouseBackup.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickhouse.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ default "backup" .Values.backup.name }}
+{{- end -}}
+
+{{/*
 Return the proper clickhouseBackup image name
 */}}
 {{- define "clickhouseBackup.image" -}}
 {{- $registryName := default .Values.backup.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.backup.image.repository -}}
 {{- $tag := .Values.backup.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper clickhouseBackup client image name
+*/}}
+{{- define "clickhouseBackup.client.image" -}}
+{{- $registryName := default .Values.backup.client.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.backup.client.image.repository -}}
+{{- $tag := .Values.backup.client.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the initContainers image name
+*/}}
+{{- define "clickhouseBackup.initContainers.init.image" -}}
+{{- $registryName := default .Values.backup.initContainers.init.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.backup.initContainers.init.image.repository -}}
+{{- $tag := .Values.backup.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -362,5 +418,40 @@ Return ClickHouse backup password config value for ClickHouse Instance
     {{ .Values.backup.user }}/k8s_secret_password: {{ .Values.backup.existingSecret }}/{{ required "The backup.existingSecretPasswordKey needs to be set when using backup.existingSecret" .Values.backup.existingSecretPasswordKey }}
 {{- else -}}
     {{ .Values.backup.user }}/password_sha256_hex: {{ .Values.backup.password | sha256sum }}
-{{- end}}
-{{- end}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return comma-seperated list of ClickHouse shard services (first replicas only)
+*/}}
+{{- define "clickhouse.services" -}}
+{{- $services := list }}
+{{- range $shardIndex := until (int .Values.layout.shardsCount) }}
+{{- $name := printf "chi-%s-%s-%d-0" (include "clickhouse.fullname" $) $.Values.cluster $shardIndex }}
+{{- $services = append $services $name }}
+{{- end -}}
+{{- join "," $services }}
+{{- end -}}
+
+{{- define "clickhouseBackup.clickhouse-env" }}
+- name: CLICKHOUSE_HOST
+  value: {{ include "clickhouse.fullname" . }}
+- name: CLICKHOUSE_PORT
+  value: {{ default 9000 .Values.service.tcpPort | quote }}
+- name: CLICKHOUSE_HTTP_PORT
+  value: {{ default 8123 .Values.service.httpPort | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ .Values.cluster | quote }}
+- name: CLICKHOUSE_DATABASE
+  value: {{ default "signoz_metrics" .Values.database | quote }}
+- name: CLICKHOUSE_TRACE_DATABASE
+  value: {{ default "signoz_traces" .Values.traceDatabase | quote }}
+- name: CLICKHOUSE_USER
+  value: {{ .Values.user | quote }}
+- name: CLICKHOUSE_PASSWORD
+  value: {{ .Values.password | quote }}
+- name: CLICKHOUSE_SECURE
+  value: {{ .Values.secure | quote }}
+- name: CLICKHOUSE_VERIFY
+  value: {{ .Values.verify | quote }}
+{{- end }}
