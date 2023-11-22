@@ -4,12 +4,12 @@ kind: Job
 metadata:
   name: {{ include "schemaMigrator.fullname" . }}-{{ include "schemaMigrator.jobSuffix" . }}
   labels:
-    {{- include "schemaMigrator.labels" . | nindent 4 }}
+    {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
 spec:
   template:
     metadata:
       labels:
-        {{- include "schemaMigrator.labels" . | nindent 8 }}
+        {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
