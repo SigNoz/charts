@@ -60,8 +60,8 @@ spec:
       initContainers:
         {{- if .Values.schemaMigrator.enabled }}
         - name: "{{ include "otelCollector.fullname" . }}-migrate-init"
-          image: {{ include "schemaMigrator.image" . }}
-          imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
+          image: {{ include "schemaMigrator.initContainers.k8s-wait-for.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.k8s-wait-for.image.pullPolicy }}
           args: 
           - "job"
           - "{{ include "schemaMigrator.fullname" . }}-{{ include "schemaMigrator.jobSuffix" . }}"
