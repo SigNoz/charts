@@ -1126,7 +1126,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: groundnuty/k8s-wait-for
-    tag: v1.5.1
+    tag: v2.0
     pullPolicy: IfNotPresent
 
   initContainers:
