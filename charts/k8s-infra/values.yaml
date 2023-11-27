@@ -277,7 +277,7 @@ presets:
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
     # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
     detectors:
       # - elastic_beanstalk
       # - eks
@@ -292,6 +292,7 @@ presets:
       - os
       # - cname
       # - lookup
+    envResourceAttributes: ""
 
 # Default values for OtelAgent
 otelAgent:
