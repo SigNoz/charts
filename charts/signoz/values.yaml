@@ -1125,7 +1125,7 @@ schemaMigrator:
   name: "schema-migrator"
 
   initContainers:
-    k8s-wait-for:
+    wait:
       image:
         registry: docker.io
         repository: groundnuty/k8s-wait-for
