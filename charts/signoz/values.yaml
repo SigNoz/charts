@@ -108,7 +108,8 @@ clickhouse:
 
   # -- Image Registry Secret Names for ClickHouse.
   # If global.imagePullSecrets is set as well, it will merged.
-  imagePullSecrets: []
+  imagePullSecrets:
+    []
     # - "clickhouse-pull-secret"
 
   # ClickHouse Service Account
@@ -137,7 +138,8 @@ clickhouse:
   # -- Whether to verify TLS certificate on connection to ClickHouse
   verify: false
   # -- URL for zookeeper.
-  externalZookeeper: {}
+  externalZookeeper:
+    {}
     # servers:
     # - host: signoz-signoz-zookeeper
     #   port: 2181
@@ -277,18 +279,19 @@ clickhouse:
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
-    user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+    user_defined_executable_functions_config: "/etc/clickhouse-server/functions/custom-functions.xml"
 
   # -- ClickHouse pod(s) annotation.
   podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '9363'
+    signoz.io/scrape: "true"
+    signoz.io/port: "9363"
     signoz.io/path: /metrics
 
   # -- Topologies on how to distribute the ClickHouse pod.
   # Possible values can be found here:
   # - https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-  podDistribution: []
+  podDistribution:
+    []
     # - type: ShardAntiAffinity
     #   topologyKey: kubernetes.io/hostname
     # - type: ReplicaAntiAffinity
@@ -329,7 +332,8 @@ clickhouse:
   # Refs:
   # - https://clickhouse.com/docs/en/operations/configuration-files/
   # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
-  files: {}
+  files:
+    {}
     # config.d/log_rotation.xml: |
     #   <clickhouse>
     #     <logger>
@@ -381,7 +385,8 @@ clickhouse:
 
     # -- Image Registry Secret Names for Clickhouse Operator.
     # If global.imagePullSecrets is set as well, it will merged.
-    imagePullSecrets: []
+    imagePullSecrets:
+      []
       # - "clickhouseOperator-pull-secret"
 
     # ClickHouse Operator Service Account
@@ -427,8 +432,8 @@ clickhouse:
 
     # -- Clickhouse Operator pod(s) annotation.
     podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
+      signoz.io/port: "8888"
+      signoz.io/scrape: "true"
 
     # -- Clickhouse Operator node selector
     nodeSelector: {}
@@ -457,7 +462,6 @@ clickhouse:
         tag: 0.21.2
         # -- Metrics Exporter image pull policy.
         pullPolicy: IfNotPresent
-
 
 ## External clickhouse configuration
 ## This is required when clickhouse.enabled is false
@@ -532,11 +536,13 @@ queryService:
     internalNodePort: null
 
   # -- Query-Service additional arguments for command line
-  additionalArgs: []
+  additionalArgs:
+    []
     # - --prefer-delta=true
 
   # -- Additional environments to set for queryService
-  additionalEnvs: {}
+  additionalEnvs:
+    {}
     # env_key: env_value
 
   initContainers:
@@ -552,7 +558,8 @@ queryService:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -573,7 +580,8 @@ queryService:
           echo "Running migration"
           sleep 10  # Replace with actual migration command
           echo "Migration completed"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -590,10 +598,12 @@ queryService:
     telemetryEnabled: true
     deploymentType: kubernetes-helm
 
-  podSecurityContext: {}
+  podSecurityContext:
+    {}
     # fsGroup: 2000
 
-  securityContext: {}
+  securityContext:
+    {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -633,7 +643,8 @@ queryService:
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
     # -- Annotations to Query-Service Ingress
-    annotations: {}
+    annotations:
+      {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
       # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -696,7 +707,6 @@ queryService:
     # -- Persistent Volume size
     size: 1Gi
 
-
 # Default values for frontend
 frontend:
   name: "frontend"
@@ -744,7 +754,8 @@ frontend:
         endpoint: /api/v1/health?live=1
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting frontend now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -758,7 +769,8 @@ frontend:
     maxReplicas: 11
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 50
-    behavior: {}
+    behavior:
+      {}
       # scaleDown:
       #   stabilizationWindowSeconds: 300
       #  policies:
@@ -775,26 +787,28 @@ frontend:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30"   # check 30sec periodically for metrics data
-      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30" # check 30sec periodically for metrics data
+      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
+            value: "80" # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
+            value: "80" # hpa make sure average Utlization <=80 by adding new pods
 
   configVars: {}
 
-  podSecurityContext: {}
+  podSecurityContext:
+    {}
     # fsGroup: 2000
 
-  securityContext: {}
+  securityContext:
+    {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -808,7 +822,8 @@ frontend:
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
     # -- Annotations to Frontend Ingress
-    annotations: {}
+    annotations:
+      {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
       # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -827,8 +842,8 @@ frontend:
 
   # -- Frontend Nginx extra configurations
   nginxExtraConfig: |
-      client_max_body_size 24M;
-      large_client_header_buffers 8 16k;
+    client_max_body_size 24M;
+    large_client_header_buffers 8 16k;
 
   # -- Configure resource requests and limits. Update according to your own use
   # case as these values might not be suitable for your workload.
@@ -911,7 +926,8 @@ alertmanager:
         endpoint: /api/v1/health?live=1
         waitMessage: "waiting for query-service"
         doneMessage: "query-service ready, starting alertmanager now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -921,7 +937,8 @@ alertmanager:
 
   podSecurityContext:
     fsGroup: 65534
-  dnsConfig: {}
+  dnsConfig:
+    {}
     # nameservers:
     #   - 1.2.3.4
     # searches:
@@ -958,7 +975,8 @@ alertmanager:
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
     # -- Annotations to Alertmanager Ingress
-    annotations: {}
+    annotations:
+      {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
       # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -1006,7 +1024,8 @@ alertmanager:
   podLabels: {}
 
   # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
-  podDisruptionBudget: {}
+  podDisruptionBudget:
+    {}
     # maxUnavailable: 1
     # minAvailable: 1
 
@@ -1125,11 +1144,18 @@ schemaMigrator:
   name: "schema-migrator"
   image:
     registry: docker.io
-    repository: groundnuty/k8s-wait-for
-    tag: v2.0
+    repository: signoz/signoz-schema-migrator
+    tag: 0.88.1
     pullPolicy: IfNotPresent
+  args: {}
 
   initContainers:
+    k8s-wait-for:
+      image:
+        registry: docker.io
+        repository: groundnuty/k8s-wait-for
+        tag: v2.0
+        pullPolicy: IfNotPresent
     init:
       enabled: true
       image:
@@ -1142,19 +1168,14 @@ schemaMigrator:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting schema migrator now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
-  image:
-    registry: docker.io
-    repository: signoz/signoz-schema-migrator
-    tag: 0.88.1
-    pullPolicy: IfNotPresent
-  args: {}
 
 # Default values for OtelCollector
 otelCollector:
@@ -1182,7 +1203,8 @@ otelCollector:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -1223,16 +1245,17 @@ otelCollector:
   annotations: {}
   # -- OtelCollector pod(s) annotation.
   podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-    apm.signoz.io/scrape: 'true'
-    apm.signoz.io/port: '8889'
+    signoz.io/scrape: "true"
+    signoz.io/port: "8888"
+    apm.signoz.io/scrape: "true"
+    apm.signoz.io/port: "8889"
 
   # -- OtelCollector pod(s) labels.
   podLabels: {}
 
   # -- Additional environments to set for OtelCollector
-  additionalEnvs: {}
+  additionalEnvs:
+    {}
     # env_key: env_value
 
   # -- Whether to enable grouping of exceptions with same name and different stack trace.
@@ -1451,7 +1474,8 @@ otelCollector:
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
     # -- Annotations to OtelCollector Ingress
-    annotations: {}
+    annotations:
+      {}
       # cert-manager.io/cluster-issuer: letsencrypt-prod
       # nginx.ingress.kubernetes.io/ssl-redirect: "true"
       # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
@@ -1500,10 +1524,12 @@ otelCollector:
         matchLabels:
           app.kubernetes.io/component: otel-collector
 
-  podSecurityContext: {}
+  podSecurityContext:
+    {}
     # fsGroup: 2000
 
-  securityContext: {}
+  securityContext:
+    {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -1517,7 +1543,8 @@ otelCollector:
     maxReplicas: 11
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 50
-    behavior: {}
+    behavior:
+      {}
       # scaleDown:
       #   stabilizationWindowSeconds: 300
       #  policies:
@@ -1534,19 +1561,19 @@ otelCollector:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30"   # check 30sec periodically for metrics data
-      cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
+      pollingInterval: "30" # check 30sec periodically for metrics data
+      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
+      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
+            value: "80" # hpa make sure average Utilization <=80 by adding new pods
         - type: cpu
           metadata:
             type: Utilization
-            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
+            value: "80" # hpa make sure average Utlization <=80 by adding new pods
 
   # -- Configurations for OtelCollector
   # @default -- See `values.yaml` for defaults
@@ -1690,13 +1717,13 @@ otelCollector:
           node_from_env_var: K8S_NODE_NAME
         pod_association:
           - sources:
-            - from: resource_attribute
-              name: k8s.pod.ip
+              - from: resource_attribute
+                name: k8s.pod.ip
           - sources:
-            - from: resource_attribute
-              name: k8s.pod.uid
+              - from: resource_attribute
+                name: k8s.pod.uid
           - sources:
-            - from: connection
+              - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -1797,17 +1824,20 @@ otelCollectorMetrics:
   annotations: {}
   # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
+    signoz.io/scrape: "true"
+    signoz.io/port: "8888"
 
   # -- Additional environments to set for OtelCollectorMetrics
-  additionalEnvs: {}
+  additionalEnvs:
+    {}
     # env_key: env_value
 
-  podSecurityContext: {}
+  podSecurityContext:
+    {}
     # fsGroup: 2000
 
-  securityContext: {}
+  securityContext:
+    {}
     # capabilities:
     #   drop:
     #   - ALL
@@ -1832,7 +1862,8 @@ otelCollectorMetrics:
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector metrics now"
-      resources: {}
+      resources:
+        {}
         # requests:
         #   cpu: 100m
         #   memory: 100Mi
@@ -1879,7 +1910,6 @@ otelCollectorMetrics:
       # -- Protocol to use for pprof
       protocol: TCP
 
-
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   ##
@@ -1917,7 +1947,8 @@ otelCollectorMetrics:
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
     # -- Annotations to OtelCollectorMetrics Ingress
-    annotations: {}
+    annotations:
+      {}
       # cert-manager.io/cluster-issuer: letsencrypt-prod
       # nginx.ingress.kubernetes.io/ssl-redirect: "true"
       # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
@@ -2049,13 +2080,16 @@ otelCollectorMetrics:
                 # Uncomment line below to include all labels of the pod
                 # - action: labelmap
                 #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_name]
                   action: replace
                   target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
                   action: replace
                   target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_component]
                   action: replace
                   target_label: signoz_k8s_component
                 - source_labels: [__meta_kubernetes_namespace]
@@ -2110,13 +2144,16 @@ otelCollectorMetrics:
                 # Uncomment line below to include all labels of the pod
                 # - action: labelmap
                 #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_name]
                   action: replace
                   target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
                   action: replace
                   target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+                - source_labels:
+                    [__meta_kubernetes_pod_label_app_kubernetes_io_component]
                   action: replace
                   target_label: signoz_k8s_component
                 - source_labels: [__meta_kubernetes_namespace]
@@ -2184,13 +2221,13 @@ otelCollectorMetrics:
           node_from_env_var: K8S_NODE_NAME
         pod_association:
           - sources:
-            - from: resource_attribute
-              name: k8s.pod.ip
+              - from: resource_attribute
+                name: k8s.pod.ip
           - sources:
-            - from: resource_attribute
-              name: k8s.pod.uid
+              - from: resource_attribute
+                name: k8s.pod.uid
           - sources:
-            - from: connection
+              - from: connection
         extract:
           metadata:
             - k8s.namespace.name
@@ -2335,27 +2372,27 @@ k8s-infra:
         # Parse CRI-O format
         - type: regex_parser
           id: parser-crio
-          regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+          regex: "^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$"
           output: extract_metadata_from_filepath
           timestamp:
             parse_from: attributes.time
             layout_type: gotime
-            layout: '2006-01-02T15:04:05.000000000-07:00'
+            layout: "2006-01-02T15:04:05.000000000-07:00"
         # Parse CRI-Containerd format
         - type: regex_parser
           id: parser-containerd
-          regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+          regex: "^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$"
           output: extract_metadata_from_filepath
           timestamp:
             parse_from: attributes.time
-            layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+            layout: "%Y-%m-%dT%H:%M:%S.%LZ"
         # Parse Docker format
         - type: json_parser
           id: parser-docker
           output: extract_metadata_from_filepath
           timestamp:
             parse_from: attributes.time
-            layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+            layout: "%Y-%m-%dT%H:%M:%S.%LZ"
         # Extract metadata from file path
         - type: regex_parser
           id: extract_metadata_from_filepath
@@ -2429,13 +2466,13 @@ k8s-infra:
       # and logs with Pod metadata.
       podAssociation:
         - sources:
-          - from: resource_attribute
-            name: k8s.pod.ip
+            - from: resource_attribute
+              name: k8s.pod.ip
         - sources:
-          - from: resource_attribute
-            name: k8s.pod.uid
+            - from: resource_attribute
+              name: k8s.pod.uid
         - sources:
-          - from: connection
+            - from: connection
       # -- Which pod/namespace metadata to extract from a list of default metadata fields.
       extractMetadatas:
         - k8s.namespace.name
@@ -2494,7 +2531,8 @@ k8s-infra:
 
     # -- Image Registry Secret Names for OtelAgent.
     # If global.imagePullSecrets is set as well, it will merged.
-    imagePullSecrets: []
+    imagePullSecrets:
+      []
       # - "otelAgent-pull-secret"
 
     # OpenTelemetry Collector executable
@@ -2519,12 +2557,13 @@ k8s-infra:
     annotations: {}
     # -- OtelAgent pod(s) annotation.
     podAnnotations:
-      signoz.io/scrape: 'true'
-      signoz.io/port: '8888'
+      signoz.io/scrape: "true"
+      signoz.io/port: "8888"
       signoz.io/path: /metrics
 
     # -- Additional environments to set for OtelAgent
-    additionalEnvs: {}
+    additionalEnvs:
+      {}
       # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
@@ -2602,7 +2641,8 @@ k8s-infra:
 
     # -- Image Registry Secret Names for OtelDeployment.
     # If global.imagePullSecrets is set as well, it will merged.
-    imagePullSecrets: []
+    imagePullSecrets:
+      []
       # - "otelDeployment-pull-secret"
 
     # OpenTelemetry Collector executable
@@ -2627,12 +2667,13 @@ k8s-infra:
     annotations: {}
     # -- OtelDeployment pod(s) annotation.
     podAnnotations:
-      signoz.io/scrape: 'true'
-      signoz.io/port: '8888'
+      signoz.io/scrape: "true"
+      signoz.io/port: "8888"
       signoz.io/path: /metrics
 
     # -- Additional environments to set for OtelDeployment
-    additionalEnvs: {}
+    additionalEnvs:
+      {}
       # env_key: env_value
 
     # -- Configure resource requests and limits. Update according to your own use
