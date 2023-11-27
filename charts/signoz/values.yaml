@@ -1123,6 +1123,12 @@ alertmanager:
 schemaMigrator:
   enabled: true
   name: "schema-migrator"
+  image:
+    registry: docker.io
+    repository: groundnuty/k8s-wait-for
+    tag: v1.5.1
+    pullPolicy: IfNotPresent
+
   initContainers:
     init:
       enabled: true
