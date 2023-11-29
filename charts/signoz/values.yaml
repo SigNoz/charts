@@ -2461,7 +2461,7 @@ k8s-infra:
       enabled: true
       timeout: 2s
       # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-      # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+      # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
       detectors:
         # - elastic_beanstalk
         # - eks
@@ -2476,6 +2476,7 @@ k8s-infra:
         - os
         # - cname
         # - lookup
+      envResourceAttributes: ""
 
   # Default values for OtelAgent
   otelAgent:
