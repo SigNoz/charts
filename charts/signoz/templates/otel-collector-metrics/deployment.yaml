@@ -53,8 +53,8 @@ spec:
       initContainers:
         {{- if .Values.schemaMigrator.enabled }}
         - name: "{{ include "otelCollectorMetrics.fullname" . }}-migrate-init"
-          image: "groundnuty/k8s-wait-for:v1.5.1"
-          imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
+          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
           args: 
           - "job"
           - "{{ include "schemaMigrator.fullname" . }}"
