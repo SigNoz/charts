@@ -26,6 +26,8 @@ spec:
     spec:
       {{- include "otelAgent.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "otelAgent.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.otelAgent.podSecurityContext | nindent 8 }}
       priorityClassName: {{ .Values.otelAgent.priorityClassName | quote }}
       {{- with .Values.otelAgent.nodeSelector }}
       nodeSelector:
@@ -104,6 +106,8 @@ spec:
             - name: {{ $key }}
               value: {{ $val | toYaml }}
             {{- end }}
+          securityContext:
+            {{- toYaml .Values.otelAgent.securityContext | nindent 12 }}
           volumeMounts:
             - name: otel-agent-config-vol
               mountPath: /conf
