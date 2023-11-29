@@ -327,16 +327,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
 {{- end -}}
 
-{{- define "schemaMigrator.jobSuffix" -}}
-{{- $key := cat (include "schemaMigrator.selectorLabels" .) "" }}
-{{- $key := cat $key .Values.schemaMigrator.image.repository }}
-{{- $key := cat $key .Values.schemaMigrator.image.tag }}
-{{- $key := cat $key .Values.schemaMigrator.image.pullPolicy }}
-{{- $key := cat $key (include "schemamigrator.dsn" .) }}
-{{- $key := cat $key .Values.schemaMigrator.args }}
-{{- sha1sum $key | substr 0 12 }}
-{{- end -}}
-
 {{/*
 Create a default fully qualified app name for otelCollector.
 */}}
