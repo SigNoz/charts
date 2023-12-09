@@ -1153,7 +1153,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.1
+    tag: 0.88.2
     pullPolicy: IfNotPresent
   args: {}
 
@@ -1163,7 +1163,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.1
+    tag: 0.88.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1649,8 +1649,8 @@ otelCollector:
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       memory_limiter: null
-      signozspanmetrics/prometheus:
-        metrics_exporter: prometheus
+      signozspanmetrics/cumulative:
+        metrics_exporter: clickhousemetricswrite
         latency_histogram_buckets:
           [
             100us,
@@ -1678,6 +1678,36 @@ otelCollector:
           - name: deployment.environment
             default: default
           - name: signoz.collector.id
+      signozspanmetrics/delta:
+        metrics_exporter: clickhousemetricswrite
+        latency_histogram_buckets:
+          [
+            100us,
+            1ms,
+            2ms,
+            6ms,
+            10ms,
+            50ms,
+            100ms,
+            250ms,
+            500ms,
+            1000ms,
+            1400ms,
+            2000ms,
+            5s,
+            10s,
+            20s,
+            40s,
+            60s,
+          ]
+        dimensions_cache_size: 100000
+        dimensions:
+          - name: service.namespace
+            default: default
+          - name: deployment.environment
+            default: default
+          - name: signoz.collector.id
+        aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
       # K8s Attribute processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
       k8sattributes:
@@ -1734,7 +1764,7 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/prometheus, batch]
+          processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
@@ -1744,9 +1774,6 @@ otelCollector:
           receivers: [hostmetrics]
           processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
-        metrics/spanmetrics:
-          receivers: [otlp/spanmetrics]
-          exporters: [prometheus]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
@@ -1758,7 +1785,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.1
+    tag: 0.88.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2022,67 +2049,6 @@ otelCollectorMetrics:
       prometheus:
         config:
           scrape_configs:
-            # internal signoz apm spanmetrics scraper (scrapped when apm.signoz.io pod annotations are set)
-            - job_name: "signoz-spanmetrics-collector"
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_scrape]
-                  action: keep
-                  regex: true
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels:
-                    [
-                      __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_apm_signoz_io_port,
-                    ]
-                  action: replace
-                  separator: ":"
-                  target_label: __address__
-                - target_label: job_name
-                  replacement: signoz-spanmetrics-collector
-                # Uncomment line below to include all labels of the pod
-                # - action: labelmap
-                #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-                  action: replace
-                  target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
-                  action: replace
-                  target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
-                  action: replace
-                  target_label: signoz_k8s_component
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: replace
-                  target_label: k8s_namespace_name
-                - source_labels: [__meta_kubernetes_pod_name]
-                  action: replace
-                  target_label: k8s_pod_name
-                - source_labels: [__meta_kubernetes_pod_uid]
-                  action: replace
-                  target_label: k8s_pod_uid
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  action: replace
-                  target_label: k8s_container_name
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  regex: (.+)-init
-                  action: drop
-                - source_labels: [__meta_kubernetes_pod_node_name]
-                  action: replace
-                  target_label: k8s_node_name
-                - source_labels: [__meta_kubernetes_pod_ready]
-                  action: replace
-                  target_label: k8s_pod_ready
-                - source_labels: [__meta_kubernetes_pod_phase]
-                  action: replace
-                  target_label: k8s_pod_phase
             # generic prometheus metrics scraper (scrapped when signoz.io pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
