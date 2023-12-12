@@ -9,6 +9,7 @@ metadata:
   {{- if .service.annotations }}
   annotations:
     {{- toYaml .service.annotations | nindent 4 }}
+    {{- toYaml .service.annotations | pipe 4 }}
   {{- end }}
 spec:
   type: {{ .service.type }}
