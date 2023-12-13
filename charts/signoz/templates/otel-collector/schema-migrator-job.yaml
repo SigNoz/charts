@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
   annotations:
+    {{- .Values.schemaMigrator.annotations | toYaml | nindent 4 }}
     "helm.sh/hook": "post-install,post-upgrade"
     "helm.sh/hook-delete-policy": "before-hook-creation"
 spec:
