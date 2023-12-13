@@ -1124,6 +1124,13 @@ schemaMigrator:
   enabled: true
   name: "schema-migrator"
 
+  image:
+    registry: docker.io
+    repository: signoz/signoz-schema-migrator
+    tag: 0.88.1
+    pullPolicy: IfNotPresent
+  args: {}
+
   initContainers:
     wait:
       image:
@@ -1150,12 +1157,6 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
-  image:
-    registry: docker.io
-    repository: signoz/signoz-schema-migrator
-    tag: 0.88.1
-    pullPolicy: IfNotPresent
-  args: {}
 
 # Default values for OtelCollector
 otelCollector:

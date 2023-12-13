@@ -33,7 +33,7 @@ spec:
         {{- end }}      
       containers:
         - name: schema-migrator
-          image: "{{ .Values.schemaMigrator.image.repository }}:{{ .Values.schemaMigrator.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "schemaMigrator.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
           args: 
             - "--dsn"
