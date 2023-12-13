@@ -1129,9 +1129,8 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     tag: 0.88.1
     pullPolicy: IfNotPresent
-  
-  args: {}
 
+  args: {}
   annotations: {}
 
   initContainers:

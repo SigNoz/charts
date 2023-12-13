@@ -31,12 +31,12 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.init.resources | nindent 12 }}
-        {{- end }}      
+        {{- end }}
       containers:
         - name: schema-migrator
           image: {{ include "schemaMigrator.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
-          args: 
+          args:
             - "--dsn"
             - {{ include "schemamigrator.dsn" . | quote }}
             {{- range .Values.schemaMigrator.args }}
