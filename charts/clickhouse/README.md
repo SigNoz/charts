@@ -1,6 +1,6 @@
 # Clickhouse
 
-This helmchart is being installed as subchart/dependecy for signoz helmchart with default values. 
+This helmchart is being installed as subchart/dependecy for signoz helmchart with default values.
 
 ### Usage recommendation
 
