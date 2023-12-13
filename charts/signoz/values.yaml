@@ -75,6 +75,13 @@ clickhouse:
     # -- Whether to install zookeeper into a different namespace than the parent
     namespaceOverride: ""
 
+    # -- Resources requests and limits for zookeeper
+    resources:
+      limits: {}
+      requests:
+        memory: 256Mi
+        cpu: 100m
+
   # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
   namespace: ""
   # -- Name override for clickhouse

@@ -117,6 +117,13 @@ zookeeper:
     # -- Annotations for the PVC
     annotations: {}
 
+  # -- Resources requests and limits for zookeeper
+  resources:
+    limits: {}
+    requests:
+      memory: 256Mi
+      cpu: 100m
+
 ###
 ###
 ### ---- CLICKHOUSE ----
