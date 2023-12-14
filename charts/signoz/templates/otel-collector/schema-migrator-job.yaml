@@ -5,12 +5,10 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
+  {{- if .Values.schemaMigrator.annotations }}
   annotations:
-    {{- if .Values.schemaMigrator.annotations }}
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
-    {{- end }}
-    "helm.sh/hook": "post-install,post-upgrade"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- end }}
 spec:
   template:
     metadata:

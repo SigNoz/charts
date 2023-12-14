@@ -177,6 +177,9 @@ image:
 imagePullSecrets: []
   # - "clickhouse-pull-secret"
 
+# -- ClickHouse instance annotations.
+annotations: {}
+
 # ClickHouse Service Account
 serviceAccount:
   # -- Specifies whether a service account should be created

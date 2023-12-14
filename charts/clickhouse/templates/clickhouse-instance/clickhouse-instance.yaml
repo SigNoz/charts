@@ -5,6 +5,10 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouse.labels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
 spec:
   defaults:
     templates:
