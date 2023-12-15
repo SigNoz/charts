@@ -55,7 +55,7 @@ spec:
         - name: "{{ include "otelCollectorMetrics.fullname" . }}-migrate-init"
           image: {{ include "schemaMigrator.initContainers.wait.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
-          args: 
+          args:
           - "job"
           - "{{ include "schemaMigrator.fullname" . }}"
         {{- end }}

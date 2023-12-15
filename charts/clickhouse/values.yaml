@@ -117,6 +117,13 @@ zookeeper:
     # -- Annotations for the PVC
     annotations: {}
 
+  # -- Resources requests and limits for zookeeper
+  resources:
+    limits: {}
+    requests:
+      memory: 256Mi
+      cpu: 100m
+
 ###
 ###
 ### ---- CLICKHOUSE ----
@@ -161,7 +168,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 23.7.3-alpine
+  tag: 23.11.1-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 

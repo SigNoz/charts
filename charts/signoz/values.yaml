@@ -75,6 +75,13 @@ clickhouse:
     # -- Whether to install zookeeper into a different namespace than the parent
     namespaceOverride: ""
 
+    # -- Resources requests and limits for zookeeper
+    resources:
+      limits: {}
+      requests:
+        memory: 256Mi
+        cpu: 100m
+
   # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
   namespace: ""
   # -- Name override for clickhouse
@@ -102,7 +109,7 @@ clickhouse:
     # -- Clickhouse image tag to use (example: `21.8`).
     # SigNoz is not always tested with latest version of ClickHouse.
     # Only if you know what you are doing, proceed with overriding.
-    tag: 23.7.3-alpine
+    tag: 23.11.1-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
@@ -495,7 +502,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.35.0
+    tag: 0.35.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -705,7 +712,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.35.0
+    tag: 0.35.1
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1124,6 +1131,15 @@ schemaMigrator:
   enabled: true
   name: "schema-migrator"
 
+  image:
+    registry: docker.io
+    repository: signoz/signoz-schema-migrator
+    tag: 0.88.3
+    pullPolicy: IfNotPresent
+
+  args: {}
+  annotations: {}
+
   initContainers:
     wait:
       image:
@@ -1150,12 +1166,6 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
-  image:
-    registry: docker.io
-    repository: signoz/signoz-schema-migrator
-    tag: 0.88.2
-    pullPolicy: IfNotPresent
-  args: {}
 
 # Default values for OtelCollector
 otelCollector:
@@ -1163,7 +1173,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.2
+    tag: 0.88.3
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1785,7 +1795,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.2
+    tag: 0.88.3
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
