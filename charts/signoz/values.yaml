@@ -118,6 +118,9 @@ clickhouse:
   imagePullSecrets: []
     # - "clickhouse-pull-secret"
 
+  # -- ClickHouse instance annotations.
+  annotations: {}
+
   # ClickHouse Service Account
   serviceAccount:
     # -- Specifies whether a service account should be created
@@ -538,6 +541,10 @@ queryService:
     # Must be use with service.type=NodePort
     internalNodePort: null
 
+  # -- Query-Service annotations
+  annotations:
+    "helm.sh/hook-weight": "2"
+
   # -- Query-Service additional arguments for command line
   additionalArgs: []
     # - --prefer-delta=true
@@ -798,6 +805,10 @@ frontend:
 
   configVars: {}
 
+  # -- Frontend deployment annotations
+  annotations:
+    "helm.sh/hook-weight": "5"
+  # -- Frontend pod security context
   podSecurityContext: {}
     # fsGroup: 2000
 
@@ -1007,7 +1018,8 @@ alertmanager:
   topologySpreadConstraints: []
 
   statefulSet:
-    annotations: {}
+    annotations:
+      "helm.sh/hook-weight": "4"
 
   podAnnotations: {}
   podLabels: {}
@@ -1138,7 +1150,10 @@ schemaMigrator:
     pullPolicy: IfNotPresent
 
   args: {}
-  annotations: {}
+  annotations:
+    "helm.sh/hook": "post-install,pre-upgrade"
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
 
   initContainers:
     wait:
@@ -1231,7 +1246,8 @@ otelCollector:
     type: ClusterIP
 
   # -- OtelCollector Deployment annotation.
-  annotations: {}
+  annotations:
+    "helm.sh/hook-weight": "3"
   # -- OtelCollector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
@@ -1832,7 +1848,8 @@ otelCollectorMetrics:
     type: ClusterIP
 
   # -- OtelCollectorMetrics Deployment annotation.
-  annotations: {}
+  annotations:
+    "helm.sh/hook-weight": "3"
   # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
