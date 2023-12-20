@@ -4,6 +4,10 @@ metadata:
   name: {{ include "queryService.fullname" . }}
   labels:
     {{- include "queryService.labels" . | nindent 4 }}
+  {{- if .Values.queryService.annotations }}
+  annotations:
+    {{- toYaml .Values.queryService.annotations | nindent 4 }}
+  {{- end }}
 spec:
   serviceName: {{ include "queryService.fullname" . }}
   replicas: {{ .Values.queryService.replicaCount }}
