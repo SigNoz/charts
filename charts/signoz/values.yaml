@@ -1236,8 +1236,6 @@ otelCollector:
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    apm.signoz.io/scrape: 'true'
-    apm.signoz.io/port: '8889'
 
   # -- OtelCollector pod(s) labels.
   podLabels: {}
