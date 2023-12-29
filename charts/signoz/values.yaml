@@ -505,7 +505,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.36.1
+    tag: 0.36.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -719,7 +719,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.36.1
+    tag: 0.36.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
