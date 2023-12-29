@@ -381,6 +381,19 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
+Return the schema migrator's image name
+*/}}
+{{- define "schemaMigrator.image" -}}
+{{- $registryName := default .Values.schemaMigrator.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.image.repository -}}
+{{- $tag := .Values.schemaMigrator.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+{{/*
 Return the schema migrator's wait initContainer image name
 */}}
 {{- define "schemaMigrator.initContainers.wait.image" -}}

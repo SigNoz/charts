@@ -75,6 +75,13 @@ clickhouse:
     # -- Whether to install zookeeper into a different namespace than the parent
     namespaceOverride: ""
 
+    # -- Resources requests and limits for zookeeper
+    resources:
+      limits: {}
+      requests:
+        memory: 256Mi
+        cpu: 100m
+
   # -- Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to)
   namespace: ""
   # -- Name override for clickhouse
@@ -102,7 +109,7 @@ clickhouse:
     # -- Clickhouse image tag to use (example: `21.8`).
     # SigNoz is not always tested with latest version of ClickHouse.
     # Only if you know what you are doing, proceed with overriding.
-    tag: 23.7.3-alpine
+    tag: 23.11.1-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
@@ -110,6 +117,9 @@ clickhouse:
   # If global.imagePullSecrets is set as well, it will merged.
   imagePullSecrets: []
     # - "clickhouse-pull-secret"
+
+  # -- ClickHouse instance annotations.
+  annotations: {}
 
   # ClickHouse Service Account
   serviceAccount:
@@ -495,7 +505,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.34.4
+    tag: 0.36.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -530,6 +540,10 @@ queryService:
     # -- Set this to you want to force a specific nodePort for internal.
     # Must be use with service.type=NodePort
     internalNodePort: null
+
+  # -- Query-Service annotations
+  annotations:
+    "helm.sh/hook-weight": "2"
 
   # -- Query-Service additional arguments for command line
   additionalArgs: []
@@ -705,7 +719,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.34.4
+    tag: 0.36.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -791,6 +805,10 @@ frontend:
 
   configVars: {}
 
+  # -- Frontend deployment annotations
+  annotations:
+    "helm.sh/hook-weight": "5"
+  # -- Frontend pod security context
   podSecurityContext: {}
     # fsGroup: 2000
 
@@ -1000,7 +1018,8 @@ alertmanager:
   topologySpreadConstraints: []
 
   statefulSet:
-    annotations: {}
+    annotations:
+      "helm.sh/hook-weight": "4"
 
   podAnnotations: {}
   podLabels: {}
@@ -1124,6 +1143,18 @@ schemaMigrator:
   enabled: true
   name: "schema-migrator"
 
+  image:
+    registry: docker.io
+    repository: signoz/signoz-schema-migrator
+    tag: 0.88.4
+    pullPolicy: IfNotPresent
+
+  args: {}
+  annotations:
+    "helm.sh/hook": "post-install,pre-upgrade"
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+
   initContainers:
     wait:
       image:
@@ -1150,12 +1181,6 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
-  image:
-    registry: docker.io
-    repository: signoz/signoz-schema-migrator
-    tag: 0.88.1
-    pullPolicy: IfNotPresent
-  args: {}
 
 # Default values for OtelCollector
 otelCollector:
@@ -1163,7 +1188,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.1
+    tag: 0.88.4
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1221,13 +1246,12 @@ otelCollector:
     type: ClusterIP
 
   # -- OtelCollector Deployment annotation.
-  annotations: {}
+  annotations:
+    "helm.sh/hook-weight": "3"
   # -- OtelCollector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
     signoz.io/port: '8888'
-    apm.signoz.io/scrape: 'true'
-    apm.signoz.io/port: '8889'
 
   # -- OtelCollector pod(s) labels.
   podLabels: {}
@@ -1649,8 +1673,8 @@ otelCollector:
       # If set to null, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       memory_limiter: null
-      signozspanmetrics/prometheus:
-        metrics_exporter: prometheus
+      signozspanmetrics/cumulative:
+        metrics_exporter: clickhousemetricswrite
         latency_histogram_buckets:
           [
             100us,
@@ -1678,6 +1702,36 @@ otelCollector:
           - name: deployment.environment
             default: default
           - name: signoz.collector.id
+      signozspanmetrics/delta:
+        metrics_exporter: clickhousemetricswrite
+        latency_histogram_buckets:
+          [
+            100us,
+            1ms,
+            2ms,
+            6ms,
+            10ms,
+            50ms,
+            100ms,
+            250ms,
+            500ms,
+            1000ms,
+            1400ms,
+            2000ms,
+            5s,
+            10s,
+            20s,
+            40s,
+            60s,
+          ]
+        dimensions_cache_size: 100000
+        dimensions:
+          - name: service.namespace
+            default: default
+          - name: deployment.environment
+            default: default
+          - name: signoz.collector.id
+        aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
       # K8s Attribute processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
       k8sattributes:
@@ -1734,7 +1788,7 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/prometheus, batch]
+          processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
@@ -1744,9 +1798,6 @@ otelCollector:
           receivers: [hostmetrics]
           processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
-        metrics/spanmetrics:
-          receivers: [otlp/spanmetrics]
-          exporters: [prometheus]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
@@ -1758,7 +1809,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.1
+    tag: 0.88.4
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1795,7 +1846,8 @@ otelCollectorMetrics:
     type: ClusterIP
 
   # -- OtelCollectorMetrics Deployment annotation.
-  annotations: {}
+  annotations:
+    "helm.sh/hook-weight": "3"
   # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
@@ -2022,67 +2074,6 @@ otelCollectorMetrics:
       prometheus:
         config:
           scrape_configs:
-            # internal signoz apm spanmetrics scraper (scrapped when apm.signoz.io pod annotations are set)
-            - job_name: "signoz-spanmetrics-collector"
-              scrape_interval: 60s
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_scrape]
-                  action: keep
-                  regex: true
-                - source_labels:
-                    [__meta_kubernetes_pod_annotation_apm_signoz_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels:
-                    [
-                      __meta_kubernetes_pod_ip,
-                      __meta_kubernetes_pod_annotation_apm_signoz_io_port,
-                    ]
-                  action: replace
-                  separator: ":"
-                  target_label: __address__
-                - target_label: job_name
-                  replacement: signoz-spanmetrics-collector
-                # Uncomment line below to include all labels of the pod
-                # - action: labelmap
-                #   regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-                  action: replace
-                  target_label: signoz_k8s_name
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
-                  action: replace
-                  target_label: signoz_k8s_instance
-                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
-                  action: replace
-                  target_label: signoz_k8s_component
-                - source_labels: [__meta_kubernetes_namespace]
-                  action: replace
-                  target_label: k8s_namespace_name
-                - source_labels: [__meta_kubernetes_pod_name]
-                  action: replace
-                  target_label: k8s_pod_name
-                - source_labels: [__meta_kubernetes_pod_uid]
-                  action: replace
-                  target_label: k8s_pod_uid
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  action: replace
-                  target_label: k8s_container_name
-                - source_labels: [__meta_kubernetes_pod_container_name]
-                  regex: (.+)-init
-                  action: drop
-                - source_labels: [__meta_kubernetes_pod_node_name]
-                  action: replace
-                  target_label: k8s_node_name
-                - source_labels: [__meta_kubernetes_pod_ready]
-                  action: replace
-                  target_label: k8s_pod_ready
-                - source_labels: [__meta_kubernetes_pod_phase]
-                  action: replace
-                  target_label: k8s_pod_phase
             # generic prometheus metrics scraper (scrapped when signoz.io pod annotations are set)
             - job_name: "generic-collector"
               scrape_interval: 60s
