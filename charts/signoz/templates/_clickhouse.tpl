@@ -4,9 +4,9 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 
 {{- define "schemamigrator.dsn" }}
 {{- if .Values.clickhouse.enabled -}}
-{{- printf "tcp://%s:%s?username=%s&password=%s" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
+{{- printf "tcp://%v:%v?username=%v&password=%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
 {{- else -}}
-{{- printf "tcp://%s:%s?username=%s&password=%s" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
+{{- printf "tcp://%v:%v?username=%v&password=%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
 {{- end }}
 {{- end }}
 
