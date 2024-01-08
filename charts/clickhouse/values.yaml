@@ -534,6 +534,62 @@ clickhouseOperator:
     # -- Time interval in milliseconds between flushes of the query_log table.
     flushInterval: 7500
 
+  asynchronousInsertLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  asynchronousMetricLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  backupLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  blobStorageLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  crashLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  metricLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  queryThreadLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  queryViewsLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  sessionLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  zookeeperLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 30
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+  processorsProfileLog:
+    # -- The number of days to keep the data in the query_log table.
+    ttl: 7
+    # -- Time interval in milliseconds between flushes of the query_log table.
+    flushInterval: 7500
+
 
   # -- Metrics Exporter config.
   metricsExporter:
