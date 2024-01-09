@@ -1,4 +1,4 @@
-{{- if .Values.otelCollectorMetrics.ingress.enabled -}}
+{{- if and .Values.otelCollectorMetrics.ingress.enabled .Values.otelCollectorMetrics.enabled }}
 {{- $fullName := include "otelCollectorMetrics.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}

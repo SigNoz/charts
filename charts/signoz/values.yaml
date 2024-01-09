@@ -874,6 +874,7 @@ frontend:
 
 # Default values for Alertmanager
 alertmanager:
+  enabled: true
   name: "alertmanager"
   replicaCount: 1
 
@@ -1805,6 +1806,7 @@ otelCollector:
 
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
+  enabled: true
   name: "otel-collector-metrics"
   image:
     registry: docker.io

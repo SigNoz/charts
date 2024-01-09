@@ -1,3 +1,4 @@
+{{- if .Values.alertmanager.enabled -}}
 {{- $svcClusterPort := .Values.alertmanager.service.clusterPort }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -188,3 +189,4 @@ spec:
       {{- end }}
       {{- end }}
   {{- end }}
+{{- end }}
