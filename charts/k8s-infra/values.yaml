@@ -296,6 +296,7 @@ presets:
 
 # Default values for OtelAgent
 otelAgent:
+  enabled: true
   name: "otel-agent"
   image:
     registry: docker.io
@@ -639,6 +640,7 @@ otelAgent:
 
 # Default values for OtelDeployment
 otelDeployment:
+  enabled: true
   name: "otel-deployment"
   image:
     registry: docker.io

@@ -1,3 +1,4 @@
+{{- if .Values.otelAgent.enabled -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -155,3 +156,4 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelAgent.resources | nindent 12 }}
+{{- end }}
