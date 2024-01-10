@@ -1,3 +1,4 @@
+{{- if .Values.otelDeployment.enabled -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,3 +9,4 @@ metadata:
 data:
   otel-deployment-config.yaml: |-
     {{- include "otelDeployment.config" . | nindent 4 }}
+{{- end }}

@@ -1,3 +1,4 @@
+{{- if .Values.otelCollectorMetrics.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -168,3 +169,4 @@ spec:
 #                path: cert.pem
 #              - key: key.pem
 #                path: key.pem
+{{- end }}
