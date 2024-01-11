@@ -80,7 +80,6 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/internal" }}
 {{- end }}
-# - metrics/internal : {{ index $config.service.pipelines "metrics/internal" }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
