@@ -659,6 +659,10 @@ Common K8s environment variables used by SigNoz OtelCollector.
     fieldRef:
       apiVersion: v1
       fieldPath: status.podIP
+- name: K8S_HOST_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
 - name: K8S_POD_NAME
   valueFrom:
     fieldRef:
