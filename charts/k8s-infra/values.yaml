@@ -213,7 +213,7 @@ presets:
     enabled: true
     collectionInterval: 30s
     authType: serviceAccount
-    endpoint: ${K8S_NODE_NAME}:10250
+    endpoint: ${K8S_HOST_IP}:10250
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id
