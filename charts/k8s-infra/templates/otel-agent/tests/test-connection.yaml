@@ -1,3 +1,4 @@
+{{- if .Values.otelAgent.enabled -}}
 {{- $healthCheckPort := index .Values.otelAgent.ports "health-check" -}}
 apiVersion: v1
 kind: Pod
@@ -14,3 +15,4 @@ spec:
       command: ['wget']
       args: ['{{ include "otelAgent.fullname" . }}:{{ $healthCheckPort.servicePort }}']
   restartPolicy: Never
+{{- end -}}
