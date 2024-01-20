@@ -1,19 +1,20 @@
-{{- if .Values.schemaMigrator.enabled }}
+{{- if and .Values.schemaMigrator.enabled .Release.IsUpgrade }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}
+  name: {{ include "schemaMigrator.fullname" . }}-upgrade
   labels:
-    {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
+    {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 4 }}
   {{- if .Values.schemaMigrator.annotations }}
   annotations:
+    "helm.sh/hook": "pre-upgrade"
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
   {{- end }}
 spec:
   template:
     metadata:
       labels:
-        {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
+        {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 8 }}
     spec:
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
