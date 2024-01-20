@@ -58,7 +58,13 @@ spec:
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
           args:
           - "job"
+          {{- if .Release.IsInstall }}
           - "{{ include "schemaMigrator.fullname" . }}"
+          {{- else if .Release.IsUpgrade }}
+          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
+          {{- else }}
+          - "-l=app.kubernetes.io/component=schema-migrator"
+          {{- end }}
         {{- end }}
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
         - name: {{ include "otelCollectorMetrics.fullname" . }}-init

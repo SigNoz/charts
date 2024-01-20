@@ -319,12 +319,27 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Selector labels
+Common Selector labels of schema migrator
 */}}
 {{- define "schemaMigrator.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
+{{- end -}}
+
+{{/*
+Selector labels of migration job
+*/}}
+{{- define "schemaMigrator.selectorLabelsInit" -}}
+{{ include "schemaMigrator.selectorLabels" . }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-init
+{{- end -}}
+
+{{/*
+Selector labels of upgrade migration job
+*/}}
+{{- define "schemaMigrator.selectorLabelsUpgrade" -}}
+{{ include "schemaMigrator.selectorLabels" . }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-upgrade
 {{- end -}}
 
 {{/*
