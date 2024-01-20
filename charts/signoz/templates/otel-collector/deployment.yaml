@@ -66,10 +66,8 @@ spec:
           - "job"
           {{- if .Release.IsInstall }}
           - "{{ include "schemaMigrator.fullname" . }}"
-          {{- else if .Release.IsUpgrade }}
-          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
           {{- else }}
-          - "-l=app.kubernetes.io/component=schema-migrator"
+          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
           {{- end }}
         {{- end }}
         {{- if .Values.otelCollector.initContainers.init.enabled }}

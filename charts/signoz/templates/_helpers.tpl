@@ -327,7 +327,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
-Selector labels of migration job
+Selector labels of init migration job
 */}}
 {{- define "schemaMigrator.selectorLabelsInit" -}}
 {{ include "schemaMigrator.selectorLabels" . }}
