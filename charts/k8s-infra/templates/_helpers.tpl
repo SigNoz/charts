@@ -429,8 +429,8 @@ Secret name to be used for SigNoz API key.
 Secret key to be used for SigNoz API key.
 */}}
 {{- define "otel.apiKey.secretKey" }}
-{{- if .Values.apiKeyExistingSecretKey }}
-{{- required "You need to provide apiKeyExistingSecretKey when an apiKeyExistingSecretKey is specified" .Values.apiKeyExistingSecretKey }}
+{{- if .Values.apiKeyExistingSecretName }}
+{{- required "You need to provide apiKeyExistingSecretKey when an apiKeyExistingSecretName is specified" .Values.apiKeyExistingSecretKey }}
 {{- else }}
 {{- print "signoz-apikey" }}
 {{- end }}
