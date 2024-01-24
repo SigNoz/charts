@@ -44,6 +44,10 @@ insecureSkipVerify: false
 
 # -- API key of SigNoz SaaS
 signozApiKey: ""
+# -- Existing secret name to be used for API key.
+apiKeyExistingSecretName: ""
+# -- Existing secret key to be used for API key.
+apiKeyExistingSecretKey: ""
 
 # OTLP receivers TLS
 otelTlsSecrets:

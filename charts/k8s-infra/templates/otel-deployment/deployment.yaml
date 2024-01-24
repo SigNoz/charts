@@ -51,7 +51,7 @@ spec:
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-deployment-secrets-vol
           secret:
-            secretName: {{ include "k8s-infra.secretName" . }}
+            secretName: {{ include "k8s-infra.otelTlsSecretName" . }}
             items:
               - key: cert.pem
                 path: cert.pem
