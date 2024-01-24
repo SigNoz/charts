@@ -561,7 +561,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.37.1
+    tag: 0.37.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -775,7 +775,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.37.1
+    tag: 0.37.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1203,7 +1203,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.8
+    tag: 0.88.9
     pullPolicy: IfNotPresent
 
   args: {}
@@ -1244,7 +1244,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.8
+    tag: 0.88.9
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1866,7 +1866,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.8
+    tag: 0.88.9
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2300,6 +2300,10 @@ k8s-infra:
 
   # -- API key of SigNoz SaaS
   signozApiKey: ""
+  # -- Existing secret name to be used for API key.
+  apiKeyExistingSecretName: ""
+  # -- Existing secret key to be used for API key.
+  apiKeyExistingSecretKey: ""
 
   # OTLP receivers TLS
   otelTlsSecrets:
