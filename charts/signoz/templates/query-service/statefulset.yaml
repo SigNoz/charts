@@ -70,6 +70,10 @@ spec:
           imagePullPolicy: {{ .migration.image.pullPolicy }}
           env:
             {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- if .migration.args }}
+          args:
+            {{- toYaml .migration.args | nindent 12 }}
+          {{- end }}
           {{- if .migration.command }}
           command:
             {{- toYaml .migration.command | nindent 12 }}
