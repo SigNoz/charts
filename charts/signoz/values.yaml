@@ -1204,7 +1204,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.9
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   args: {}
@@ -1245,7 +1245,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.9
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1867,7 +1867,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.9
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
