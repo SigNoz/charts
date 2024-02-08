@@ -5,7 +5,6 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}-init
   labels:
     {{- include "schemaMigrator.selectorLabelsInit" . | nindent 4 }}
-    app.kubernetes.io/component: init-migrations
   {{- if .Values.schemaMigrator.annotations }}
   annotations:
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
