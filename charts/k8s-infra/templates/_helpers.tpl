@@ -421,7 +421,7 @@ Secret name to be used for SigNoz API key.
 {{- if .Values.apiKeyExistingSecretName }}
 {{- .Values.apiKeyExistingSecretName }}
 {{- else }}
-{{- include "k8s-infra.fullname" . }}-apikey-secrets
+{{- include "k8s-infra.fullname" . }}-apikey-secret
 {{- end }}
 {{- end }}
 
