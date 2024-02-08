@@ -44,6 +44,10 @@ insecureSkipVerify: false
 
 # -- API key of SigNoz SaaS
 signozApiKey: ""
+# -- Existing secret name to be used for API key.
+apiKeyExistingSecretName: ""
+# -- Existing secret key to be used for API key.
+apiKeyExistingSecretKey: ""
 
 # OTLP receivers TLS
 otelTlsSecrets:
@@ -213,7 +217,7 @@ presets:
     enabled: true
     collectionInterval: 30s
     authType: serviceAccount
-    endpoint: ${K8S_NODE_NAME}:10250
+    endpoint: ${K8S_HOST_IP}:10250
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id
@@ -296,6 +300,7 @@ presets:
 
 # Default values for OtelAgent
 otelAgent:
+  enabled: true
   name: "otel-agent"
   image:
     registry: docker.io
@@ -639,6 +644,7 @@ otelAgent:
 
 # Default values for OtelDeployment
 otelDeployment:
+  enabled: true
   name: "otel-deployment"
   image:
     registry: docker.io

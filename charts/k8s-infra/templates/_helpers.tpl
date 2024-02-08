@@ -297,13 +297,6 @@ Whether to skip verifying the TLS certificates.
 {{- end }}
 
 {{/*
-Return API key of SigNoz SAAS
-*/}}
-{{- define "otel.signozApiKey" -}}
-{{- default "" .Values.signozApiKey }}
-{{- end }}
-
-{{/*
 Return path of the TLS secrets
 */}}
 {{- define "otel.secretsPath" -}}
@@ -359,13 +352,13 @@ Return if ingress is stable.
 {{- end -}}
 
 {{/*
-Return if ingress is stable.
+Return name of Otel TLS secret name.
 */}}
-{{- define "k8s-infra.secretName" -}}
+{{- define "k8s-infra.otelTlsSecretName" -}}
 {{- if .Values.otelTlsSecrets.existingSecretName }}
 {{- .Values.otelTlsSecrets.existingSecretName }}
 {{- else }}
-{{- include "k8s-infra.fullname" . }}-secrets
+{{- include "k8s-infra.fullname" . }}-tls-secrets
 {{- end }}
 {{- end -}}
 
@@ -408,10 +401,37 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
   value: {{ include "otel.endpoint" . }}
 - name: OTEL_EXPORTER_OTLP_INSECURE
   value: {{ include "otel.insecure" . }}
+{{- if or .Values.apiKeyExistingSecretName .Values.signozApiKey }}
 - name: SIGNOZ_API_KEY
-  value: {{ include "otel.signozApiKey" . }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "otel.apiKey.secretName" . }}
+      key: {{ include "otel.apiKey.secretKey" . }}
+{{- end }}
 - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
   value: {{ include "otel.insecureSkipVerify" . }}
 - name: OTEL_SECRETS_PATH
   value: {{ include "otel.secretsPath" . }}
+{{- end }}
+
+{{/*
+Secret name to be used for SigNoz API key.
+*/}}
+{{- define "otel.apiKey.secretName" }}
+{{- if .Values.apiKeyExistingSecretName }}
+{{- .Values.apiKeyExistingSecretName }}
+{{- else }}
+{{- include "k8s-infra.fullname" . }}-apikey-secret
+{{- end }}
+{{- end }}
+
+{{/*
+Secret key to be used for SigNoz API key.
+*/}}
+{{- define "otel.apiKey.secretKey" }}
+{{- if .Values.apiKeyExistingSecretName }}
+{{- required "You need to provide apiKeyExistingSecretKey when an apiKeyExistingSecretName is specified" .Values.apiKeyExistingSecretKey }}
+{{- else }}
+{{- print "signoz-apikey" }}
+{{- end }}
 {{- end }}

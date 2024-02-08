@@ -1,3 +1,4 @@
+{{- if .Values.otelAgent.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,4 +17,5 @@ spec:
     {{- include "otel.portsConfig" . | nindent 4 }}
   selector:
     {{- include "otelAgent.selectorLabels" $ | nindent 4 }}
+{{- end }}
 {{- end }}

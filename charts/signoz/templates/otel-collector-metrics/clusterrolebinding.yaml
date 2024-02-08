@@ -1,4 +1,4 @@
-{{- if .Values.otelCollectorMetrics.clusterRole.create -}}
+{{- if and .Values.otelCollectorMetrics.clusterRole.create .Values.otelCollectorMetrics.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

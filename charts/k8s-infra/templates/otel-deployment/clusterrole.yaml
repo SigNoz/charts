@@ -1,4 +1,4 @@
-{{- if .Values.otelDeployment.clusterRole.create -}}
+{{- if and .Values.otelDeployment.clusterRole.create .Values.otelDeployment.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

@@ -1,3 +1,4 @@
+{{- if .Values.otelDeployment.enabled -}}
 {{- $healthCheckPort := index .Values.otelDeployment.ports "health-check" -}}
 apiVersion: v1
 kind: Pod
@@ -14,3 +15,4 @@ spec:
       command: ['wget']
       args: ['{{ include "otelDeployment.fullname" . }}:{{ $healthCheckPort.servicePort }}']
   restartPolicy: Never
+{{- end }}

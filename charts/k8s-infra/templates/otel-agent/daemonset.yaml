@@ -1,3 +1,4 @@
+{{- if .Values.otelAgent.enabled -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -56,7 +57,7 @@ spec:
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
           secret:
-           secretName: {{ include "k8s-infra.secretName" . }}
+           secretName: {{ include "k8s-infra.otelTlsSecretName" . }}
            items:
              - key: cert.pem
                path: cert.pem
@@ -155,3 +156,4 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelAgent.resources | nindent 12 }}
+{{- end }}

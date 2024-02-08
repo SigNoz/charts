@@ -4,9 +4,9 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 
 {{- define "schemamigrator.dsn" }}
 {{- if .Values.clickhouse.enabled -}}
-{{- printf "tcp://%s:%s?username=%s&password=%s" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
+{{- printf "tcp://%v:%v?username=%v&password=%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
 {{- else -}}
-{{- printf "tcp://%s:%s?username=%s&password=%s" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
+{{- printf "tcp://%v:%v?username=%v&password=%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
 {{- end }}
 {{- end }}
 
@@ -68,7 +68,13 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 Minimized ClickHouse ENV variables for user credentials
 */}}
 {{- define "snippet.clickhouse-credentials" }}
-{{- if .Values.clickhouse.enabled -}}
+{{ if .Values.clickhouse.enabled -}}
+- name: CLICKHOUSE_HOST
+  value: {{ include "clickhouse.servicename" . }}
+- name: CLICKHOUSE_PORT
+  value: {{ include "clickhouse.tcpPort" . | quote }}
+- name: CLICKHOUSE_HTTP_PORT
+  value: {{ include "clickhouse.httpPort" . | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
@@ -76,6 +82,12 @@ Minimized ClickHouse ENV variables for user credentials
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.clickhouse.secure | quote }}
 {{- else -}}
+- name: CLICKHOUSE_HOST
+  value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
+- name: CLICKHOUSE_PORT
+  value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
+- name: CLICKHOUSE_HTTP_PORT
+  value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.externalClickhouse.user | quote }}
 {{- if .Values.externalClickhouse.existingSecret }}

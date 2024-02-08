@@ -1,4 +1,4 @@
-{{- if .Values.otelAgent.ingress.enabled -}}
+{{- if and .Values.otelAgent.ingress.enabled .Values.otelAgent.enabled -}}
 {{- $fullName := include "otelAgent.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}

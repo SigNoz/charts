@@ -1,3 +1,4 @@
+{{- if .Values.otelCollectorMetrics.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,7 +58,11 @@ spec:
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
           args:
           - "job"
+          {{- if .Release.IsInstall }}
           - "{{ include "schemaMigrator.fullname" . }}"
+          {{- else }}
+          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
+          {{- end }}
         {{- end }}
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
         - name: {{ include "otelCollectorMetrics.fullname" . }}-init
@@ -168,3 +173,4 @@ spec:
 #                path: cert.pem
 #              - key: key.pem
 #                path: key.pem
+{{- end }}

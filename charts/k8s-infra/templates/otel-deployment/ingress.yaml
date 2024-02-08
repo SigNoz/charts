@@ -1,4 +1,4 @@
-{{- if .Values.otelDeployment.ingress.enabled -}}
+{{- if and .Values.otelDeployment.ingress.enabled .Values.otelDeployment.enabled -}}
 {{- $fullName := include "otelDeployment.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}

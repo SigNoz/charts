@@ -1,4 +1,4 @@
-{{- if .Values.alertmanager.ingress.enabled -}}
+{{- if and .Values.alertmanager.ingress.enabled .Values.alertmanager.enabled -}}
 {{- $fullName := include "alertmanager.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}

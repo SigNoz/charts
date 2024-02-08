@@ -43,6 +43,43 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.otlpExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "logs" }}
+{{- end }}
+{{- if or (eq (len $config.service.pipelines.metrics.receivers) 0) (eq (len $config.service.pipelines.metrics.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics" }}
+{{- end }}
+{{- if or (eq (len $config.service.pipelines.traces.receivers) 0) (eq (len $config.service.pipelines.traces.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "traces" }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
+{{- tpl (toYaml $config) . }}
+{{- end }}
+
+{{/*
+Build config file for deployment OpenTelemetry Collector: OtelDeployment
+*/}}
+{{- define "otelDeployment.config" -}}
+{{- $values := deepCopy .Values }}
+{{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
+{{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
+{{- if .Values.presets.resourceDetectionInternal.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.clusterMetrics.enabled }}
+{{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.loggingExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.otlpExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
@@ -107,29 +144,6 @@ exporters:
       {{- end }}
     headers:
       "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
-{{- end }}
-
-
-{{/*
-Build config file for deployment OpenTelemetry Collector: OtelDeployment
-*/}}
-{{- define "otelDeployment.config" -}}
-{{- $values := deepCopy .Values }}
-{{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
-{{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.resourceDetectionInternal.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.clusterMetrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.loggingExporter.enabled }}
-{{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.otlpExporter.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- tpl (toYaml $config) . }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}

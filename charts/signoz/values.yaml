@@ -424,15 +424,71 @@ clickhouse:
       flushInterval: 7500
     # Part Log table configuration
     partLog:
-      # -- The number of days to keep the data in the query_log table.
+      # -- The number of days to keep the data in the part_log table.
       ttl: 30
-      # -- Time interval in milliseconds between flushes of the query_log table.
+      # -- Time interval in milliseconds between flushes of the part_log table.
       flushInterval: 7500
     # Trace Log table configuration
     traceLog:
-      # -- The number of days to keep the data in the query_log table.
+      # -- The number of days to keep the data in the trace_log table.
+      ttl: 7
+      # -- Time interval in milliseconds between flushes of the trace_log table.
+      flushInterval: 7500
+
+    asynchronousInsertLog:
+      # -- The number of days to keep the data in the asynchronous_insert_log table.
+      ttl: 7
+      # -- Time interval in milliseconds between flushes of the asynchronous_insert_log table.
+      flushInterval: 7500
+    asynchronousMetricLog:
+      # -- The number of days to keep the data in the asynchronous_metric_log table.
       ttl: 30
-      # -- Time interval in milliseconds between flushes of the query_log table.
+      # -- Time interval in milliseconds between flushes of the asynchronous_metric_log table.
+      flushInterval: 7500
+    backupLog:
+      # -- The number of days to keep the data in the backup_log table.
+      ttl: 7
+      # -- Time interval in milliseconds between flushes of the backup_log table.
+      flushInterval: 7500
+    blobStorageLog:
+      # -- The number of days to keep the data in the blob_storage_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the blob_storage_log table.
+      flushInterval: 7500
+    crashLog:
+      # -- The number of days to keep the data in the crash_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the crash_log table.
+      flushInterval: 7500
+    metricLog:
+      # -- The number of days to keep the data in the metric_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the metric_log table.
+      flushInterval: 7500
+    queryThreadLog:
+      # -- The number of days to keep the data in the query_thread_log table.
+      ttl: 7
+      # -- Time interval in milliseconds between flushes of the query_thread_log table.
+      flushInterval: 7500
+    queryViewsLog:
+      # -- The number of days to keep the data in the query_views_log table.
+      ttl: 15
+      # -- Time interval in milliseconds between flushes of the query_views_log table.
+      flushInterval: 7500
+    sessionLog:
+      # -- The number of days to keep the data in the session_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the session_log table.
+      flushInterval: 7500
+    zookeeperLog:
+      # -- The number of days to keep the data in the zookeeper_log table.
+      ttl: 30
+      # -- Time interval in milliseconds between flushes of the zookeeper_log table.
+      flushInterval: 7500
+    processorsProfileLog:
+      # -- The number of days to keep the data in the processors_profile_log table.
+      ttl: 7
+      # -- Time interval in milliseconds between flushes of the processors_profile_log table.
       flushInterval: 7500
 
     # -- Clickhouse Operator pod(s) annotation.
@@ -505,7 +561,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.36.0
+    tag: 0.38.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -580,13 +636,14 @@ queryService:
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
-      command:
-        - sh
-        - -c
-        - |
-          echo "Running migration"
-          sleep 10  # Replace with actual migration command
-          echo "Migration completed"
+      args: []
+      command: []
+        # - sh
+        # - -c
+        # - |
+        #   echo "Running migration"
+        #   sleep 10  # Replace with actual migration command
+        #   echo "Migration completed"
       resources: {}
         # requests:
         #   cpu: 100m
@@ -719,7 +776,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.36.0
+    tag: 0.38.2
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -874,6 +931,7 @@ frontend:
 
 # Default values for Alertmanager
 alertmanager:
+  enabled: true
   name: "alertmanager"
   replicaCount: 1
 
@@ -1146,12 +1204,11 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.4
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   args: {}
   annotations:
-    "helm.sh/hook": "post-install,pre-upgrade"
     "helm.sh/hook-weight": "1"
     "helm.sh/hook-delete-policy": "before-hook-creation"
 
@@ -1188,7 +1245,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.4
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1805,11 +1862,12 @@ otelCollector:
 
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
+  enabled: true
   name: "otel-collector-metrics"
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.4
+    tag: 0.88.11
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2243,6 +2301,10 @@ k8s-infra:
 
   # -- API key of SigNoz SaaS
   signozApiKey: ""
+  # -- Existing secret name to be used for API key.
+  apiKeyExistingSecretName: ""
+  # -- Existing secret key to be used for API key.
+  apiKeyExistingSecretKey: ""
 
   # OTLP receivers TLS
   otelTlsSecrets:
@@ -2410,7 +2472,7 @@ k8s-infra:
       enabled: true
       collectionInterval: 30s
       authType: serviceAccount
-      endpoint: ${K8S_NODE_NAME}:10250
+      endpoint: ${K8S_HOST_IP}:10250
       insecureSkipVerify: true
     kubernetesAttributes:
       enabled: true
