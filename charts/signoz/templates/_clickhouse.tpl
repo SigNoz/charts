@@ -2,13 +2,13 @@
 Common ClickHouse ENV variables and helpers used by SigNoz
 */}}
 
-{{- define "schemamigrator.dsn" }}
+{{- define "schemamigrator.url" -}}
 {{- if .Values.clickhouse.enabled -}}
-{{- printf "tcp://%v:%v?username=%v&password=%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
+{{- printf "%v:%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) -}}
 {{- else -}}
-{{- printf "tcp://%v:%v?username=%v&password=%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
-{{- end }}
-{{- end }}
+{{- printf "%v:%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.clickhouse-env" }}
 {{- if .Values.clickhouse.enabled -}}
@@ -166,7 +166,7 @@ Return the ClickHouse secret key
 Return the external ClickHouse password
 */}}
 {{- define "clickhouse.externalPasswordKey" -}}
-{{- if .Values.externalClickhouse.user }}
+{{- if .Values.externalClickhouse.password }}
   {{- required "externalClickhouse.password is required if using external clickhouse" .Values.externalClickhouse.password -}}
 {{- end -}}
 {{- end -}}
