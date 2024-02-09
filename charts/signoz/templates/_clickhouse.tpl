@@ -10,8 +10,6 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 {{- end -}}
 {{- end -}}
 
-{{- printf "tcp://%v:%v?username=%v&password=%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
-
 {{- define "snippet.clickhouse-env" }}
 {{- if .Values.clickhouse.enabled -}}
 - name: CLICKHOUSE_HOST
