@@ -539,7 +539,7 @@ externalClickhouse:
   traceDatabase: signoz_traces
   # -- User name for the external cluster to connect to the external cluster as
   user: ""
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  # -- Password for the cluster. Ignored if externalClickhouse.existingSecret is set
   password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret:
