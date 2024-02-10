@@ -65,7 +65,7 @@ spec:
           args:
           - "job"
           {{- if .Release.IsInstall }}
-          - "{{ include "schemaMigrator.fullname" . }}"
+          - "{{ include "schemaMigrator.fullname" . }}-init"
           {{- else }}
           - "{{ include "schemaMigrator.fullname" . }}-upgrade"
           {{- end }}

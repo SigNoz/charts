@@ -28,7 +28,7 @@ spec:
           command:
             - sh
             - -c
-            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.init.resources | nindent 12 }}
@@ -37,9 +37,11 @@ spec:
         - name: schema-migrator
           image: {{ include "schemaMigrator.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
             - "--dsn"
-            - {{ include "schemamigrator.dsn" . | quote }}
+            - "tcp://{{ include "schemamigrator.url" . }}?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)"
             {{- range .Values.schemaMigrator.args }}
             - {{ . | quote }}
             {{- end }}
