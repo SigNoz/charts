@@ -661,6 +661,19 @@ queryService:
     telemetryEnabled: true
     deploymentType: kubernetes-helm
 
+  # Query-Service cache options
+  cache:
+    # -- Whether to enable cache for Query-Service
+    enabled: false
+    # -- Cache flux interval for Query-Service
+    fluxInterval: 30m
+    # -- Cache configurations for Query-Service
+    config:
+      name: cache
+      provider: inmemory
+      inmemory:
+        ttl: 24h
+
   podSecurityContext: {}
     # fsGroup: 2000
 
