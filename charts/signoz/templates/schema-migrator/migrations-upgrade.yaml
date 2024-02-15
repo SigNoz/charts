@@ -1,18 +1,20 @@
+{{- if and .Values.schemaMigrator.enabled .Release.IsUpgrade }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-migration
+  name: {{ include "schemaMigrator.fullname" . }}-upgrade
   labels:
-    {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
+    {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 4 }}
+  {{- if and .Values.schemaMigrator.annotations }}
   annotations:
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
+    "helm.sh/hook": "post-upgrade"
   {{- end }}
 spec:
   template:
     metadata:
       labels:
-        {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
+        {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 8 }}
     spec:
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
@@ -61,3 +63,4 @@ spec:
             - {{ . | quote }}
             {{- end }}
       restartPolicy: OnFailure
+{{- end }}
