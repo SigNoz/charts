@@ -31,22 +31,22 @@ spec:
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.init.resources | nindent 12 }}
         {{- end }}
-        # ClickHouse sanity check
-        {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chSanity.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-ch-sanity
-          image: {{ include "schemaMigrator.initContainers.chSanity.image" . }}
-          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chSanity.image.pullPolicy }}
+        # ClickHouse ready check
+        {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
+        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+          image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
             - name: CLICKHOUSE_VERSION
               value: {{ trimSuffix "-alpine" .Values.clickhouse.image.tag }}
             - name: CLICKHOUSE_SHARDS
               value: {{ default 1 .Values.clickhouse.layout.shardCount | quote }}
-          {{- with .Values.schemaMigrator.initContainers.chSanity.command }}
+          {{- with .Values.schemaMigrator.initContainers.chReady.command }}
           command: {{ . | toYaml | nindent 12 }} 
           {{- end }}
           resources:
-            {{- toYaml .Values.schemaMigrator.initContainers.chSanity.resources | nindent 12 }}
+            {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}
         {{- end }}
       containers:
         - name: schema-migrator

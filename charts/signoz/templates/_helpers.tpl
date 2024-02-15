@@ -424,10 +424,10 @@ Return the schema migrator's init initContainer image name
 {{/*
 Return the schema migrator's init initContainer image name
 */}}
-{{- define "schemaMigrator.initContainers.chSanity.image" -}}
-{{- $registryName := default .Values.schemaMigrator.initContainers.chSanity.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.schemaMigrator.initContainers.chSanity.image.repository -}}
-{{- $tag := .Values.schemaMigrator.initContainers.chSanity.image.tag | toString -}}
+{{- define "schemaMigrator.initContainers.chReady.image" -}}
+{{- $registryName := default .Values.schemaMigrator.initContainers.chReady.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.initContainers.chReady.image.repository -}}
+{{- $tag := .Values.schemaMigrator.initContainers.chReady.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}

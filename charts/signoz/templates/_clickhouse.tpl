@@ -75,6 +75,8 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ include "clickhouse.tcpPort" . | quote }}
 - name: CLICKHOUSE_HTTP_PORT
   value: {{ include "clickhouse.httpPort" . | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ .Values.clickhouse.cluster | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
@@ -88,6 +90,8 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
 - name: CLICKHOUSE_HTTP_PORT
   value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.externalClickhouse.user | quote }}
 {{- if .Values.externalClickhouse.existingSecret }}

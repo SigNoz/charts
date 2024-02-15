@@ -1252,7 +1252,7 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
-    chSanity:
+    chReady:
       enabled: true
       image:
         registry: docker.io
@@ -1263,7 +1263,7 @@ schemaMigrator:
         - "sh"
         - "-c"
         - |
-          echo "Running clickhouse sanity check"
+          echo "Running clickhouse ready check"
           while true
           do
             version="$(CLICKHOUSE_VERSION)"
@@ -1280,7 +1280,7 @@ schemaMigrator:
               sleep 5
               continue
             fi
-            current_shards="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count() FROM system.clusters WHERE cluster = 'cluster'")"
+            current_shards="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count() FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
             if [ -z "$current_shards" ]; then
               echo "waiting for clickhouse to be ready"
               sleep 5
@@ -1294,7 +1294,7 @@ schemaMigrator:
             fi
             break
           done
-          echo "clickhouse sanity check completed"
+          echo "clickhouse ready, starting schema migrator now"
       resources: {}
         # requests:
         #   cpu: 100m
