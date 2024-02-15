@@ -324,22 +324,7 @@ Common Selector labels of schema migrator
 {{- define "schemaMigrator.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
-
-{{/*
-Selector labels of init migration job
-*/}}
-{{- define "schemaMigrator.selectorLabelsInit" -}}
-{{ include "schemaMigrator.selectorLabels" . }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-init
-{{- end -}}
-
-{{/*
-Selector labels of upgrade migration job
-*/}}
-{{- define "schemaMigrator.selectorLabelsUpgrade" -}}
-{{ include "schemaMigrator.selectorLabels" . }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-upgrade
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
 {{- end -}}
 
 {{/*
@@ -429,6 +414,20 @@ Return the schema migrator's init initContainer image name
 {{- $registryName := default .Values.schemaMigrator.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.schemaMigrator.initContainers.init.image.repository -}}
 {{- $tag := .Values.schemaMigrator.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the schema migrator's init initContainer image name
+*/}}
+{{- define "schemaMigrator.initContainers.chSanity.image" -}}
+{{- $registryName := default .Values.schemaMigrator.initContainers.chSanity.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.initContainers.chSanity.image.repository -}}
+{{- $tag := .Values.schemaMigrator.initContainers.chSanity.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
