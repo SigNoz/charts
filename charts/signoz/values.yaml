@@ -1893,6 +1893,7 @@ otelCollector:
         low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        timeout: 15s
         resource_to_telemetry_conversion:
           enabled: true
       clickhouselogsexporter:
@@ -2321,6 +2322,7 @@ otelCollectorMetrics:
         endpoint: localhost:1777
     exporters:
       clickhousemetricswrite:
+        timeout: 15s
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhousemetricswrite/hostmetrics:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
