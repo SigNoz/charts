@@ -1930,8 +1930,8 @@ otelCollectorMetrics:
   name: "otel-collector-metrics"
   image:
     registry: docker.io
-    repos0.88.13signoz/signoz-otel-collector
-    tag: 0.88.12
+    repository: signoz/signoz-otel-collector
+    tag: 0.88.13
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
