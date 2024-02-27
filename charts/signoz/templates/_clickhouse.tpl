@@ -216,3 +216,11 @@ Return the ClickHouse Traces URL
   {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
 {{- end -}}
 {{- end -}}
+
+{{- define "clickhouse.clickHouseUrl" -}}
+{{- if .Values.clickhouse.enabled -}}
+  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
+{{- else -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
+{{- end -}}
+{{- end -}}
