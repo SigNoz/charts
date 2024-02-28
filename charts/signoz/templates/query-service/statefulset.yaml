@@ -128,7 +128,7 @@ spec:
             {{- if hasKey .Values.queryService.configVars "clickHouseUrl" }}
               value: {{ .Values.queryService.configVars.clickHouseUrl }}
             {{- else }}
-              value: tcp://{{ include "clickhouse.tracesUrl" . }}
+              value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
             {{- end }}
             - name: ALERTMANAGER_API_PREFIX
               value: http://{{ include "alertmanager.url" . }}/api/
