@@ -1,0 +1,27 @@
+name: Update docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run helm-docs
+        run: |
+          GOBIN=$PWD go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.10.0
+          ./helm-docs --sort-values-order file -t ALL_VALUES.md.gotmpl -o ALL_VALUES.md
+          rm ./helm-docs
+
+      - name: Commit Bump
+        uses: EndBug/add-and-commit@v7
+        with:
+            author_name: Prashant Shahi
+            author_email: prashant@signoz.io
+            branch: ${{ github.event.pull_request.base.ref }}
+            message: 'Auto generating chart ALL_VALUES.md'
