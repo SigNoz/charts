@@ -241,6 +241,8 @@ clickhouse:
     enabled: true
     udf:
       enabled: true
+      histogramQuantile: 
+        url: https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
       image:
         registry: docker.io
         repository: alpine
