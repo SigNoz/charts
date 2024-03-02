@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "alertmanager.labels" . | nindent 4 }}
 {{- with .Values.alertmanager.service }}
+{{- if .labels }}
+    {{- toYaml .labels | nindent 4 }}
+{{- end }}
 {{- if .annotations }}
   annotations:
     {{- toYaml .annotations | nindent 4 }}
