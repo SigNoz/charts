@@ -584,6 +584,8 @@ queryService:
   service:
     # -- Annotations to use by service associated to Query-Service
     annotations: {}
+    # -- Labels to use by service associated to Query-Service
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Query-Service HTTP port
@@ -812,6 +814,8 @@ frontend:
   service:
     # -- Annotations to use by service associated to Frontend
     annotations: {}
+    # -- Labels to use by service associated to Frontend
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Frontend HTTP port
@@ -980,6 +984,8 @@ alertmanager:
   service:
     # -- Annotations to use by service associated to Alertmanager
     annotations: {}
+    # -- Labels to use by service associated to Alertmanager
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Alertmanager HTTP port
@@ -1364,6 +1370,8 @@ otelCollector:
   service:
     # -- Annotations to use by service associated to OtelCollector
     annotations: {}
+    # -- Labels to use by service associated to OtelCollector
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
@@ -1966,6 +1974,8 @@ otelCollectorMetrics:
   service:
     # -- Annotations to use by service associated to OtelCollectorMetrics
     annotations: {}
+    # -- Labels to use by service associated to OtelCollectorMetrics
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 

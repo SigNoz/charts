@@ -91,6 +91,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `queryService.podSecurityContext`        | Pods security context                                                   | `{}`                              |
 | `queryService.securityContext`           | Security context for query-service node                                 | `{}`                              |
 | `queryService.service.annotations`       | Service annotations                                                     | `{}`                              |
+| `queryService.service.labels`            | Service labels                                                          | `{}`                              |
 | `queryService.service.type`              | Query Service service type                                              | `ClusterIP`                       |
 | `queryService.service.port`              | Query Service service port                                              | `8080`                            |
 | `queryService.service.internalPort`      | Query Service service internal port                                     | `8085`                            |
@@ -127,6 +128,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `frontend.podSecurityContext`            | Pods security context                                                   | `{}`                              |
 | `frontend.securityContext`               | Security context for query-service node                                 | `{}`                              |
 | `frontend.service.annotations`           | Service annotations                                                     | `{}`                              |
+| `frontend.service.labels`                | Service labels                                                          | `{}`                              |
 | `frontend.service.type`                  | Frontend service type                                                   | `ClusterIP`                       |
 | `frontend.service.port`                  | Frontend service port                                                   | `3301`                            |
 | `frontend.ingress.enabled`               | Frontend ingress resource enabled                                       | `false`                           |
@@ -148,6 +150,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.initContainers.init.resources` | Resources requests and limits                                       | See `values.yaml` for defaults    |
 | `alertmanager.imagePullSecrets`          | Reference to secrets to be used when pulling images                     | `[]`                              |
 | `alertmanager.service.annotations`       | Service annotations                                                     | `{}`                              |
+| `alertmanager.service.labels`            | Service labels                                                          | `{}`                              |
 | `alertmanager.service.type`              | Alertmanager service type                                               | `ClusterIP`                       |
 | `alertmanager.service.port`              | Alertmanager service port                                               | `9093`                            |
 | `alertmanager.service.nodePort`          | Force specific nodePort                                                 | `nil`                             |
@@ -193,6 +196,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollector.replicaCount`             | Number of otel-collector nodes                                          | `1`                               |
 | `otelCollector.service.type`             | Otel Collector service type                                             | `ClusterIP`                       |
 | `otelCollector.service.annotations`      | Service annotations                                                     | `{}`                              |
+| `otelCollector.service.labels`           | Service labels                                                          | `{}`                              |
 | `otelCollector.ports`                    | Lists of ports exposed by otel-collector service                        | See `values.yaml` for defaults    |
 | `otelCollector.additionalEnvs`           | Additional environment variables for otel-collector container           | `[]`                              |
 | `otelCollector.initContainers.init.enabled`    | Otel Collector initContainer enabled                              | `false`                           |
@@ -232,6 +236,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `otelCollectorMetrics.replicaCount`      | Number of otel-collector-metrics nodes                                  | `1`                               |
 | `otelCollectorMetrics.service.type`         | Otel Collector service type                                          | `ClusterIP`                       |
 | `otelCollectorMetrics.service.annotations`  | Service annotations                                                  | `{}`                              |
+| `otelCollectorMetrics.service.labels`    | Service labels                                                          | `{}`                              |
 | `otelCollectorMetrics.ports`                    | Lists of ports exposed by otel-collector-metrics service         | See `values.yaml` for defaults    |
 | `otelCollectorMetrics.additionalEnvs`    | Additional environment variables for otel-collector-metrics container   | `[]`                              |
 | `otelCollectorMetrics.initContainers.init.enabled`    | Otel Collector Metrics initContainer enabled               | `true`                            |
