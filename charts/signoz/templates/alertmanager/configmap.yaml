@@ -1,4 +1,4 @@
-{{- if .Values.alertmanager.config }}
+{{- if and .Values.alertmanager.config .Values.alertmanager.enabled -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

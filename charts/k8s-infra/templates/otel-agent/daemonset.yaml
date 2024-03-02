@@ -1,3 +1,4 @@
+{{- if .Values.otelAgent.enabled -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -26,6 +27,8 @@ spec:
     spec:
       {{- include "otelAgent.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "otelAgent.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.otelAgent.podSecurityContext | nindent 8 }}
       priorityClassName: {{ .Values.otelAgent.priorityClassName | quote }}
       {{- with .Values.otelAgent.nodeSelector }}
       nodeSelector:
@@ -54,7 +57,7 @@ spec:
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
           secret:
-           secretName: {{ include "k8s-infra.secretName" . }}
+           secretName: {{ include "k8s-infra.otelTlsSecretName" . }}
            items:
              - key: cert.pem
                path: cert.pem
@@ -95,11 +98,17 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-agent" .Values.otelAgent.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
+              {{- $attribs := "signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)" }}
+              {{- if .Values.presets.resourceDetection.envResourceAttributes }}
+              {{- $attribs = printf "%s,%s" $attribs .Values.presets.resourceDetection.envResourceAttributes }}
+              {{- end }}
+              value: {{ $attribs | quote }}
             {{- range $key, $val := .Values.otelAgent.additionalEnvs }}
             - name: {{ $key }}
               value: {{ $val | toYaml }}
             {{- end }}
+          securityContext:
+            {{- toYaml .Values.otelAgent.securityContext | nindent 12 }}
           volumeMounts:
             - name: otel-agent-config-vol
               mountPath: /conf
@@ -147,3 +156,4 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.otelAgent.resources | nindent 12 }}
+{{- end }}

@@ -29,3 +29,8 @@ data:
 
     remote_read:
       - url: tcp://{{ include "clickhouse.metricsUrl" . }}
+
+  {{ if .Values.queryService.cache.enabled }}
+  cache.yaml: |
+    {{- toYaml .Values.queryService.cache.config | nindent 4 }}
+  {{ end }}

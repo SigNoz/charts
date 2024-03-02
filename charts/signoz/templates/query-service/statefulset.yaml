@@ -4,6 +4,10 @@ metadata:
   name: {{ include "queryService.fullname" . }}
   labels:
     {{- include "queryService.labels" . | nindent 4 }}
+  {{- if .Values.queryService.annotations }}
+  annotations:
+    {{- toYaml .Values.queryService.annotations | nindent 4 }}
+  {{- end }}
 spec:
   serviceName: {{ include "queryService.fullname" . }}
   replicas: {{ .Values.queryService.replicaCount }}
@@ -66,6 +70,10 @@ spec:
           imagePullPolicy: {{ .migration.image.pullPolicy }}
           env:
             {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- if .migration.args }}
+          args:
+            {{- toYaml .migration.args | nindent 12 }}
+          {{- end }}
           {{- if .migration.command }}
           command:
             {{- toYaml .migration.command | nindent 12 }}
@@ -91,14 +99,17 @@ spec:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
-          args: [
-            "-config=/root/config/prometheus.yml",
-            {{- if ne (len .Values.queryService.additionalArgs) 0 }}
-            {{- range $arg := .Values.queryService.additionalArgs }}
-            "{{ $arg }}",
+          args:
+            - --config=/root/config/prometheus.yml
+            {{- if .Values.queryService.cache.enabled }}
+            - --experimental.cache-config
+            - /root/config/cache.yaml
+            - --flux-interval
+            - {{ .Values.queryService.cache.fluxInterval }}
             {{- end }}
+            {{- range .Values.queryService.additionalArgs }}
+            - {{ . | quote }}
             {{- end }}
-          ]
           ports:
             - name: http
               containerPort: {{ default 8080  .Values.queryService.service.port }}
@@ -117,7 +128,7 @@ spec:
             {{- if hasKey .Values.queryService.configVars "clickHouseUrl" }}
               value: {{ .Values.queryService.configVars.clickHouseUrl }}
             {{- else }}
-              value: tcp://{{ include "clickhouse.tracesUrl" . }}
+              value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
             {{- end }}
             - name: ALERTMANAGER_API_PREFIX
               value: http://{{ include "alertmanager.url" . }}/api/

@@ -1,4 +1,4 @@
-{{- if .Values.alertmanager.podDisruptionBudget -}}
+{{- if and .Values.alertmanager.podDisruptionBudget .Values.alertmanager.enabled -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

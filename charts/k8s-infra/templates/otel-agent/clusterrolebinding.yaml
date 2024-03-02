@@ -1,4 +1,4 @@
-{{- if .Values.otelAgent.clusterRole.create -}}
+{{- if  and .Values.otelAgent.clusterRole.create .Values.otelAgent.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

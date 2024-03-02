@@ -5,6 +5,9 @@ metadata:
   labels:
     {{- include "queryService.labels" . | nindent 4 }}
 {{- with .Values.queryService.service }}
+{{- if .labels }}
+    {{- toYaml .labels | nindent 4 }}
+{{- end }}
 {{- if .annotations }}
   annotations:
     {{- toYaml .annotations | nindent 4 }}

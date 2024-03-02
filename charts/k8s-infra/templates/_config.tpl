@@ -43,6 +43,43 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.otlpExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "logs" }}
+{{- end }}
+{{- if or (eq (len $config.service.pipelines.metrics.receivers) 0) (eq (len $config.service.pipelines.metrics.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics" }}
+{{- end }}
+{{- if or (eq (len $config.service.pipelines.traces.receivers) 0) (eq (len $config.service.pipelines.traces.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "traces" }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
+{{- tpl (toYaml $config) . }}
+{{- end }}
+
+{{/*
+Build config file for deployment OpenTelemetry Collector: OtelDeployment
+*/}}
+{{- define "otelDeployment.config" -}}
+{{- $values := deepCopy .Values }}
+{{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
+{{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
+{{- if .Values.presets.resourceDetectionInternal.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.clusterMetrics.enabled }}
+{{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.loggingExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.presets.otlpExporter.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
@@ -107,29 +144,6 @@ exporters:
       {{- end }}
     headers:
       "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
-{{- end }}
-
-
-{{/*
-Build config file for deployment OpenTelemetry Collector: OtelDeployment
-*/}}
-{{- define "otelDeployment.config" -}}
-{{- $values := deepCopy .Values }}
-{{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
-{{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.resourceDetectionInternal.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.clusterMetrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.loggingExporter.enabled }}
-{{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.otlpExporter.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- tpl (toYaml $config) . }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
@@ -202,20 +216,20 @@ receivers:
   filelog/k8s:
     # Include logs from all container
     include:
-      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
-    # Blacklist specific namespaces, pods or containers if enabled
-    {{- if .Values.presets.logsCollection.blacklist.enabled }}
-    {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
-    {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
-    {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
-    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
-    # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
-    # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
-    exclude:
-      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_*/*/*.log
+      # Whitelist specific namespaces, pods or containers if enabled
+      {{- if .Values.presets.logsCollection.whitelist.enabled }}
+      {{- $namespaces := .Values.presets.logsCollection.whitelist.namespaces }}
+      {{- $pods := .Values.presets.logsCollection.whitelist.pods }}
+      {{- $containers := .Values.presets.logsCollection.whitelist.containers }}
+      {{- $additionalInclude := .Values.presets.logsCollection.whitelist.additionalInclude }}
+      # Include specific container's logs using whitelist config.
+      # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
+      {{- if .Values.presets.logsCollection.whitelist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Values.namespace }}_*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
@@ -227,8 +241,40 @@ receivers:
       {{- range $container := $containers }}
       - /var/log/pods/*_*_*/{{ $container }}/*.log
       {{- end }}
-      {{- range $exclude := $additionalExclude }}
-      - {{ $exclude }}
+      {{- range $includes := $additionalInclude }}
+      - {{ $includes }}
+      {{- end }}
+      {{- else }}
+      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
+      {{- end }}
+    # Blacklist specific namespaces, pods or containers if enabled
+    {{- if .Values.presets.logsCollection.blacklist.enabled }}
+    {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
+    {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
+    {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
+    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
+    # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
+    # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
+    exclude:
+      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- end }}
+      {{- end }}
+      {{- range $namespace := $namespaces }}
+      - /var/log/pods/{{ $namespace }}_*/*/*.log
+      {{- end }}
+      {{- range $pod := $pods }}
+      - /var/log/pods/*_{{ $pod }}*_*/*/*.log
+      {{- end }}
+      {{- range $container := $containers }}
+      - /var/log/pods/*_*_*/{{ $container }}/*.log
+      {{- end }}
+      {{- range $excludes := $additionalExclude }}
+      - {{ $excludes }}
       {{- end }}
     {{- else }}
     exclude: []

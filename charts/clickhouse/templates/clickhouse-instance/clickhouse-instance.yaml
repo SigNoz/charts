@@ -5,6 +5,10 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouse.labels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
 spec:
   defaults:
     templates:
@@ -185,7 +189,7 @@ spec:
                 - -c
                 - |
                   set -x
-                  wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+                  wget -O /tmp/histogramQuantile {{ .Values.initContainers.udf.histogramQuantile.url }}
                   mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
                   chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
               volumeMounts:
@@ -280,6 +284,7 @@ spec:
     {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
     volumeClaimTemplates:
       - name: data-volumeclaim-template
+        reclaimPolicy: Retain
         spec:
           accessModes:
             {{- toYaml .Values.persistence.accessModes | nindent 12 }}

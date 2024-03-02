@@ -1,26 +1,26 @@
-{{- if and .Values.otelDeployment.ingress.enabled .Values.otelDeployment.enabled -}}
-{{- $fullName := include "otelDeployment.fullname" . -}}
+{{- if and .Values.otelAgent.ingress.enabled .Values.otelAgent.enabled -}}
+{{- $fullName := include "otelAgent.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
-{{- $ingressSupportsClassName := and .Values.otelDeployment.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) -}}
+{{- $ingressSupportsClassName := and .Values.otelAgent.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) -}}
 apiVersion: {{ include "ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   namespace: {{ include "k8s-infra.namespace" . }}
   labels:
-    {{- include "otelDeployment.labels" . | nindent 4 }}
-  {{- with .Values.otelDeployment.ingress.annotations }}
+    {{- include "otelAgent.labels" . | nindent 4 }}
+  {{- with .Values.otelAgent.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   {{- if $ingressSupportsClassName }}
-  ingressClassName: {{ .Values.otelDeployment.ingress.className }}
+  ingressClassName: {{ .Values.otelAgent.ingress.className }}
   {{- end }}
-  {{- if .Values.otelDeployment.ingress.tls }}
+  {{- if .Values.otelAgent.ingress.tls }}
   tls:
-    {{- range .Values.otelDeployment.ingress.tls }}
+    {{- range .Values.otelAgent.ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -29,7 +29,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.otelDeployment.ingress.hosts }}
+    {{- range .Values.otelAgent.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:

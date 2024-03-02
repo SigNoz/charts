@@ -1,3 +1,4 @@
+{{- if .Values.otelCollectorMetrics.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -53,11 +54,15 @@ spec:
       initContainers:
         {{- if .Values.schemaMigrator.enabled }}
         - name: "{{ include "otelCollectorMetrics.fullname" . }}-migrate-init"
-          image: "groundnuty/k8s-wait-for:v1.5.1"
-          imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
-          args: 
+          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
+          args:
           - "job"
-          - "{{ include "schemaMigrator.fullname" . }}-{{ include "schemaMigrator.jobSuffix" . }}"
+          {{- if .Release.IsInstall }}
+          - "{{ include "schemaMigrator.fullname" . }}-init"
+          {{- else }}
+          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
+          {{- end }}
         {{- end }}
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
         - name: {{ include "otelCollectorMetrics.fullname" . }}-init
@@ -168,3 +173,4 @@ spec:
 #                path: cert.pem
 #              - key: key.pem
 #                path: key.pem
+{{- end }}

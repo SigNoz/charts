@@ -44,6 +44,10 @@ insecureSkipVerify: false
 
 # -- API key of SigNoz SaaS
 signozApiKey: ""
+# -- Existing secret name to be used for API key.
+apiKeyExistingSecretName: ""
+# -- Existing secret key to be used for API key.
+apiKeyExistingSecretKey: ""
 
 # OTLP receivers TLS
 otelTlsSecrets:
@@ -86,11 +90,16 @@ presets:
     enabled: true
   logsCollection:
     enabled: true
-    include:
-      - /var/log/pods/*/*/*.log
     startAt: beginning
     includeFilePath: true
     includeFileName: false
+    # This include path patterns for log files to be collected.
+    # By default, all container logs are collected.
+    # If whitelist is set, this list is ignored.
+    include:
+      - /var/log/pods/*/*/*.log
+    # This can be used to exclude certain log files from being collected.
+    # By default, kube-system and hotrod, locust pods are excluded.
     blacklist:
       enabled: true
       signozLogs: true
@@ -101,6 +110,16 @@ presets:
         - locust
       containers: []
       additionalExclude: []
+    # This can be used to whitelist certain log files to be collected.
+    # By default this is disabled and all container logs are collected.
+    # If whitelist is enabled, `include` is ignored.
+    whitelist:
+      enabled: false
+      signozLogs: true
+      namespaces: []
+      pods: []
+      containers: []
+      additionalInclude: []
     operators:
       # Find out which format is used by kubernetes
       - type: router
@@ -198,7 +217,7 @@ presets:
     enabled: true
     collectionInterval: 30s
     authType: serviceAccount
-    endpoint: ${K8S_NODE_NAME}:10250
+    endpoint: ${K8S_HOST_IP}:10250
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id
@@ -262,7 +281,7 @@ presets:
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
     # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
     detectors:
       # - elastic_beanstalk
       # - eks
@@ -277,14 +296,16 @@ presets:
       - os
       # - cname
       # - lookup
+    envResourceAttributes: ""
 
 # Default values for OtelAgent
 otelAgent:
+  enabled: true
   name: "otel-agent"
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.79.0
+    tag: 0.88.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelAgent.
@@ -350,7 +371,7 @@ otelAgent:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces"]
+        resources: ["pods", "namespaces", "nodes"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
@@ -623,11 +644,12 @@ otelAgent:
 
 # Default values for OtelDeployment
 otelDeployment:
+  enabled: true
   name: "otel-deployment"
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.79.0
+    tag: 0.88.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.

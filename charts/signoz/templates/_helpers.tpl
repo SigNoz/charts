@@ -311,23 +311,35 @@ Common labels
 */}}
 {{- define "schemaMigrator.labels" -}}
 helm.sh/chart: {{ include "signoz.chart" . }}
-app.kubernetes.io/name: {{ include "signoz.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}
+{{ include "schemaMigrator.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
-{{- define "schemaMigrator.jobSuffix" -}}
-{{- $key := cat (include "schemaMigrator.labels" .) "" }}
-{{- $key := cat $key .Values.schemaMigrator.image.repository }}
-{{- $key := cat $key ( .Values.schemaMigrator.image.tag | default .Chart.AppVersion ) }}
-{{- $key := cat $key .Values.schemaMigrator.image.pullPolicy }}
-{{- $key := cat $key ( include "schemamigrator.dsn" . ) }}
-{{- $key := cat $key .Values.schemaMigrator.args }}
-{{- sha1sum $key | substr 0 12 }}
+{{/*
+Common Selector labels of schema migrator
+*/}}
+{{- define "schemaMigrator.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "signoz.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Selector labels of init migration job
+*/}}
+{{- define "schemaMigrator.selectorLabelsInit" -}}
+{{ include "schemaMigrator.selectorLabels" . }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-init
+{{- end -}}
+
+{{/*
+Selector labels of upgrade migration job
+*/}}
+{{- define "schemaMigrator.selectorLabelsUpgrade" -}}
+{{ include "schemaMigrator.selectorLabels" . }}
+app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-upgrade
 {{- end -}}
 
 {{/*
@@ -384,12 +396,53 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
-Return the schema migrator's initContainer image name
+Return the schema migrator's image name
+*/}}
+{{- define "schemaMigrator.image" -}}
+{{- $registryName := default .Values.schemaMigrator.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.image.repository -}}
+{{- $tag := .Values.schemaMigrator.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+{{/*
+Return the schema migrator's wait initContainer image name
+*/}}
+{{- define "schemaMigrator.initContainers.wait.image" -}}
+{{- $registryName := default .Values.schemaMigrator.initContainers.wait.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.initContainers.wait.image.repository -}}
+{{- $tag := .Values.schemaMigrator.initContainers.wait.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the schema migrator's init initContainer image name
 */}}
 {{- define "schemaMigrator.initContainers.init.image" -}}
 {{- $registryName := default .Values.schemaMigrator.initContainers.init.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.schemaMigrator.initContainers.init.image.repository -}}
 {{- $tag := .Values.schemaMigrator.initContainers.init.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the schema migrator's init initContainer image name
+*/}}
+{{- define "schemaMigrator.initContainers.chReady.image" -}}
+{{- $registryName := default .Values.schemaMigrator.initContainers.chReady.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.initContainers.chReady.image.repository -}}
+{{- $tag := .Values.schemaMigrator.initContainers.chReady.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -635,6 +688,10 @@ Common K8s environment variables used by SigNoz OtelCollector.
     fieldRef:
       apiVersion: v1
       fieldPath: status.podIP
+- name: K8S_HOST_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
 - name: K8S_POD_NAME
   valueFrom:
     fieldRef:

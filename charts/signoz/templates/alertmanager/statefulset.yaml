@@ -1,3 +1,4 @@
+{{- if .Values.alertmanager.enabled -}}
 {{- $svcClusterPort := .Values.alertmanager.service.clusterPort }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -5,10 +6,10 @@ metadata:
   name: {{ include "alertmanager.fullname" . }}
   labels:
     {{- include "alertmanager.labels" . | nindent 4 }}
-{{- if .Values.alertmanager.statefulSet.annotations }}
+  {{- if .Values.alertmanager.statefulSet.annotations }}
   annotations:
     {{ toYaml .Values.alertmanager.statefulSet.annotations | nindent 4 }}
-{{- end }}
+  {{- end }}
 spec:
   replicas: {{ .Values.alertmanager.replicaCount }}
   selector:
@@ -188,3 +189,4 @@ spec:
       {{- end }}
       {{- end }}
   {{- end }}
+{{- end }}
