@@ -437,6 +437,20 @@ Return the schema migrator's init initContainer image name
 {{- end -}}
 
 {{/*
+Return the schema migrator's init initContainer image name
+*/}}
+{{- define "schemaMigrator.initContainers.chReady.image" -}}
+{{- $registryName := default .Values.schemaMigrator.initContainers.chReady.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.schemaMigrator.initContainers.chReady.image.repository -}}
+{{- $tag := .Values.schemaMigrator.initContainers.chReady.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper otelCollector image name
 */}}
 {{- define "otelCollector.image" -}}

@@ -168,7 +168,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 23.11.1-alpine
+  tag: 24.1.2-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
@@ -302,6 +302,8 @@ initContainers:
   enabled: true
   udf:
     enabled: true
+    histogramQuantile:
+      url: https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
     image:
       registry: docker.io
       repository: alpine

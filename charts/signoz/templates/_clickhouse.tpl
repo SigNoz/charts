@@ -2,13 +2,13 @@
 Common ClickHouse ENV variables and helpers used by SigNoz
 */}}
 
-{{- define "schemamigrator.dsn" }}
+{{- define "schemamigrator.url" -}}
 {{- if .Values.clickhouse.enabled -}}
-{{- printf "tcp://%v:%v?username=%v&password=%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( .Values.clickhouse.user ) ( .Values.clickhouse.password ) -}}
+{{- printf "%v:%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) -}}
 {{- else -}}
-{{- printf "tcp://%v:%v?username=%v&password=%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( .Values.externalClickhouse.user ) ( .Values.externalClickhouse.password ) -}}
-{{- end }}
-{{- end }}
+{{- printf "%v:%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.clickhouse-env" }}
 {{- if .Values.clickhouse.enabled -}}
@@ -75,6 +75,8 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ include "clickhouse.tcpPort" . | quote }}
 - name: CLICKHOUSE_HTTP_PORT
   value: {{ include "clickhouse.httpPort" . | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ .Values.clickhouse.cluster | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
@@ -88,6 +90,8 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
 - name: CLICKHOUSE_HTTP_PORT
   value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.externalClickhouse.user | quote }}
 {{- if .Values.externalClickhouse.existingSecret }}
@@ -166,7 +170,7 @@ Return the ClickHouse secret key
 Return the external ClickHouse password
 */}}
 {{- define "clickhouse.externalPasswordKey" -}}
-{{- if .Values.externalClickhouse.user }}
+{{- if .Values.externalClickhouse.password }}
   {{- required "externalClickhouse.password is required if using external clickhouse" .Values.externalClickhouse.password -}}
 {{- end -}}
 {{- end -}}
@@ -210,5 +214,13 @@ Return the ClickHouse Traces URL
   {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.clickhouse.traceDatabase }}&username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
 {{- else -}}
   {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}?database={{ .Values.externalClickhouse.traceDatabase }}&username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
+{{- end -}}
+{{- end -}}
+
+{{- define "clickhouse.clickHouseUrl" -}}
+{{- if .Values.clickhouse.enabled -}}
+  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
+{{- else -}}
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
 {{- end -}}
 {{- end -}}

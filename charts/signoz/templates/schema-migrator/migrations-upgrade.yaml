@@ -7,7 +7,7 @@ metadata:
     {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 4 }}
   {{- if .Values.schemaMigrator.annotations }}
   annotations:
-    "helm.sh/hook": "pre-upgrade"
+    "helm.sh/hook": "post-upgrade"
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
   {{- end }}
 spec:
@@ -28,18 +28,37 @@ spec:
           command:
             - sh
             - -c
-            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.init.resources | nindent 12 }}
+        {{- end }}
+        # ClickHouse ready check
+        {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
+        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+          image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+            - name: CLICKHOUSE_VERSION
+              value: {{ trimSuffix "-alpine" .Values.clickhouse.image.tag }}
+            - name: CLICKHOUSE_SHARDS
+              value: {{ default 1 .Values.clickhouse.layout.shardsCount | quote }}
+          {{- with .Values.schemaMigrator.initContainers.chReady.command }}
+          command: {{ . | toYaml | nindent 12 }} 
+          {{- end }}
+          resources:
+            {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}
         {{- end }}
       containers:
         - name: schema-migrator
           image: {{ include "schemaMigrator.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
             - "--dsn"
-            - {{ include "schemamigrator.dsn" . | quote }}
+            - "tcp://{{ include "schemamigrator.url" . }}?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)"
             {{- range .Values.schemaMigrator.args }}
             - {{ . | quote }}
             {{- end }}

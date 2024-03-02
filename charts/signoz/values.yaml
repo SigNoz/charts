@@ -109,7 +109,7 @@ clickhouse:
     # -- Clickhouse image tag to use (example: `21.8`).
     # SigNoz is not always tested with latest version of ClickHouse.
     # Only if you know what you are doing, proceed with overriding.
-    tag: 23.11.1-alpine
+    tag: 24.1.2-alpine
     # -- Clickhouse image pull policy.
     pullPolicy: IfNotPresent
 
@@ -241,6 +241,8 @@ clickhouse:
     enabled: true
     udf:
       enabled: true
+      histogramQuantile:
+        url: https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
       image:
         registry: docker.io
         repository: alpine
@@ -539,7 +541,7 @@ externalClickhouse:
   traceDatabase: signoz_traces
   # -- User name for the external cluster to connect to the external cluster as
   user: ""
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  # -- Password for the cluster. Ignored if externalClickhouse.existingSecret is set
   password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret:
@@ -561,7 +563,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.38.2
+    tag: 0.40.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -582,6 +584,8 @@ queryService:
   service:
     # -- Annotations to use by service associated to Query-Service
     annotations: {}
+    # -- Labels to use by service associated to Query-Service
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Query-Service HTTP port
@@ -660,6 +664,19 @@ queryService:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
+
+  # Query-Service cache options
+  cache:
+    # -- Whether to enable cache for Query-Service
+    enabled: false
+    # -- Cache flux interval for Query-Service
+    fluxInterval: 30m
+    # -- Cache configurations for Query-Service
+    config:
+      name: cache
+      provider: inmemory
+      inmemory:
+        ttl: 24h
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -776,7 +793,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.38.2
+    tag: 0.40.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -797,6 +814,8 @@ frontend:
   service:
     # -- Annotations to use by service associated to Frontend
     annotations: {}
+    # -- Labels to use by service associated to Frontend
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Frontend HTTP port
@@ -965,6 +984,8 @@ alertmanager:
   service:
     # -- Annotations to use by service associated to Alertmanager
     annotations: {}
+    # -- Labels to use by service associated to Alertmanager
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
     # -- Alertmanager HTTP port
@@ -1204,7 +1225,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.11
+    tag: 0.88.14
     pullPolicy: IfNotPresent
 
   args: {}
@@ -1238,6 +1259,56 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
+    chReady:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: clickhouse/clickhouse-server
+        tag: 24.1.2-alpine
+        pullPolicy: IfNotPresent
+      command:
+        - "sh"
+        - "-c"
+        - |
+          echo "Running clickhouse ready check"
+          while true
+          do
+            version="$(CLICKHOUSE_VERSION)"
+            shards="$(CLICKHOUSE_SHARDS)"
+            current_version="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT version()")"
+            if [ -z "$current_version" ]; then
+              echo "waiting for clickhouse to be ready"
+              sleep 5
+              continue
+            fi
+            if [ -z "$(echo "$current_version" | grep "$version")" ]; then
+              echo "expected version: $version, current version: $current_version"
+              echo "waiting for clickhouse with correct version"
+              sleep 5
+              continue
+            fi
+            current_shards="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count() FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
+            if [ -z "$current_shards" ]; then
+              echo "waiting for clickhouse to be ready"
+              sleep 5
+              continue
+            fi
+            if [ "$current_shards" -ne "$shards" ]; then
+              echo "expected shard count: $shards, current shard count: $current_shards"
+              echo "waiting for clickhouse with correct shard count"
+              sleep 5
+              continue
+            fi
+            break
+          done
+          echo "clickhouse ready, starting schema migrator now"
+      resources: {}
+        # requests:
+        #   cpu: 100m
+        #   memory: 100Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 100Mi
 
 # Default values for OtelCollector
 otelCollector:
@@ -1245,7 +1316,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.11
+    tag: 0.88.14
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1299,6 +1370,8 @@ otelCollector:
   service:
     # -- Annotations to use by service associated to OtelCollector
     annotations: {}
+    # -- Labels to use by service associated to OtelCollector
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
@@ -1830,6 +1903,7 @@ otelCollector:
         low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        timeout: 15s
         resource_to_telemetry_conversion:
           enabled: true
       clickhouselogsexporter:
@@ -1867,7 +1941,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.11
+    tag: 0.88.14
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1900,6 +1974,8 @@ otelCollectorMetrics:
   service:
     # -- Annotations to use by service associated to OtelCollectorMetrics
     annotations: {}
+    # -- Labels to use by service associated to OtelCollectorMetrics
+    labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
 
@@ -2258,6 +2334,7 @@ otelCollectorMetrics:
         endpoint: localhost:1777
     exporters:
       clickhousemetricswrite:
+        timeout: 15s
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
       clickhousemetricswrite/hostmetrics:
         endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}

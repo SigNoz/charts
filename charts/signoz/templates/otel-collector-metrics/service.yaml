@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "otelCollectorMetrics.labels" . | nindent 4 }}
 {{- with .Values.otelCollectorMetrics }}
+  {{- if .service.labels }}
+    {{- toYaml .service.labels | nindent 4 }}
+  {{- end}}
   {{- if .service.annotations }}
   annotations:
     {{- toYaml .service.annotations | nindent 4 }}
