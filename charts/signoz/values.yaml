@@ -178,6 +178,7 @@ clickhouse:
     runAsUser: 101
     runAsGroup: 101
     fsGroup: 101
+    fsGroupChangePolicy: OnRootMismatch
 
   # -- An allowlist of IP addresses or network masks the ClickHouse user is
   # allowed to access from. By default anything within a private network will be
