@@ -563,8 +563,8 @@ queryService:
   replicaCount: 1
   image:
     registry: docker.io
-    repos0.41.0 signoz/query-service
-    tag: 0.40.0
+    repository: signoz/query-service
+    tag: 0.41.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -793,8 +793,8 @@ frontend:
 
   image:
     registry: docker.io
-    repos0.41.0 signoz/frontend
-    tag: 0.40.0
+    repository: signoz/frontend
+    tag: 0.41.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
