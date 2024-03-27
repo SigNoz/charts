@@ -564,7 +564,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.41.1
+    tag: 0.42.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -794,7 +794,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.41.1
+    tag: 0.42.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1226,7 +1226,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.15
+    tag: 0.88.17
     pullPolicy: IfNotPresent
 
   args: {}
@@ -1317,7 +1317,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.15
+    tag: 0.88.17
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1942,7 +1942,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.15
+    tag: 0.88.17
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
