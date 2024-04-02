@@ -669,7 +669,7 @@ queryService:
   # Query-Service cache options
   cache:
     # -- Whether to enable cache for Query-Service
-    enabled: false
+    enabled: true
     # -- Cache flux interval for Query-Service
     fluxInterval: 30m
     # -- Cache configurations for Query-Service
