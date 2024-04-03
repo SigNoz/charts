@@ -572,7 +572,8 @@ otelAgent:
   nodeSelector: {}
 
   # -- Toleration labels for OtelAgent pod assignment
-  tolerations: []
+  tolerations:
+    - operator: Exists
 
   # -- Affinity settings for OtelAgent pod
   affinity: {}
