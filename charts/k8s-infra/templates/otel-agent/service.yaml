@@ -1,4 +1,5 @@
 {{- if .Values.otelAgent.enabled -}}
+{{- $serviceSupportsTrafficPolicy := (semverCompare ">=1.26-0" .Capabilities.KubeVersion.GitVersion) -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -17,5 +18,8 @@ spec:
     {{- include "otel.portsConfig" . | nindent 4 }}
   selector:
     {{- include "otelAgent.selectorLabels" $ | nindent 4 }}
+  {{- if $serviceSupportsTrafficPolicy }}
+  internalTrafficPolicy: {{ .service.internalTrafficPolicy }}
+  {{- end }}
 {{- end }}
 {{- end }}
