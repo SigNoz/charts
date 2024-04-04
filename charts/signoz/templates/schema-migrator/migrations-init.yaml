@@ -58,6 +58,9 @@ spec:
           args:
             - "--dsn"
             - "tcp://{{ include "schemamigrator.url" . }}?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)"
+            {{- if .Values.schemaMigrator.enableReplication }}
+            - "--replication"
+            {{- end }}
             {{- range .Values.schemaMigrator.args }}
             - {{ . | quote }}
             {{- end }}
