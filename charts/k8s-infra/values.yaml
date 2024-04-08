@@ -330,6 +330,9 @@ otelAgent:
     annotations: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
+    #  -- Traffic Policy: Local (route requests to pod on same host) or Cluster (route to all)
+    # https://kubernetes.io/docs/reference/networking/virtual-ips/#internal-traffic-policy
+    internalTrafficPolicy: Local
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -572,7 +575,8 @@ otelAgent:
   nodeSelector: {}
 
   # -- Toleration labels for OtelAgent pod assignment
-  tolerations: []
+  tolerations:
+    - operator: Exists
 
   # -- Affinity settings for OtelAgent pod
   affinity: {}
