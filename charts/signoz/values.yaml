@@ -1236,6 +1236,13 @@ schemaMigrator:
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false
+  
+  # -- Node selector for settings for schemaMigrator
+  nodeSelector: {}
+  # -- Toleration labels for schemaMigrator assignment
+  tolerations: []
+  # -- Affinity settings for schemaMigrator
+  affinity: {}
 
   initContainers:
     wait:
