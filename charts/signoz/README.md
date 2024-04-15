@@ -181,6 +181,9 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.config`                    | Alertmanager configurations                                             | See `values.yaml` for defaults    |
 | `alertmanager.configmapReload`           | Configure ConfigMap reload                                              | See `values.yaml` for defaults    |
 | `alertmanager.templates`                 | Set alert templates                                                     | See `values.yaml` for defaults    |
+| `schemaMigrator.nodeSelector`    | Node labels for schemaMigrator pod assignment                                   | `{}`                              |
+| `schemaMigrator.tolerations`     | schemaMigrator tolerations                                                      | `[]`                              |
+| `schemaMigrator.nodeAffinity`    |  schemaMigrator affinity policy                                                 | `{}`                              |
 | `schemaMigrator.initContainers.init.enabled`    | Schema migrator initContainer enabled                            | `true`                            |
 | `schemaMigrator.initContainers.init.image.registry`   | Schema migrator initContainer registry name                | `docker.io`                       |
 | `schemaMigrator.initContainers.init.image.repository` | Schema migrator initContainer image name                   | `busybox`                         |
