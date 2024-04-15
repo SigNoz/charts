@@ -564,7 +564,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.42.0
+    tag: 0.43.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -794,7 +794,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.42.0
+    tag: 0.43.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1226,7 +1226,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.88.19
+    tag: 0.88.20
     pullPolicy: IfNotPresent
 
   args: {}
@@ -1236,6 +1236,13 @@ schemaMigrator:
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false
+
+  # -- Node selector for settings for schemaMigrator
+  nodeSelector: {}
+  # -- Toleration labels for schemaMigrator assignment
+  tolerations: []
+  # -- Affinity settings for schemaMigrator
+  affinity: {}
 
   initContainers:
     wait:
@@ -1320,7 +1327,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.19
+    tag: 0.88.20
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1945,7 +1952,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.88.19
+    tag: 0.88.20
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
