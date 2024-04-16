@@ -178,16 +178,13 @@ spec:
               image: {{ include "clickhouse.initContainers.udf.image" . }}
               imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
               command:
-                - sh
-                - -c
-                - |
-                  set -x
-                  wget -O /tmp/histogramQuantile {{ .Values.initContainers.udf.histogramQuantile.url }}
-                  mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
-                  chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
+                {{- toYaml .Values.initContainers.udf.command | nindent 16 }}
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+                {{- if .Values.initContainers.udf.extraVolumeMounts -}}
+                {{- toYaml .Values.initContainers.udf.extraVolumeMounts | nindent 16 }}
+                {{- end }}
             {{- end }}
             {{- if .Values.initContainers.init.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-init
