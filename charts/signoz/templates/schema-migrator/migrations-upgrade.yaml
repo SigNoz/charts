@@ -44,6 +44,8 @@ spec:
               value: {{ trimSuffix "-alpine" .Values.clickhouse.image.tag }}
             - name: CLICKHOUSE_SHARDS
               value: {{ default 1 .Values.clickhouse.layout.shardsCount | quote }}
+            - name: CLICKHOUSE_REPLICAS
+              value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
           {{- with .Values.schemaMigrator.initContainers.chReady.command }}
           command: {{ . | toYaml | nindent 12 }} 
           {{- end }}
