@@ -303,8 +303,6 @@ initContainers:
   enabled: true
   udf:
     enabled: true
-    histogramQuantile:
-      url: https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
     image:
       registry: docker.io
       repository: alpine
@@ -315,10 +313,9 @@ initContainers:
       - -c
       - |
         set -x
-        wget -O /tmp/histogramQuantile {{ .Values.initContainers.udf.histogramQuantile.url }}
+        wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
         mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
         chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
-    extraVolumeMounts: []
   init:
     enabled: false
     image:

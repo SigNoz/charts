@@ -182,9 +182,6 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
-                {{- if .Values.initContainers.udf.extraVolumeMounts -}}
-                {{- toYaml .Values.initContainers.udf.extraVolumeMounts | nindent 16 }}
-                {{- end }}
             {{- end }}
             {{- if .Values.initContainers.init.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-init
