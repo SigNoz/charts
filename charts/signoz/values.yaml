@@ -1292,6 +1292,7 @@ schemaMigrator:
           do
             version="$(CLICKHOUSE_VERSION)"
             shards="$(CLICKHOUSE_SHARDS)"
+            replicas="$(CLICKHOUSE_REPLICAS)"
             current_version="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT version()")"
             if [ -z "$current_version" ]; then
               echo "waiting for clickhouse to be ready"
@@ -1313,6 +1314,18 @@ schemaMigrator:
             if [ "$current_shards" -ne "$shards" ]; then
               echo "expected shard count: $shards, current shard count: $current_shards"
               echo "waiting for clickhouse with correct shard count"
+              sleep 5
+              continue
+            fi
+            current_replicas="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count(DISTINCT(replica_num)) FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
+            if [ -z "$current_replicas" ]; then
+              echo "waiting for clickhouse to be ready"
+              sleep 5
+              continue
+            fi
+            if [ "$current_replicas" -ne "$replicas" ]; then
+              echo "expected replica count: $replicas, current replica count: $current_replicas"
+              echo "waiting for clickhouse with correct replica count"
               sleep 5
               continue
             fi
