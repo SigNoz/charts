@@ -149,6 +149,8 @@ cluster: cluster
 database: signoz_metrics
 # -- Clickhouse trace database (SigNoz Traces)
 traceDatabase: signoz_traces
+# -- Clickhouse log database (SigNoz Logs)
+logDatabase: signoz_logs
 # -- Clickhouse user
 user: admin
 # -- Clickhouse password

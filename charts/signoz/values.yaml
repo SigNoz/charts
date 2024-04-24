@@ -95,6 +95,8 @@ clickhouse:
   database: signoz_metrics
   # -- Clickhouse trace database (SigNoz Traces)
   traceDatabase: signoz_traces
+  # -- Clickhouse log database (SigNoz Logs)
+  logDatabase: signoz_logs
   # -- Clickhouse user
   user: admin
   # -- Clickhouse password
@@ -546,6 +548,8 @@ externalClickhouse:
   database: signoz_metrics
   # -- Clickhouse trace database (SigNoz Traces)
   traceDatabase: signoz_traces
+  # -- Clickhouse log database (SigNoz Logs)
+  logDatabase: signoz_logs
   # -- User name for the external cluster to connect to the external cluster as
   user: ""
   # -- Password for the cluster. Ignored if externalClickhouse.existingSecret is set
@@ -667,7 +671,7 @@ queryService:
     storage: clickhouse
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
-    # clickHouseUrl: tcp://my-release-clickhouse:9000/?database=signoz_traces&username=clickhouse_operator&password=clickhouse_operator_password
+    # clickHouseUrl: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
@@ -1929,15 +1933,15 @@ otelCollector:
         endpoint: localhost:1777
     exporters:
       clickhousetraces:
-        datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_TRACE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        datasource: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_TRACE_DATABASE}
         low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
       clickhousemetricswrite:
-        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
         timeout: 15s
         resource_to_telemetry_conversion:
           enabled: true
       clickhouselogsexporter:
-        dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        dsn: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
       prometheus:
         endpoint: 0.0.0.0:8889
@@ -2365,9 +2369,9 @@ otelCollectorMetrics:
     exporters:
       clickhousemetricswrite:
         timeout: 15s
-        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
       clickhousemetricswrite/hostmetrics:
-        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
         resource_to_telemetry_conversion:
           enabled: true
     service:
