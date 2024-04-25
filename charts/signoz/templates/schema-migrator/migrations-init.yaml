@@ -59,7 +59,7 @@ spec:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
             - "--dsn"
-            - "tcp://{{ include "schemamigrator.url" . }}?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)"
+            - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
             {{- if .Values.schemaMigrator.enableReplication }}
             - "--replication"
             {{- end }}

@@ -28,7 +28,7 @@ data:
     scrape_configs: []
 
     remote_read:
-      - url: tcp://{{ include "clickhouse.metricsUrl" . }}
+      - url: {{ include "clickhouse.metricsUrl" . }}
 
   {{ if .Values.queryService.cache.enabled }}
   cache.yaml: |
