@@ -1,7 +1,7 @@
 apiVersion: v2
 name: signoz
-version: 0.40.0
-appVersion: "0.44.0"
+version: 0.41.0
+appVersion: "0.45.0"
 description: SigNoz Observability Platform Helm Chart
 type: application
 home: https://signoz.io/
@@ -22,7 +22,7 @@ dependencies:
   - name: clickhouse
     repository: https://signoz.github.io/charts
     condition: clickhouse.enabled
-    version: 23.13.0
+    version: 24.1.0
   - name: k8s-infra
     repository: https://signoz.github.io/charts
     condition: k8s-infra.enabled
