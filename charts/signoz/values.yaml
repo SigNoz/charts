@@ -1780,6 +1780,18 @@ otelCollector:
         endpoint: 0.0.0.0:8082
         source: json
     processors:
+      attributes/drop_fields:
+        actions:
+          - key: process.runtime.description
+            action: delete
+          - key: telemetry.distro.name
+            action: delete
+          - key: process.executable.path
+            action: delete
+          - key: process.runtime.name
+            action: delete
+          - key: process.command_args
+            action: delete
       # default parsing of logs
       # logstransform/internal:
       #   operators:
@@ -1953,7 +1965,7 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
+          processors: [attributes/drop_fields, signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
