@@ -104,6 +104,10 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: status.podIP
+            {{- range $key, $val := .Values.alertmanager.additionalEnvs }}
+            - name: {{ $key }}
+              value: {{ $val | toYaml }}
+            {{- end }}
           {{- if .Values.alertmanager.command }}
           command:
             {{- toYaml .Values.alertmanager.command | nindent 12 }}
