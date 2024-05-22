@@ -147,6 +147,7 @@ The following table lists the configurable parameters of the `signoz` chart and 
 | `alertmanager.replicaCount`              | Number of Alertmanager nodes                                            | `1`                               |
 | `alertmanager.command`                   | Set container command to execute                                        | `[]`                              |
 | `alertmanager.extraArgs`                 | Extra arguments for the alertmanager container                          | `{}`                              |
+| `alertmanager.additionalEnvs`            | Additional environment variables for alertmanager container             | `[]`                              |
 | `alertmanager.initContainers.init.resources` | Resources requests and limits                                       | See `values.yaml` for defaults    |
 | `alertmanager.imagePullSecrets`          | Reference to secrets to be used when pulling images                     | `[]`                              |
 | `alertmanager.service.annotations`       | Service annotations                                                     | `{}`                              |

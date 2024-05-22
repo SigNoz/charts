@@ -1006,6 +1006,10 @@ alertmanager:
     # -- Set this to you want to force a specific nodePort. Must be use with service.type=NodePort
     nodePort: null
 
+  # -- Additional environments to set for Alertmanager
+  additionalEnvs: {}
+    # env_key: env_value
+
   initContainers:
     init:
       enabled: true
