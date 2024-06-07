@@ -143,7 +143,7 @@ exporters:
       {{- end }}
       {{- end }}
     headers:
-      "signoz-access-token": "Bearer ${SIGNOZ_API_KEY}"
+      "signoz-access-token": "${SIGNOZ_API_KEY}"
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
