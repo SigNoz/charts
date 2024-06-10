@@ -687,7 +687,7 @@ queryService:
       name: cache
       provider: inmemory
       inmemory:
-        ttl: 24h
+        ttl: 168h
 
   podSecurityContext: {}
     # fsGroup: 2000
