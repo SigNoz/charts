@@ -19,7 +19,9 @@ data:
           {{- with .Values.clickhouseOperator.logger }}
             <!-- Possible levels: https://github.com/pocoproject/poco/blob/devel/Foundation/include/Poco/Logger.h#L105 -->
             <level>{{ .level }}</level>
-            <formatting>json</formatting>
+            <formatting>
+              <type>json</type>
+            </formatting>
             <log>/var/log/clickhouse-server/clickhouse-server.log</log>
             <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
             <size>{{ .size }}</size>
