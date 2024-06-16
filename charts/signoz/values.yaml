@@ -1951,6 +1951,8 @@ otelCollector:
         endpoint: 0.0.0.0:8889
     service:
       telemetry:
+        logs:
+          encoding: json
         metrics:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
@@ -2380,6 +2382,8 @@ otelCollectorMetrics:
           enabled: true
     service:
       telemetry:
+        logs:
+          encoding: json
         metrics:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
@@ -2740,6 +2744,8 @@ k8s-infra:
       exporters: {}
       service:
         telemetry:
+          logs:
+            encoding: json
           metrics:
             address: 0.0.0.0:8888
         extensions: [health_check, zpages, pprof]
@@ -2842,6 +2848,8 @@ k8s-infra:
       exporters: {}
       service:
         telemetry:
+          logs:
+            encoding: json
           metrics:
             address: 0.0.0.0:8888
         extensions: [health_check, zpages, pprof]
