@@ -625,6 +625,8 @@ otelAgent:
     exporters: {}
     service:
       telemetry:
+        logs:
+          encoding: json
         metrics:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
@@ -919,6 +921,8 @@ otelDeployment:
     exporters: {}
     service:
       telemetry:
+        logs:
+          encoding: json
         metrics:
           address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
