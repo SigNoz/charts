@@ -612,9 +612,9 @@ otelAgent:
         send_batch_size: 10000
         timeout: 200ms
       # Memory Limiter processor.
-      # If set to null, will be overridden with values based on k8s resource limits.
+      # If not set, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
-      memory_limiter: null
+      # memory_limiter: null
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -908,9 +908,9 @@ otelDeployment:
         send_batch_size: 10000
         timeout: 1s
       # Memory Limiter processor.
-      # If set to null, will be overridden with values based on k8s resource limits.
+      # If not set, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
-      memory_limiter: null
+      # memory_limiter: null
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
