@@ -194,9 +194,14 @@ receivers:
           scrape_interval: {{ .Values.presets.prometheusScraper.signoz.scrapeInterval }}
           kubernetes_sd_configs:
             - role: pod
-              {{- if .Values.presets.prometheusScraper.signoz.namespaceScoped }}
+              {{- if or .Values.presets.prometheusScraper.signoz.namespaceScoped (len .Values.presets.prometheusScraper.signoz.namespaces) }}
               namespaces:
+                {{- if .Values.presets.prometheusScraper.signoz.namespaceScoped }}
                 own_namespace: true
+                {{- end }}
+                {{- if .Values.presets.prometheusScraper.signoz.namespaces }}
+                names: {{ toYaml .Values.presets.prometheusScraper.signoz.namespaces | nindent 16 }}
+                {{- end }}
               {{- end }}
           relabel_configs:
             - source_labels: [__meta_kubernetes_pod_annotation_signoz_io_scrape]
@@ -257,9 +262,15 @@ receivers:
           scrape_interval: {{ .Values.presets.prometheusScraper.prometheus.scrapeInterval }}
           kubernetes_sd_configs:
             - role: pod
-              {{- if .Values.presets.prometheusScraper.prometheus.namespaceScoped }}
+              {{- if or .Values.presets.prometheusScraper.prometheus.namespaceScoped (len .Values.presets.prometheusScraper.prometheus.namespaces) }}
               namespaces:
+                {{- if .Values.presets.prometheusScraper.prometheus.namespaceScoped }}
                 own_namespace: true
+                {{- end }}
+                {{- if.Values.presets.prometheusScraper.prometheus.namespaces }}
+                names:
+                  {{- toYaml .Values.presets.prometheusScraper.prometheus.namespaces | nindent 16 }}
+                {{- end }}
               {{- end }}
           relabel_configs:
             - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]

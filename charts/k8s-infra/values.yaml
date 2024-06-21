@@ -279,6 +279,8 @@ presets:
       scrapeInterval: 60s
       # -- Whether to only scrape metrics from pods in the same namespace
       namespaceScoped: false
+      # -- If set, only scrape metrics from pods in the specified namespaces
+      namespaces: []
       # -- This will include all pod labels in the metrics, could potentially cause
       # performance issues with large number of pods with many labels
       includePodLabel: false
@@ -288,18 +290,20 @@ presets:
       includeContainerName: false
     prometheus:
       # -- Whether to enable metrics scraping using `prometheus.io/scrape` pod annotation
-      enabled: false
+      enabled: true
       # -- How often to scrape metrics
       scrapeInterval: 60s
-      # -- Whether to only scrape metrics from pods in the same namespace
+      # -- If enabled, only scrape metrics from pods in the same namespace
       namespaceScoped: false
+      # -- If set, only scrape metrics from pods in the specified namespaces
+      namespaces: []
       # -- This will include all pod labels in the metrics, could potentially cause
       # performance issues with large number of pods with many labels
       includePodLabel: false
       # -- This is not recommended to be enabled in case of multiple containers or init containers in a pod
       # Since it will create multiple timeseries for the same pod metrics with different container names
       # containers with `-init` suffix in the name will be ignored
-      includeContainerName: true
+      includeContainerName: false
   resourceDetectionInternal:
     enabled: true
     timeout: 2s
