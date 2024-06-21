@@ -179,7 +179,7 @@ receivers:
 {{- define "opentelemetry-collector.applyPrometheusScraperConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusScraperConfig" .Values | fromYaml) .config }}
 {{- if index $config.service.pipelines "metrics/internal" }}
-{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "prometheus" | uniq)  }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "prometheus/scraper" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
