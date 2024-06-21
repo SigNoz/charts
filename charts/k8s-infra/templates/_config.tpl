@@ -71,6 +71,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if and .Values.presets.prometheusScraper.enabled (or .Values.presets.prometheusScraper.signoz.enabled .Values.presets.prometheusScraper.prometheus.enabled) }}
+{{- $config = (include "opentelemetry-collector.applyPrometheusScraperConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -79,6 +82,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/scraper") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/scraper") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/scraper" }}
 {{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
@@ -96,6 +102,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "logging" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") "logging" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -124,6 +133,9 @@ exporters:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") "otlp" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -162,6 +174,147 @@ receivers:
       {{- toYaml .Values.presets.clusterMetrics.nodeConditionsToReport | nindent 6 }}
     allocatable_types_to_report:
       {{- toYaml .Values.presets.clusterMetrics.allocatableTypesToReport | nindent 6 }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyPrometheusScraperConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusScraperConfig" .Values | fromYaml) .config }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "prometheus" | uniq)  }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.prometheusScraperConfig" -}}
+receivers:
+  prometheus/scraper:
+    config:
+      scrape_configs:
+        {{- if .Values.presets.prometheusScraper.signoz.enabled }}
+        - job_name: "signoz-scraper"
+          scrape_interval: {{ .Values.presets.prometheusScraper.signoz.scrapeInterval }}
+          kubernetes_sd_configs:
+            - role: pod
+              {{- if .Values.presets.prometheusScraper.signoz.namespaceScoped }}
+              namespaces:
+                own_namespace: true
+              {{- end }}
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_signoz_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_signoz_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_signoz_io_port]
+              action: replace
+              separator: ":"
+              target_label: __address__
+            - target_label: job_name
+              replacement: signoz-scraper
+            {{- if .Values.presets.prometheusScraper.signoz.includePodLabel }}
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: replace
+              target_label: signoz_k8s_name
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+              action: replace
+              target_label: signoz_k8s_instance
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+              action: replace
+              target_label: signoz_k8s_component
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: k8s_namespace_name
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: k8s_pod_name
+            - source_labels: [__meta_kubernetes_pod_uid]
+              action: replace
+              target_label: k8s_pod_uid
+            {{- if .Values.presets.prometheusScraper.signoz.includeContainerName }}
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              action: replace
+              target_label: k8s_container_name
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              regex: (.+)-init
+              action: drop
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_node_name]
+              action: replace
+              target_label: k8s_node_name
+            - source_labels: [__meta_kubernetes_pod_ready]
+              action: replace
+              target_label: k8s_pod_ready
+            - source_labels: [__meta_kubernetes_pod_phase]
+              action: replace
+              target_label: k8s_pod_phase
+        {{- end }}
+        {{- if .Values.presets.prometheusScraper.prometheus.enabled }}
+        - job_name: "prometheus-scraper"
+          scrape_interval: {{ .Values.presets.prometheusScraper.prometheus.scrapeInterval }}
+          kubernetes_sd_configs:
+            - role: pod
+              {{- if .Values.presets.prometheusScraper.prometheus.namespaceScoped }}
+              namespaces:
+                own_namespace: true
+              {{- end }}
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              separator: ":"
+              target_label: __address__
+            - target_label: job_name
+              replacement: prometheus-scraper
+            {{- if .Values.presets.prometheusScraper.prometheus.includePodLabel }}
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: replace
+              target_label: signoz_k8s_name
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+              action: replace
+              target_label: signoz_k8s_instance
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+              action: replace
+              target_label: signoz_k8s_component
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: k8s_namespace_name
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: k8s_pod_name
+            - source_labels: [__meta_kubernetes_pod_uid]
+              action: replace
+              target_label: k8s_pod_uid
+            {{- if .Values.presets.prometheusScraper.prometheus.includeContainerName }}
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              action: replace
+              target_label: k8s_container_name
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              regex: (.+)-init
+              action: drop
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_node_name]
+              action: replace
+              target_label: k8s_node_name
+            - source_labels: [__meta_kubernetes_pod_ready]
+              action: replace
+              target_label: k8s_pod_ready
+            - source_labels: [__meta_kubernetes_pod_phase]
+              action: replace
+              target_label: k8s_pod_phase
+        {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
