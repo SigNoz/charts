@@ -324,9 +324,10 @@ otelAgent:
   # ref: https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/
   updateStrategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+    # rollingUpdate:
+    #   maxSurge: 0
+    #   maxUnavailable: 1
+    #   minReadySeconds: 0
 
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
