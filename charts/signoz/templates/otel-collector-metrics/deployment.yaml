@@ -16,6 +16,10 @@ spec:
   minReadySeconds: {{ .Values.otelCollectorMetrics.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelCollectorMetrics.progressDeadlineSeconds }}
   replicas: {{ .Values.otelCollectorMetrics.replicaCount }} # adjust replica count to your own requirements
+  {{- with .Values.otelCollectorMetrics.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:

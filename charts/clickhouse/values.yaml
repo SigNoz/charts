@@ -470,6 +470,14 @@ clickhouseOperator:
   imagePullSecrets: []
     # - "clickhouseOperator-pull-secret"
 
+  # -- Deployment strategy type for OtelDeployment
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
+
   # ClickHouse Operator Service Account
   serviceAccount:
     # -- Specifies whether a service account should be created
@@ -488,6 +496,17 @@ clickhouseOperator:
   # -- Clickhouse Operator pod-level security attributes and common container settings.
   podSecurityContext: {}
     # fsGroup: 2000
+
+  # -- Replica count for Clickhouse Operator
+  replicaCount: 1
+
+  # -- Minimum number of seconds for which a newly created Pod should be ready
+  # without any of its containers crashing, for it to be considered available.
+  minReadySeconds: 5
+
+  # -- Number of seconds to wait for the Clickhouse Operator to progress before the
+  # system reports back that the Clickhouse Operator has failed.
+  progressDeadlineSeconds: 120
 
   # Clickhouse Operator secret for ClickHouse user password
   secret:

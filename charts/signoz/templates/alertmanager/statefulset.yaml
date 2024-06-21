@@ -16,6 +16,10 @@ spec:
     matchLabels:
       {{- include "alertmanager.selectorLabels" . | nindent 6 }}
   serviceName: {{ include "alertmanager.fullname" . }}-headless
+  {{- with .Values.alertmanager.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       labels:

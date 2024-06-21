@@ -6,10 +6,16 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 spec:
-  replicas: 1
   selector:
     matchLabels:
       {{- include "clickhouseOperator.selectorLabels" . | nindent 6 }}
+  minReadySeconds: {{ .Values.clickhouseOperator.minReadySeconds }}
+  progressDeadlineSeconds: {{ .Values.clickhouseOperator.progressDeadlineSeconds }}
+  replicas: {{ .Values.clickhouseOperator.replicaCount }}
+  {{- with .Values.clickhouseOperator.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:

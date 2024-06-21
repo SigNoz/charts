@@ -17,6 +17,10 @@ spec:
   {{- if not .Values.otelCollector.autoscaling.enabled }}
   replicas: {{ .Values.otelCollector.replicaCount }}
   {{- end }}
+  {{- with .Values.otelCollector.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:

@@ -14,6 +14,10 @@ spec:
   selector:
     matchLabels:
       {{- include "queryService.selectorLabels" . | nindent 6 }}
+  {{- with .Values.queryService.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:
