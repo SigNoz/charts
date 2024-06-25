@@ -405,6 +405,14 @@ clickhouse:
     imagePullSecrets: []
       # - "clickhouseOperator-pull-secret"
 
+    # -- Deployment strategy type for Clickhouse Operator
+    # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+    updateStrategy:
+      type: RollingUpdate
+      # rollingUpdate:
+      #   maxSurge: 25%
+      #   maxUnavailable: 25%
+
     # ClickHouse Operator Service Account
     serviceAccount:
       # -- Specifies whether a service account should be created
@@ -580,6 +588,14 @@ queryService:
   # -- Image Registry Secret Names for Query-Service
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
+
+  # -- Query-Service statefulset strategy type
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxUnavailable: 1
+    #   partition: 0
 
   # Query-Service Service Account
   serviceAccount:
@@ -811,6 +827,14 @@ frontend:
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
 
+  # -- Deployment strategy type for Frontend
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
+
   # Frontend Service Account
   serviceAccount:
     # Specifies whether a service account should be created
@@ -980,6 +1004,14 @@ alertmanager:
   command: []
   # -- Alertmanager extra Arguments
   extraArgs: {}
+
+  # -- Alertmanager statefulset strategy type
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxUnavailable: 1
+    #   partition: 0
 
   # Alertmanager Service Account
   serviceAccount:
@@ -1393,6 +1425,14 @@ otelCollector:
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
+
+  # -- Deployment strategy type for OtelCollector
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
 
   # OtelCollector Service Account
   serviceAccount:
@@ -1984,7 +2024,7 @@ otelCollectorMetrics:
     tag: 0.102.0
     pullPolicy: IfNotPresent
 
-  # -- Image Registry Secret Names for OtelCollector
+  # -- Image Registry Secret Names for OtelCollectorMetrics
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
 
@@ -1999,6 +2039,14 @@ otelCollectorMetrics:
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
+
+  # -- Deployment strategy type for OtelCollectorMetrics
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
 
   # OtelCollectorMetrics Service Account
   serviceAccount:

@@ -322,6 +322,15 @@ otelAgent:
     # -- OtelAgent command extra arguments
     extraArgs: []
 
+  # -- Deployment strategy type for OtelAgent DaemonSet
+  # ref: https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 0
+    #   maxUnavailable: 1
+    #   minReadySeconds: 0
+
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
@@ -672,6 +681,14 @@ otelDeployment:
     # -- OtelDeployment command extra arguments
     extraArgs: []
 
+  # -- Deployment strategy type for OtelDeployment
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
+
   configMap:
     # -- Specifies whether a configMap should be created (true by default)
     create: true
@@ -716,6 +733,9 @@ otelDeployment:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
+
+  # -- Replica count for OtelDeployment
+  replicaCount: 1
 
   # -- Minimum number of seconds for which a newly created Pod should be ready
   # without any of its containers crashing, for it to be considered available.

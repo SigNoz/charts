@@ -17,6 +17,10 @@ spec:
   minReadySeconds: {{ .Values.otelDeployment.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelDeployment.progressDeadlineSeconds }}
   replicas: {{ .Values.otelDeployment.replicaCount }}
+  {{- with .Values.otelDeployment.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:
