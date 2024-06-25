@@ -412,6 +412,12 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
   value: {{ include "otel.insecureSkipVerify" . }}
 - name: OTEL_SECRETS_PATH
   value: {{ include "otel.secretsPath" . }}
+- name: K8S_CLUSTER_NAME
+  value: {{ default .Values.global.clusterName .Values.clusterName }}
+{{- with .Values.global.deploymentEnvironment }}
+- name: DEPLOYMENT_ENVIRONMENT
+  value: {{ . }}
+{{- end }}
 {{- end }}
 
 {{/*

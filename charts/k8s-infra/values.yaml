@@ -12,6 +12,8 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Deployment environment to be attached to telemetry data
+  deploymentEnvironment: ""
   # -- Kubernetes cluster cloud provider along with distribution if any.
   # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
   cloud: other
