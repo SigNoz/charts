@@ -37,6 +37,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.resourceDetectionInternal.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.global.deploymentEnvironment }}
+{{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -67,6 +70,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
 {{- if .Values.presets.resourceDetectionInternal.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
+{{- if .Values.global.deploymentEnvironment }}
+{{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -357,4 +363,30 @@ processors:
       - env
     timeout: {{ .Values.presets.resourceDetectionInternal.timeout }}
     override: {{ .Values.presets.resourceDetectionInternal.override }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.deploymentEnvironmentConfig" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resource/deployenv" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resource/deployenv" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resource/deployenv" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resource/deployenv" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.deploymentEnvironmentConfig" -}}
+processors:
+  resource/deployenv:
+    attributes:
+    - key: deployment.environment
+      value: ${env:DEPLOYMENT_ENVIRONMENT}
+      action: insert
 {{- end }}
