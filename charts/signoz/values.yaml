@@ -1870,6 +1870,15 @@ otelCollector:
           - name: deployment.environment
             default: default
           - name: signoz.collector.id
+          - name: service.version
+          - name: browser.platform
+          - name: browser.mobile
+          - name: k8s.cluster.name
+          - name: k8s.node.name
+          - name: k8s.namespace.name
+          - name: host.name
+          - name: host.type
+          - name: container.name
       signozspanmetrics/delta:
         metrics_exporter: clickhousemetricswrite
         latency_histogram_buckets:
@@ -1899,6 +1908,15 @@ otelCollector:
           - name: deployment.environment
             default: default
           - name: signoz.collector.id
+          - name: service.version
+          - name: browser.platform
+          - name: browser.mobile
+          - name: k8s.cluster.name
+          - name: k8s.node.name
+          - name: k8s.namespace.name
+          - name: host.name
+          - name: host.type
+          - name: container.name
         aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
       # K8s Attribute processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
@@ -1939,6 +1957,7 @@ otelCollector:
       clickhousetraces:
         datasource: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_TRACE_DATABASE}
         low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
+        timeout: 15s
       clickhousemetricswrite:
         endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
         timeout: 15s
