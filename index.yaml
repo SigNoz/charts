@@ -46,6 +46,32 @@ entries:
   clickhouse:
   - apiVersion: v2
     appVersion: 24.1.2
+    created: "2024-06-26T18:20:56.726124726Z"
+    dependencies:
+    - condition: zookeeper.enabled
+      name: zookeeper
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 11.4.2
+    description: A Helm chart for ClickHouse
+    digest: 82022fb7d3a9c43c52a88c90165e0ad49471a38c4efe5be74a8ee3d3f793c646
+    icon: https://github.com/ClickHouse/clickhouse-docs/raw/84f38d893eb7e561c7296279d7953b6a508ec413/static/img/clickhouse-logo.svg
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: clickhouse
+    sources:
+    - https://github.com/SigNoz/charts
+    - https://github.com/ClickHouse/ClickHouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-24.1.1/clickhouse-24.1.1.tgz
+    version: 24.1.1
+  - apiVersion: v2
+    appVersion: 24.1.2
     created: "2024-05-09T02:32:19.317368654Z"
     dependencies:
     - condition: zookeeper.enabled
@@ -974,6 +1000,34 @@ entries:
     - https://github.com/SigNoz/charts/releases/download/clickhouse-9.1.0/clickhouse-9.1.0.tgz
     version: 9.1.0
   k8s-infra:
+  - apiVersion: v2
+    appVersion: 0.88.0
+    created: "2024-06-26T18:20:56.897765927Z"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: fdfe0883aaa6ce74d06ee35a63d453c4e2bca82b53164b30aab5dd756b704492
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.11.7/k8s-infra-0.11.7.tgz
+    version: 0.11.7
   - apiVersion: v2
     appVersion: 0.88.0
     created: "2024-06-25T12:05:11.459468055Z"
@@ -9850,4 +9904,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2024-06-25T14:30:19.239060037Z"
+generated: "2024-06-26T18:20:57.105703878Z"
