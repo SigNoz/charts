@@ -1257,6 +1257,8 @@ schemaMigrator:
   tolerations: []
   # -- Affinity settings for schemaMigrator
   affinity: {}
+  # -- TopologySpreadConstraints describes how schemaMigrator pods ought to spread
+  topologySpreadConstraints: []
 
   initContainers:
     wait:

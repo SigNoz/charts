@@ -77,4 +77,7 @@ spec:
       {{- if .Values.schemaMigrator.nodeSelector }}
       nodeSelector: {{ toYaml .Values.schemaMigrator.nodeSelector | nindent 8 }}
       {{- end }}
+      {{- if .Values.schemaMigrator.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml .Values.schemaMigrator.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
 {{- end }}
