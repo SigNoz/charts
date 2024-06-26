@@ -221,6 +221,8 @@ nodeSelector: {}
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
+# -- TopologySpreadConstraints describes how clickhouse pods ought to spread
+topologySpreadConstraints: []
 
 # -- Configure resource requests and limits. Update according to your own use
 # case as these values might not be suitable for your workload.

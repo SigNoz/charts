@@ -851,6 +851,9 @@ otelDeployment:
   # -- Affinity settings for OtelDeployment pod
   affinity: {}
 
+  # -- TopologySpreadConstraints describes how OtelDeployment pods ought to spread
+  topologySpreadConstraints: []
+
   # OtelDeployment RBAC config
   clusterRole:
     # -- Specifies whether a clusterRole should be created
