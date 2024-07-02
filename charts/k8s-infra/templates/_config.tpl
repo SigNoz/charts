@@ -110,9 +110,13 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 exporters:
   logging:
     {{- with .Values.presets.loggingExporter }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
     verbosity: {{ .verbosity }}
     sampling_initial: {{ .samplingInitial }}
     sampling_thereafter: {{ .samplingThereafter }}
+    {{- end }}
     {{- end }}
 {{- end }}
 
@@ -137,6 +141,9 @@ exporters:
 {{- define "opentelemetry-collector.otlpExporterConfig" -}}
 exporters:
   otlp:
+    {{- if .Values.presets.otlpExporter.overrideConfig }}
+    {{- toYaml .Values.presets.otlpExporter.overrideConfig | nindent 4 }}
+    {{- else }}
     endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
       insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
@@ -150,6 +157,7 @@ exporters:
       {{- end }}
     headers:
       "signoz-access-token": "${SIGNOZ_API_KEY}"
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
@@ -163,11 +171,17 @@ exporters:
 {{- define "opentelemetry-collector.clusterMetricsConfig" -}}
 receivers:
   k8s_cluster:
-    collection_interval: {{ .Values.presets.clusterMetrics.collectionInterval }}
+    {{- with .Values.presets.clusterMetrics }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
+    collection_interval: {{ .collectionInterval }}
     node_conditions_to_report:
-      {{- toYaml .Values.presets.clusterMetrics.nodeConditionsToReport | nindent 6 }}
+      {{- toYaml .nodeConditionsToReport | nindent 6 }}
     allocatable_types_to_report:
-      {{- toYaml .Values.presets.clusterMetrics.allocatableTypesToReport | nindent 6 }}
+      {{- toYaml .allocatableTypesToReport | nindent 6 }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
@@ -181,11 +195,17 @@ receivers:
 {{- define "opentelemetry-collector.hostMetricsConfig" -}}
 receivers:
   hostmetrics:
-    collection_interval: {{ .Values.presets.hostMetrics.collectionInterval }}
+    {{- with .Values.presets.hostMetrics }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
+    collection_interval: {{ .collectionInterval }}
     scrapers:
-    {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
+    {{ range $key, $val := .scrapers }}
       {{ $key }}: {{ $val | toYaml }}
     {{ end }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyKubeletMetricsConfig" -}}
@@ -199,14 +219,22 @@ receivers:
 {{- define "opentelemetry-collector.kubeletMetricsConfig" -}}
 receivers:
   kubeletstats:
-    collection_interval: {{ .Values.presets.kubeletMetrics.collectionInterval }}
-    auth_type: {{ .Values.presets.kubeletMetrics.authType }}
-    endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
-    insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
+    {{- with .Values.presets.kubeletMetrics }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
+    collection_interval: {{ .collectionInterval }}
+    auth_type: {{ .authType }}
+    endpoint: {{ .endpoint }}
+    insecure_skip_verify: {{ default true .insecureSkipVerify }}
     extra_metadata_labels:
-      {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
+      {{- toYaml .extraMetadataLabels | nindent 6 }}
     metric_groups:
-      {{ toYaml .Values.presets.kubeletMetrics.metricGroups | nindent 6 }}
+      {{- toYaml .metricGroups | nindent 6 }}
+    metrics:
+      {{- toYaml .metrics | nindent 6 }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyLogsCollectionConfig" -}}
@@ -220,22 +248,29 @@ receivers:
 {{- define "opentelemetry-collector.logsCollectionConfig" -}}
 receivers:
   filelog/k8s:
+    {{- with .Values.presets.logsCollection }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
+    {{- $releaseName := $.Release.Name }}
+    {{- $releaseNamespace := $.Release.Namespace }}
+    {{- $k8sInfraNamespace := $.Values.namespace }}
     # Include logs from all container
     include:
       # Whitelist specific namespaces, pods or containers if enabled
-      {{- if .Values.presets.logsCollection.whitelist.enabled }}
-      {{- $namespaces := .Values.presets.logsCollection.whitelist.namespaces }}
-      {{- $pods := .Values.presets.logsCollection.whitelist.pods }}
-      {{- $containers := .Values.presets.logsCollection.whitelist.containers }}
-      {{- $additionalInclude := .Values.presets.logsCollection.whitelist.additionalInclude }}
+      {{- if .whitelist.enabled }}
+      {{- $namespaces := .whitelist.namespaces }}
+      {{- $pods := .whitelist.pods }}
+      {{- $containers := .whitelist.containers }}
+      {{- $additionalInclude := .whitelist.additionalInclude }}
       # Include specific container's logs using whitelist config.
       # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
-      {{- if .Values.presets.logsCollection.whitelist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
-      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
-      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- if .whitelist.signozLogs }}
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-k8s-infra-*/*/*.log
+      {{- if and $k8sInfraNamespace (ne $releaseNamespace $k8sInfraNamespace) }}
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ $k8sInfraNamespace }}_{{ $releaseName }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
@@ -251,23 +286,23 @@ receivers:
       - {{ $includes }}
       {{- end }}
       {{- else }}
-      {{ toYaml .Values.presets.logsCollection.include | nindent 6 }}
+      {{ toYaml .include | nindent 6 }}
       {{- end }}
     # Blacklist specific namespaces, pods or containers if enabled
-    {{- if .Values.presets.logsCollection.blacklist.enabled }}
-    {{- $namespaces := .Values.presets.logsCollection.blacklist.namespaces }}
-    {{- $pods := .Values.presets.logsCollection.blacklist.pods }}
-    {{- $containers := .Values.presets.logsCollection.blacklist.containers }}
-    {{- $additionalExclude := .Values.presets.logsCollection.blacklist.additionalExclude }}
+    {{- if .blacklist.enabled }}
+    {{- $namespaces := .blacklist.namespaces }}
+    {{- $pods := .blacklist.pods }}
+    {{- $containers := .blacklist.containers }}
+    {{- $additionalExclude := .blacklist.additionalExclude }}
     # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
-      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
-      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
-      - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- if .blacklist.signozLogs }}
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-k8s-infra-*/*/*.log
+      {{- if and $k8sInfraNamespace (ne $releaseNamespace $k8sInfraNamespace) }}
+      - /var/log/pods/{{ $releaseNamespace }}_{{ $releaseName }}*-signoz-*/*/*.log
+      - /var/log/pods/{{ $k8sInfraNamespace }}_{{ $releaseName }}*-k8s-infra-*/*/*.log
       {{- end }}
       {{- end }}
       {{- range $namespace := $namespaces }}
@@ -285,13 +320,15 @@ receivers:
     {{- else }}
     exclude: []
     {{- end }}
-    start_at: {{ .Values.presets.logsCollection.startAt }}
-    include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
-    include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
+    start_at: {{ .startAt }}
+    include_file_path: {{ .includeFilePath }}
+    include_file_name: {{ .includeFileName }}
     operators:
-    {{ range $operators := .Values.presets.logsCollection.operators }}
+    {{- range $operators := .operators }}
       - {{ toYaml $operators | nindent 8 }}
-    {{ end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyKubernetesAttributesConfig" -}}
@@ -314,16 +351,22 @@ receivers:
 {{- define "opentelemetry-collector.kubernetesAttributesConfig" -}}
 processors:
   k8sattributes:
-    passthrough: {{ .Values.presets.kubernetesAttributes.passthrough }}
+    {{- with .Values.presets.kubernetesAttributes }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
+    passthrough: {{ .passthrough }}
     filter:
-      {{- toYaml .Values.presets.kubernetesAttributes.filter | nindent 6 }}
+      {{- toYaml .filter | nindent 6 }}
     pod_association:
-    {{ range $association := .Values.presets.kubernetesAttributes.podAssociation }}
+    {{ range $association := .podAssociation }}
       - {{ toYaml $association | nindent 8 }}
     {{ end }}
     extract:
       metadata:
-        {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
+        {{ toYaml .extractMetadatas | nindent 8 }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
@@ -337,14 +380,20 @@ processors:
 {{- define "opentelemetry-collector.resourceDetectionConfig" -}}
 processors:
   resourcedetection:
+    {{- with .Values.presets.resourceDetection }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
     detectors:
-      {{- toYaml .Values.presets.resourceDetection.detectors | nindent 6 }}
-    timeout: {{ .Values.presets.resourceDetection.timeout }}
-    override: {{ .Values.presets.resourceDetection.override }}
-    {{- if has "system" .Values.presets.resourceDetection.detectors }}
+      {{- toYaml .detectors | nindent 6 }}
+    timeout: {{ .timeout }}
+    override: {{ .override }}
+    {{- if has "system" .detectors }}
     system:
       hostname_sources:
-        {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
+        {{- toYaml .systemHostnameSources | nindent 8 }}
+    {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}
 
@@ -359,10 +408,16 @@ processors:
 {{- define "opentelemetry-collector.resourceDetectionInternalConfig" -}}
 processors:
   resourcedetection/internal:
+    {{- with .Values.presets.resourceDetectionInternal }}
+    {{- if .overrideConfig }}
+    {{- toYaml .overrideConfig | nindent 4 }}
+    {{- else }}
     detectors:
       - env
-    timeout: {{ .Values.presets.resourceDetectionInternal.timeout }}
-    override: {{ .Values.presets.resourceDetectionInternal.override }}
+    timeout: {{ .timeout }}
+    override: {{ .override }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}

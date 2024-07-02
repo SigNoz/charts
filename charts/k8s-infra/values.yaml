@@ -82,6 +82,7 @@ namespace: ""
 presets:
   loggingExporter:
     enabled: false
+    overrideConfig: {}
     # Verbosity of the logging export: basic, normal, detailed
     verbosity: basic
     # Number of messages initially logged each second
@@ -90,8 +91,10 @@ presets:
     samplingThereafter: 500
   otlpExporter:
     enabled: true
+    overrideConfig: {}
   logsCollection:
     enabled: true
+    overrideConfig: {}
     startAt: beginning
     includeFilePath: true
     includeFileName: false
@@ -207,6 +210,7 @@ presets:
         to: body
   hostMetrics:
     enabled: true
+    overrideConfig: {}
     collectionInterval: 30s
     scrapers:
       cpu: {}
@@ -217,6 +221,7 @@ presets:
       network: {}
   kubeletMetrics:
     enabled: true
+    overrideConfig: {}
     collectionInterval: 30s
     authType: serviceAccount
     endpoint: ${K8S_HOST_IP}:10250
@@ -229,8 +234,10 @@ presets:
       - pod
       - node
       - volume
+    metrics: {}
   kubernetesAttributes:
     enabled: true
+    overrideConfig: {}
     # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
     # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
     passthrough: false
@@ -260,6 +267,7 @@ presets:
       - k8s.node.name
   clusterMetrics:
     enabled: true
+    overrideConfig: {}
     collectionInterval: 30s
     nodeConditionsToReport:
       - Ready
@@ -274,11 +282,13 @@ presets:
       # - storage
   resourceDetectionInternal:
     enabled: true
+    overrideConfig: {}
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
   resourceDetection:
     enabled: true
+    overrideConfig: {}
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
