@@ -229,6 +229,9 @@ presets:
     extraMetadataLabels:
       - container.id
       - k8s.volume.type
+    k8sApiConfig:
+      auth_type: serviceAccount
+      # context: ""
     metricGroups:
       - container
       - pod

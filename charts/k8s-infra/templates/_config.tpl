@@ -223,16 +223,26 @@ receivers:
     {{- if .overrideConfig }}
     {{- toYaml .overrideConfig | nindent 4 }}
     {{- else }}
-    collection_interval: {{ .collectionInterval }}
     auth_type: {{ .authType }}
+    collection_interval: {{ .collectionInterval }}
     endpoint: {{ .endpoint }}
-    insecure_skip_verify: {{ default true .insecureSkipVerify }}
+    {{- with .extraMetadataLabels }}
     extra_metadata_labels:
-      {{- toYaml .extraMetadataLabels | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    insecure_skip_verify: {{ default true .insecureSkipVerify }}
+    {{- with .k8sApiConfig }}
+    k8s_api_config:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .metricGroups }}
     metric_groups:
-      {{- toYaml .metricGroups | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .metrics }}
     metrics:
-      {{- toYaml .metrics | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- end }}
     {{- end }}
 {{- end }}
