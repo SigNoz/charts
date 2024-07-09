@@ -173,6 +173,9 @@ spec:
             - name: custom-functions-volume
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-custom-functions
+          {{- if .Values.additionalVolumes }}
+            {{- toYaml .Values.additionalVolumes | nindent 12 }}
+          {{- end }}
 
           {{- if .Values.initContainers.enabled }}
           initContainers:
@@ -228,6 +231,9 @@ spec:
                   mountPath: /etc/clickhouse-server/functions
                 # - name: log-volumeclaim-template
                 #   mountPath: /var/log/clickhouse-server
+              {{- if .Values.additionalVolumeMounts }}
+                {{- toYaml .Values.additionalVolumeMounts | nindent 16 }}
+              {{- end }}
 
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}

@@ -383,6 +383,11 @@ podDistribution: []
   #   number: 2
   #   topologyKey: kubernetes.io/hostname
 
+# -- Additional volumes for ClickHouse pod
+additionalVolumes: []
+# -- Additional volume mounts for ClickHouse pod
+additionalVolumeMounts: []
+
 # Cold storage configuration
 coldStorage:
   # -- Whether to enable S3 or GCS cold storage
