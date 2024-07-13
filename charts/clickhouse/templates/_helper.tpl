@@ -92,7 +92,7 @@ Return suffix part of the headless service
 {{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
 {{- $name := printf "%s-headless" (include "clickhouse.zookeeper.servicename" .) }}
 {{- if and $namespace (ne $namespace .Values.namespace) }}
-{{- printf "%s.svc.%s.%s" $name $namespace $clusterDomain }}
+{{- printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
 {{- else -}}
 {{- $name }}
 {{- end }}
