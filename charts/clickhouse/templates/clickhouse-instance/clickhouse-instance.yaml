@@ -100,8 +100,10 @@ spec:
                   <s3>
                     <disk>{{ .Values.coldStorage.type }}</disk>
                     <perform_ttl_move_on_insert>0</perform_ttl_move_on_insert>
+                    <prefer_not_to_merge>1</prefer_not_to_merge>
                   </s3>
                 </volumes>
+                <move_factor>0</move_factor>
               </tiered>
             </policies>
           </storage_configuration>
