@@ -182,6 +182,7 @@ receivers:
 receivers:
   hostmetrics:
     collection_interval: {{ .Values.presets.hostMetrics.collectionInterval }}
+    root_path: /hostfs
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
       {{ $key }}: {{ $val | toYaml }}
