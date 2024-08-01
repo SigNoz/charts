@@ -14,7 +14,9 @@ spec:
   type: {{ .type }}
   ports:
     - port: {{ .port }}
-      name: {{ include "clickhouseOperator.fullname" $ }}-metrics
+      name: clickhouse-metrics
+    - port: {{ .operatorPort }}
+      name: operator-metrics
   selector:
     {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
 {{- end }}
