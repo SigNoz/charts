@@ -22,11 +22,7 @@ dependencies:
   - name: clickhouse
     repository: https://signoz.github.io/charts
     condition: clickhouse.enabled
-    version: 24.1.2
-  - name: k8s-infra
-    repository: https://signoz.github.io/charts
-    condition: k8s-infra.enabled
-    version: 0.11.8
+    version: 24.1.4
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

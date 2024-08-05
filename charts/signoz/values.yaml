@@ -1760,15 +1760,15 @@ otelCollector:
       cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
       minReplicaCount: "1"    # should be >= replicaCount specified in values.yaml
       maxReplicaCount: "5"
-      triggers:
-        - type: memory
-          metadata:
-            type: Utilization
-            value: "80"   # hpa make sure average Utilization <=80 by adding new pods
-        - type: cpu
-          metadata:
-            type: Utilization
-            value: "80"   # hpa make sure average Utlization <=80 by adding new pods
+      triggers: []
+        # - type: memory
+        #   metadata:
+        #     type: Utilization
+        #     value: "80"   # hpa make sure average Utilization <=80 by adding new pods
+        # - type: cpu
+        #   metadata:
+        #     type: Utilization
+        #     value: "80"   # hpa make sure average Utlization <=80 by adding new pods
 
   # -- Configurations for OtelCollector
   # @default -- See `values.yaml` for defaults
@@ -2264,15 +2264,6 @@ otelCollectorMetrics:
   # @default -- See `values.yaml` for defaults
   config:
     receivers:
-      hostmetrics:
-        collection_interval: 30s
-        scrapers:
-          cpu: {}
-          load: {}
-          memory: {}
-          disk: {}
-          filesystem: {}
-          network: {}
       # prometheus scrape config
       prometheus:
         config:
@@ -2362,38 +2353,6 @@ otelCollectorMetrics:
         timeout: 2s
         system:
           hostname_sources: [dns, os]
-      # Memory Limiter processor.
-      # If not set, will be overridden with values based on k8s resource limits.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
-      # memory_limiter: null
-      # K8s Attribute processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
-      k8sattributes/hostmetrics:
-        # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
-        # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
-        passthrough: false
-        # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
-        # selector to only dramatically reducing resource requirements for very large clusters.
-        filter:
-          # -- Restrict each OpenTelemetry agent to query pods running on the same node
-          node_from_env_var: K8S_NODE_NAME
-        pod_association:
-          - sources:
-            - from: resource_attribute
-              name: k8s.pod.ip
-          - sources:
-            - from: resource_attribute
-              name: k8s.pod.uid
-          - sources:
-            - from: connection
-        extract:
-          metadata:
-            - k8s.namespace.name
-            - k8s.pod.name
-            - k8s.pod.uid
-            - k8s.pod.start_time
-            - k8s.deployment.name
-            - k8s.node.name
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -2421,7 +2380,4 @@ otelCollectorMetrics:
           receivers: [prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
-        metrics/hostmetrics:
-          receivers: [hostmetrics]
-          processors: [resourcedetection, k8sattributes/hostmetrics, batch]
-          exporters: [clickhousemetricswrite/hostmetrics]
+
