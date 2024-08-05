@@ -5,6 +5,10 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
+  {{- if .Values.clickhouseOperator.annotations }}
+  annotations:
+    {{- toYaml .Values.clickhouseOperator.annotations | nindent 4 }}
+  {{- end }}
 spec:
   replicas: 1
   selector:
