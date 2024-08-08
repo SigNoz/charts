@@ -1,0 +1,10 @@
+### macOS ###
+# General
+.DS_Store
+
+### Helm ###
+# Chart dependencies
+**/charts/*.tgz
+
+### Scripts ###
+tmp/

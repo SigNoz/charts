@@ -67,7 +67,7 @@ spec:
             {{- toYaml .Values.frontend.initContainers.init.resources | nindent 12 }}
       {{- end }}
       containers:
-        - name: {{ include "frontend.fullname" . }}
+        - name: frontend
           securityContext:
             {{- toYaml .Values.frontend.securityContext | nindent 12 }}
           image: {{ template "frontend.image" . }}

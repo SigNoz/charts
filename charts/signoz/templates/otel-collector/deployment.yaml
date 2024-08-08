@@ -86,7 +86,7 @@ spec:
             {{- toYaml .Values.otelCollector.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
-        - name: {{ template "otelCollector.fullname" . }}
+        - name: collector
           image: {{ template "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           ports:

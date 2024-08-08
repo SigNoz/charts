@@ -94,7 +94,7 @@ spec:
         {{- end }}
       {{- end }}
       containers:
-        - name: {{ include "queryService.fullname" . }}
+        - name: query-service
           securityContext:
             {{- toYaml .Values.queryService.securityContext | nindent 12 }}
           image: {{ template "queryService.image" . }}

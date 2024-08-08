@@ -80,7 +80,7 @@ spec:
             {{- toYaml .Values.otelCollectorMetrics.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
-        - name: {{ template "otelCollectorMetrics.fullname" . }}
+        - name: collector
           securityContext:
             {{- toYaml .Values.otelCollectorMetrics.securityContext | nindent 12 }}
           image: {{ template "otelCollectorMetrics.image" . }}
