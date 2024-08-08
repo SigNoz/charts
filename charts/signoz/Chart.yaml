@@ -20,9 +20,13 @@ sources:
   - https://github.com/signoz/signoz-otel-collector
 dependencies:
   - name: clickhouse
-    repository: https://signoz.github.io/charts
+    repository: https://charts.signoz.io
     condition: clickhouse.enabled
     version: 24.1.6
+  - name: signoz-otel-gateway
+    repository: https://charts.signoz.io
+    condition: signoz-otel-gateway.enabled
+    version: 0.0.1
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
