@@ -1,4 +1,4 @@
-# Default values for opentelemetry-gateway.
+# Default values for signoz-otel-gateway.
 replicaCount: 1
 image:
   repository: docker.io/signoz/signoz-otel-gateway
