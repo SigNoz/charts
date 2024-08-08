@@ -2449,6 +2449,42 @@ entries:
   signoz:
   - apiVersion: v2
     appVersion: 0.51.0
+    created: "2024-08-08T12:02:43.182829402Z"
+    dependencies:
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://signoz.github.io/charts
+      version: 24.1.6
+    description: SigNoz Observability Platform Helm Chart
+    digest: bac471ff0427b94570c222234c0944ae7dbb25c2acb63b9d37e90e869a7ade1b
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    - distributed logging
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/signoz/signoz
+    - https://github.com/signoz/alertmanager
+    - https://github.com/signoz/signoz-otel-collector
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.48.0/signoz-0.48.0.tgz
+    version: 0.48.0
+  - apiVersion: v2
+    appVersion: 0.51.0
     created: "2024-07-31T17:00:57.659000496Z"
     dependencies:
     - condition: clickhouse.enabled
@@ -10398,4 +10434,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-0.0.2/signoz-0.0.2.tgz
     version: 0.0.2
-generated: "2024-08-08T11:51:52.322959004Z"
+generated: "2024-08-08T12:02:43.183311209Z"
