@@ -81,7 +81,7 @@ namespace: ""
 # -- Presets to easily set up OtelCollector configurations.
 presets:
   loggingExporter:
-    enabled: false
+    enabled: true
     # Verbosity of the logging export: basic, normal, detailed
     verbosity: basic
     # Number of messages initially logged each second
@@ -89,7 +89,7 @@ presets:
     # Sampling rate after the initial messages are logged
     samplingThereafter: 500
   otlpExporter:
-    enabled: true
+    enabled: false
   logsCollection:
     enabled: true
     startAt: beginning
