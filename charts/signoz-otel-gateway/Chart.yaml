@@ -9,3 +9,10 @@ dependencies:
     version: 15.0.0
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
+maintainers:
+  - name: SigNoz
+    email: devops@signoz.io
+    url: https://signoz.io
+  - name: prashant-shahi
+    email: prashant@signoz.io
+    url: https://prashantshahi.dev
