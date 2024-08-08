@@ -2,6 +2,10 @@
 remote: origin
 target-branch: main
 debug: true
+charts:
+  - charts/clickhouse
+  - charts/k8s-infra
+  - charts/signoz
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:
