@@ -4,6 +4,8 @@ description: A Helm chart for deploying SigNoz Opentelemetry Gateway
 type: application
 version: 0.0.1
 appVersion: "v0.0.16"
+home: https://signoz.io/
+icon: https://signoz.io/img/SigNozLogo-orange.svg
 dependencies:
   - name: postgresql
     version: 15.0.0
