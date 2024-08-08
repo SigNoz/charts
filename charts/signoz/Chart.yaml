@@ -1,6 +1,6 @@
 apiVersion: v2
 name: signoz
-version: 0.48.0
+version: 0.49.0
 appVersion: "0.51.0"
 description: SigNoz Observability Platform Helm Chart
 type: application
@@ -20,9 +20,13 @@ sources:
   - https://github.com/signoz/signoz-otel-collector
 dependencies:
   - name: clickhouse
-    repository: https://signoz.github.io/charts
+    repository: https://charts.signoz.io
     condition: clickhouse.enabled
     version: 24.1.6
+  - name: signoz-otel-gateway
+    repository: https://charts.signoz.io
+    condition: signoz-otel-gateway.enabled
+    version: 0.0.1
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

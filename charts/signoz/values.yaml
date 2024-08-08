@@ -2380,3 +2380,6 @@ otelCollectorMetrics:
           receivers: [prometheus]
           processors: [batch]
           exporters: [clickhousemetricswrite]
+
+signoz-otel-gateway:
+  enabled: false
