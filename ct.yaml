@@ -2,6 +2,8 @@
 remote: origin
 target-branch: main
 debug: true
+excluded-charts:
+  - charts/signoz-otel-gateway
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:
