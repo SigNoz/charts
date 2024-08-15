@@ -38,6 +38,7 @@
 
 {{- end }}
 
-
-If you have any ideas, questions, or any feedback, please share on our Github Discussions:
-  https://github.com/SigNoz/signoz/discussions/713
+{{- if .Release.IsUpgrade }}
+NOTE: We no longer bundle K8s-Infra chart with the SigNoz chart installation. For any existing
+      set up, please install K8s-Infra chart separately with the relevant override values.
+{{- end }}
