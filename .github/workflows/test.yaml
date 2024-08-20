@@ -30,7 +30,7 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --config ct.yaml)
+          changed=$(ct list-changed --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=testingapp.signoz.io:4317')
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
@@ -43,5 +43,5 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
-        run: ct install --config ct.yaml
+        run: ct install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=testingapp.signoz.io:4317'
         if: steps.list-changed.outputs.changed == 'true'
