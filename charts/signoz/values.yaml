@@ -1276,7 +1276,7 @@ schemaMigrator:
     "helm.sh/hook-delete-policy": "before-hook-creation"
 
   # -- Whether to enable replication for schemaMigrator
-  enableReplication: false
+  enableReplication: true
 
   # -- Node selector for settings for schemaMigrator
   nodeSelector: {}
