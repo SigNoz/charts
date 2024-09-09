@@ -488,8 +488,7 @@ clickhouseOperator:
     name:
 
   # -- Clickhouse Operator deployment annotations
-  annotations:
-    "helm.sh/hook-weight": "-5"
+  annotations: {}
 
   # -- Clickhouse Operator pod(s) annotation.
   podAnnotations: {}
