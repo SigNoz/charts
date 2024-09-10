@@ -1755,6 +1755,8 @@ otelCollector:
 
     autoscalingTemplate: []
     keda:
+      annotations:
+        "helm.sh/hook-weight": "4"
       enabled: false
       pollingInterval: "30"   # check 30sec periodically for metrics data
       cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
