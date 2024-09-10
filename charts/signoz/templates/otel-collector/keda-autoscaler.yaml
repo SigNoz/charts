@@ -3,6 +3,11 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: {{ include "otelCollector.fullname" . }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+  {{- if .Values.otelCollector.autoscaling.keda.annotations }}
+  annotations: {{ toYaml .Values.otelCollector.autoscaling.keda.annotations | nindent 4 }}
+  {{- end }}
 spec:
   scaleTargetRef:
     apiVersion:    apps/v1  # Optional. Default: apps/v1
