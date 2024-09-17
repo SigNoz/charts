@@ -229,6 +229,15 @@ presets:
       - pod
       - node
       - volume
+    metrics:
+      k8s.pod.cpu_limit_utilization:
+        enabled: true
+      k8s.pod.cpu_request_utilization:
+        enabled: true
+      k8s.pod.memory_limit_utilization:
+        enabled: true
+      k8s.pod.memory_request_utilization:
+        enabled: true
   kubernetesAttributes:
     enabled: true
     # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
