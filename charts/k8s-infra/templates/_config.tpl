@@ -208,6 +208,8 @@ receivers:
       {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
     metric_groups:
       {{ toYaml .Values.presets.kubeletMetrics.metricGroups | nindent 6 }}
+    metrics:
+      {{ toYaml .Values.presets.kubeletMetrics.metrics | nindent 6 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyLogsCollectionConfig" -}}
