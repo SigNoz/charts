@@ -139,8 +139,8 @@ exporters:
   otlp:
     endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
-      insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-      insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      insecure: {{ include "otel.insecure" . }}
+      insecure_skip_verify: {{ include "otel.insecureSkipVerify" . }}
       {{- if .Values.otelTlsSecrets.enabled }}
       cert_file: ${OTEL_SECRETS_PATH}/cert.pem
       key_file: ${OTEL_SECRETS_PATH}/key.pem
