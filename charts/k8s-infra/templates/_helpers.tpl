@@ -286,14 +286,14 @@ Return endpoint of OtelCollector.
 Whether OtelCollector endpoint is insecure.
 */}}
 {{- define "otel.insecure" -}}
-{{- default true (.Values.otelInsecure) }}
+{{- default true .Values.otelInsecure }}
 {{- end }}
 
 {{/*
 Whether to skip verifying the TLS certificates.
 */}}
 {{- define "otel.insecureSkipVerify" -}}
-{{- default true (.Values.insecureSkipVerify) }}
+{{- default true .Values.insecureSkipVerify }}
 {{- end }}
 
 {{/*
