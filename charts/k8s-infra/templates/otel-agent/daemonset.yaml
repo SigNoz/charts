@@ -99,7 +99,7 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-agent" .Values.otelAgent.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              {{- $attribs := "signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)" }}
+              {{- $attribs := "signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.node.name=$(K8S_NODE_NAME)" }}
               {{- if .Values.presets.resourceDetection.envResourceAttributes }}
               {{- $attribs = printf "%s,%s" $attribs .Values.presets.resourceDetection.envResourceAttributes }}
               {{- end }}
