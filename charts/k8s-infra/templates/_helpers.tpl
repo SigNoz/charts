@@ -286,14 +286,14 @@ Return endpoint of OtelCollector.
 Whether OtelCollector endpoint is insecure.
 */}}
 {{- define "otel.insecure" -}}
-{{- default "true" (.Values.otelInsecure | quote) }}
+{{- default true (.Values.otelInsecure) }}
 {{- end }}
 
 {{/*
 Whether to skip verifying the TLS certificates.
 */}}
 {{- define "otel.insecureSkipVerify" -}}
-{{- default "true" (.Values.insecureSkipVerify | quote) }}
+{{- default true (.Values.insecureSkipVerify) }}
 {{- end }}
 
 {{/*
@@ -399,8 +399,6 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
 {{- define "snippet.otlp-env" }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
   value: {{ include "otel.endpoint" . }}
-- name: OTEL_EXPORTER_OTLP_INSECURE
-  value: {{ include "otel.insecure" . }}
 {{- if or .Values.apiKeyExistingSecretName .Values.signozApiKey }}
 - name: SIGNOZ_API_KEY
   valueFrom:
@@ -408,8 +406,6 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
       name: {{ include "otel.apiKey.secretName" . }}
       key: {{ include "otel.apiKey.secretKey" . }}
 {{- end }}
-- name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
-  value: {{ include "otel.insecureSkipVerify" . }}
 - name: OTEL_SECRETS_PATH
   value: {{ include "otel.secretsPath" . }}
 - name: K8S_CLUSTER_NAME
