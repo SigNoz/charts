@@ -125,6 +125,10 @@ presets:
     operators:
       - id: container-parser
         type: container
+      - id: add-cluster-name
+        type: add
+        field: resource["k8s.cluster.name"]
+        value: EXPR(env("K8S_CLUSTER_NAME"))
   hostMetrics:
     enabled: true
     collectionInterval: 30s
