@@ -61,6 +61,8 @@ spec:
           args:
             - "--dsn"
             - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
+            - "--cluster-name"
+            - "$(CLICKHOUSE_CLUSTER)"
             {{- if .Values.schemaMigrator.enableReplication }}
             - "--replication"
             {{- end }}
