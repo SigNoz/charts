@@ -644,8 +644,8 @@ queryService:
     "helm.sh/hook-weight": "2"
 
   # -- Query-Service additional arguments for command line
-  additionalArgs: []
-    # - --prefer-delta=true
+  additionalArgs:
+    - --use-logs-new-schema=true
 
   # -- Additional environments to set for queryService
   additionalEnvs: {}
@@ -1978,6 +1978,7 @@ otelCollector:
       clickhouselogsexporter:
         dsn: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
+        use_new_schema: true
       prometheus:
         endpoint: 0.0.0.0:8889
     service:
