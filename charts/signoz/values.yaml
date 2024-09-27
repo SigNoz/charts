@@ -997,7 +997,7 @@ alertmanager:
     repository: signoz/alertmanager
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.23.5
+    tag: 0.23.7
 
   # -- Image Registry Secret Names for Alertmanager
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
