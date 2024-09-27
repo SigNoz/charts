@@ -123,88 +123,8 @@ presets:
       containers: []
       additionalInclude: []
     operators:
-      # Find out which format is used by kubernetes
-      - type: router
-        id: get-format
-        routes:
-          - output: parser-docker
-            expr: 'body matches "^\\{"'
-          - output: parser-crio
-            expr: 'body matches "^[^ Z]+ "'
-          - output: parser-containerd
-            expr: 'body matches "^[^ Z]+Z"'
-      # Parse CRI-O format
-      - type: regex_parser
-        id: parser-crio
-        regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout_type: gotime
-          layout: '2006-01-02T15:04:05.000000000-07:00'
-      # Parse CRI-Containerd format
-      - type: regex_parser
-        id: parser-containerd
-        regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Parse Docker format
-      - type: json_parser
-        id: parser-docker
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Extract metadata from file path
-      - type: regex_parser
-        id: extract_metadata_from_filepath
-        regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
-        parse_from: attributes["log.file.path"]
-        output: add_cluster_name
-      # Add cluster name attribute from environment variable
-      - id: add_cluster_name
-        type: add
-        field: resource["k8s.cluster.name"]
-        value: EXPR(env("K8S_CLUSTER_NAME"))
-        output: move_stream
-      # Rename attributes
-      - type: move
-        id: move_stream
-        from: attributes.stream
-        to: attributes["log.iostream"]
-        output: move_container_name
-      - type: move
-        id: move_container_name
-        from: attributes.container_name
-        to: resource["k8s.container.name"]
-        output: move_namespace
-      - type: move
-        id: move_namespace
-        from: attributes.namespace
-        to: resource["k8s.namespace.name"]
-        output: move_pod_name
-      - type: move
-        id: move_pod_name
-        from: attributes.pod_name
-        to: resource["k8s.pod.name"]
-        output: move_restart_count
-      - type: move
-        id: move_restart_count
-        from: attributes.restart_count
-        to: resource["k8s.container.restart_count"]
-        output: move_uid
-      - type: move
-        id: move_uid
-        from: attributes.uid
-        to: resource["k8s.pod.uid"]
-        output: move_log
-      # Clean up log body
-      - type: move
-        id: move_log
-        from: attributes.log
-        to: body
+      - id: container-parser
+        type: container
   hostMetrics:
     enabled: true
     collectionInterval: 30s
@@ -262,11 +182,16 @@ presets:
     # -- Which pod/namespace metadata to extract from a list of default metadata fields.
     extractMetadatas:
       - k8s.namespace.name
+      - k8s.deployment.name
+      - k8s.statefulset.name
+      - k8s.daemonset.name
+      - k8s.cronjob.name
+      - k8s.job.name
+      - k8s.node.name
+      - k8s.node.uid
       - k8s.pod.name
       - k8s.pod.uid
       - k8s.pod.start_time
-      - k8s.deployment.name
-      - k8s.node.name
   clusterMetrics:
     enabled: true
     collectionInterval: 30s
@@ -316,7 +241,7 @@ otelAgent:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelAgent.

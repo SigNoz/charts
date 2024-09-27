@@ -364,6 +364,10 @@ processors:
   resourcedetection/internal:
     detectors:
       - env
+      - k8snode
+    k8snode:
+      node_from_env_var: K8S_NODE_NAME
+      auth_type: serviceAccount
     timeout: {{ .Values.presets.resourceDetectionInternal.timeout }}
     override: {{ .Values.presets.resourceDetectionInternal.override }}
 {{- end }}
