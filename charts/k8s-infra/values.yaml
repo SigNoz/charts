@@ -206,11 +206,6 @@ presets:
       - memory
       # - ephemeral-storage
       # - storage
-  resourceDetectionInternal:
-    enabled: true
-    timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
   resourceDetection:
     enabled: true
     timeout: 2s
@@ -227,6 +222,8 @@ presets:
       # - azure
       # - heroku
       - system
+      - env
+      - k8snode
     systemHostnameSources:
       - dns
       - os

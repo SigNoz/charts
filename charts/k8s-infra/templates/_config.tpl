@@ -34,9 +34,6 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if .Values.presets.resourceDetectionInternal.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
 {{- if .Values.global.deploymentEnvironment }}
 {{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -68,8 +65,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.resourceDetectionInternal.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionInternalConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if .Values.presets.resourceDetection.enabled }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.global.deploymentEnvironment }}
 {{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -331,6 +328,15 @@ processors:
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfig" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resourcedetection" | uniq) }}
+{{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
 {{- end }}
@@ -342,6 +348,11 @@ processors:
   resourcedetection:
     detectors:
       {{- toYaml .Values.presets.resourceDetection.detectors | nindent 6 }}
+    {{- if has "k8snode" .Values.presets.resourceDetection.detectors }}
+    k8snode:
+      node_from_env_var: K8S_NODE_NAME
+      auth_type: serviceAccount
+    {{- end }}
     timeout: {{ .Values.presets.resourceDetection.timeout }}
     override: {{ .Values.presets.resourceDetection.override }}
     {{- if has "system" .Values.presets.resourceDetection.detectors }}
@@ -349,36 +360,6 @@ processors:
       hostname_sources:
         {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
     {{- end }}
-{{- end }}
-
-{{- define "opentelemetry-collector.applyResourceDetectionInternalConfig" -}}
-{{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionInternalConfig" .Values | fromYaml) .config }}
-{{- if $config.service.pipelines.logs }}
-{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resourcedetection/internal" | uniq) }}
-{{- end }}
-{{- if $config.service.pipelines.metrics }}
-{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resourcedetection/internal" | uniq) }}
-{{- end }}
-{{- if $config.service.pipelines.traces }}
-{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resourcedetection/internal" | uniq) }}
-{{- end }}
-{{- if index $config.service.pipelines "metrics/internal" }}
-{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection/internal" | uniq) }}
-{{- end }}
-{{- $config | toYaml }}
-{{- end }}
-
-{{- define "opentelemetry-collector.resourceDetectionInternalConfig" -}}
-processors:
-  resourcedetection/internal:
-    detectors:
-      - env
-      - k8snode
-    k8snode:
-      node_from_env_var: K8S_NODE_NAME
-      auth_type: serviceAccount
-    timeout: {{ .Values.presets.resourceDetectionInternal.timeout }}
-    override: {{ .Values.presets.resourceDetectionInternal.override }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
