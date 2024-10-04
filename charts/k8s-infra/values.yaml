@@ -572,10 +572,6 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/internal:
-          receivers: []
-          processors: [batch]
-          exporters: []
         logs:
           receivers: [otlp]
           processors: [batch]
