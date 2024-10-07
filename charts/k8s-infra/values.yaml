@@ -214,6 +214,8 @@ presets:
     # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
     # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
     detectors:
+      - env
+      - k8snode
       # - elastic_beanstalk
       # - eks
       # - ecs
@@ -222,8 +224,6 @@ presets:
       # - azure
       # - heroku
       - system
-      - env
-      - k8snode
     systemHostnameSources:
       - dns
       - os
