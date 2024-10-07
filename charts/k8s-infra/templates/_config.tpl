@@ -343,20 +343,30 @@ processors:
 {{- define "opentelemetry-collector.resourceDetectionConfig" -}}
 processors:
   resourcedetection:
+    # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
+    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
     detectors:
-      {{- toYaml .Values.presets.resourceDetection.detectors | nindent 6 }}
-    {{- if has "k8snode" .Values.presets.resourceDetection.detectors }}
+      - env
+      - k8snode
+      {{- if eq "aws" .Values.global.cloud }}
+      - eks
+      - ec2
+      {{- end }}
+      {{- if hasPrefix "gcp" .Values.global.cloud }}
+      - gcp
+      {{- end }}
+      {{- if eq "azure" .Values.global.cloud }}
+      - azure
+      {{- end }}
+      - system
     k8snode:
       node_from_env_var: K8S_NODE_NAME
       auth_type: serviceAccount
-    {{- end }}
     timeout: {{ .Values.presets.resourceDetection.timeout }}
     override: {{ .Values.presets.resourceDetection.override }}
-    {{- if has "system" .Values.presets.resourceDetection.detectors }}
     system:
       hostname_sources:
         {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
-    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
