@@ -365,8 +365,13 @@ processors:
     timeout: {{ .Values.presets.resourceDetection.timeout }}
     override: {{ .Values.presets.resourceDetection.override }}
     system:
-      hostname_sources:
-        {{- toYaml .Values.presets.resourceDetection.systemHostnameSources | nindent 8 }}
+      resource_attributes:
+        host.name:
+          enabled: false
+        host.id:
+          enabled: false
+        os.type:
+          enabled: true
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
