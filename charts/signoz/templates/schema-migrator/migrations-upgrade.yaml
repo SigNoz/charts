@@ -1,4 +1,6 @@
 {{- if and .Values.schemaMigrator.enabled .Release.IsUpgrade }}
+---
+# Sync Job (runs before async)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -59,6 +61,7 @@ spec:
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
+            - sync
             - "--dsn"
             - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
             {{- if .Values.schemaMigrator.enableReplication }}
@@ -80,4 +83,70 @@ spec:
       {{- if .Values.schemaMigrator.topologySpreadConstraints }}
       topologySpreadConstraints: {{ toYaml .Values.schemaMigrator.topologySpreadConstraints | nindent 8 }}
       {{- end }}
+---
+# Async Job (runs after sync completes)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "schemaMigrator.fullname" . }}-async
+  labels:
+    {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-weight": "1"  # Ensures async runs after sync
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "schemaMigrator.selectorLabelsUpgrade" . | nindent 8 }}
+    spec:
+      initContainers:
+        # Preserve ClickHouse ready check logic
+        {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
+        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+          image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+            - name: CLICKHOUSE_VERSION
+              value: {{ trimSuffix "-alpine" .Values.clickhouse.image.tag }}
+            - name: CLICKHOUSE_SHARDS
+              value: {{ default 1 .Values.clickhouse.layout.shardsCount | quote }}
+            - name: CLICKHOUSE_REPLICAS
+              value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
+          {{- with .Values.schemaMigrator.initContainers.chReady.command }}
+          command: {{ . | toYaml | nindent 12 }} 
+          {{- end }}
+          resources:
+            {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}
+        {{- end }}
+      containers:
+        - name: schema-migrator-async
+          image: {{ include "schemaMigrator.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+          args:
+            - async  # Run async command after sync completes
+            - "--dsn"
+            - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
+            {{- if .Values.schemaMigrator.enableReplication }}
+            - "--replication"
+            {{- end }}
+            {{- range .Values.schemaMigrator.args }}
+            - {{ . | quote }}
+            {{- end }}
+      restartPolicy: OnFailure
+      {{- if .Values.schemaMigrator.affinity }}
+      affinity: {{ toYaml .Values.schemaMigrator.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.schemaMigrator.tolerations }}
+      tolerations: {{ toYaml .Values.schemaMigrator.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.schemaMigrator.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.schemaMigrator.nodeSelector | nindent 8 }}
+      {{- end }}
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
 {{- end }}
+

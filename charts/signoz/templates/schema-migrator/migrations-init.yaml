@@ -1,8 +1,10 @@
 {{- if and .Values.schemaMigrator.enabled .Release.IsInstall }}
+---
+# Sync Job (runs first during installation)
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-init
+  name: {{ include "schemaMigrator.fullname" . }}-init-sync
   labels:
     {{- include "schemaMigrator.selectorLabelsInit" . | nindent 4 }}
   {{- if .Values.schemaMigrator.annotations }}
@@ -18,7 +20,6 @@ spec:
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: {{ include "schemaMigrator.fullname" . }}-init
-          # todo: use schema migrator variables here
           image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
@@ -58,6 +59,7 @@ spec:
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
+            - sync
             - "--dsn"
             - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
             {{- if .Values.schemaMigrator.enableReplication }}
@@ -79,4 +81,49 @@ spec:
       {{- if .Values.schemaMigrator.topologySpreadConstraints }}
       topologySpreadConstraints: {{ toYaml .Values.schemaMigrator.topologySpreadConstraints | nindent 8 }}
       {{- end }}
+---
+# Async Job (runs after sync completes)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "schemaMigrator.fullname" . }}-init-async
+  labels:
+    {{- include "schemaMigrator.selectorLabelsInit" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "1"  # Ensures async runs after sync
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "schemaMigrator.selectorLabelsInit" . | nindent 8 }}
+    spec:
+      containers:
+        - name: schema-migrator-async
+          image: {{ include "schemaMigrator.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+          args:
+            - async
+            - "--dsn"
+            - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
+            {{- if .Values.schemaMigrator.enableReplication }}
+            - "--replication"
+            {{- end }}
+            {{- range .Values.schemaMigrator.args }}
+            - {{ . | quote }}
+            {{- end }}
+      restartPolicy: OnFailure
+      {{- if .Values.schemaMigrator.affinity }}
+      affinity: {{ toYaml .Values.schemaMigrator.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.schemaMigrator.tolerations }}
+      tolerations: {{ toYaml .Values.schemaMigrator.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.schemaMigrator.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.schemaMigrator.nodeSelector | nindent 8 }}
+      {{- end }}
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
 {{- end }}
