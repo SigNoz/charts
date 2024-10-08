@@ -211,11 +211,6 @@ presets:
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
-    systemHostnameSources:
-      - dns
-      - os
-      # - cname
-      # - lookup
     envResourceAttributes: ""
 
 # Default values for OtelAgent
