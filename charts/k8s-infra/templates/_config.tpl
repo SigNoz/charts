@@ -346,8 +346,6 @@ processors:
     # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
     # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
     detectors:
-      - env
-      - k8snode
       {{- if eq "aws" .Values.global.cloud }}
       - eks
       - ec2
@@ -358,6 +356,8 @@ processors:
       {{- if eq "azure" .Values.global.cloud }}
       - azure
       {{- end }}
+      - k8snode
+      - env
       - system
     k8snode:
       node_from_env_var: K8S_NODE_NAME
