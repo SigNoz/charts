@@ -1267,7 +1267,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.102.12
+    tag: 0.102.10
     pullPolicy: IfNotPresent
 
   args: {}
