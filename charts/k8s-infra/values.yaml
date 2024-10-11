@@ -132,14 +132,72 @@ presets:
       cpu: {}
       load: {}
       memory: {}
-      disk: {}
-      filesystem: {}
-      network: {}
-    excludeDatapoints:
-      - IsMatch(metric.name, "system.disk.*") and IsMatch(attributes["device"], "^(z?ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$") and resource.attributes["os.type"] == "linux"
-      - IsMatch(metric.name, "system.filesystem.*") and IsMatch(attributes["mountpoint"], "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)") and resource.attributes["os.type"] == "linux"
-      - IsMatch(metric.name, "system.filesystem.*") and IsMatch(attributes["type"], "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$") and resource.attributes["os.type"] == "linux"
-      - IsMatch(metric.name, "system.network.*") and IsMatch(attributes["device"], "^(veth.*|docker.*|br-.*|flannel.*|cali.*|cbr.*|cni.*|dummy.*|tailscale.*|lo)$") and resource.attributes["os.type"] == "linux"
+      disk:
+        exclude:
+          devices:
+            - ^ram\d+$
+            - ^zram\d+$
+            - ^loop\d+$
+            - ^fd\d+$
+            - ^hd[a-z]\d+$
+            - ^sd[a-z]\d+$
+            - ^vd[a-z]\d+$
+            - ^xvd[a-z]\d+$
+            - ^nvme\d+n\d+p\d+$
+          match_type: regexp
+      filesystem:
+        exclude_fs_types:
+          fs_types:
+            - autofs
+            - binfmt_misc
+            - bpf
+            - cgroup2?
+            - configfs
+            - debugfs
+            - devpts
+            - devtmpfs
+            - fusectl
+            - hugetlbfs
+            - iso9660
+            - mqueue
+            - nsfs
+            - overlay
+            - proc
+            - procfs
+            - pstore
+            - rpc_pipefs
+            - securityfs
+            - selinuxfs
+            - squashfs
+            - sysfs
+            - tracefs
+          match_type: strict
+        exclude_mount_points:
+          mount_points:
+            - /dev/*
+            - /proc/*
+            - /sys/*
+            - /run/credentials/*
+            - /run/k3s/containerd/*
+            - /var/lib/docker/*
+            - /var/lib/containers/storage/*
+            - /var/lib/kubelet/*
+            - /snap/*
+          match_type: regexp
+      network:
+        exclude:
+          interfaces:
+            - ^veth.*$
+            - ^docker.*$
+            - ^br-.*$
+            - ^flannel.*$
+            - ^cali.*$
+            - ^cbr.*$
+            - ^cni.*$
+            - ^dummy.*$
+            - ^tailscale.*$
+            - ^lo$
+          match_type: regexp
   kubeletMetrics:
     enabled: true
     collectionInterval: 30s

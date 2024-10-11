@@ -168,7 +168,6 @@ receivers:
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.hostMetricsConfig" .Values | fromYaml) .config }}
 {{- if $config.service.pipelines.metrics }}
 {{- $_ := set $config.service.pipelines.metrics "receivers" (append $config.service.pipelines.metrics.receivers "hostmetrics" | uniq)  }}
-{{- $_ := set $config.service.pipelines.metrics "processors" (append $config.service.pipelines.metrics.processors "filter/hostmetrics" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -180,14 +179,8 @@ receivers:
     root_path: /hostfs
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
-      {{ $key }}: {{ $val | toYaml }}
+      {{ $key }}: {{- $val | toYaml | nindent 8 }}
     {{ end }}
-processors:
-  filter/hostmetrics:
-    error_mode: ignore
-    metrics:
-      datapoint:
-        {{- toYaml .Values.presets.hostMetrics.excludeDatapoints | nindent 8 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyKubeletMetricsConfig" -}}
