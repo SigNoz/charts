@@ -71,6 +71,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.k8sEvents.enabled }}
+{{- $config = (include "opentelemetry-collector.applyK8sEventsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -162,6 +165,24 @@ receivers:
       {{- toYaml .Values.presets.clusterMetrics.nodeConditionsToReport | nindent 6 }}
     allocatable_types_to_report:
       {{- toYaml .Values.presets.clusterMetrics.allocatableTypesToReport | nindent 6 }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyK8sEventsConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.k8sEventsConfig" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "receivers" (append $config.service.pipelines.logs.receivers "k8s_events" | uniq)  }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.k8sEventsConfig" -}}
+receivers:
+  k8s_events:
+    auth_type: {{ .Values.presets.k8sEvents.authType }}
+    {{- if gt (len .Values.presets.k8sEvents.namespaces) 0 }}
+    namespaces:
+      {{- toYaml .Values.presets.k8sEvents.namespaces | nindent 6 }}
+    {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
