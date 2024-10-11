@@ -198,14 +198,19 @@ presets:
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
-      # - DiskPressure
-      # - NetworkUnavailable
-      # - PIDPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
+    metrics:
+      k8s.node.condition:
+        enabled: true
+      k8s.pod.status_reason:
+        enabled: true
   resourceDetection:
     enabled: true
     timeout: 2s
