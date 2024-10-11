@@ -140,6 +140,9 @@ presets:
     collectionInterval: 30s
     authType: serviceAccount
     endpoint: ${K8S_HOST_IP}:10250
+    node: ${env:K8S_NODE_NAME}
+    k8sApiConfig:
+      auth_type: serviceAccount
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id

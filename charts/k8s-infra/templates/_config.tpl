@@ -197,6 +197,9 @@ receivers:
     collection_interval: {{ .Values.presets.kubeletMetrics.collectionInterval }}
     auth_type: {{ .Values.presets.kubeletMetrics.authType }}
     endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
+    node: {{ .Values.presets.kubeletMetrics.node }}
+    k8s_api_config:
+      {{- toYaml .Values.presets.kubeletMetrics.k8sApiConfig | nindent 8 }}
     insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
     extra_metadata_labels:
       {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
