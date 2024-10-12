@@ -261,20 +261,31 @@ presets:
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
-      # - DiskPressure
-      # - NetworkUnavailable
-      # - PIDPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
+    metrics:
+      k8s.node.condition:
+        enabled: true
+      k8s.pod.status_reason:
+        enabled: true
   resourceDetection:
     enabled: true
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
     envResourceAttributes: ""
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
+    namespaces: []
 
 # Default values for OtelAgent
 otelAgent:
@@ -629,7 +640,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -905,6 +916,10 @@ otelDeployment:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics/internal:
+          receivers: []
+          processors: [batch]
+          exporters: []
+        logs:
           receivers: []
           processors: [batch]
           exporters: []
