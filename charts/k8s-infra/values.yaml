@@ -215,6 +215,8 @@ presets:
   k8sEvents:
     enabled: true
     authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
     namespaces: []
 
 # Default values for OtelAgent
