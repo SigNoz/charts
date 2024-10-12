@@ -132,9 +132,72 @@ presets:
       cpu: {}
       load: {}
       memory: {}
-      disk: {}
-      filesystem: {}
-      network: {}
+      disk:
+        exclude:
+          devices:
+            - ^ram\d+$
+            - ^zram\d+$
+            - ^loop\d+$
+            - ^fd\d+$
+            - ^hd[a-z]\d+$
+            - ^sd[a-z]\d+$
+            - ^vd[a-z]\d+$
+            - ^xvd[a-z]\d+$
+            - ^nvme\d+n\d+p\d+$
+          match_type: regexp
+      filesystem:
+        exclude_fs_types:
+          fs_types:
+            - autofs
+            - binfmt_misc
+            - bpf
+            - cgroup2?
+            - configfs
+            - debugfs
+            - devpts
+            - devtmpfs
+            - fusectl
+            - hugetlbfs
+            - iso9660
+            - mqueue
+            - nsfs
+            - overlay
+            - proc
+            - procfs
+            - pstore
+            - rpc_pipefs
+            - securityfs
+            - selinuxfs
+            - squashfs
+            - sysfs
+            - tracefs
+          match_type: strict
+        exclude_mount_points:
+          mount_points:
+            - /dev/*
+            - /proc/*
+            - /sys/*
+            - /run/credentials/*
+            - /run/k3s/containerd/*
+            - /var/lib/docker/*
+            - /var/lib/containers/storage/*
+            - /var/lib/kubelet/*
+            - /snap/*
+          match_type: regexp
+      network:
+        exclude:
+          interfaces:
+            - ^veth.*$
+            - ^docker.*$
+            - ^br-.*$
+            - ^flannel.*$
+            - ^cali.*$
+            - ^cbr.*$
+            - ^cni.*$
+            - ^dummy.*$
+            - ^tailscale.*$
+            - ^lo$
+          match_type: regexp
   kubeletMetrics:
     enabled: true
     collectionInterval: 30s
@@ -235,20 +298,31 @@ presets:
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
-      # - DiskPressure
-      # - NetworkUnavailable
-      # - PIDPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
+    metrics:
+      k8s.node.condition:
+        enabled: true
+      k8s.pod.status_reason:
+        enabled: true
   resourceDetection:
     enabled: true
     timeout: 2s
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
     envResourceAttributes: ""
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
+    namespaces: []
 
 # Default values for OtelAgent
 otelAgent:
@@ -603,7 +677,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -879,6 +953,10 @@ otelDeployment:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics/internal:
+          receivers: []
+          processors: [batch]
+          exporters: []
+        logs:
           receivers: []
           processors: [batch]
           exporters: []
