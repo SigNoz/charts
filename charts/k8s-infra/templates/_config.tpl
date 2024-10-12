@@ -202,7 +202,7 @@ receivers:
     root_path: /hostfs
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
-      {{ $key }}: {{ $val | toYaml }}
+      {{ $key }}: {{- $val | toYaml | nindent 8 }}
     {{ end }}
 {{- end }}
 
