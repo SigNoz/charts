@@ -217,6 +217,12 @@ presets:
     # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
     override: true
     envResourceAttributes: ""
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
+    namespaces: []
 
 # Default values for OtelAgent
 otelAgent:
@@ -847,6 +853,10 @@ otelDeployment:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics/internal:
+          receivers: []
+          processors: [batch]
+          exporters: []
+        logs:
           receivers: []
           processors: [batch]
           exporters: []
