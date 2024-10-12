@@ -165,6 +165,8 @@ receivers:
       {{- toYaml .Values.presets.clusterMetrics.nodeConditionsToReport | nindent 6 }}
     allocatable_types_to_report:
       {{- toYaml .Values.presets.clusterMetrics.allocatableTypesToReport | nindent 6 }}
+    metrics:
+      {{- toYaml .Values.presets.clusterMetrics.metrics | nindent 6 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyK8sEventsConfig" -}}
