@@ -641,7 +641,6 @@ queryService:
 
   # -- Query-Service annotations
   annotations:
-    "helm.sh/hook-weight": "2"
 
   # -- Query-Service additional arguments for command line
   additionalArgs:
@@ -921,7 +920,6 @@ frontend:
 
   # -- Frontend deployment annotations
   annotations:
-    "helm.sh/hook-weight": "5"
   # -- Frontend pod security context
   podSecurityContext: {}
     # fsGroup: 2000
@@ -1140,7 +1138,6 @@ alertmanager:
 
   statefulSet:
     annotations:
-      "helm.sh/hook-weight": "4"
 
   podAnnotations: {}
   podLabels: {}
@@ -1272,8 +1269,6 @@ schemaMigrator:
 
   args: {}
   annotations:
-    "helm.sh/hook-weight": "1"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false
@@ -1377,6 +1372,41 @@ schemaMigrator:
         #   cpu: 100m
         #   memory: 100Mi
 
+  # SchemaMigrator Service Account
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  # SchemaMigrator RBAC config
+  clusterRole:
+    # -- Specifies whether a clusterRole should be created
+    create: true
+    # -- Annotations to add to the clusterRole
+    annotations: {}
+    # -- The name of the clusterRole to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+    # -- A set of rules as documented here.
+    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    # @default -- See `values.yaml` for defaults
+    rules:
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["get", "list", "watch"]
+
+    # SchemaMigrator clusterRoleBinding
+    clusterRoleBinding:
+      # Annotations to add to the clusterRoleBinding
+      annotations: {}
+      # The name of the clusterRoleBinding to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name: ""
+
 # Default values for OtelCollector
 otelCollector:
   name: "otel-collector"
@@ -1444,7 +1474,6 @@ otelCollector:
 
   # -- OtelCollector Deployment annotation.
   annotations:
-    "helm.sh/hook-weight": "3"
   # -- OtelCollector pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
@@ -1756,7 +1785,6 @@ otelCollector:
     autoscalingTemplate: []
     keda:
       annotations:
-        "helm.sh/hook-weight": "4"
       enabled: false
       pollingInterval: "30"   # check 30sec periodically for metrics data
       cooldownPeriod: "300"   # once the load decreased, it will wait for 5 min and downscale
@@ -2053,7 +2081,6 @@ otelCollectorMetrics:
 
   # -- OtelCollectorMetrics Deployment annotation.
   annotations:
-    "helm.sh/hook-weight": "3"
   # -- OtelCollectorMetrics pod(s) annotation.
   podAnnotations:
     signoz.io/scrape: 'true'
