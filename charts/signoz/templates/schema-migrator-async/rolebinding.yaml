@@ -1,16 +1,15 @@
-{{- if .Values.schemaMigrator.clusterRole.create -}}
+{{- if .Values.schemaMigrator.role.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: {{ include "schemaMigrator.clusterRoleBindingName" . }}-async
+  name: {{ include "schemaMigrator.roleBindingName" . }}-async
   namespace: {{ include "signoz.namespace" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "schemaMigrator.clusterRoleName" . }}-async
+  kind: Role
+  name: {{ include "schemaMigrator.roleName" . }}-async
 subjects:
   - name: {{ include "schemaMigrator.serviceAccountName" . }}-async
     kind: ServiceAccount
     namespace: {{ include "signoz.namespace" . }}
-    
 {{- end }}

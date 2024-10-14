@@ -1383,7 +1383,7 @@ schemaMigrator:
     name:
 
   # SchemaMigrator RBAC config
-  clusterRole:
+  role:
     # -- Specifies whether a clusterRole should be created
     create: true
     # -- Annotations to add to the clusterRole
@@ -1400,7 +1400,7 @@ schemaMigrator:
         verbs: ["get", "list", "watch"]
 
     # SchemaMigrator clusterRoleBinding
-    clusterRoleBinding:
+    roleBinding:
       # Annotations to add to the clusterRoleBinding
       annotations: {}
       # The name of the clusterRoleBinding to use.

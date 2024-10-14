@@ -475,26 +475,26 @@ Create the name of the clusterRoleBinding to use
 
 
 {{/*
-Create the name of the clusterRole to use for schema migrator
+Create the name of the Role to use for schema migrator
 */}}
-{{- define "schemaMigrator.clusterRoleName" -}}
-{{- if .Values.schemaMigrator.clusterRole.create }}
-{{- $clusterRole := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $clusterRole .Values.schemaMigrator.clusterRole.name }}
+{{- define "schemaMigrator.roleName" -}}
+{{- if .Values.schemaMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.schemaMigrator.role.name }}
 {{- else }}
-{{- default "default" .Values.schemaMigrator.clusterRole.name }}
+{{- default "default" .Values.schemaMigrator.role.name }}
 {{- end }}
 {{- end }}
 
 {{/*
-Create the name of the clusterRoleBinding to use for schema migrator
+Create the name of the RoleBinding to use for schema migrator
 */}}
-{{- define "schemaMigrator.clusterRoleBindingName" -}}
-{{- if .Values.schemaMigrator.clusterRole.create }}
-{{- $clusterRole := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $clusterRole .Values.schemaMigrator.clusterRole.clusterRoleBinding.name }}
+{{- define "schemaMigrator.roleBindingName" -}}
+{{- if .Values.schemaMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.schemaMigrator.role.roleBinding.name }}
 {{- else }}
-{{- default "default" .Values.schemaMigrator.clusterRole.clusterRoleBinding.name }}
+{{- default "default" .Values.schemaMigrator.role.roleBinding.name }}
 {{- end }}
 {{- end }}
 
