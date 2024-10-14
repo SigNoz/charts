@@ -1267,7 +1267,8 @@ schemaMigrator:
     tag: 0.102.10
     pullPolicy: IfNotPresent
 
-  args: {}
+  args:
+    - "--up="
   annotations:
 
   # -- Whether to enable replication for schemaMigrator
