@@ -277,8 +277,7 @@ presets:
   resourceDetection:
     enabled: true
     timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
+    override: false
     envResourceAttributes: ""
   k8sEvents:
     enabled: true

@@ -63,7 +63,7 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
 {{- if .Values.presets.resourceDetection.enabled }}
-{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.global.deploymentEnvironment }}
 {{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -363,6 +363,23 @@ processors:
 {{- $config | toYaml }}
 {{- end }}
 
+{{- define "opentelemetry-collector.applyResourceDetectionConfigForDeployment" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.resourceDetectionConfigForDeployment" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "resourcedetection" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
 {{- define "opentelemetry-collector.resourceDetectionConfig" -}}
 processors:
   resourcedetection:
@@ -395,6 +412,69 @@ processors:
           enabled: false
         os.type:
           enabled: true
+{{- end }}
+
+{{- define "opentelemetry-collector.resourceDetectionConfigForDeployment" -}}
+processors:
+  resourcedetection:
+    # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
+    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
+    detectors:
+      {{- if eq "aws" .Values.global.cloud }}
+      - eks
+      - ec2
+      {{- end }}
+      {{- if hasPrefix "gcp" .Values.global.cloud }}
+      - gcp
+      {{- end }}
+      {{- if eq "azure" .Values.global.cloud }}
+      - azure
+      {{- end }}
+      - env
+    timeout: {{ .Values.presets.resourceDetection.timeout }}
+    override: {{ .Values.presets.resourceDetection.override }}
+    {{- if eq "aws" .Values.global.cloud }}
+    ec2:
+      resource_attributes:
+        host.name:
+          enabled: false
+        host.id:
+          enabled: false
+        host.image.id:
+          enabled: false
+        host.type:
+          enabled: false
+    {{- end}}
+    {{- if hasPrefix "gcp" .Values.global.cloud }}
+    gcp:
+      resource_attributes:
+        host.name:
+          enabled: false
+        host.id:
+          enabled: false
+        host.type:
+          enabled: false
+        gcp.gce.instance.name:
+          enabled: false
+        gcp.gce.instance.hostname:
+          enabled: false
+    {{- end}}
+    {{- if eq "azure" .Values.global.cloud }}
+    azure:
+      resource_attributes:
+        host.name:
+          enabled: false
+        host.id:
+          enabled: false
+        azure.vm.name:
+          enabled: false
+        azure.vm.size:
+          enabled: false
+        azure.vm.scaleset.name:
+          enabled: false
+        azure.resourcegroup.name:
+          enabled: false
+    {{- end}}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
