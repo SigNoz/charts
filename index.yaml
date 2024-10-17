@@ -1184,6 +1184,34 @@ entries:
   k8s-infra:
   - apiVersion: v2
     appVersion: 0.109.0
+    created: "2024-10-17T06:06:44.986865804Z"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: a7df1fc20a177c28266742b886d5f47d4c45a2e7804eb48151aeb975a94dd273
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.11.18/k8s-infra-0.11.18.tgz
+    version: 0.11.18
+  - apiVersion: v2
+    appVersion: 0.109.0
     created: "2024-10-15T13:23:47.250396932Z"
     description: Helm chart for collecting metrics and logs in K8s
     digest: 78648d67347fd9b9b1ea4596cf2fda1d1216546bac5af06568af3195878504ed
@@ -2751,6 +2779,46 @@ entries:
     - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.1.0/k8s-infra-0.1.0.tgz
     version: 0.1.0
   signoz:
+  - apiVersion: v2
+    appVersion: 0.56.0
+    created: "2024-10-17T06:06:45.118101853Z"
+    dependencies:
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://charts.signoz.io
+      version: 24.1.7
+    - condition: signoz-otel-gateway.enabled
+      name: signoz-otel-gateway
+      repository: https://charts.signoz.io
+      version: 0.0.1
+    description: SigNoz Observability Platform Helm Chart
+    digest: 7bfef3eb214a1fc5e6e21cd9bb2766eee37914c2b7b85f94dc49a9ffa77ad410
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    - distributed logging
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/signoz/signoz
+    - https://github.com/signoz/alertmanager
+    - https://github.com/signoz/signoz-otel-collector
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.54.1/signoz-0.54.1.tgz
+    version: 0.54.1
   - apiVersion: v2
     appVersion: 0.56.0
     created: "2024-10-11T16:27:25.913466154Z"
@@ -11123,4 +11191,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-otel-gateway-0.0.1/signoz-otel-gateway-0.0.1.tgz
     version: 0.0.1
-generated: "2024-10-15T13:23:47.250956608Z"
+generated: "2024-10-17T06:06:45.118734027Z"
