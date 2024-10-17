@@ -601,7 +601,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.55.0
+    tag: 0.56.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Query-Service
@@ -831,7 +831,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.55.0
+    tag: 0.56.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for Frontend
@@ -1383,7 +1383,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.102.10
+    tag: 0.102.12
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -1968,15 +1968,15 @@ otelCollector:
         endpoint: localhost:1777
     exporters:
       clickhousetraces:
-        datasource: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_TRACE_DATABASE}
-        low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
+        datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
+        low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
       clickhousemetricswrite:
-        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
+        endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
         timeout: 15s
         resource_to_telemetry_conversion:
           enabled: true
       clickhouselogsexporter:
-        dsn: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_LOG_DATABASE}
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
         use_new_schema: true
       prometheus:
@@ -2013,7 +2013,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.102.10
+    tag: 0.102.12
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2366,9 +2366,9 @@ otelCollectorMetrics:
     exporters:
       clickhousemetricswrite:
         timeout: 15s
-        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
+        endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
       clickhousemetricswrite/hostmetrics:
-        endpoint: tcp://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/${CLICKHOUSE_DATABASE}
+        endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
         resource_to_telemetry_conversion:
           enabled: true
     service:

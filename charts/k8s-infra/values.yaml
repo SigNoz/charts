@@ -15,7 +15,7 @@ global:
   # -- Deployment environment to be attached to telemetry data
   deploymentEnvironment: ""
   # -- Kubernetes cluster cloud provider along with distribution if any.
-  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `azure`, and `other`
   cloud: other
 
 # -- K8s infra chart name override
@@ -132,14 +132,77 @@ presets:
       cpu: {}
       load: {}
       memory: {}
-      disk: {}
-      filesystem: {}
-      network: {}
+      disk:
+        exclude:
+          devices:
+            - ^ram\d+$
+            - ^zram\d+$
+            - ^loop\d+$
+            - ^fd\d+$
+            - ^hd[a-z]\d+$
+            - ^sd[a-z]\d+$
+            - ^vd[a-z]\d+$
+            - ^xvd[a-z]\d+$
+            - ^nvme\d+n\d+p\d+$
+          match_type: regexp
+      filesystem:
+        exclude_fs_types:
+          fs_types:
+            - autofs
+            - binfmt_misc
+            - bpf
+            - cgroup2?
+            - configfs
+            - debugfs
+            - devpts
+            - devtmpfs
+            - fusectl
+            - hugetlbfs
+            - iso9660
+            - mqueue
+            - nsfs
+            - overlay
+            - proc
+            - procfs
+            - pstore
+            - rpc_pipefs
+            - securityfs
+            - selinuxfs
+            - squashfs
+            - sysfs
+            - tracefs
+          match_type: strict
+        exclude_mount_points:
+          mount_points:
+            - /dev/*
+            - /proc/*
+            - /sys/*
+            - /run/credentials/*
+            - /run/k3s/containerd/*
+            - /var/lib/docker/*
+            - /var/lib/containers/storage/*
+            - /var/lib/kubelet/*
+            - /snap/*
+          match_type: regexp
+      network:
+        exclude:
+          interfaces:
+            - ^veth.*$
+            - ^docker.*$
+            - ^br-.*$
+            - ^flannel.*$
+            - ^cali.*$
+            - ^cbr.*$
+            - ^cni.*$
+            - ^dummy.*$
+            - ^tailscale.*$
+            - ^lo$
+          match_type: regexp
   kubeletMetrics:
     enabled: true
     collectionInterval: 30s
     authType: serviceAccount
-    endpoint: ${K8S_HOST_IP}:10250
+    endpoint: ${env:K8S_HOST_IP}:10250
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id
@@ -198,41 +261,30 @@ presets:
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
-      # - DiskPressure
-      # - NetworkUnavailable
-      # - PIDPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
-  resourceDetectionInternal:
-    enabled: true
-    timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
+    metrics:
+      k8s.node.condition:
+        enabled: true
+      k8s.pod.status_reason:
+        enabled: true
   resourceDetection:
     enabled: true
     timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
-    # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
-    detectors:
-      # - elastic_beanstalk
-      # - eks
-      # - ecs
-      # - ec2
-      # - gcp
-      # - azure
-      # - heroku
-      - system
-    systemHostnameSources:
-      - dns
-      - os
-      # - cname
-      # - lookup
+    override: false
     envResourceAttributes: ""
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
+    namespaces: []
 
 # Default values for OtelAgent
 otelAgent:
@@ -310,7 +362,7 @@ otelAgent:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces", "nodes"]
+        resources: ["pods", "namespaces", "nodes", "persistentvolumeclaims"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
@@ -575,10 +627,6 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/internal:
-          receivers: []
-          processors: [batch]
-          exporters: []
         logs:
           receivers: [otlp]
           processors: [batch]
@@ -591,7 +639,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -867,6 +915,10 @@ otelDeployment:
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics/internal:
+          receivers: []
+          processors: [batch]
+          exporters: []
+        logs:
           receivers: []
           processors: [batch]
           exporters: []

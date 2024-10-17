@@ -53,9 +53,11 @@ spec:
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
+        {{- if eq .Values.presets.hostMetrics.enabled true }}
         - name: hostfs
           hostPath:
             path: /
+        {{- end }}
         {{- end }}
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
@@ -99,7 +101,7 @@ spec:
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-agent" .Values.otelAgent.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
-              {{- $attribs := "signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.node.name=$(K8S_NODE_NAME)" }}
+              {{- $attribs := "signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.node.name=$(K8S_NODE_NAME),host.name=$(K8S_NODE_NAME)" }}
               {{- if .Values.presets.resourceDetection.envResourceAttributes }}
               {{- $attribs = printf "%s,%s" $attribs .Values.presets.resourceDetection.envResourceAttributes }}
               {{- end }}
@@ -120,10 +122,12 @@ spec:
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
+            {{- if eq .Values.presets.hostMetrics.enabled true }}
             - name: hostfs
               mountPath: /hostfs
               readOnly: true
               mountPropagation: HostToContainer
+            {{- end }}
             {{- end }}
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
