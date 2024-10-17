@@ -53,9 +53,11 @@ spec:
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
+        {{- if eq .Values.presets.hostMetrics.enabled true }}
         - name: hostfs
           hostPath:
             path: /
+        {{- end }}
         {{- end }}
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
@@ -120,10 +122,12 @@ spec:
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
+            {{- if eq .Values.presets.hostMetrics.enabled true }}
             - name: hostfs
               mountPath: /hostfs
               readOnly: true
               mountPropagation: HostToContainer
+            {{- end }}
             {{- end }}
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol

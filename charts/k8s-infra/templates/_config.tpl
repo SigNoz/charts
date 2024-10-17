@@ -134,19 +134,19 @@ exporters:
 {{- define "opentelemetry-collector.otlpExporterConfig" -}}
 exporters:
   otlp:
-    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
-      insecure: ${OTEL_EXPORTER_OTLP_INSECURE}
-      insecure_skip_verify: ${OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+      insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
       {{- if .Values.otelTlsSecrets.enabled }}
-      cert_file: ${OTEL_SECRETS_PATH}/cert.pem
-      key_file: ${OTEL_SECRETS_PATH}/key.pem
+      cert_file: ${env:OTEL_SECRETS_PATH}/cert.pem
+      key_file: ${env:OTEL_SECRETS_PATH}/key.pem
       {{- if .Values.otelTlsSecrets.ca }}
-      ca_file: ${OTEL_SECRETS_PATH}/ca.pem
+      ca_file: ${env:OTEL_SECRETS_PATH}/ca.pem
       {{- end }}
       {{- end }}
     headers:
-      "signoz-access-token": "${SIGNOZ_API_KEY}"
+      "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}
