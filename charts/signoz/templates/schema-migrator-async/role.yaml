@@ -1,0 +1,12 @@
+{{- if .Values.schemaMigrator.role.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "schemaMigrator.roleName" . }}-async
+  namespace: {{ include "signoz.namespace" . }}
+  {{- with .Values.schemaMigrator.role.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules: {{ toYaml .Values.schemaMigrator.role.rules | nindent 2 -}}
+{{- end }}

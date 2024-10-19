@@ -1,24 +1,35 @@
-{{- if and .Values.schemaMigrator.enabled .Release.IsInstall }}
+{{- if and .Values.schemaMigrator.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-init
+  name: {{ include "schemaMigrator.fullname" . }}-async
   labels:
-    {{- include "schemaMigrator.selectorLabelsInit" . | nindent 4 }}
+    {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
   {{- if .Values.schemaMigrator.annotations }}
   annotations:
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
   {{- end }}
 spec:
+  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
-        {{- include "schemaMigrator.selectorLabelsInit" . | nindent 8 }}
+        {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-async
       initContainers:
+        {{- if .Values.schemaMigrator.enabled }}
+        - name: {{ include "schemaMigrator.fullname" . }}-migrate-wait-for-sync
+          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
+          env:
+            {{- toYaml .Values.schemaMigrator.initContainers.wait.env | nindent 12 }}
+          args:
+          - "job"
+          - "{{ include "schemaMigrator.fullname" . }}-sync"
+        {{- end }}
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: {{ include "schemaMigrator.fullname" . }}-init
-          # todo: use schema migrator variables here
           image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
@@ -58,6 +69,7 @@ spec:
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
+            - async
             - "--dsn"
             - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
             {{- if .Values.schemaMigrator.enableReplication }}
