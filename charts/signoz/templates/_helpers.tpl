@@ -326,21 +326,6 @@ app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{/*
-Selector labels of init migration job
-*/}}
-{{- define "schemaMigrator.selectorLabelsInit" -}}
-{{ include "schemaMigrator.selectorLabels" . }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-init
-{{- end -}}
-
-{{/*
-Selector labels of upgrade migration job
-*/}}
-{{- define "schemaMigrator.selectorLabelsUpgrade" -}}
-{{ include "schemaMigrator.selectorLabels" . }}
-app.kubernetes.io/component: {{ default "schema-migrator" .Values.schemaMigrator.name }}-upgrade
-{{- end -}}
 
 {{/*
 Create a default fully qualified app name for otelCollector.
@@ -488,6 +473,41 @@ Create the name of the clusterRoleBinding to use
 {{- end }}
 {{- end }}
 
+
+{{/*
+Create the name of the Role to use for schema migrator
+*/}}
+{{- define "schemaMigrator.roleName" -}}
+{{- if .Values.schemaMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.schemaMigrator.role.name }}
+{{- else }}
+{{- default "default" .Values.schemaMigrator.role.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the RoleBinding to use for schema migrator
+*/}}
+{{- define "schemaMigrator.roleBindingName" -}}
+{{- if .Values.schemaMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.schemaMigrator.role.roleBinding.name }}
+{{- else }}
+{{- default "default" .Values.schemaMigrator.role.roleBinding.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use for schema migrator
+*/}}
+{{- define "schemaMigrator.serviceAccountName" -}}
+{{- if .Values.schemaMigrator.serviceAccount.create -}}
+    {{ default (include "schemaMigrator.fullname" .) .Values.schemaMigrator.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.schemaMigrator.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for otelCollectorMetrics.

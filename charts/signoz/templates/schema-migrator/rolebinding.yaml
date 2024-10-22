@@ -1,0 +1,15 @@
+{{- if .Values.schemaMigrator.role.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "schemaMigrator.roleBindingName" . }}-sync
+  namespace: {{ include "signoz.namespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "schemaMigrator.roleName" . }}-sync
+subjects:
+  - name: {{ include "schemaMigrator.serviceAccountName" . }}-sync
+    kind: ServiceAccount
+    namespace: {{ include "signoz.namespace" . }}
+{{- end }}
