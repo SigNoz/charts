@@ -1270,6 +1270,14 @@ schemaMigrator:
   args:
     - "--up="
   annotations:
+  hookAnnotationsSync:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "-1"
+  hookAnnotationsAsync:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false

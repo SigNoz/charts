@@ -5,12 +5,16 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}-async
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
+  {{- if or .Values.schemaMigrator.annotations .Values.schemaMigrator.hookAnnotationsAsync }}
   annotations:
+    {{- if .Values.schemaMigrator.annotations }}
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
+    {{- end }}
+    {{- if and (gt (len .Values.schemaMigrator.hookAnnotationsAsync) 0) .Release.IsUpgrade }}
+    {{- toYaml .Values.schemaMigrator.hookAnnotationsAsync | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
-  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
@@ -19,7 +23,7 @@ spec:
       serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-async
       initContainers:
         {{- if .Values.schemaMigrator.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-migrate-wait-for-sync
+        - name: wait-for-sync
           image: {{ include "schemaMigrator.initContainers.wait.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
           env:

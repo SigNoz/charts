@@ -5,12 +5,16 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}-sync
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
+  {{- if or .Values.schemaMigrator.annotations .Values.schemaMigrator.hookAnnotationsSync }}
   annotations:
+    {{- if .Values.schemaMigrator.annotations }}
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
+    {{- end }}
+    {{- if and (gt (len .Values.schemaMigrator.hookAnnotationsSync) 0) .Release.IsUpgrade }}
+    {{- toYaml .Values.schemaMigrator.hookAnnotationsSync | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
-  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
