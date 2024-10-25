@@ -9,10 +9,16 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
   annotations:
-    {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
-  {{- end }}
+    {{- with .Values.schemaMigrator.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    {{- end }}
 spec:
   template:
     metadata:
@@ -22,7 +28,7 @@ spec:
       serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-sync
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-init
+        - name: schema-migrator-sync-init
           image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
@@ -38,7 +44,7 @@ spec:
         {{- end }}
         # ClickHouse ready check
         {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+        - name: schema-migrator-sync-ch-ready
           image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
           env:

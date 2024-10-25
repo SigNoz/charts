@@ -1264,16 +1264,13 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.111.2
+    tag: 0.111.3
     pullPolicy: IfNotPresent
 
   args:
     - "--up="
-  annotations:
-    helm.sh/hook: pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  annotations: {}
+  upgradeHelmHooks: true  # set to false to disable helm hooks
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false
@@ -1288,13 +1285,6 @@ schemaMigrator:
   topologySpreadConstraints: []
 
   initContainers:
-    wait:
-      image:
-        registry: docker.io
-        repository: groundnuty/k8s-wait-for
-        tag: v2.0
-        pullPolicy: IfNotPresent
-      env: []
     init:
       enabled: true
       image:
@@ -1377,6 +1367,14 @@ schemaMigrator:
         # limits:
         #   cpu: 100m
         #   memory: 100Mi
+    wait:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: groundnuty/k8s-wait-for
+        tag: v2.0
+        pullPolicy: IfNotPresent
+      env: []
 
   # SchemaMigrator Service Account
   serviceAccount:
@@ -1419,7 +1417,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.2
+    tag: 0.111.3
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
@@ -2047,7 +2045,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.2
+    tag: 0.111.3
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelCollector
