@@ -25,11 +25,13 @@ spec:
         - name: {{ include "schemaMigrator.fullname" . }}-migrate-wait-for-sync
           image: {{ include "schemaMigrator.initContainers.wait.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
+          {{- with .Values.schemaMigrator.initContainers.wait.env }}
           env:
-            {{- toYaml .Values.schemaMigrator.initContainers.wait.env | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
-          - "job"
-          - "{{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}"
+            - "job"
+            - "{{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}"
         {{- end }}
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: {{ include "schemaMigrator.fullname" . }}-init
@@ -60,7 +62,8 @@ spec:
             - name: CLICKHOUSE_REPLICAS
               value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
           {{- with .Values.schemaMigrator.initContainers.chReady.command }}
-          command: {{ . | toYaml | nindent 12 }} 
+          command:
+            {{- . | toYaml | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}

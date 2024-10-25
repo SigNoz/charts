@@ -1294,6 +1294,7 @@ schemaMigrator:
         repository: groundnuty/k8s-wait-for
         tag: v2.0
         pullPolicy: IfNotPresent
+      env: []
     init:
       enabled: true
       image:

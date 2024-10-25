@@ -50,7 +50,8 @@ spec:
             - name: CLICKHOUSE_REPLICAS
               value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
           {{- with .Values.schemaMigrator.initContainers.chReady.command }}
-          command: {{ . | toYaml | nindent 12 }} 
+          command:
+            {{- . | toYaml | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}
