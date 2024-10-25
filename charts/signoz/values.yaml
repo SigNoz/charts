@@ -1270,6 +1270,10 @@ schemaMigrator:
   args:
     - "--up="
   annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false

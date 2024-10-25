@@ -1,8 +1,12 @@
 {{- if and .Values.schemaMigrator.enabled }}
+{{- $schemaMigratorSuffix := "" }}
+{{- if .Release.IsInstall }}
+{{- $schemaMigratorSuffix := "-init" }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-sync
+  name: {{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
   {{- if .Values.schemaMigrator.annotations }}
@@ -10,7 +14,6 @@ metadata:
     {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
   {{- end }}
 spec:
-  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
