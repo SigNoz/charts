@@ -1,7 +1,7 @@
 {{- if and .Values.schemaMigrator.enabled }}
 {{- $schemaMigratorSuffix := "" }}
 {{- if .Release.IsInstall }}
-{{- $schemaMigratorSuffix := "-init" }}
+{{- $schemaMigratorSuffix = "-init" }}
 {{- end }}
 apiVersion: batch/v1
 kind: Job
