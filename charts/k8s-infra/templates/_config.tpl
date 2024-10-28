@@ -192,21 +192,33 @@ exporters:
 
 
 {{- define "opentelemetry-collector.ownMetricsConfig" -}}
-receivers:
-  prometheus/own_metrics:
-    config:
-      scrape_configs:
-        - job_name: otel-collector
-          scrape_interval: 30s
-          static_configs:
-            - targets:
-              - 0.0.0.0:8888
 service:
-  pipelines:
-    metrics/own_metrics:
-      exporters: [otlp/own_telemetry]
-      processors: []
-      receivers: [prometheus/own_metrics]
+  telemetry:
+    metrics:
+      level: detailed
+      readers:
+        - periodic:
+            exporter:
+              otlp:
+                protocol: http/protobuf
+                {{- with .Values.presets }}
+                {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
+                endpoint: {{ .ownTelemetry.otlpEndpoint }}/v1/metrics
+                {{- else }}
+                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics
+                {{- end }}
+                {{- end }}
+                insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                {{- if .Values.otelTlsSecrets.enabled }}
+                client_certificate: ${env:OTEL_SECRETS_PATH}/cert.pem
+                client_key: ${env:OTEL_SECRETS_PATH}/key.pem
+                {{- if .Values.otelTlsSecrets.ca }}
+                certificate: ${env:OTEL_SECRETS_PATH}/ca.pem
+                {{- end }}
+                {{- end }}
+                compression: gzip
+                headers:
+                  "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
 
 {{- define "opentelemetry-collector.ownLogsConfig" -}}
