@@ -64,7 +64,11 @@ spec:
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
           args:
           - "job"
+          {{- if .Release.IsInstall }}
+          - "{{ include "schemaMigrator.fullname" . }}-sync-init"
+          {{- else }}
           - "{{ include "schemaMigrator.fullname" . }}-sync"
+          {{- end }}
         {{- end }}
         {{- if .Values.otelCollector.initContainers.init.enabled }}
         - name: {{ include "otelCollector.fullname" . }}-init
