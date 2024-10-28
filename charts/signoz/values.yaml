@@ -1269,8 +1269,14 @@ schemaMigrator:
 
   args:
     - "--up="
-  annotations: {}
-  upgradeHelmHooks: true  # set to false to disable helm hooks
+  # For usual Helm installs, we don't need any additional annotations.
+  # As well as for Helm upgrade (with upgradeHelmHooks to true), we automatically include the required pre-upgrade helm hooks.
+  # For ArgoCD, since every upgrade is an install, we need to explicitly specify the ArgoCD equivalent of the helm hooks.
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  # This is needed for ArgoCD to sync the migrations.
+  upgradeHelmHooks: true
 
   # -- Whether to enable replication for schemaMigrator
   enableReplication: false

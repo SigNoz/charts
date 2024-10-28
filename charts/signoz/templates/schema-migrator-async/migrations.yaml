@@ -9,7 +9,6 @@ metadata:
   name: {{ include "schemaMigrator.fullname" . }}-async{{ $schemaMigratorSuffix }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if or .Release.IsUpgrade .Values.schemaMigrator.annotations }}
   annotations:
     {{- with .Values.schemaMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -17,10 +16,7 @@ metadata:
     {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
     helm.sh/hook: pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     {{- end }}
-  {{- end }}
 spec:
   template:
     metadata:
