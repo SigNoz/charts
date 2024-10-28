@@ -1275,7 +1275,8 @@ schemaMigrator:
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-  # This is needed for ArgoCD to sync the migrations.
+  # In Helm, this is needed to apply helm hooks for pre-upgrade, delete policy and hook weight.
+  # For ArgoCD, this is needed to apply the sync wave - ArgoCD equivalent of hook weight.
   upgradeHelmHooks: true
 
   # -- Whether to enable replication for schemaMigrator
