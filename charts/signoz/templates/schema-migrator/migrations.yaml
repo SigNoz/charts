@@ -1,16 +1,23 @@
 {{- if and .Values.schemaMigrator.enabled }}
+{{- $schemaMigratorSuffix := "" }}
+{{- if .Release.IsInstall }}
+{{- $schemaMigratorSuffix = "-init" }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-sync
+  name: {{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
   annotations:
-    {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
-  {{- end }}
+    {{- with .Values.schemaMigrator.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{- end }}
 spec:
-  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
@@ -19,7 +26,7 @@ spec:
       serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-sync
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-init
+        - name: schema-migrator-sync-init
           image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
@@ -35,7 +42,7 @@ spec:
         {{- end }}
         # ClickHouse ready check
         {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+        - name: schema-migrator-sync-ch-ready
           image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
           env:
@@ -47,7 +54,8 @@ spec:
             - name: CLICKHOUSE_REPLICAS
               value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
           {{- with .Values.schemaMigrator.initContainers.chReady.command }}
-          command: {{ . | toYaml | nindent 12 }} 
+          command:
+            {{- . | toYaml | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}

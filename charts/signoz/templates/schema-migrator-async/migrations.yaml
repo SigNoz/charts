@@ -1,16 +1,27 @@
 {{- if and .Values.schemaMigrator.enabled }}
+{{- $schemaMigratorSuffix := "" }}
+{{- if .Release.IsInstall }}
+{{- $schemaMigratorSuffix = "-init" }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "schemaMigrator.fullname" . }}-async
+  name: {{ include "schemaMigrator.fullname" . }}-async{{ $schemaMigratorSuffix }}
   labels:
     {{- include "schemaMigrator.selectorLabels" . | nindent 4 }}
-  {{- if .Values.schemaMigrator.annotations }}
   annotations:
-    {{- toYaml .Values.schemaMigrator.annotations | nindent 4 }}
-  {{- end }}
+    {{- with .Values.schemaMigrator.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.schemaMigrator.upgradeHelmHooks }}
+    argocd.argoproj.io/sync-wave: "1"
+    {{- if .Release.IsUpgrade }}
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "1"
+    {{- end }}
+    {{- end }}
 spec:
-  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
@@ -18,18 +29,8 @@ spec:
     spec:
       serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-async
       initContainers:
-        {{- if .Values.schemaMigrator.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-migrate-wait-for-sync
-          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
-          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
-          env:
-            {{- toYaml .Values.schemaMigrator.initContainers.wait.env | nindent 12 }}
-          args:
-          - "job"
-          - "{{ include "schemaMigrator.fullname" . }}-sync"
-        {{- end }}
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-init
+        - name: schema-migrator-async-init
           image: {{ include "schemaMigrator.initContainers.init.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.init.image.pullPolicy }}
           env:
@@ -45,7 +46,7 @@ spec:
         {{- end }}
         # ClickHouse ready check
         {{- if and .Values.clickhouse.enabled .Values.schemaMigrator.initContainers.chReady.enabled }}
-        - name: {{ include "schemaMigrator.fullname" . }}-ch-ready
+        - name: schema-migrator-async-ch-ready
           image: {{ include "schemaMigrator.initContainers.chReady.image" . }}
           imagePullPolicy: {{ .Values.schemaMigrator.initContainers.chReady.image.pullPolicy }}
           env:
@@ -57,10 +58,23 @@ spec:
             - name: CLICKHOUSE_REPLICAS
               value: {{ default 1 .Values.clickhouse.layout.replicasCount | quote }}
           {{- with .Values.schemaMigrator.initContainers.chReady.command }}
-          command: {{ . | toYaml | nindent 12 }} 
+          command:
+            {{- . | toYaml | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.schemaMigrator.initContainers.chReady.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.schemaMigrator.initContainers.wait.enabled }}
+        - name: schema-migrator-async-wait-for-sync
+          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
+          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
+          {{- with .Values.schemaMigrator.initContainers.wait.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          args:
+            - "job"
+            - "{{ include "schemaMigrator.fullname" . }}-sync{{ $schemaMigratorSuffix }}"
         {{- end }}
       containers:
         - name: schema-migrator
