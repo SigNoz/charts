@@ -180,7 +180,7 @@ exporters:
 
 {{- define "opentelemetry-collector.otlpExporterOwnTelemetryConfig" -}}
 exporters:
-  otlp/own_telemetry:
+  otlphttp/own_telemetry:
     {{- with .Values.presets }}
     {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
     endpoint: {{ .ownTelemetry.otlpEndpoint }}
@@ -217,9 +217,9 @@ service:
               protocol: http/protobuf
               {{- with .Values.presets }}
               {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
-              endpoint: {{ .ownTelemetry.otlpEndpoint }}/v1/traces
+              endpoint: {{ .ownTelemetry.otlpEndpoint }}
               {{- else }}
-              endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces
+              endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
               {{- end }}
               {{- end }}
               insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
@@ -254,9 +254,9 @@ service:
                 protocol: http/protobuf
                 {{- with .Values.presets }}
                 {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
-                endpoint: {{ .ownTelemetry.otlpEndpoint }}/v1/metrics
+                endpoint: {{ .ownTelemetry.otlpEndpoint }}
                 {{- else }}
-                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics
+                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                 {{- end }}
                 {{- end }}
                 insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
@@ -292,7 +292,7 @@ receivers:
 service:
   pipelines:
     logs/own_logs:
-      exporters: [otlp/own_telemetry]
+      exporters: [otlphttp/own_telemetry]
       processors: []
       receivers: [filelog/own_logs]
 {{- end }}
@@ -657,12 +657,6 @@ processors:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resource/deployenv" | uniq) }}
-{{- end }}
-{{- if .Values.presets.ownTelemetry.metrics.enabled }}
-{{- $_ := set $config.service.pipelines.metrics "exporters" (append $config.service.pipelines.metrics.exporters "otlp/own_metrics" | uniq) }}
-{{- end }}
-{{- if .Values.presets.ownTelemetry.logs.enabled }}
-{{- $_ := set $config.service.pipelines.logs "exporters" (append $config.service.pipelines.logs.exporters "otlp/own_logs" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
