@@ -91,6 +91,12 @@ presets:
   otlpExporter:
     enabled: true
   ownTelemetry:
+    # OTLP HTTP endpoint to send own telemetry data to.
+    endpoint: ""
+    # Whether to use insecure mode.
+    insecure: true
+    # Whether to skip verifying the certificate.
+    insecureSkipVerify: true
     traces:
       enabled: false
     metrics:

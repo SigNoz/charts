@@ -49,7 +49,7 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.logs.enabled }}
+{{- if .Values.presets.ownTelemetry.logs.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterOwnTelemetryConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.otlpExporter.enabled }}
@@ -101,7 +101,7 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.otlpExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.logs.enabled }}
+{{- if .Values.presets.ownTelemetry.logs.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterOwnTelemetryConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
@@ -181,23 +181,10 @@ exporters:
 {{- define "opentelemetry-collector.otlpExporterOwnTelemetryConfig" -}}
 exporters:
   otlphttp/own_telemetry:
-    {{- with .Values.presets }}
-    {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
-    endpoint: {{ .ownTelemetry.otlpEndpoint }}
-    {{- else }}
-    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
-    {{- end }}
-    {{- end }}
+    endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
     tls:
-      insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-      insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
-      {{- if .Values.otelTlsSecrets.enabled }}
-      cert_file: ${env:OTEL_SECRETS_PATH}/cert.pem
-      key_file: ${env:OTEL_SECRETS_PATH}/key.pem
-      {{- if .Values.otelTlsSecrets.ca }}
-      ca_file: ${env:OTEL_SECRETS_PATH}/ca.pem
-      {{- end }}
-      {{- end }}
+      insecure: {{ .Values.presets.ownTelemetry.insecure }}
+      insecure_skip_verify: {{ .Values.presets.ownTelemetry.insecureSkipVerify }}
     headers:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
@@ -215,21 +202,8 @@ service:
           exporter:
             otlp:
               protocol: http/protobuf
-              {{- with .Values.presets }}
-              {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
-              endpoint: {{ .ownTelemetry.otlpEndpoint }}
-              {{- else }}
-              endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
-              {{- end }}
-              {{- end }}
-              insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-              {{- if .Values.otelTlsSecrets.enabled }}
-              client_certificate: ${env:OTEL_SECRETS_PATH}/cert.pem
-              client_key: ${env:OTEL_SECRETS_PATH}/key.pem
-              {{- if .Values.otelTlsSecrets.ca }}
-              certificate: ${env:OTEL_SECRETS_PATH}/ca.pem
-              {{- end }}
-              {{- end }}
+              endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
+              insecure: {{ .Values.presets.ownTelemetry.insecure }}
               compression: gzip
               headers:
                 "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -252,21 +226,8 @@ service:
             exporter:
               otlp:
                 protocol: http/protobuf
-                {{- with .Values.presets }}
-                {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
-                endpoint: {{ .ownTelemetry.otlpEndpoint }}
-                {{- else }}
-                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
-                {{- end }}
-                {{- end }}
-                insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                {{- if .Values.otelTlsSecrets.enabled }}
-                client_certificate: ${env:OTEL_SECRETS_PATH}/cert.pem
-                client_key: ${env:OTEL_SECRETS_PATH}/key.pem
-                {{- if .Values.otelTlsSecrets.ca }}
-                certificate: ${env:OTEL_SECRETS_PATH}/ca.pem
-                {{- end }}
-                {{- end }}
+                endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
+                insecure: {{ .Values.presets.ownTelemetry.insecure }}
                 compression: gzip
                 headers:
                   "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -511,10 +472,6 @@ processors:
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
 {{- end }}
-# preprend for "metrics/own_metrics"
-{{- if index $config.service.pipelines "metrics/own_metrics" }}
-{{- $_ := set (index $config.service.pipelines "metrics/own_metrics") "processors" (prepend (index (index $config.service.pipelines "metrics/own_metrics") "processors") "resourcedetection" | uniq) }}
-{{- end }}
 # prepend for "logs/own_logs"
 {{- if index $config.service.pipelines "logs/own_logs" }}
 {{- $_ := set (index $config.service.pipelines "logs/own_logs") "processors" (prepend (index (index $config.service.pipelines "logs/own_logs") "processors") "resourcedetection" | uniq) }}
@@ -535,10 +492,6 @@ processors:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
-{{- end }}
-# prepend for "metrics/own_metrics"
-{{- if index $config.service.pipelines "metrics/own_metrics" }}
-{{- $_ := set (index $config.service.pipelines "metrics/own_metrics") "processors" (prepend (index (index $config.service.pipelines "metrics/own_metrics") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 # prepend for "logs/own_logs"
 {{- if index $config.service.pipelines "logs/own_logs" }}
