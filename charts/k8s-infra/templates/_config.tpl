@@ -19,6 +19,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- $values := deepCopy .Values.otelAgent }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelAgent.baseConfig" $data | fromYaml }}
+{{- if .Values.presets.ownTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.ownTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -71,6 +74,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
+{{- if .Values.presets.ownTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.ownTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -102,6 +108,12 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $_ := unset $config.service.pipelines "metrics/internal" }}
 {{- end }}
 {{- tpl (toYaml $config) . }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyOwnTracesConfig" -}}
+{{- $config := .config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownTracesConfig" .Values | fromYaml) $config }}
+{{- $config | toYaml }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyOwnMetricsConfig" -}}
@@ -190,7 +202,46 @@ exporters:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
 
+{{/*
+Own traces config, if the endpoint is not set in the ownTelemetry config,
+it will use the same endpoint as regular otlp exporter.
+*/}}
+{{- define "opentelemetry-collector.ownTracesConfig" -}}
+service:
+  telemetry:
+    traces:
+      processors:
+      - batch:
+          exporter:
+            otlp:
+              protocol: http/protobuf
+              {{- with .Values.presets }}
+              {{- if and .ownTelemetry .ownTelemetry.otlpEndpoint }}
+              endpoint: {{ .ownTelemetry.otlpEndpoint }}/v1/traces
+              {{- else }}
+              endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces
+              {{- end }}
+              {{- end }}
+              insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+              {{- if .Values.otelTlsSecrets.enabled }}
+              client_certificate: ${env:OTEL_SECRETS_PATH}/cert.pem
+              client_key: ${env:OTEL_SECRETS_PATH}/key.pem
+              {{- if .Values.otelTlsSecrets.ca }}
+              certificate: ${env:OTEL_SECRETS_PATH}/ca.pem
+              {{- end }}
+              {{- end }}
+              compression: gzip
+              headers:
+                "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+      propagators:
+      - tracecontext
+      - b3
+{{- end }}
 
+{{/*
+Own metrics config, if the endpoint is not set in the ownTelemetry config,
+it will use the same endpoint as regular otlp exporter.
+*/}}
 {{- define "opentelemetry-collector.ownMetricsConfig" -}}
 service:
   telemetry:
@@ -221,6 +272,10 @@ service:
                   "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
 
+{{/*
+OTEL go doesn't support logs yet, so we use filelog receiver to collect logs,
+if the endpoint is not set in the ownTelemetry config, it will use the same endpoint as regular otlp exporter.
+*/}}
 {{- define "opentelemetry-collector.ownLogsConfig" -}}
 receivers:
   filelog/own_logs:
@@ -385,7 +440,6 @@ receivers:
     exclude:
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
       {{- range $namespace := $namespaces }}
       - /var/log/pods/{{ $namespace }}_*/*/*.log

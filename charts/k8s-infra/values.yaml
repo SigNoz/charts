@@ -91,6 +91,8 @@ presets:
   otlpExporter:
     enabled: true
   ownTelemetry:
+    traces:
+      enabled: false
     metrics:
       enabled: false
     logs:
