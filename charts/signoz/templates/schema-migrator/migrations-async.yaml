@@ -13,9 +13,13 @@ metadata:
     {{- with .Values.schemaMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
+    {{- if .Values.schemaMigrator.upgradeHelmHooks }}
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    {{- if .Release.IsUpgrade }}
     helm.sh/hook: post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
+    {{- end }}
     {{- end }}
 spec:
   template:
