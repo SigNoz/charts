@@ -2,15 +2,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "schemaMigrator.roleName" . }}-sync
+  name: {{ include "schemaMigrator.roleName" . }}-async
   namespace: {{ include "signoz.namespace" . }}
+  {{- with .Values.schemaMigrator.role.annotations }}
   annotations:
-    {{- with .Values.schemaMigrator.role.annotations }}
     {{- toYaml . | nindent 4 }}
-    {{- end }}
-    {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
-    helm.sh/hook: pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    {{- end }}
+  {{- end }}
 rules: {{ toYaml .Values.schemaMigrator.role.rules | nindent 2 -}}
 {{- end }}
