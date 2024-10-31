@@ -1501,7 +1501,7 @@ otelCollector:
   lowCardinalityExceptionGrouping: false
 
   minReadySeconds: 5
-  progressDeadlineSeconds: 120
+  progressDeadlineSeconds: 600
   replicaCount: 1
 
   # OtelCollector RBAC config
@@ -2111,7 +2111,7 @@ otelCollectorMetrics:
     # runAsUser: 1000
 
   minReadySeconds: 5
-  progressDeadlineSeconds: 120
+  progressDeadlineSeconds: 600
   replicaCount: 1
 
   initContainers:
