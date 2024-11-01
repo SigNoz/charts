@@ -2,14 +2,18 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "schemaMigrator.roleBindingName" . }}-sync
+  name: {{ include "schemaMigrator.roleBindingName" . }}-async
   namespace: {{ include "signoz.namespace" . }}
+  {{- with .Values.schemaMigrator.role.roleBinding.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "schemaMigrator.roleName" . }}-sync
+  name: {{ include "schemaMigrator.roleName" . }}-async
 subjects:
-  - name: {{ include "schemaMigrator.serviceAccountName" . }}-sync
+  - name: {{ include "schemaMigrator.serviceAccountName" . }}-async
     kind: ServiceAccount
     namespace: {{ include "signoz.namespace" . }}
 {{- end }}

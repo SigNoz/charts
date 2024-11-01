@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "schemaMigrator.roleName" . }}-sync
+  name: {{ include "schemaMigrator.roleName" . }}-async
   namespace: {{ include "signoz.namespace" . }}
   {{- with .Values.schemaMigrator.role.annotations }}
   annotations:
