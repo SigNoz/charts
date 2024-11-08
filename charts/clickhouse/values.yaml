@@ -178,7 +178,10 @@ image:
 # If global.imagePullSecrets is set as well, it will merged.
 imagePullSecrets: []
   # - "clickhouse-pull-secret"
-
+# ClickHouse instance labels
+labels: {}
+# ClickHouse pod labels
+podLabels: {}
 # -- ClickHouse instance annotations.
 annotations: {}
 
@@ -487,9 +490,12 @@ clickhouseOperator:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
+  # ClickHouse operator deployment labels
+  labels: {}
+  # ClickHouse operator pod labels
+  podLabels: {}
   # -- Clickhouse Operator deployment annotations
   annotations: {}
-
   # -- Clickhouse Operator pod(s) annotation.
   podAnnotations: {}
     # signoz.io/port: '8888'

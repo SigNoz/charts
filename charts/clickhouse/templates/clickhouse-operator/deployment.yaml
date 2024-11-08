@@ -5,6 +5,9 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
+    {{- if .Values.clickhouseOperator.labels }}
+    {{- toYaml .Values.clickhouseOperator.labels | nindent 4 }}
+    {{- end }}
   {{- if .Values.clickhouseOperator.annotations }}
   annotations:
     {{- toYaml .Values.clickhouseOperator.annotations | nindent 4 }}
@@ -27,6 +30,9 @@ spec:
         checksum/usersd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-usersd-files.yaml") . | sha256sum }}
       labels:
         {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
+        {{- if .Values.clickhouseOperator.podLabels }}
+        {{- toYaml .Values.clickhouseOperator.podLabels | nindent 8 }}
+        {{- end }}
     spec:
       {{- include "clickhouseOperator.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "clickhouseOperator.serviceAccountName" . }}
