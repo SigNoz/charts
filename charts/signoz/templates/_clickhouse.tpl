@@ -20,8 +20,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ include "clickhouse.httpPort" . | quote }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.cluster | quote }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
+- name: CLICKHOUSE_METRIC_DATABASE
+  value: {{ default "signoz_metrics" .Values.clickhouse.metricsDatabase | quote }}
 - name: CLICKHOUSE_TRACE_DATABASE
   value: {{ default "signoz_traces" .Values.clickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_LOG_DATABASE
@@ -43,8 +43,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}
+- name: CLICKHOUSE_METRIC_DATABASE
+  value: {{ default "signoz_metrics" .Values.externalClickhouse.metricsDatabase | quote }}
 - name: CLICKHOUSE_TRACE_DATABASE
   value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_LOG_DATABASE
@@ -204,9 +204,9 @@ Return the ClickHouse Metrics URL
 */}}
 {{- define "clickhouse.metricsUrl" -}}
 {{- if .Values.clickhouse.enabled -}}
-  tcp://{{ .Values.clickhouse.user }}:{{ .Values.clickhouse.password }}@{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/{{ .Values.clickhouse.database -}}
+  tcp://{{ .Values.clickhouse.user }}:{{ .Values.clickhouse.password }}@{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/{{ .Values.clickhouse.metricsDatabase -}}
 {{- else -}}
-  tcp://{{ .Values.externalClickhouse.user }}:{{ include "clickhouse.externalPasswordKey" . }}@{{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/{{ .Values.externalClickhouse.database -}}
+  tcp://{{ .Values.externalClickhouse.user }}:{{ include "clickhouse.externalPasswordKey" . }}@{{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/{{ .Values.externalClickhouse.metricsDatabase -}}
 {{- end -}}
 {{- end -}}
 

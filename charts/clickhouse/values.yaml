@@ -145,8 +145,8 @@ fullnameOverride: ""
 
 # -- Clickhouse cluster
 cluster: cluster
-# -- Clickhouse database
-database: signoz_metrics
+# -- Clickhouse database (SigNoz Metrics)
+metricsDatabase: signoz_metrics
 # -- Clickhouse trace database (SigNoz Traces)
 traceDatabase: signoz_traces
 # -- Clickhouse log database (SigNoz Logs)
