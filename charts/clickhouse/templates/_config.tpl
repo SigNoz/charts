@@ -36,7 +36,7 @@ configuration:
     {{ .Values.user }}/quota: default
 
   profiles:
-    {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
+    {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 4 }}
 
   clusters:
     - name: {{ .Values.cluster | quote }}
@@ -46,7 +46,7 @@ configuration:
         {{- toYaml .Values.layout | nindent 10 }}
 
   settings:
-    {{- merge dict .Values.settings .Values.defaultSettings | toYaml | nindent 6 }}
+    {{- merge dict .Values.settings .Values.defaultSettings | toYaml | nindent 4 }}
 
   files:
     events.proto: |
@@ -121,7 +121,7 @@ configuration:
   zookeeper:
     nodes:
     {{- if .Values.externalZookeeper }}
-      {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
+      {{- toYaml .Values.externalZookeeper.servers | nindent 6 }}
     {{- else }}
       {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
       {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
@@ -137,9 +137,9 @@ templates:
     - name: pod-template
       metadata:
         labels:
-          {{- include "clickhouse.labels" . | nindent 12 }}
+          {{- include "clickhouse.labels" . | nindent 10 }}
           {{- if .Values.podLabels }}
-          {{- toYaml .Values.podLabels | nindent 12 }}
+          {{- toYaml .Values.podLabels | nindent 10 }}
           {{- end }}
         {{- with .Values.podAnnotations }}
         annotations:
@@ -150,23 +150,23 @@ templates:
         {{- toYaml . | nindent 10 }}
       {{- end }}
       spec:
-        {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
+        {{- include "clickhouse.imagePullSecrets" . | indent 8 }}
         serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
         priorityClassName: {{ .Values.priorityClassName | quote }}
         {{- if .Values.affinity }}
-        affinity: {{ toYaml .Values.affinity | nindent 12 }}
+        affinity: {{ toYaml .Values.affinity | nindent 8 }}
         {{- end }}
         {{- if .Values.tolerations }}
-        tolerations: {{ toYaml .Values.tolerations | nindent 12 }}
+        tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
         {{- end }}
         {{- if .Values.nodeSelector }}
-        nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
+        nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
         {{- end }}
         {{- with .Values.topologySpreadConstraints }}
-        topologySpreadConstraints: {{ toYaml . | nindent 12 }}
+        topologySpreadConstraints: {{ toYaml . | nindent 8 }}
         {{- end }}
         {{- if .Values.securityContext.enabled }}
-        securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
+        securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 8 }}
         {{- end }}
 
         volumes:
@@ -186,7 +186,7 @@ templates:
             configMap:
               name: {{ include "clickhouse.fullname" . }}-custom-functions
         {{- if .Values.additionalVolumes }}
-          {{- toYaml .Values.additionalVolumes | nindent 12 }}
+          {{- toYaml .Values.additionalVolumes | nindent 10 }}
         {{- end }}
 
         {{- if .Values.initContainers.enabled }}
@@ -196,7 +196,7 @@ templates:
             image: {{ include "clickhouse.initContainers.udf.image" . }}
             imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
             command:
-              {{- toYaml .Values.initContainers.udf.command | nindent 16 }}
+              {{- toYaml .Values.initContainers.udf.command | nindent 14 }}
             volumeMounts:
               - name: shared-binary-volume
                 mountPath: /var/lib/clickhouse/user_scripts
@@ -206,7 +206,7 @@ templates:
             image: {{ include "clickhouse.initContainers.init.image" . }}
             imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
             command:
-              {{- toYaml .Values.initContainers.init.command | nindent 16 }}
+              {{- toYaml .Values.initContainers.init.command | nindent 14 }}
           {{- end }}
         {{- end }}
         containers:
@@ -244,11 +244,11 @@ templates:
               # - name: log-volumeclaim-template
               #   mountPath: /var/log/clickhouse-server
             {{- if .Values.additionalVolumeMounts }}
-              {{- toYaml .Values.additionalVolumeMounts | nindent 16 }}
+              {{- toYaml .Values.additionalVolumeMounts | nindent 14 }}
             {{- end }}
 
             {{- if .Values.resources }}
-            resources: {{ toYaml .Values.resources | nindent 16 }}
+            resources: {{ toYaml .Values.resources | nindent 14 }}
             {{- end }}
 
   serviceTemplates:
@@ -257,10 +257,10 @@ templates:
       {{- with .Values.service }}
       metadata:
         labels:
-          {{- include "clickhouse.labels" $ | nindent 12 }}
+          {{- include "clickhouse.labels" $ | nindent 10 }}
         {{- with .annotations }}
         annotations:
-          {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
       spec:
         type: {{ .type }}
@@ -279,7 +279,7 @@ templates:
       reclaimPolicy: Retain
       spec:
         accessModes:
-          {{- toYaml .Values.persistence.accessModes | nindent 12 }}
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
@@ -292,5 +292,4 @@ templates:
       {{- end }}
   {{- end }}
 {{- end }}
-
 {{- end -}}
