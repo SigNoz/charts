@@ -3,7 +3,6 @@
 {{- fail "Configuration error: Only one preset can be enabled at a time" }}
 {{- else if .Values.presets.simple.enabled }}
 {{- include "clickhouse-instance.simpleSpec" . }}
-{{- end }}
 {{- else if .Values.presets.custom.enabled }}
 {{- include "clickhouse-instance.customSpec" . }}
 {{- else }}
