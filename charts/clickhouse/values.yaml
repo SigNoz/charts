@@ -440,6 +440,23 @@ files: {}
   #     <some-setting>some-value</some-setting>
   #   </clickhouse>
 
+presets:
+  simple:
+    enabled: true
+  custom:
+    enabled: false
+    # See https://github.com/Altinity/clickhouse-operator/blob/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseinstallations.clickhouse.altinity.com.yaml
+    # for an exhaustive list of configuration options. 
+    configuration:
+      clusters:
+        - layout:
+            replicasCount: 1
+            shardsCount: 1
+          name: cluster
+          templates:
+            podTemplate: pod-template
+
+
 ###
 ###
 ### ---- MISC ----
@@ -450,7 +467,6 @@ files: {}
 # it creates custom storage class with volume expansion permission.
 #
 installCustomStorageClass: false
-
 
 ###
 ###
