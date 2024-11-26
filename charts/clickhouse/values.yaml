@@ -443,6 +443,8 @@ files: {}
 presets:
   simple:
     enabled: true
+  # Custom preset allows fine-grained control over ClickHouse configuration. Use this when you need advanced cluster configuration
+  # beyond what the simple preset offers.
   custom:
     enabled: false
     # See https://github.com/Altinity/clickhouse-operator/blob/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseinstallations.clickhouse.altinity.com.yaml
