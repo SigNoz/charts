@@ -446,7 +446,7 @@ presets:
   custom:
     enabled: false
     # See https://github.com/Altinity/clickhouse-operator/blob/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseinstallations.clickhouse.altinity.com.yaml
-    # for an exhaustive list of configuration options. 
+    # for an exhaustive list of configuration options.
     configuration:
       clusters:
         - layout:
