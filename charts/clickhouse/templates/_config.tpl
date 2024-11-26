@@ -1,18 +1,18 @@
 {{- define "clickhouse-instance.spec" -}}
 {{- if and (.Values.presets.simple.enabled) (.Values.presets.custom.enabled) }}
-{{- fail "only one preset can be enabled at a time" }}
-{{- end }}
-{{- if .Values.presets.simple.enabled }}
+{{- fail "Configuration error: Only one preset can be enabled at a time" }}
+{{- else if .Values.presets.simple.enabled }}
 {{- include "clickhouse-instance.simpleSpec" . }}
 {{- end }}
-{{- if .Values.presets.custom.enabled }}
+{{- else if .Values.presets.custom.enabled }}
 {{- include "clickhouse-instance.customSpec" . }}
+{{- else }}
+{{- fail "Configuration error: No preset enabled. Please enable a preset" }}
 {{- end }}
 {{- end }}
 
 
 {{- define "clickhouse-instance.customSpec" -}}
-{{- $config := omit .Values.presets.custom "enabled" -}}
 {{- omit .Values.presets.custom "enabled" | toYaml  }}
 {{- end -}}
 
