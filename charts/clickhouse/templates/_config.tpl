@@ -2,7 +2,11 @@
 {{- if and (.Values.presets.simple.enabled) (.Values.presets.custom.enabled) }}
 {{- fail "Configuration error: Only one preset can be enabled at a time" }}
 {{- else if .Values.presets.simple.enabled }}
-{{- include "clickhouse-instance.simpleSpec" . }}
+{{- $base := omit .Values "presets" -}}
+{{- $preset := omit .Values.presets.simple "enabled" -}}
+{{- $merged := mergeOverwrite $base $preset -}}
+{{- $context := dict "Values" $merged "Release" .Release "Chart" .Chart "Root" . -}}
+{{- include "clickhouse-instance.simpleSpec" $context }}
 {{- else if .Values.presets.custom.enabled }}
 {{- include "clickhouse-instance.customSpec" . }}
 {{- else }}
@@ -10,12 +14,77 @@
 {{- end }}
 {{- end }}
 
+{{- define "clickhouse-instance.spec.common.settings" -}}
+{{- $common := dict -}}
+{{- $_ := set $common "settings.format_schema_path" "/etc/clickhouse-server/config.d/" -}}
+{{- $_ := set $common "settings.user_scripts_path" "/var/lib/clickhouse/user_scripts/" -}}
+{{- $_ := set $common "settings.user_defined_executable_functions_config" "/etc/clickhouse-server/functions/custom-functions.xml" -}}
+{{- toYaml $common }}
+{{- end }}
 
-{{- define "clickhouse-instance.customSpec" -}}
+{{- define "clickhouse-instance.spec.common.profiles" -}}
+{{- $common := dict -}}
+{{- $_ := set $common "default/allow_experimental_window_functions" "1" -}}
+{{- $_ := set $common "default/allow_nondeterministic_mutations" "1" -}}
+{{- toYaml $common }}
+{{- end }}
+
+{{- define "clickhouse-instance.spec.common.initContainers" -}}
+          udf:
+            enabled: true
+            image:
+              registry: docker.io
+              repository: alpine
+              tag: 3.18.2
+              pullPolicy: IfNotPresent
+            command:
+              - sh
+              - -c
+              - |
+                set -x
+                wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+                mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
+                chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
+{{- end }}
+
+{{- define "clickhouse-instance.spec.common.files" -}}
+files:
+  events.proto: |
+    syntax = "proto3";
+    message Event {
+      string uuid = 1;
+      string event = 2;
+      string properties = 3;
+      string timestamp = 4;
+      uint64 team_id = 5;
+      string distinct_id = 6;
+      string created_at = 7;
+      string elements_chain = 8;
+    }
+{{- end }}
+
+{{- define "clickhouse-instance.spec.common.zookeeper" -}}
+zookeeper:
+  nodes:
+  {{- if .Values.externalZookeeper }}
+    {{- toYaml .Values.externalZookeeper.servers | nindent 6 }}
+  {{- else }}
+    {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
+    {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
+    {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) }}
+    {{- range $replicaIndex := until $replicaCount }}
+    - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
+      port: {{ include "clickhouse.zookeeper.port" . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+{{- define "clickhouse-instance.spec.custom" -}}
 {{- omit .Values.presets.custom "enabled" | toYaml  }}
 {{- end -}}
 
-{{- define "clickhouse-instance.simpleSpec" -}}
+{{- define "clickhouse-instance.spec.simple" -}}
 defaults:
   templates:
     {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
@@ -45,7 +114,10 @@ configuration:
         {{- toYaml .Values.layout | nindent 10 }}
 
   settings:
-    {{- merge dict .Values.settings .Values.defaultSettings | toYaml | nindent 4 }}
+    format_schema_path: /etc/clickhouse-server/config.d/
+    user_scripts_path: /var/lib/clickhouse/user_scripts/
+    user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+    {{- .Values.settings | toYaml | nindent 4 }}
 
   files:
     events.proto: |
@@ -188,9 +260,7 @@ templates:
           {{- toYaml .Values.additionalVolumes | nindent 10 }}
         {{- end }}
 
-        {{- if .Values.initContainers.enabled }}
         initContainers:
-          {{- if .Values.initContainers.udf.enabled }}
           - name: {{ include "clickhouse.fullname" . }}-udf-init
             image: {{ include "clickhouse.initContainers.udf.image" . }}
             imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
@@ -199,7 +269,7 @@ templates:
             volumeMounts:
               - name: shared-binary-volume
                 mountPath: /var/lib/clickhouse/user_scripts
-          {{- end }}
+        {{- if .Values.initContainers.enabled }}
           {{- if .Values.initContainers.init.enabled }}
           - name: {{ include "clickhouse.fullname" . }}-init
             image: {{ include "clickhouse.initContainers.init.image" . }}
