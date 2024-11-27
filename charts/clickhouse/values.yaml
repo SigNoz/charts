@@ -462,7 +462,7 @@ clickhouseOperator:
   name: operator
 
   # -- Version of the operator
-  version: 0.21.2
+  version: 0.22.1
 
   # -- Clickhouse Operator image
   image:
@@ -471,7 +471,7 @@ clickhouseOperator:
     # -- Clickhouse Operator image repository to use.
     repository: altinity/clickhouse-operator
     # -- Clickhouse Operator image tag.
-    tag: 0.21.2
+    tag: 0.22.1
     # -- Clickhouse Operator image pull policy.
     pullPolicy: IfNotPresent
 
@@ -629,8 +629,10 @@ clickhouseOperator:
       annotations: {}
       # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
       type: ClusterIP
-      # -- Metrics Exporter port
+      # -- Clickhouse metrics exporter port
       port: 8888
+      # -- Operator metrics exporter port
+      operatorPort: 9999
 
     # -- Metrics Exporter image
     image:
@@ -639,7 +641,7 @@ clickhouseOperator:
       # -- Metrics Exporter image repository to use.
       repository: altinity/metrics-exporter
       # -- Metrics Exporter image tag.
-      tag: 0.21.2
+      tag: 0.22.1
       # -- Metrics Exporter image pull policy.
       pullPolicy: IfNotPresent
 

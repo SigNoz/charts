@@ -90,6 +90,9 @@ spec:
             {{- with .Values.clickhouseOperator.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+          ports:
+            - containerPort: {{ .Values.clickhouseOperator.metricsExporter.service.operatorPort }}
+              name: metrics
           resources:
             {{- toYaml .Values.clickhouseOperator.resources | nindent 12 }}
 
