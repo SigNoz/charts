@@ -1607,17 +1607,6 @@ otelCollector:
       nodePort: ""
       # -- Protocol to use for Zipkin
       protocol: TCP
-    prometheus:
-      # -- Whether to enable service port for SigNoz exported prometheus metrics
-      enabled: false
-      # -- Container port for SigNoz exported prometheus metrics
-      containerPort: 8889
-      # -- Service port for SigNoz exported prometheus metrics
-      servicePort: 8889
-      # -- Node port for SigNoz exported prometheus metrics
-      nodePort: ""
-      # -- Protocol to use for SigNoz exported prometheus metrics
-      protocol: TCP
     metrics:
       # -- Whether to enable service port for internal metrics
       enabled: true
@@ -1813,10 +1802,6 @@ otelCollector:
   # @default -- See `values.yaml` for defaults
   config:
     receivers:
-      otlp/spanmetrics:
-        protocols:
-          grpc:
-            endpoint: localhost:12345
       otlp:
         protocols:
           grpc:
@@ -1834,15 +1819,6 @@ otelCollector:
           # You will also have set set enable it in `otelCollector.ports
           # thrift_compact:
           #   endpoint: 0.0.0.0:6831
-      hostmetrics:
-        collection_interval: 30s
-        scrapers:
-          cpu: {}
-          load: {}
-          memory: {}
-          disk: {}
-          filesystem: {}
-          network: {}
       httplogreceiver/heroku:
         # endpoint specifies the network interface and port which will receive data
         endpoint: 0.0.0.0:8081
@@ -1852,92 +1828,15 @@ otelCollector:
         endpoint: 0.0.0.0:8082
         source: json
     processors:
-      # default parsing of logs
-      # logstransform/internal:
-      #   operators:
-      #     - type: regex_parser
-      #       id: traceid
-      #       # https://regex101.com/r/yFW5UC/1
-      #       regex: '(?i)(^trace|(("| )+trace))((-|_||)id("|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)'
-      #       parse_from: body
-      #       parse_to: attributes.temp_trace
-      #       if: 'body matches "(?i)(^trace|((\"| )+trace))((-|_||)id(\"|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)"'
-      #       output: spanid
-      #     - type: regex_parser
-      #       id: spanid
-      #       # https://regex101.com/r/DZ2gng/1
-      #       regex: '(?i)(^span|(("| )+span))((-|_||)id("|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)'
-      #       parse_from: body
-      #       parse_to: attributes.temp_trace
-      #       if: 'body matches "(?i)(^span|((\"| )+span))((-|_||)id(\"|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)"'
-      #       output: trace_parser
-      #     - type: trace_parser
-      #       id: trace_parser
-      #       trace_id:
-      #         parse_from: attributes.temp_trace.trace_id
-      #       span_id:
-      #         parse_from: attributes.temp_trace.span_id
-      #       output: remove_temp
-      #     - type: remove
-      #       id: remove_temp
-      #       field: attributes.temp_trace
-      #       if: '"temp_trace" in attributes'
       # Batch processor config.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 50000
         timeout: 1s
-      # Resource detection processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
-      resourcedetection:
-        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors:
-          - env
-          # - elastic_beanstalk
-          # - eks
-          # - ecs
-          # - ec2
-          # - gcp
-          # - azure
-          # - heroku
-          - system
-        timeout: 2s
-        system:
-          hostname_sources: [dns, os]
       # Memory Limiter processor.
       # If not set, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       # memory_limiter: null
-      signozspanmetrics/cumulative:
-        metrics_exporter: clickhousemetricswrite
-        latency_histogram_buckets:
-          [
-            100us,
-            1ms,
-            2ms,
-            6ms,
-            10ms,
-            50ms,
-            100ms,
-            250ms,
-            500ms,
-            1000ms,
-            1400ms,
-            2000ms,
-            5s,
-            10s,
-            20s,
-            40s,
-            60s,
-          ]
-        dimensions_cache_size: 100000
-        dimensions:
-          - name: service.namespace
-            default: default
-          - name: deployment.environment
-            default: default
-          - name: signoz.collector.id
       signozspanmetrics/delta:
         metrics_exporter: clickhousemetricswrite
         latency_histogram_buckets:
@@ -1968,34 +1867,6 @@ otelCollector:
             default: default
           - name: signoz.collector.id
         aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
-      # K8s Attribute processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
-      k8sattributes:
-        # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
-        # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
-        passthrough: false
-        # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
-        # selector to only dramatically reducing resource requirements for very large clusters.
-        filter:
-          # -- Restrict each OpenTelemetry agent to query pods running on the same node
-          node_from_env_var: K8S_NODE_NAME
-        pod_association:
-          - sources:
-            - from: resource_attribute
-              name: k8s.pod.ip
-          - sources:
-            - from: resource_attribute
-              name: k8s.pod.uid
-          - sources:
-            - from: connection
-        extract:
-          metadata:
-            - k8s.namespace.name
-            - k8s.pod.name
-            - k8s.pod.uid
-            - k8s.pod.start_time
-            - k8s.deployment.name
-            - k8s.node.name
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -2016,8 +1887,6 @@ otelCollector:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
         use_new_schema: true
-      prometheus:
-        endpoint: 0.0.0.0:8889
     service:
       telemetry:
         logs:
@@ -2028,15 +1897,11 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
+          processors: [signozspanmetrics/delta, batch]
           exporters: [clickhousetraces]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [clickhousemetricswrite]
-        metrics/internal:
-          receivers: [hostmetrics]
-          processors: [resourcedetection, k8sattributes, batch]
           exporters: [clickhousemetricswrite]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
@@ -2374,24 +2239,6 @@ otelCollectorMetrics:
       batch:
         send_batch_size: 10000
         timeout: 1s
-      # Resource detection processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
-      resourcedetection:
-        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
-        detectors:
-          - env
-          # - elastic_beanstalk
-          # - eks
-          # - ecs
-          # - ec2
-          # - gcp
-          # - azure
-          # - heroku
-          - system
-        timeout: 2s
-        system:
-          hostname_sources: [dns, os]
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -2403,10 +2250,6 @@ otelCollectorMetrics:
       clickhousemetricswrite:
         timeout: 15s
         endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
-      clickhousemetricswrite/hostmetrics:
-        endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
-        resource_to_telemetry_conversion:
-          enabled: true
     service:
       telemetry:
         logs:
