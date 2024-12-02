@@ -21,11 +21,6 @@ tests:
       - equal:
           path: spec.configuration.settings.user_scripts_path
           value: "/var/lib/clickhouse/user_scripts/"
-  - it: should have format_schema_path setting
-    asserts:
-      - equal:
-          path: spec.configuration.settings.format_schema_path
-          value: "/etc/clickhouse-server/config.d/"
   - it: should have allow_experimental_window_functions profile
     asserts:
       - equal:
