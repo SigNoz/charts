@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  helm-unittest:
+  unittest:
     uses: signoz/primus.workflows/.github/workflows/helm-unittest.yaml@helm
     secrets: inherit
     with:
