@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-instance_default_test.yaml
+templates:
+  - templates/clickhouse-instance/clickhouse-instance.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should have format_schema_path setting
+    asserts:
+      - equal:
+          path: spec.configuration.settings.format_schema_path
+          value: "/etc/clickhouse-server/config.d/"
+  - it: should have user_defined_executable_functions_config setting
+    asserts:
+      - equal:
+          path: spec.configuration.settings.user_defined_executable_functions_config
+          value: "/etc/clickhouse-server/functions/custom-functions.xml"
+  - it: should have user_scripts_path setting
+    asserts:
+      - equal:
+          path: spec.configuration.settings.user_scripts_path
+          value: "/var/lib/clickhouse/user_scripts/"
+  - it: should have format_schema_path setting
+    asserts:
+      - equal:
+          path: spec.configuration.settings.format_schema_path
+          value: "/etc/clickhouse-server/config.d/"
+  - it: should have allow_experimental_window_functions profile
+    asserts:
+      - equal:
+          path: spec.configuration.profiles.default/allow_experimental_window_functions
+          value: "1"
+  - it: should have allow_nondeterministic_mutations profile
+    asserts:
+      - equal:
+          path: spec.configuration.profiles.default/allow_nondeterministic_mutations
+          value: "1"
+  - it: should have events.proto file
+    asserts:
+      - exists:
+          path: spec.configuration.files["events.proto"]
+  - it: should have zookeeper nodes
+    set:
+      zookeeper.enabled: true
+    asserts:
+      - equal:
+          path: spec.configuration.zookeeper.nodes[0].host
+          value: "clickhouse-zookeeper-0.clickhouse-zookeeper-headless"
+      - equal:
+          path: spec.configuration.zookeeper.nodes[0].port
+          value: 2181
+  - it: should have histogramQuantile script in the first initContainer
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[*].spec.initContainers[0].name
+          value: "clickhouse-udf-init"

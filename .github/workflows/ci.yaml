@@ -1,0 +1,12 @@
+name: ci
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  helm-unittest:
+    uses: signoz/primus.workflows/.github/workflows/helm-unittest.yaml@feat/add-helm-unittest
+    secrets: inherit
+    with:
+      PRIMUS_REF: feat/add-helm-unittest
