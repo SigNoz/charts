@@ -1,0 +1,76 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "clickhouseBackup.fullname" . }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          labels:
+            job: clickhouse-backup
+        spec:
+          {{- with .Values.backup.imagePullSecrets }}
+          imagePullSecrets:
+            {{- range . }}
+            - name: {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.backup.initContainers.init.enabled }}
+          initContainers:
+            - name: wait-for-service-dependencies-init
+              image: {{ include "clickhouseBackup.initContainers.init.image" . }}
+              imagePullPolicy: {{ .Values.backup.initContainers.init.image.pullPolicy }}
+              env: {{- include "clickhouseBackup.clickhouse-env" . | nindent 16 }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  until (
+                    wget -qO- \
+                      "http://$CLICKHOUSE_USER:$CLICKHOUSE_PASSWORD@{{ include "clickhouse.fullname" . }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local:8123" \
+                      --post-data "SELECT count() FROM clusterAllReplicas('{{ .Values.cluster }}', system, one)"
+                  ); do
+                      echo "waiting for ClickHouse cluster to become available"; sleep 1;
+                  done
+          {{- end }}
+          containers:
+            - name: {{ include "clickhouseBackup.fullname" . }}-client
+              image: {{ template "clickhouseBackup.client.image" . }}
+              imagePullPolicy: {{ .Values.backup.client.image.pullPolicy }}
+              env:
+                - name: CLICKHOUSE_SERVICES
+                  value: {{ include "clickhouse.services" . }}
+                - name: CLICKHOUSE_PORT
+                  value: "9000"
+                - name: BACKUP_USER
+                  value: {{ .Values.backup.user }}
+                - name: BACKUP_PASSWORD
+                {{- if .Values.backup.existingSecret }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backup.existingSecret }}
+                      key: {{ required "backup.existingSecretPasswordKey is required when using backup.existingSecret" .Values.backup.existingSecretPasswordKey }}
+                {{- else }}
+                  value: {{ .Values.backup.password }}
+                {{- end }}
+              command: ["/bin/sh", "-c", "/scripts/clickhouse_backup.sh"]
+              volumeMounts:
+              - name: clickhouse-backup-script
+                mountPath: /scripts/clickhouse_backup.sh
+                subPath: clickhouse_backup.sh
+
+          volumes:
+          - name: clickhouse-backup-script
+            configMap:
+              name: clickhouse-backup-script
+              defaultMode: 0777
+
+          restartPolicy: Never
+{{- end }}

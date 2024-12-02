@@ -156,11 +156,6 @@ user: admin
 # -- Clickhouse password
 password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
-# -- Clickhouse cluster replicas
-replicasCount: 1
-# -- Clickhouse cluster shards
-shardsCount: 1
-
 # -- Clickhouse image
 image:
   # -- Clickhouse image registry to use.
@@ -652,3 +647,62 @@ clickhouseOperator:
   configs:
     # -- ClickHouse Operator confd files
     confdFiles: null
+
+###
+###
+### ---- CLICKHOUSE BACKUP ----
+###
+###
+backup:
+  # Whether to install clickhouse-backup
+  enabled: false
+
+  # -- name of the component
+  name: backup
+
+  # Clickhouse Backup image
+  image:
+    # -- Clickhouse Backup image registry to use
+    registry: docker.io
+    # -- Clickhouse Backup image repository to use
+    repository: altinity/clickhouse-backup
+    # -- Clickhouse Backup image tag
+    tag: 2.4.4
+    # -- Clickhouse Backup image pull policy
+    pullPolicy: IfNotPresent
+  # -- Image Registry Secret Names for ClickHouse Backup
+  imagePullSecrets: []
+  # -- Additional environment variables for ClickHouse Backup container
+  env: {}
+
+  # -- Schedule for ClickHouse Backup CronJob
+  schedule: "0 0 * * *"   # every day at midnight
+
+  # -- User name for the Clickhouse backup
+  user: "backup_user"
+  # -- Password for the Clickhouse backup. Ignored if backup.existingSecret is set
+  password: "backup_password"
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret:
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey:
+
+  # -- An allowlist of IP addresses or network masks the ClickHouse backup user is
+  # allowed to access from.
+  # Default is to allow access from anywhere. Use cluster pod CIDR for more security
+  allowedNetworkIps:
+    - "0.0.0.0/0"
+  initContainers:
+    init:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+  client:
+    image:
+      registry: docker.io
+      repository: clickhouse/clickhouse-server
+      tag: 23.7.3-alpine
+      pullPolicy: IfNotPresent

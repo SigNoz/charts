@@ -30,6 +30,13 @@ spec:
         {{- end }}
       {{ .Values.user }}/profile: default
       {{ .Values.user }}/quota: default
+      {{- if .Values.backup.enabled }}
+      {{ .Values.backup.user }}/networks/ip:
+        {{- range $.Values.backup.allowedNetworkIps }}
+        - {{ . | quote }}
+        {{- end }}
+      {{ template "clickhouseBackup.passwordValue" . }}
+      {{- end}}
 
     profiles:
       {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
@@ -246,6 +253,22 @@ spec:
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
               {{- end }}
+            {{- if .Values.backup.enabled }}
+            - name: clickhouse-backup
+              image: {{ template "clickhouseBackup.image" . }}
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+              command:
+                - /bin/bash
+                - -c
+                - /bin/clickhouse-backup server
+              {{- with .Values.backup.env }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{- end}}
+              ports:
+                - name: backup-rest
+                  containerPort: 7171
+            {{- end }}
 
     serviceTemplates:
       - name: service-template
