@@ -440,6 +440,9 @@ files: {}
   #     <some-setting>some-value</some-setting>
   #   </clickhouse>
 
+templates:
+  volumeClaimTemplates: []
+
 ###
 ###
 ### ---- MISC ----
