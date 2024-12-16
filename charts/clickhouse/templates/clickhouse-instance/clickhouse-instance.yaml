@@ -227,12 +227,14 @@ spec:
               volumeMounts:
               {{- if not .Values.persistence.enabled }}
                 - name: data-volume
+                  mountPath: /var/lib/clickhouse
               {{- else if .Values.persistence.existingClaim }}
                 - name: existing-volumeclaim
+                  mountPath: /var/lib/clickhouse
               {{- else }}
                 - name: data-volumeclaim-template
-              {{- end }}
                   mountPath: /var/lib/clickhouse
+              {{- end }}
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
                 - name: custom-functions-volume
@@ -286,5 +288,20 @@ spec:
         {{- else }}
           storageClassName: {{ $storageClass }}
         {{- end }}
+    {{- end }}
+    {{- end }}
+
+  {{- if and (.Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
+    volumeClaimTemplates:
+    {{- range .Values.templates.volumeClaimTemplates }}
+      - name: {{ .name }}
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            {{- toYaml .accessModes | nindent 12 }}
+          resources:
+            requests:
+              storage: {{ .resources.requests.storage }}
+          storageClassName: {{ .storageClassName }}
     {{- end }}
   {{- end }}

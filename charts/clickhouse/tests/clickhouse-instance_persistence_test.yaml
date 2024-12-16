@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-instance_persistence_test.yaml
+templates:
+  - templates/clickhouse-instance/clickhouse-instance.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should have data-volumeclaim-template when persistence.enabled=true
+    set:
+      persistence.enabled: true
+      persistence.size: 10Gi
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].name
+          value: data-volumeclaim-template
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+  - it: should have data-volumeclaim-template when persistence.enabled=true and templates.volumeClaimTemplates is not empty
+    set:
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: storage-class
+      templates:
+        volumeClaimTemplates:
+          - name: does-not-matter
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].name
+          value: data-volumeclaim-template
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.storageClassName
+          value: storage-class
+  - it: should be same as persistence.enabled=true with templates.volumeClaimTemplates
+    set:
+      persistence:
+        enabled: false
+      templates:
+        volumeClaimTemplates:
+          - name: data-volumeclaim-template
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: storage-class
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].name
+          value: data-volumeclaim-template
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.storageClassName
+          value: storage-class
+  - it: should have multiple custom templates.volumeClaimTemplates
+    set:
+      persistence:
+        enabled: false
+      templates:
+        volumeClaimTemplates:
+          - name: default-0
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: storage-class-0
+          - name: default-1
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 20Gi
+            storageClassName: storage-class-1
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].name
+          value: default-0
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[0].spec.storageClassName
+          value: storage-class-0
+      - equal:
+          path: spec.templates.volumeClaimTemplates[1].name
+          value: default-1
+      - equal:
+          path: spec.templates.volumeClaimTemplates[1].spec.resources.requests.storage
+          value: 20Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[1].spec.storageClassName
+          value: storage-class-1
