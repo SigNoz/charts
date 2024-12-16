@@ -569,42 +569,6 @@ clickhouseOperator:
   # -- TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread
   topologySpreadConstraints: []
 
-  ## Configure liveness and readiness probes.
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-  ##
-  startupProbe:
-    enabled: true
-    port: metrics
-    path: /chi
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  livenessProbe:
-    enabled: true
-    port: metrics
-    path: /chi
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  readinessProbe:
-    enabled: true
-    port: metrics
-    path: /chi
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-
-  ## Custom startup, liveness and readiness probes
-  customStartupProbe: {}
-  customLivenessProbe: {}
-  customReadinessProbe: {}
-
   # -- Additional environment variables for Clickhouse Operator container.
   env: []
     #  - name: SAMPLE_ENV
