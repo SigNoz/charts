@@ -476,8 +476,13 @@ files: {}
   #     <some-setting>some-value</some-setting>
   #   </clickhouse>
 
+# -- Custom volume claim templates for ClickHouse pod
+# This is only used when persistence.enabled is false
 templates:
   volumeClaimTemplates: []
+
+# -- Extra containers for ClickHouse pod
+extraContainers: []
 
 ###
 ###
