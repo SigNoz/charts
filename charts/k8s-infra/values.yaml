@@ -90,6 +90,19 @@ presets:
     samplingThereafter: 500
   otlpExporter:
     enabled: true
+  ownTelemetry:
+    # OTLP HTTP endpoint to send own telemetry data to.
+    endpoint: ""
+    # Whether to use insecure mode.
+    insecure: true
+    # Whether to skip verifying the certificate.
+    insecureSkipVerify: true
+    traces:
+      enabled: false
+    metrics:
+      enabled: false
+    logs:
+      enabled: false
   logsCollection:
     enabled: true
     startAt: beginning
@@ -104,7 +117,6 @@ presets:
     # By default, kube-system and hotrod, locust pods are excluded.
     blacklist:
       enabled: true
-      signozLogs: true
       namespaces:
         - kube-system
       pods:
@@ -117,7 +129,6 @@ presets:
     # If whitelist is enabled, `include` is ignored.
     whitelist:
       enabled: false
-      signozLogs: true
       namespaces: []
       pods: []
       containers: []
