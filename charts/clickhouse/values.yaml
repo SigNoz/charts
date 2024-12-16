@@ -243,10 +243,10 @@ livenessProbe:
   enabled: true
   port: http
   path: /ping
-  initialDelaySeconds: 10
+  initialDelaySeconds: 60
   periodSeconds: 3
   timeoutSeconds: 1
-  failureThreshold: 3
+  failureThreshold: 10
   successThreshold: 1
 readinessProbe:
   enabled: true
