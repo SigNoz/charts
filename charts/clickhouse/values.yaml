@@ -232,30 +232,30 @@ topologySpreadConstraints: []
 ##
 startupProbe:
   enabled: true
-  port: 13133
-  path: /
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  port: http
+  path: /ping
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 3
   successThreshold: 1
 livenessProbe:
   enabled: true
-  port: 13133
-  path: /
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  port: http
+  path: /ping
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 3
   successThreshold: 1
 readinessProbe:
   enabled: true
-  port: 13133
-  path: /
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  port: http
+  path: /ping
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 3
   successThreshold: 1
 
 ## Custom startup, liveness and readiness probes
