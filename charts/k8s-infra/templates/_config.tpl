@@ -65,6 +65,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.kubernetesAttributes.enabled }}
+{{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.global.deploymentEnvironment }}
 {{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
