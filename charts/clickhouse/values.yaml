@@ -227,6 +227,42 @@ affinity: {}
 # -- TopologySpreadConstraints describes how clickhouse pods ought to spread
 topologySpreadConstraints: []
 
+## Configure liveness and readiness probes.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+##
+startupProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+livenessProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 60
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 10
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+## Custom startup, liveness and readiness probes
+customStartupProbe: {}
+customLivenessProbe: {}
+customReadinessProbe: {}
+
 # -- Configure resource requests and limits. Update according to your own use
 # case as these values might not be suitable for your workload.
 # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -440,8 +476,13 @@ files: {}
   #     <some-setting>some-value</some-setting>
   #   </clickhouse>
 
+# -- Custom volume claim templates for ClickHouse pod
+# This is only used when persistence.enabled is false
 templates:
   volumeClaimTemplates: []
+
+# -- Extra containers for ClickHouse pod
+extraContainers: []
 
 ###
 ###
