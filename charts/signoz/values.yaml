@@ -645,6 +645,7 @@ queryService:
   # -- Query-Service additional arguments for command line
   additionalArgs:
     - --use-logs-new-schema=true
+    - --use-trace-new-schema=true
 
   # -- Additional environments to set for queryService
   additionalEnvs: {}
@@ -1878,6 +1879,7 @@ otelCollector:
       clickhousetraces:
         datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
         low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
+        use_new_schema: true
       clickhousemetricswrite:
         endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
         timeout: 15s
