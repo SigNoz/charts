@@ -1,9 +1,9 @@
 dependencies:
 - name: clickhouse
   repository: https://charts.signoz.io
-  version: 24.1.9
+  version: 24.1.11
 - name: signoz-otel-gateway
   repository: https://charts.signoz.io
   version: 0.0.1
-digest: sha256:de9b8fcbae8a0370448b18bab59ebd72e4542220177ae946af723ec3f35eb053
-generated: "2024-11-08T20:57:20.310119+05:30"
+digest: sha256:de08e77edaf783a38b29a6373630425e904e1650bedc923b410a651d4f84a8ea
+generated: "2024-12-18T15:38:48.98152+05:30"
