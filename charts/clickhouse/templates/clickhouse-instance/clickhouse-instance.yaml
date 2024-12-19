@@ -208,7 +208,7 @@ spec:
           containers:
             - name: clickhouse
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
-              # https://github.com/SigNoz/signoz/blob/develop/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
+              # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
               image: {{ template "clickhouse.image" . }}
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               command:
