@@ -166,11 +166,9 @@ spec:
           {{- end }}
 
           volumes:
-          {{- if not .Values.persistence.enabled }}
+          {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
             - name: data-volume
               emptyDir: {}
-            # - name: log-volume
-            #   emptyDir: {}
           {{- else if .Values.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
@@ -268,13 +266,15 @@ spec:
               {{- end }}
 
               volumeMounts:
-              {{- if not .Values.persistence.enabled }}
+              {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
                 - name: data-volume
                   mountPath: /var/lib/clickhouse
-              {{- else if .Values.persistence.existingClaim }}
+              {{- end }}
+              {{- if and (.Values.persistence.enabled) (.Values.persistence.existingClaim) }}
                 - name: existing-volumeclaim
                   mountPath: /var/lib/clickhouse
-              {{- else }}
+               {{- end }}
+              {{- if .Values.persistence.enabled }}
                 - name: data-volumeclaim-template
                   mountPath: /var/lib/clickhouse
               {{- end }}
@@ -282,8 +282,6 @@ spec:
                   mountPath: /var/lib/clickhouse/user_scripts
                 - name: custom-functions-volume
                   mountPath: /etc/clickhouse-server/functions
-                # - name: log-volumeclaim-template
-                #   mountPath: /var/log/clickhouse-server
               {{- if .Values.additionalVolumeMounts }}
                 {{- toYaml .Values.additionalVolumeMounts | nindent 16 }}
               {{- end }}
