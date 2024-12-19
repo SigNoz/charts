@@ -541,9 +541,8 @@ logs:
             processors:
               - resourcedetection
               - batch
-            exporters: 
+            exporters:
               - otlp
-
 ###
 ###
 ### ---- MISC ----
