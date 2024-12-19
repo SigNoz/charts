@@ -335,21 +335,21 @@ Return common environment variables for ClickHouse Operator
 - name: OPERATOR_CONTAINER_CPU_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.cpu
 - name: OPERATOR_CONTAINER_CPU_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.cpu
 - name: OPERATOR_CONTAINER_MEM_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.memory
 - name: OPERATOR_CONTAINER_MEM_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.memory
 {{- end }}
