@@ -71,7 +71,7 @@ spec:
           configMap:
             name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
       containers:
-        - name: {{ include "clickhouseOperator.fullname" . }}
+        - name: operator
           image: {{ template "clickhouseOperator.image" . }}
           imagePullPolicy: {{ .Values.clickhouseOperator.image.pullPolicy }}
           volumeMounts:
@@ -93,7 +93,7 @@ spec:
           resources:
             {{- toYaml .Values.clickhouseOperator.resources | nindent 12 }}
 
-        - name: {{ include "metricsExporter.fullname" . }}
+        - name: metrics-exporter
           image: {{ include "metricsExporter.image" . }}
           imagePullPolicy: {{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
           volumeMounts:

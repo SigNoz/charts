@@ -8,15 +8,31 @@ release:
 tests:
   - it: should have data-volumeclaim-template when persistence.enabled=true
     set:
-      persistence.enabled: true
-      persistence.size: 10Gi
+      persistence:
+        enabled: true
+        size: 10Gi
     asserts:
+      - contains: 
+          path: spec.templates.volumeClaimTemplates
+          count: 1
+          content:
+            name: data-volumeclaim-template
+            reclaimPolicy: Retain
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi
       - equal:
-          path: spec.templates.volumeClaimTemplates[0].name
+          path: spec.templates.podTemplates[0].spec.volumes[0].name
+          value: shared-binary-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].emptyDir
+          value: {}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[0].name
           value: data-volumeclaim-template
-      - equal:
-          path: spec.templates.volumeClaimTemplates[0].spec.resources.requests.storage
-          value: 10Gi
   - it: should have data-volumeclaim-template when persistence.enabled=true and templates.volumeClaimTemplates is not empty
     set:
       persistence:
@@ -36,7 +52,16 @@ tests:
       - equal:
           path: spec.templates.volumeClaimTemplates[0].spec.storageClassName
           value: storage-class
-  - it: should be same as persistence.enabled=true with templates.volumeClaimTemplates
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].name
+          value: shared-binary-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].emptyDir
+          value: {}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[0].name
+          value: data-volumeclaim-template
+  - it: should be same as persistence.enabled=true with templates.volumeClaimTemplates and additionalVolumeMounts
     set:
       persistence:
         enabled: false
@@ -49,6 +74,9 @@ tests:
               requests:
                 storage: 10Gi
             storageClassName: storage-class
+      additionalVolumeMounts:
+        - mountPath: /var/lib/clickhouse
+          name: data-volumeclaim-template
     asserts:
       - equal:
           path: spec.templates.volumeClaimTemplates[0].name
@@ -59,6 +87,15 @@ tests:
       - equal:
           path: spec.templates.volumeClaimTemplates[0].spec.storageClassName
           value: storage-class
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].name
+          value: shared-binary-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].emptyDir
+          value: {}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[2].name
+          value: data-volumeclaim-template
   - it: should have multiple custom templates.volumeClaimTemplates
     set:
       persistence:
@@ -98,3 +135,33 @@ tests:
       - equal:
           path: spec.templates.volumeClaimTemplates[1].spec.storageClassName
           value: storage-class-1
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].name
+          value: shared-binary-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].emptyDir
+          value: {}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[0].name
+          value: shared-binary-volume
+  - it: should have empty dir when persistence.enabled=false and templates.volumeClaimTemplates is empty
+    set:
+      persistence:
+        enabled: false
+      templates:
+        volumeClaimTemplates: []
+    asserts:
+      - notExists:
+          path: spec.templates.volumeClaimTemplates
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].name
+          value: data-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[0].emptyDir
+          value: {}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[0].name
+          value: data-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts[0].mountPath
+          value: /var/lib/clickhouse
