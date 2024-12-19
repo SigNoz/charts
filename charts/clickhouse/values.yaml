@@ -183,8 +183,7 @@ labels: {}
 # ClickHouse pod labels
 podLabels: {}
 # -- ClickHouse instance annotations.
-annotations:
-  helm.sh/hook-weight: "1"
+annotations: {}
 
 # ClickHouse Service Account
 serviceAccount:
