@@ -141,6 +141,20 @@ Return the proper clickhouse image name
 {{- end -}}
 
 {{/*
+Return the proper exporter image name
+*/}}
+{{- define "logs.system.image" -}}
+{{- $registryName := default .Values.logs.system.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.logs.system.image.repository -}}
+{{- $tag := .Values.logs.system.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
 {{- define "service.ifClusterIP" -}}

@@ -166,6 +166,14 @@ spec:
           {{- end }}
 
           volumes:
+            - name: shared-binary-volume
+              emptyDir: {}
+            - name: custom-functions-volume
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-custom-functions
+            - name: scripts
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-scripts
           {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
             - name: data-volume
               emptyDir: {}
@@ -174,11 +182,11 @@ spec:
               persistentVolumeClaim:
                 claimName: {{ .Values.persistence.existingClaim }}
           {{- end }}
-            - name: shared-binary-volume
-              emptyDir: {}
-            - name: custom-functions-volume
+          {{- if .Values.logs.system.enabled }}
+            - name: logs-system-config
               configMap:
-                name: {{ include "clickhouse.fullname" . }}-custom-functions
+                name: {{ include "clickhouse.fullname" . }}-logs-system-config
+          {{- end }}
           {{- if .Values.additionalVolumes }}
             {{- toYaml .Values.additionalVolumes | nindent 12 }}
           {{- end }}
@@ -213,7 +221,6 @@ spec:
                 - /bin/bash
                 - -c
                 - /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml
-
               ports:
                 - name: http
                   containerPort: 8123
@@ -266,6 +273,12 @@ spec:
               {{- end }}
 
               volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                - name: custom-functions-volume
+                  mountPath: /etc/clickhouse-server/functions
+                - name: scripts
+                  mountPath: /scripts
               {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
                 - name: data-volume
                   mountPath: /var/lib/clickhouse
@@ -278,16 +291,61 @@ spec:
                 - name: data-volumeclaim-template
                   mountPath: /var/lib/clickhouse
               {{- end }}
-                - name: shared-binary-volume
-                  mountPath: /var/lib/clickhouse/user_scripts
-                - name: custom-functions-volume
-                  mountPath: /etc/clickhouse-server/functions
               {{- if .Values.additionalVolumeMounts }}
                 {{- toYaml .Values.additionalVolumeMounts | nindent 16 }}
               {{- end }}
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
               {{- end }}
+              {{- if .Values.logs.system.enabled }}
+              lifecycle:
+                postStart:
+                  exec:
+                    command: ["/bin/bash", "/scripts/wait-until-ready.sh"]
+              {{- end }}
+            {{- if .Values.logs.system.enabled }}
+            - name: logs-system-exporter
+              image: {{ include "logs.system.image" . }}
+              imagePullPolicy: {{ .Values.logs.system.image.pullPolicy }}
+              command:
+                - /signoz-collector
+              args:
+                - --config=/conf/config.yaml
+              env:
+                - name: K8S_NODE_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
+                - name: K8S_POD_IP
+                  valueFrom:
+                    fieldRef:
+                      apiVersion: v1
+                      fieldPath: status.podIP
+                - name: K8S_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: K8S_POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: K8S_POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: K8S_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: OTEL_RESOURCE_ATTRIBUTES
+                  value: "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)"
+              {{- if .Values.logs.system.resources }}
+              resources: {{ toYaml .Values.logs.system.resources | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: logs-system-config
+                  mountPath: /conf
+            {{- end }}
 
             {{- if .Values.extraContainers }}
               {{- toYaml .Values.extraContainers | nindent 14 }}
