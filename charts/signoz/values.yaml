@@ -281,7 +281,7 @@ clickhouse:
         - -c
         - |
           set -x
-          wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+          wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/main/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
           mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
           chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
     init:
