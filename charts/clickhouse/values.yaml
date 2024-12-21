@@ -484,6 +484,65 @@ templates:
 # -- Extra containers for ClickHouse pod
 extraContainers: []
 
+logs:
+  system:
+    # -- Enable collection of system table entries as logs
+    enabled: false
+    image:
+      registry: docker.io
+      repository: signoz/signoz-otel-collector
+      tag: 0.111.16
+      pullPolicy: IfNotPresent
+      pullSecrets: []
+    # -- Config of the opentelemetry collector
+    config:
+      receivers:
+        clickhousesystemtablesreceiver:
+          dsn: tcp://localhost:9000
+          query_log_scrape_config:
+            scrape_interval_seconds: 30
+            min_scrape_delay_seconds: 10
+      processors:
+        batch:
+          send_batch_max_size: 25000
+          send_batch_size: 20000
+          timeout: 1s
+        resourcedetection:
+          detectors:
+            - env
+      extensions:
+        health_check:
+          endpoint: 0.0.0.0:13133
+      exporters:
+        otlp:
+          endpoint: ${env:K8S_HOST_IP}:4317
+          tls:
+            insecure: true
+            insecure_skip_verify: true
+          retry_on_failure:
+            enabled: true
+            initial_interval: 2s
+            max_interval: 5s
+            max_elapsed_time: 15s
+          sending_queue:
+            enabled: false
+      service:
+        telemetry:
+          logs:
+            encoding: json
+          metrics:
+            address: 0.0.0.0:8888
+        extensions:
+          - health_check
+        pipelines:
+          logs:
+            receivers:
+              - clickhousesystemtablesreceiver
+            processors:
+              - resourcedetection
+              - batch
+            exporters:
+              - otlp
 ###
 ###
 ### ---- MISC ----
