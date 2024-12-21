@@ -116,7 +116,7 @@ tests:
           content:
             name: data-volumeclaim-template
             mountPath: /var/lib/clickhouse
-  - it: should be same as persistence.enabled=true with templates.volumeClaimTemplates and additionalVolumeMounts
+  - it: should be same as persistence.enabled=false with templates.volumeClaimTemplates and additionalVolumeMounts
     set:
       persistence:
         enabled: false
