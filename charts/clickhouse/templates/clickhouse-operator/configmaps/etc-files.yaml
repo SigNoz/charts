@@ -189,7 +189,7 @@ data:
 
           update:
             # How many seconds to wait for created/updated StatefulSet to be 'Ready'
-            timeout: 300
+            timeout: 900
             # How many seconds to wait between checks/polls for created/updated StatefulSet status
             pollInterval: 5
             # What to do in case updated StatefulSet is not in 'Ready' after `reconcile.statefulSet.update.timeout` seconds
