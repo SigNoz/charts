@@ -825,6 +825,7 @@ queryService:
 
 # Default values for frontend
 frontend:
+  enabled: true
   name: "frontend"
   replicaCount: 1
 
