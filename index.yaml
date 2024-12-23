@@ -46,6 +46,32 @@ entries:
   clickhouse:
   - apiVersion: v2
     appVersion: 24.1.2
+    created: "2024-12-23T08:34:41.163920529Z"
+    dependencies:
+    - condition: zookeeper.enabled
+      name: zookeeper
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 11.4.2
+    description: A Helm chart for ClickHouse
+    digest: 231036b779852ca6cfffb1fd2f8dc145673a466a0095ee86241d8f78c62bb922
+    icon: https://github.com/ClickHouse/clickhouse-docs/raw/84f38d893eb7e561c7296279d7953b6a508ec413/static/img/clickhouse-logo.svg
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: clickhouse
+    sources:
+    - https://github.com/SigNoz/charts
+    - https://github.com/ClickHouse/ClickHouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-24.1.13/clickhouse-24.1.13.tgz
+    version: 24.1.13
+  - apiVersion: v2
+    appVersion: 24.1.2
     created: "2024-12-21T14:29:48.916373888Z"
     dependencies:
     - condition: zookeeper.enabled
@@ -11815,4 +11841,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-otel-gateway-0.0.1/signoz-otel-gateway-0.0.1.tgz
     version: 0.0.1
-generated: "2024-12-21T14:29:48.917088552Z"
+generated: "2024-12-23T08:34:41.164402886Z"
