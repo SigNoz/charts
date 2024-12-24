@@ -702,6 +702,22 @@ queryService:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
+  smtpVars:
+    # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
+    enabled: false
+    existingSecret:
+      # -- Name of the existing k8s secret containing the SMTP values. Required when any secret key is specified.
+      name: ""
+      # -- Name of key in secret to get value for `SMTP_FROM`. If empty, the env variable will not be set.
+      fromKey: ""
+      # -- Name of key in secret to get value for `SMTP_HOST`. If empty, the env variable will not be set.
+      hostKey: ""
+      # -- Name of key in secret to get value for `SMTP_PORT`. If empty, the env variable will not be set.
+      portKey: ""
+      # -- Name of key in secret to get value for `SMTP_USERNAME`. If empty, the env variable will not be set.
+      usernameKey: ""
+      # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
+      passwordKey: ""
 
   # Query-Service cache options
   cache:
