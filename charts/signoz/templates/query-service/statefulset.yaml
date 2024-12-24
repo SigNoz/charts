@@ -153,7 +153,7 @@ spec:
             {{- $keyInSecret := get $.Values.queryService.smtpVars.existingSecret $keyName }}
             {{- if $keyInSecret }}
               {{- if and $keyInSecret (hasKey $.Values.queryService.additionalEnvs $envName)}}
-                {{- fail (printf "Error: '%s' present in .Values.queryService.additionalEnvs, and '%s' is also set in .Values.queryService.smtpVars.existingSecret. Use one of the option" $envName $keyName)}}
+                {{- fail (printf "Error: SMTP variable '%s' is configured both in .Values.queryService.additionalEnvs and .Values.queryService.smtpVars.existingSecret.%s. Please use only one configuration method to avoid conflicts." $envName $keyName)}}
               {{- end}}
             - name: {{$envName}}
               valueFrom:
