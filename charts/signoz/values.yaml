@@ -847,19 +847,28 @@ frontend:
     autoscalingTemplate: []
     keda:
       enabled: false
-      pollingInterval: "30" # check 30sec periodically for metrics data
-      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
+      # -- Polling interval for metrics data
+      # Checks 30sec periodically for metrics data
+      pollingInterval: "30"
+      # -- Cooldown period for metrics data
+      # Once the load decreased, it will wait for 5 min and downscale
+      cooldownPeriod: "300"
+      # -- Minimum replica count
+      # Should be >= replicaCount specified in values.yaml
+      minReplicaCount: "1"
+      # -- Maximum replica count
       maxReplicaCount: "5"
       triggers:
         - type: memory
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utilization <=80 by adding new pods
+            # HPA makes sure average Utilization <=80 by adding new pods
+            value: "80"
         - type: cpu
           metadata:
             type: Utilization
-            value: "80" # hpa make sure average Utlization <=80 by adding new pods
+            # HPA makes sure average Utilization <=80 by adding new pods
+            value: "80"
   configVars: {}
   # -- Frontend deployment annotations
   annotations:
@@ -1669,9 +1678,16 @@ otelCollector:
     keda:
       annotations:
       enabled: false
-      pollingInterval: "30" # check 30sec periodically for metrics data
-      cooldownPeriod: "300" # once the load decreased, it will wait for 5 min and downscale
-      minReplicaCount: "1" # should be >= replicaCount specified in values.yaml
+      # -- Polling interval for metrics data
+      # Checks 30sec periodically for metrics data
+      pollingInterval: "30"
+      # -- Cooldown period for metrics data
+      # Once the load decreased, it will wait for 5 min and downscale
+      cooldownPeriod: "300"
+      # -- Minimum replica count
+      # Should be >= replicaCount specified in values.yaml
+      minReplicaCount: "1"
+      # -- Maximum replica count
       maxReplicaCount: "5"
       triggers: []
       # - type: memory
