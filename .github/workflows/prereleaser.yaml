@@ -1,9 +1,9 @@
-name: releaser-charts
+name: prereleaser
 
 on:
   # trigger on repository_dispatch event from other GitHub repository workflows
   repository_dispatch:
-    types: [releaser-charts]
+    types: [prereleaser]
 
   # allow manual triggering of the workflow by a maintainer
   workflow_dispatch:
@@ -24,4 +24,4 @@ jobs:
     with:
       PRIMUS_REF: main
       PROJECT_NAME: charts
-      RELEASE_TYPE: ${{ (github.event.client_payload && github.event.client_payload.release_type) || inputs.release_type || 'minor' }}
+      RELEASE_TYPE: ${{ (github.event.client_payload && github.event.client_payload.release_type) || inputs.release_type }}
