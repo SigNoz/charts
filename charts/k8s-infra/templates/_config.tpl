@@ -346,6 +346,10 @@ processors:
     extract:
       metadata:
         {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
+      annotations:
+        {{ toYaml .Values.presets.kubernetesAttributes.extractAnnotations | nindent 8 }}
+      labels:
+        {{ toYaml .Values.presets.kubernetesAttributes.extractLabels | nindent 8 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
