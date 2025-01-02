@@ -667,6 +667,23 @@ otelAgent:
           processors: [batch]
           exporters: []
 
+  # -- Additional volumes for otelAgent
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelAgent
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true
+
 # Default values for OtelDeployment
 otelDeployment:
   enabled: true
@@ -957,3 +974,20 @@ otelDeployment:
           receivers: []
           processors: [batch]
           exporters: []
+
+  # -- Additional volumes for otelDeployment
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelDeployment
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true
