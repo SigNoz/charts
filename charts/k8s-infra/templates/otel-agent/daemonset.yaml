@@ -69,6 +69,9 @@ spec:
              - key: key.pem
                path: key.pem
         {{- end }}
+        {{- with .Values.otelAgent.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: {{ include "otelAgent.fullname" . }}
           image: {{ include "otelAgent.image" . }}
@@ -132,6 +135,9 @@ spec:
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
+            {{- end }}
+            {{- with .Values.otelAgent.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- if .Values.otelAgent.livenessProbe.enabled }}
           livenessProbe:
