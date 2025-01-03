@@ -17,14 +17,6 @@ on:
           - 'minor'
           - 'major'
 
-defaults:
-  run:
-    shell: bash
-
-env:
-  PRIMUS_HOME: .primus
-  MAKE: make --no-print-directory --makefile=.primus/src/make/main.mk
-
 jobs:
   verify:
     uses: signoz/primus.workflows/.github/workflows/github-verify.yaml@feat/github
