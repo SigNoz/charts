@@ -14,7 +14,7 @@ metadata:
 {{- end }}
 spec:
   type: {{ .service.type }}
-  {{- if .service.loadBalancerSourceRanges }}
+  {{- if and (eq .service.type "LoadBalancer") .service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- range .service.loadBalancerSourceRanges }}
     - {{ . }}
