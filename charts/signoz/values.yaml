@@ -596,7 +596,22 @@ queryService:
     - --use-trace-new-schema=true
   # -- Additional environments to set for queryService
   additionalEnvs: {}
-  # env_key: env_value
+# Environment variables for the Query Service.
+# You can specify variables in two ways:
+# 1. Flexible structure for advanced configurations (recommended):
+#    Example:
+#      additionalEnvs:
+#        MY_KEY:
+#          value: my-value  # Direct value
+#        SECRET_KEY:
+#          valueFrom:       # Reference from a Secret or ConfigMap
+#            secretKeyRef:
+#              name: my-secret
+#              key: my-key
+# 2. Simple key-value pairs (backward-compatible):
+#    Example:
+#      additionalEnvs:
+#        MY_KEY: my-value
 
   initContainers:
     init:
