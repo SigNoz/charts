@@ -1390,10 +1390,7 @@ otelCollector:
     type: ClusterIP
 
     # -- LoadBalancer Source Ranges when service type is LoadBalancer
-    # loadBalancerSourceRanges:
-    #   - "10.0.0.0/8"
-    #   - "172.16.0.0/12"
-
+    loadBalancerSourceRanges: []
   # -- OtelCollector Deployment annotation.
   annotations:
   # -- OtelCollector pod(s) annotation.
