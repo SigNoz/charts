@@ -138,19 +138,7 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
-            {{- range $key, $val := .Values.queryService.additionalEnvs }}
-            - name: {{ $key }}
-              {{- if kindIs "map" $val }}
-              {{- if $val.value}}
-              value: {{ $val.value | quote }}
-              {{- end}}
-              {{- if $val.valueFrom }}
-              valueFrom: {{ toYaml $val.valueFrom | nindent 16 }}
-              {{- end}}
-              {{- else }}
-              value: {{ $val | quote }}
-              {{- end}}
-            {{- end }}
+            {{- include "common.renderAdditionalEnv" .Values.queryService.additionalEnvs | nindent 12 }}
             {{- if .Values.queryService.smtpVars.enabled }}
             - name: SMTP_ENABLED
               value: "true"
