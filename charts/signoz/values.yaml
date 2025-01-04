@@ -1403,6 +1403,9 @@ otelCollector:
     labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
+
+    # -- LoadBalancer Source Ranges when service type is LoadBalancer
+    loadBalancerSourceRanges: []
   # -- OtelCollector Deployment annotation.
   annotations:
   # -- OtelCollector pod(s) annotation.
