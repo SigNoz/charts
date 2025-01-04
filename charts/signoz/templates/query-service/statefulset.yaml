@@ -138,7 +138,7 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
-            {{- include "common.renderAdditionalEnv" .Values.queryService.additionalEnvs | nindent 12 }}
+            {{- include "signoz.renderAdditionalEnv" .Values.queryService.additionalEnvs | nindent 12 }}
             {{- if .Values.queryService.smtpVars.enabled }}
             - name: SMTP_ENABLED
               value: "true"
