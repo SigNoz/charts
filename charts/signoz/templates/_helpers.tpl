@@ -744,7 +744,7 @@ imagePullSecrets:
 {{/*
 Function to render environment variables 
 */}}
-{{- define "common.renderAdditionalEnv" -}}
+{{- define "signoz.renderAdditionalEnv" -}}
 {{- $dict := . -}}
 {{- $processedKeys := dict -}}
 {{- range keys . | sortAlpha }}
