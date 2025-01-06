@@ -92,7 +92,7 @@ Return suffix part of the headless service
 {{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
 {{- $name := printf "%s-headless" (include "clickhouse.zookeeper.servicename" .) }}
 {{- if and $namespace (ne $namespace .Values.namespace) }}
-{{- printf "%s.svc.%s.%s" $name $namespace $clusterDomain }}
+{{- printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
 {{- else -}}
 {{- $name }}
 {{- end }}
@@ -133,6 +133,20 @@ Return the proper clickhouse image name
 {{- $registryName := default .Values.image.registry .Values.global.imageRegistry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper exporter image name
+*/}}
+{{- define "logs.system.image" -}}
+{{- $registryName := default .Values.logs.system.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.logs.system.image.repository -}}
+{{- $tag := .Values.logs.system.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -321,21 +335,21 @@ Return common environment variables for ClickHouse Operator
 - name: OPERATOR_CONTAINER_CPU_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.cpu
 - name: OPERATOR_CONTAINER_CPU_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.cpu
 - name: OPERATOR_CONTAINER_MEM_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.memory
 - name: OPERATOR_CONTAINER_MEM_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.memory
 {{- end }}

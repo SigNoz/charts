@@ -30,14 +30,11 @@ jobs:
 
       - name: Add dependencies
         run: |
-          helm repo add signoz https://signoz.github.io/charts
-          helm repo add jetstack https://charts.jetstack.io
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo add minio https://charts.min.io
-          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add signoz https://charts.signoz.io
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_SKIP_EXISTING: true
+          CR_GENERATE_RELEASE_NOTES: true

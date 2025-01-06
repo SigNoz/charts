@@ -43,5 +43,5 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install)
-        run: ct install --config ct.yaml --helm-extra-set-args --set=presets.otlpExporter.enabled=false,presets.loggingExporter.enabled=true
+        run: ct install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317'
         if: steps.list-changed.outputs.changed == 'true'

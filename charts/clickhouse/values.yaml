@@ -178,7 +178,10 @@ image:
 # If global.imagePullSecrets is set as well, it will merged.
 imagePullSecrets: []
   # - "clickhouse-pull-secret"
-
+# ClickHouse instance labels
+labels: {}
+# ClickHouse pod labels
+podLabels: {}
 # -- ClickHouse instance annotations.
 annotations: {}
 
@@ -221,6 +224,44 @@ nodeSelector: {}
 tolerations: []
 # -- Affinity settings for clickhouse pod
 affinity: {}
+# -- TopologySpreadConstraints describes how clickhouse pods ought to spread
+topologySpreadConstraints: []
+
+## Configure liveness and readiness probes.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+##
+startupProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+livenessProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 60
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 10
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  port: http
+  path: /ping
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+## Custom startup, liveness and readiness probes
+customStartupProbe: {}
+customLivenessProbe: {}
+customReadinessProbe: {}
 
 # -- Configure resource requests and limits. Update according to your own use
 # case as these values might not be suitable for your workload.
@@ -315,7 +356,7 @@ initContainers:
       - -c
       - |
         set -x
-        wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/develop/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
+        wget -O /tmp/histogramQuantile https://github.com/SigNoz/signoz/raw/main/deploy/docker/clickhouse-setup/user_scripts/histogramQuantile
         mv /tmp/histogramQuantile  /var/lib/clickhouse/user_scripts/histogramQuantile
         chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile
   init:
@@ -381,6 +422,11 @@ podDistribution: []
   #   number: 2
   #   topologyKey: kubernetes.io/hostname
 
+# -- Additional volumes for ClickHouse pod
+additionalVolumes: []
+# -- Additional volume mounts for ClickHouse pod
+additionalVolumeMounts: []
+
 # Cold storage configuration
 coldStorage:
   # -- Whether to enable S3 or GCS cold storage
@@ -430,6 +476,73 @@ files: {}
   #     <some-setting>some-value</some-setting>
   #   </clickhouse>
 
+# -- Custom volume claim templates for ClickHouse pod
+# This is only used when persistence.enabled is false
+templates:
+  volumeClaimTemplates: []
+
+# -- Extra containers for ClickHouse pod
+extraContainers: []
+
+logs:
+  system:
+    # -- Enable collection of system table entries as logs
+    enabled: false
+    image:
+      registry: docker.io
+      repository: signoz/signoz-otel-collector
+      tag: 0.111.16
+      pullPolicy: IfNotPresent
+      pullSecrets: []
+    # -- Config of the opentelemetry collector
+    config:
+      receivers:
+        clickhousesystemtablesreceiver:
+          dsn: tcp://localhost:9000
+          query_log_scrape_config:
+            scrape_interval_seconds: 30
+            min_scrape_delay_seconds: 10
+      processors:
+        batch:
+          send_batch_max_size: 25000
+          send_batch_size: 20000
+          timeout: 1s
+        resourcedetection:
+          detectors:
+            - env
+      extensions:
+        health_check:
+          endpoint: 0.0.0.0:13133
+      exporters:
+        otlp:
+          endpoint: ${env:K8S_HOST_IP}:4317
+          tls:
+            insecure: true
+            insecure_skip_verify: true
+          retry_on_failure:
+            enabled: true
+            initial_interval: 2s
+            max_interval: 5s
+            max_elapsed_time: 15s
+          sending_queue:
+            enabled: false
+      service:
+        telemetry:
+          logs:
+            encoding: json
+          metrics:
+            address: 0.0.0.0:8888
+        extensions:
+          - health_check
+        pipelines:
+          logs:
+            receivers:
+              - clickhousesystemtablesreceiver
+            processors:
+              - resourcedetection
+              - batch
+            exporters:
+              - otlp
 ###
 ###
 ### ---- MISC ----
@@ -480,6 +593,12 @@ clickhouseOperator:
     # If not set and create is true, a name is generated using the fullname template
     name:
 
+  # ClickHouse operator deployment labels
+  labels: {}
+  # ClickHouse operator pod labels
+  podLabels: {}
+  # -- Clickhouse Operator deployment annotations
+  annotations: {}
   # -- Clickhouse Operator pod(s) annotation.
   podAnnotations: {}
     # signoz.io/port: '8888'

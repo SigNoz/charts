@@ -12,8 +12,10 @@ global:
   # -- Kubernetes cluster name
   # It is used to attached to telemetry data via resource detection processor
   clusterName: ""
+  # -- Deployment environment to be attached to telemetry data
+  deploymentEnvironment: ""
   # -- Kubernetes cluster cloud provider along with distribution if any.
-  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `azure`, and `other`
   cloud: other
 
 # -- K8s infra chart name override
@@ -121,88 +123,8 @@ presets:
       containers: []
       additionalInclude: []
     operators:
-      # Find out which format is used by kubernetes
-      - type: router
-        id: get-format
-        routes:
-          - output: parser-docker
-            expr: 'body matches "^\\{"'
-          - output: parser-crio
-            expr: 'body matches "^[^ Z]+ "'
-          - output: parser-containerd
-            expr: 'body matches "^[^ Z]+Z"'
-      # Parse CRI-O format
-      - type: regex_parser
-        id: parser-crio
-        regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout_type: gotime
-          layout: '2006-01-02T15:04:05.000000000-07:00'
-      # Parse CRI-Containerd format
-      - type: regex_parser
-        id: parser-containerd
-        regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Parse Docker format
-      - type: json_parser
-        id: parser-docker
-        output: extract_metadata_from_filepath
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-      # Extract metadata from file path
-      - type: regex_parser
-        id: extract_metadata_from_filepath
-        regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
-        parse_from: attributes["log.file.path"]
-        output: add_cluster_name
-      # Add cluster name attribute from environment variable
-      - id: add_cluster_name
-        type: add
-        field: resource["k8s.cluster.name"]
-        value: EXPR(env("K8S_CLUSTER_NAME"))
-        output: move_stream
-      # Rename attributes
-      - type: move
-        id: move_stream
-        from: attributes.stream
-        to: attributes["log.iostream"]
-        output: move_container_name
-      - type: move
-        id: move_container_name
-        from: attributes.container_name
-        to: resource["k8s.container.name"]
-        output: move_namespace
-      - type: move
-        id: move_namespace
-        from: attributes.namespace
-        to: resource["k8s.namespace.name"]
-        output: move_pod_name
-      - type: move
-        id: move_pod_name
-        from: attributes.pod_name
-        to: resource["k8s.pod.name"]
-        output: move_restart_count
-      - type: move
-        id: move_restart_count
-        from: attributes.restart_count
-        to: resource["k8s.container.restart_count"]
-        output: move_uid
-      - type: move
-        id: move_uid
-        from: attributes.uid
-        to: resource["k8s.pod.uid"]
-        output: move_log
-      # Clean up log body
-      - type: move
-        id: move_log
-        from: attributes.log
-        to: body
+      - id: container-parser
+        type: container
   hostMetrics:
     enabled: true
     collectionInterval: 30s
@@ -210,14 +132,77 @@ presets:
       cpu: {}
       load: {}
       memory: {}
-      disk: {}
-      filesystem: {}
-      network: {}
+      disk:
+        exclude:
+          devices:
+            - ^ram\d+$
+            - ^zram\d+$
+            - ^loop\d+$
+            - ^fd\d+$
+            - ^hd[a-z]\d+$
+            - ^sd[a-z]\d+$
+            - ^vd[a-z]\d+$
+            - ^xvd[a-z]\d+$
+            - ^nvme\d+n\d+p\d+$
+          match_type: regexp
+      filesystem:
+        exclude_fs_types:
+          fs_types:
+            - autofs
+            - binfmt_misc
+            - bpf
+            - cgroup2?
+            - configfs
+            - debugfs
+            - devpts
+            - devtmpfs
+            - fusectl
+            - hugetlbfs
+            - iso9660
+            - mqueue
+            - nsfs
+            - overlay
+            - proc
+            - procfs
+            - pstore
+            - rpc_pipefs
+            - securityfs
+            - selinuxfs
+            - squashfs
+            - sysfs
+            - tracefs
+          match_type: strict
+        exclude_mount_points:
+          mount_points:
+            - /dev/*
+            - /proc/*
+            - /sys/*
+            - /run/credentials/*
+            - /run/k3s/containerd/*
+            - /var/lib/docker/*
+            - /var/lib/containers/storage/*
+            - /var/lib/kubelet/*
+            - /snap/*
+          match_type: regexp
+      network:
+        exclude:
+          interfaces:
+            - ^veth.*$
+            - ^docker.*$
+            - ^br-.*$
+            - ^flannel.*$
+            - ^cali.*$
+            - ^cbr.*$
+            - ^cni.*$
+            - ^dummy.*$
+            - ^tailscale.*$
+            - ^lo$
+          match_type: regexp
   kubeletMetrics:
     enabled: true
     collectionInterval: 30s
     authType: serviceAccount
-    endpoint: ${K8S_HOST_IP}:10250
+    endpoint: ${env:K8S_HOST_IP}:10250
     insecureSkipVerify: true
     extraMetadataLabels:
       - container.id
@@ -227,6 +212,35 @@ presets:
       - pod
       - node
       - volume
+    metrics:
+      k8s.node.cpu.usage:
+        enabled: true
+      k8s.node.uptime:
+        enabled: true
+      k8s.pod.cpu.usage:
+        enabled: true
+      k8s.pod.cpu_limit_utilization:
+        enabled: true
+      k8s.pod.cpu_request_utilization:
+        enabled: true
+      k8s.pod.memory_limit_utilization:
+        enabled: true
+      k8s.pod.memory_request_utilization:
+        enabled: true
+      k8s.pod.uptime:
+        enabled: true
+      container.cpu.usage:
+        enabled: true
+      k8s.container.cpu_limit_utilization:
+        enabled: true
+      k8s.container.cpu_request_utilization:
+        enabled: true
+      k8s.container.memory_limit_utilization:
+        enabled: true
+      k8s.container.memory_request_utilization:
+        enabled: true
+      container.uptime:
+        enabled: true
   kubernetesAttributes:
     enabled: true
     # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
@@ -251,25 +265,50 @@ presets:
     # -- Which pod/namespace metadata to extract from a list of default metadata fields.
     extractMetadatas:
       - k8s.namespace.name
+      - k8s.deployment.name
+      - k8s.statefulset.name
+      - k8s.daemonset.name
+      - k8s.cronjob.name
+      - k8s.job.name
+      - k8s.node.name
+      - k8s.node.uid
       - k8s.pod.name
       - k8s.pod.uid
       - k8s.pod.start_time
-      - k8s.deployment.name
-      - k8s.node.name
+    # -- Which labels to extract from a list of metadata fields.
+    extractLabels: []
+    # -- Which annotations to extract from a list of metadata fields.
+    extractAnnotations: []
   clusterMetrics:
     enabled: true
     collectionInterval: 30s
+    resourceAttributes:
+      k8s.pod.qos_class:
+        enabled: true
+      k8s.kubelet.version:
+        enabled: true
+      container.runtime:
+        enabled: true
+      container.runtime.version:
+        enabled: true
+      k8s.container.status.last_terminated_reason:
+        enabled: true
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
-      # - DiskPressure
-      # - NetworkUnavailable
-      # - PIDPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
+    metrics:
+      k8s.node.condition:
+        enabled: true
+      k8s.pod.status_reason:
+        enabled: true
   prometheusScraper:
     enabled: true
     signoz:
@@ -312,25 +351,14 @@ presets:
   resourceDetection:
     enabled: true
     timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
-    # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
-    # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar (set envResourceAttributes value)
-    detectors:
-      # - elastic_beanstalk
-      # - eks
-      # - ecs
-      # - ec2
-      # - gcp
-      # - azure
-      # - heroku
-      - system
-    systemHostnameSources:
-      - dns
-      - os
-      # - cname
-      # - lookup
+    override: false
     envResourceAttributes: ""
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    # -- List of namespaces to watch for events.
+    # all namespaces by default
+    namespaces: []
 
 # Default values for OtelAgent
 otelAgent:
@@ -339,7 +367,7 @@ otelAgent:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelAgent.
@@ -408,7 +436,7 @@ otelAgent:
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
-        resources: ["pods", "namespaces", "nodes"]
+        resources: ["pods", "namespaces", "nodes", "persistentvolumeclaims"]
         verbs: ["get", "list", "watch"]
       - apiGroups: ["apps"]
         resources: ["replicasets"]
@@ -673,14 +701,27 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-        metrics/internal:
-          receivers: []
-          processors: [batch]
-          exporters: []
         logs:
           receivers: [otlp]
           processors: [batch]
           exporters: []
+
+  # -- Additional volumes for otelAgent
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelAgent
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true
 
 # Default values for OtelDeployment
 otelDeployment:
@@ -689,7 +730,7 @@ otelDeployment:
   image:
     registry: docker.io
     repository: otel/opentelemetry-collector-contrib
-    tag: 0.88.0
+    tag: 0.109.0
     pullPolicy: IfNotPresent
 
   # -- Image Registry Secret Names for OtelDeployment.
@@ -883,6 +924,9 @@ otelDeployment:
   # -- Affinity settings for OtelDeployment pod
   affinity: {}
 
+  # -- TopologySpreadConstraints describes how OtelDeployment pods ought to spread
+  topologySpreadConstraints: []
+
   # OtelDeployment RBAC config
   clusterRole:
     # -- Specifies whether a clusterRole should be created
@@ -969,3 +1013,24 @@ otelDeployment:
           receivers: []
           processors: [batch]
           exporters: []
+        logs:
+          receivers: []
+          processors: [batch]
+          exporters: []
+
+  # -- Additional volumes for otelDeployment
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelDeployment
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true

@@ -77,7 +77,7 @@ spec:
       {{- end }}
       containers:
         {{- if and (.Values.alertmanager.configmapReload.enabled) (.Values.alertmanager.config) }}
-        - name: {{ include "alertmanager.fullname" . }}-{{ .Values.alertmanager.configmapReload.name }}
+        - name: alertmanager-{{ .Values.alertmanager.configmapReload.name }}
           image: "{{ .Values.alertmanager.configmapReload.image.repository }}:{{ .Values.alertmanager.configmapReload.image.tag }}"
           imagePullPolicy: "{{ .Values.alertmanager.configmapReload.image.pullPolicy }}"
           args:
@@ -93,7 +93,7 @@ spec:
             - name: config
               mountPath: /etc/alertmanager
         {{- end }}
-        - name: {{ include "alertmanager.fullname" . }}
+        - name: alertmanager
           securityContext:
             {{- toYaml .Values.alertmanager.securityContext | nindent 12 }}
           image: {{ template "alertmanager.image" . }}

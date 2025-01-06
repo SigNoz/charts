@@ -5,6 +5,13 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
+    {{- if .Values.clickhouseOperator.labels }}
+    {{- toYaml .Values.clickhouseOperator.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.clickhouseOperator.annotations }}
+  annotations:
+    {{- toYaml .Values.clickhouseOperator.annotations | nindent 4 }}
+  {{- end }}
 spec:
   replicas: 1
   selector:
@@ -23,6 +30,9 @@ spec:
         checksum/usersd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-usersd-files.yaml") . | sha256sum }}
       labels:
         {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
+        {{- if .Values.clickhouseOperator.podLabels }}
+        {{- toYaml .Values.clickhouseOperator.podLabels | nindent 8 }}
+        {{- end }}
     spec:
       {{- include "clickhouseOperator.imagePullSecrets" . | indent 6 }}
       serviceAccountName: {{ include "clickhouseOperator.serviceAccountName" . }}
@@ -61,7 +71,7 @@ spec:
           configMap:
             name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
       containers:
-        - name: {{ include "clickhouseOperator.fullname" . }}
+        - name: operator
           image: {{ template "clickhouseOperator.image" . }}
           imagePullPolicy: {{ .Values.clickhouseOperator.image.pullPolicy }}
           volumeMounts:
@@ -83,7 +93,7 @@ spec:
           resources:
             {{- toYaml .Values.clickhouseOperator.resources | nindent 12 }}
 
-        - name: {{ include "metricsExporter.fullname" . }}
+        - name: metrics-exporter
           image: {{ include "metricsExporter.image" . }}
           imagePullPolicy: {{ .Values.clickhouseOperator.metricsExporter.image.pullPolicy }}
           volumeMounts:

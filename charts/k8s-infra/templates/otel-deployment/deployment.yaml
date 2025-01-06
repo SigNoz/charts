@@ -44,6 +44,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.otelDeployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: otel-deployment-config-vol
           configMap:
@@ -57,6 +61,9 @@ spec:
                 path: cert.pem
               - key: key.pem
                 path: key.pem
+        {{- end }}
+        {{- with .Values.otelDeployment.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       containers:
         - name: {{ template "otelDeployment.fullname" . }}
@@ -86,8 +93,6 @@ spec:
           env:
             {{- include "snippet.otlp-env" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}
-            - name: K8S_CLUSTER_NAME
-              value: {{ default .Values.global.clusterName .Values.clusterName }}
             - name: SIGNOZ_COMPONENT
               value: {{ default "otel-deployment" .Values.otelDeployment.name }}
             - name: OTEL_RESOURCE_ATTRIBUTES
@@ -102,6 +107,9 @@ spec:
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-deployment-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
+            {{- end }}
+            {{- with .Values.otelDeployment.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- if .Values.otelDeployment.livenessProbe.enabled }}
           livenessProbe:

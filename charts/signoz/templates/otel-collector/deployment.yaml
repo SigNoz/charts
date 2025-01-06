@@ -65,9 +65,9 @@ spec:
           args:
           - "job"
           {{- if .Release.IsInstall }}
-          - "{{ include "schemaMigrator.fullname" . }}-init"
+          - "{{ include "schemaMigrator.fullname" . }}-sync-init"
           {{- else }}
-          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
+          - "{{ include "schemaMigrator.fullname" . }}-sync"
           {{- end }}
         {{- end }}
         {{- if .Values.otelCollector.initContainers.init.enabled }}
@@ -86,7 +86,7 @@ spec:
             {{- toYaml .Values.otelCollector.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
-        - name: {{ template "otelCollector.fullname" . }}
+        - name: collector
           image: {{ template "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           ports:
@@ -117,12 +117,6 @@ spec:
           env:
             {{- include "snippet.clickhouse-env" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}
-            - name: K8S_CLUSTER_NAME
-              value: {{ default .Values.global.clusterName .Values.clusterName }}
-            - name: SIGNOZ_COMPONENT
-              value: {{ default "otel-collector" .Values.otelCollector.name}}
-            - name: OTEL_RESOURCE_ATTRIBUTES
-              value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME),k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)
             - name: LOW_CARDINAL_EXCEPTION_GROUPING
               value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
             {{- range $key, $val := .Values.otelCollector.additionalEnvs }}

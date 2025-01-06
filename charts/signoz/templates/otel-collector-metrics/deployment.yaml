@@ -59,9 +59,9 @@ spec:
           args:
           - "job"
           {{- if .Release.IsInstall }}
-          - "{{ include "schemaMigrator.fullname" . }}-init"
+          - "{{ include "schemaMigrator.fullname" . }}-sync-init"
           {{- else }}
-          - "{{ include "schemaMigrator.fullname" . }}-upgrade"
+          - "{{ include "schemaMigrator.fullname" . }}-sync"
           {{- end }}
         {{- end }}
         {{- if .Values.otelCollectorMetrics.initContainers.init.enabled }}
@@ -80,9 +80,7 @@ spec:
             {{- toYaml .Values.otelCollectorMetrics.initContainers.init.resources | nindent 12 }}
         {{- end }}
       containers:
-        - name: {{ template "otelCollectorMetrics.fullname" . }}
-          securityContext:
-            {{- toYaml .Values.otelCollectorMetrics.securityContext | nindent 12 }}
+        - name: collector
           image: {{ template "otelCollectorMetrics.image" . }}
           imagePullPolicy: {{ .Values.otelCollectorMetrics.image.pullPolicy }}
           ports:
