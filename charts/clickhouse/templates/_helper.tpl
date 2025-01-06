@@ -141,6 +141,20 @@ Return the proper clickhouse image name
 {{- end -}}
 
 {{/*
+Return the proper exporter image name
+*/}}
+{{- define "logs.system.image" -}}
+{{- $registryName := default .Values.logs.system.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.logs.system.image.repository -}}
+{{- $tag := .Values.logs.system.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
 {{- define "service.ifClusterIP" -}}
@@ -321,21 +335,21 @@ Return common environment variables for ClickHouse Operator
 - name: OPERATOR_CONTAINER_CPU_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.cpu
 - name: OPERATOR_CONTAINER_CPU_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.cpu
 - name: OPERATOR_CONTAINER_MEM_REQUEST
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: requests.memory
 - name: OPERATOR_CONTAINER_MEM_LIMIT
   valueFrom:
     resourceFieldRef:
-        containerName: {{ include "clickhouseOperator.fullname" . }}
+        containerName: operator
         resource: limits.memory
 {{- end }}

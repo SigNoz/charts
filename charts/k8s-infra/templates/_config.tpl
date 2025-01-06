@@ -167,6 +167,8 @@ receivers:
       {{- toYaml .Values.presets.clusterMetrics.allocatableTypesToReport | nindent 6 }}
     metrics:
       {{- toYaml .Values.presets.clusterMetrics.metrics | nindent 6 }}
+    resource_attributes:
+      {{- toYaml .Values.presets.clusterMetrics.resourceAttributes | nindent 6 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyK8sEventsConfig" -}}
@@ -346,6 +348,10 @@ processors:
     extract:
       metadata:
         {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
+      annotations:
+        {{ toYaml .Values.presets.kubernetesAttributes.extractAnnotations | nindent 8 }}
+      labels:
+        {{ toYaml .Values.presets.kubernetesAttributes.extractLabels | nindent 8 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyResourceDetectionConfig" -}}
