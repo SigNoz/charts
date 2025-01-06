@@ -740,3 +740,30 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+Function to render environment variables 
+*/}}
+{{- define "signoz.renderAdditionalEnv" -}}
+{{- $dict := . -}}
+{{- $processedKeys := dict -}}
+{{- range keys . | sortAlpha }}
+{{- $val := pluck . $dict | first -}}
+{{- $key := upper . -}}
+{{- if not (hasKey $processedKeys $key) }}
+{{- $processedKeys = merge $processedKeys (dict $key true) -}}
+{{- $valueType := printf "%T" $val -}}
+{{- if eq $valueType "map[string]interface {}" }}
+- name: {{ $key }}
+{{ toYaml $val | indent 2 -}}
+{{- else if eq $valueType "string" }}
+- name: {{ $key }}
+  value: {{ $val | quote }}
+{{- else }}
+- name: {{ $key }}
+  value: {{ $val | quote }}
+{{- end }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
