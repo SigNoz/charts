@@ -138,10 +138,7 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
-            {{- range $key, $val := .Values.queryService.additionalEnvs }}
-            - name: {{ $key }}
-              value: {{ $val | toYaml }}
-            {{- end }}
+            {{- include "signoz.renderAdditionalEnv" .Values.queryService.additionalEnvs | nindent 12 }}
             {{- if .Values.queryService.smtpVars.enabled }}
             - name: SMTP_ENABLED
               value: "true"
