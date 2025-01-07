@@ -52,25 +52,9 @@ tests:
               zpages:
                 endpoint: localhost:55679
             processors:
-              attributes/prometheus:
-                actions:
-                - action: delete
-                  key: service_name
-                - action: delete
-                  key: service_instance_id
               batch:
                 send_batch_size: 10000
                 timeout: 1s
-              resource/prometheus:
-                attributes:
-                - action: delete
-                  key: service.name
-                - action: delete
-                  key: service.instance.id
-                - action: delete
-                  key: service_name
-                - action: delete
-                  key: service_instance_id
               resourcedetection:
                 detectors:
                 - env
@@ -148,8 +132,6 @@ tests:
                   exporters:
                   - logging
                   processors:
-                  - resource/prometheus
-                  - attributes/prometheus
                   - resourcedetection
                   - batch
                   receivers:

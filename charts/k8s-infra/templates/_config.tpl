@@ -207,8 +207,6 @@ receivers:
 {{- define "opentelemetry-collector.applyPrometheusConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusConfig" .Values | fromYaml) .config }}
 {{- if index $config.service.pipelines "metrics/scraper" }}
-{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "attributes/prometheus" | uniq)  }}
-{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resource/prometheus" | uniq)  }}
 {{- $_ := set (index $config.service.pipelines "metrics/scraper") "receivers" (append (index (index $config.service.pipelines "metrics/scraper") "receivers") "prometheus/scraper" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
@@ -225,23 +223,6 @@ receivers:
 
 {{- define "opentelemetry-collector.prometheusConfig" -}}
 {{- $annotationsPrefix := include "opentelemetry-collector.convertAnnotationToPrometheusMetaLabel" .Values.presets.prometheus.annotationsPrefix }}
-processors:
-  resource/prometheus:
-    attributes:
-    - key: service.name
-      action: delete
-    - key: service.instance.id
-      action: delete
-    - key: service_name
-      action: delete
-    - key: service_instance_id
-      action: delete
-  attributes/prometheus:
-    actions:
-    - key: service_name
-      action: delete
-    - key: service_instance_id
-      action: delete
 receivers:
   prometheus/scraper:
     config:
