@@ -71,8 +71,8 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if and .Values.presets.prometheus.enabled (or .Values.presets.prometheus.enabled .Values.presets.prometheus.prometheus.enabled) }}
-{{- $config = (include "opentelemetry-collector.applyPrometheusScraperConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if .Values.presets.prometheus.enabled }}
+{{- $config = (include "opentelemetry-collector.applyPrometheusConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.k8sEvents.enabled }}
 {{- $config = (include "opentelemetry-collector.applyK8sEventsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -201,8 +201,8 @@ receivers:
     {{- end }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyPrometheusScraperConfig" -}}
-{{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusScraperConfig" .Values | fromYaml) .config }}
+{{- define "opentelemetry-collector.applyPrometheusConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusConfig" .Values | fromYaml) .config }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "prometheus/scraper" | uniq)  }}
 {{- end }}
@@ -218,7 +218,7 @@ receivers:
 {{- $name -}}
 {{- end -}}
 
-{{- define "opentelemetry-collector.prometheusScraperConfig" -}}
+{{- define "opentelemetry-collector.prometheusConfig" -}}
 {{- $annotationsPrefix := include "opentelemetry-collector.convertAnnotationToPrometheusMetaLabel" .Values.presets.prometheus.annotationsPrefix }}
 receivers:
   prometheus/scraper:
