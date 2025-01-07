@@ -71,6 +71,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.clusterMetrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyClusterMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.prometheus.enabled }}
+{{- $config = (include "opentelemetry-collector.applyPrometheusConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.k8sEvents.enabled }}
 {{- $config = (include "opentelemetry-collector.applyK8sEventsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -82,6 +85,12 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/internal" }}
+{{- end }}
+{{- if or (eq (len (index (index $config.service.pipelines "metrics/scraper") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/scraper") "exporters")) 0) }}
+{{- $_ := unset $config.service.pipelines "metrics/scraper" }}
+{{- end }}
+{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "logs" }}
 {{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
@@ -99,6 +108,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "logging" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") "logging" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -127,6 +139,9 @@ exporters:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") "otlp" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -187,6 +202,99 @@ receivers:
     namespaces:
       {{- toYaml .Values.presets.k8sEvents.namespaces | nindent 6 }}
     {{- end }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyPrometheusConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusConfig" .Values | fromYaml) .config }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "receivers" (append (index (index $config.service.pipelines "metrics/scraper") "receivers") "prometheus/scraper" | uniq)  }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.convertAnnotationToPrometheusMetaLabel" -}}
+{{- $name := . | lower -}}
+{{- $name = regexReplaceAll "\\." $name "_" -}}
+{{- $name := regexReplaceAll "/" $name "_" -}}
+{{- $name := regexReplaceAll "-" $name "_" -}}
+{{- $name := regexReplaceAll "[^a-z0-9_]" $name "_" -}}
+{{- $name -}}
+{{- end -}}
+
+{{- define "opentelemetry-collector.prometheusConfig" -}}
+{{- $annotationsPrefix := include "opentelemetry-collector.convertAnnotationToPrometheusMetaLabel" .Values.presets.prometheus.annotationsPrefix }}
+receivers:
+  prometheus/scraper:
+    config:
+      scrape_configs:
+        {{- if .Values.presets.prometheus.enabled }}
+        - job_name: "signoz-scraper"
+          scrape_interval: {{ .Values.presets.prometheus.scrapeInterval }}
+          kubernetes_sd_configs:
+            - role: pod
+              {{- if or .Values.presets.prometheus.namespaceScoped (len .Values.presets.prometheus.namespaces) }}
+              namespaces:
+                {{- if .Values.presets.prometheus.namespaceScoped }}
+                own_namespace: true
+                {{- end }}
+                {{- if .Values.presets.prometheus.namespaces }}
+                names: {{ toYaml .Values.presets.prometheus.namespaces | nindent 16 }}
+                {{- end }}
+              {{- end }}
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_{{ $annotationsPrefix }}_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_{{ $annotationsPrefix }}_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_{{ $annotationsPrefix }}_port]
+              action: replace
+              separator: ":"
+              target_label: __address__
+            - target_label: job_name
+              replacement: signoz-scraper
+            {{- if .Values.presets.prometheus.includePodLabel }}
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: replace
+              target_label: signoz_k8s_name
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+              action: replace
+              target_label: signoz_k8s_instance
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+              action: replace
+              target_label: signoz_k8s_component
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: k8s_namespace_name
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: k8s_pod_name
+            - source_labels: [__meta_kubernetes_pod_uid]
+              action: replace
+              target_label: k8s_pod_uid
+            {{- if .Values.presets.prometheus.includeContainerName }}
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              action: replace
+              target_label: k8s_container_name
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              regex: (.+)-init
+              action: drop
+            {{- end }}
+            - source_labels: [__meta_kubernetes_pod_node_name]
+              action: replace
+              target_label: k8s_node_name
+            - source_labels: [__meta_kubernetes_pod_ready]
+              action: replace
+              target_label: k8s_pod_ready
+            - source_labels: [__meta_kubernetes_pod_phase]
+              action: replace
+              target_label: k8s_pod_phase
+        {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}
@@ -330,6 +438,9 @@ receivers:
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "k8sattributes" | uniq) }}
 {{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "k8sattributes" | uniq) }}
+{{- end }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -366,6 +477,9 @@ processors:
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
 {{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
+{{- end }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -382,6 +496,9 @@ processors:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resourcedetection" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
