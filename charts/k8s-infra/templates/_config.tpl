@@ -89,6 +89,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/scraper") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/scraper") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/scraper" }}
 {{- end }}
+{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- $_ := unset $config.service.pipelines "logs" }}
+{{- end }}
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
@@ -203,8 +206,8 @@ receivers:
 
 {{- define "opentelemetry-collector.applyPrometheusConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.prometheusConfig" .Values | fromYaml) .config }}
-{{- if index $config.service.pipelines "metrics/internal" }}
-{{- $_ := set (index $config.service.pipelines "metrics/internal") "receivers" (append (index (index $config.service.pipelines "metrics/internal") "receivers") "prometheus/scraper" | uniq)  }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "receivers" (append (index (index $config.service.pipelines "metrics/scraper") "receivers") "prometheus/scraper" | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
