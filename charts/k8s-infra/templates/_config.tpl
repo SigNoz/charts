@@ -177,12 +177,21 @@ exporters:
 {{- define "opentelemetry-collector.otlpExporterOwnTelemetryConfig" -}}
 exporters:
   otlphttp/own_telemetry:
-    endpoint: http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
+    {{- if .Values.presets.ownTelemetry.endpoint }}
+    endpoint: http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}
     tls:
-      insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
-      insecure_skip_verify: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}" .Values.presets.ownTelemetry.insecureSkipVerify }}
+      insecure: {{ .Values.presets.ownTelemetry.insecure }}
+      insecure_skip_verify: {{ .Values.presets.ownTelemetry.insecureSkipVerify }}
     headers:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+    {{- else }}
+    endpoint: http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+      insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+    headers:
+      "signoz-access-token": ${env:SIGNOZ_API_KEY}
+    {{- end }}
 {{- end }}
 
 {{/*
@@ -198,8 +207,8 @@ service:
           exporter:
             otlp:
               protocol: http/protobuf
-              endpoint:  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
-              insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
+              endpoint: {{ if .Values.presets.ownTelemetry.endpoint }}http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}{{ else }}http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}{{ end }}
+              insecure: {{ if .Values.presets.ownTelemetry.endpoint }}{{ .Values.presets.ownTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
               compression: gzip
               headers:
                 "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -222,8 +231,12 @@ service:
             exporter:
               otlp:
                 protocol: http/protobuf
-                endpoint:  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
-                insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
+                endpoint: {{ if .Values.presets.ownTelemetry.endpoint -}}
+                  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}
+                {{- else -}}
+                  http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                {{- end }}
+                insecure: {{ if .Values.presets.ownTelemetry.endpoint }}{{ .Values.presets.ownTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
                 compression: gzip
                 headers:
                   "signoz-access-token": "${env:SIGNOZ_API_KEY}"
