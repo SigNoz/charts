@@ -327,11 +327,6 @@ presets:
     # Since it will create multiple timeseries for the same pod metrics with different container names
     # containers with `-init` suffix in the name will be ignored
     includeContainerName: false
-  resourceDetectionInternal:
-    enabled: true
-    timeout: 2s
-    # DO NOT CHANGE BELOW TO false, causes data duplication in case attributes mismatched.
-    override: true
   resourceDetection:
     enabled: true
     timeout: 2s
