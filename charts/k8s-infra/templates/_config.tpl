@@ -80,9 +80,6 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.ownTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if .Values.presets.ownTelemetry.logs.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnLogsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -100,9 +97,6 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- end }}
 {{- if .Values.presets.otlpExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
-{{- end }}
-{{- if .Values.presets.ownTelemetry.logs.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOtlpExporterOwnTelemetryConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/internal") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/internal") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/internal" }}
@@ -178,13 +172,15 @@ exporters:
 {{- $config | toYaml }}
 {{- end }}
 
+
+
 {{- define "opentelemetry-collector.otlpExporterOwnTelemetryConfig" -}}
 exporters:
   otlphttp/own_telemetry:
-    endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
+    endpoint: http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
     tls:
-      insecure: {{ .Values.presets.ownTelemetry.insecure }}
-      insecure_skip_verify: {{ .Values.presets.ownTelemetry.insecureSkipVerify }}
+      insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
+      insecure_skip_verify: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}" .Values.presets.ownTelemetry.insecureSkipVerify }}
     headers:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
 {{- end }}
@@ -202,8 +198,8 @@ service:
           exporter:
             otlp:
               protocol: http/protobuf
-              endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
-              insecure: {{ .Values.presets.ownTelemetry.insecure }}
+              endpoint:  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
+              insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
               compression: gzip
               headers:
                 "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -226,8 +222,8 @@ service:
             exporter:
               otlp:
                 protocol: http/protobuf
-                endpoint: {{ .Values.presets.ownTelemetry.endpoint }}
-                insecure: {{ .Values.presets.ownTelemetry.insecure }}
+                endpoint:  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ default "${env:OTEL_EXPORTER_OTLP_ENDPOINT}" .Values.presets.ownTelemetry.endpoint }}
+                insecure: {{ default "${env:OTEL_EXPORTER_OTLP_INSECURE}" .Values.presets.ownTelemetry.insecure }}
                 compression: gzip
                 headers:
                   "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -241,7 +237,6 @@ if the endpoint is not set in the ownTelemetry config, it will use the same endp
 receivers:
   filelog/own_logs:
     include:
-      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
@@ -250,11 +245,17 @@ receivers:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
     {{ end }}
+processors:
+  filter/non_error_logs:
+    logs:
+      log_record:
+        - 'not IsMatch(body, ".*error.*")'
 service:
   pipelines:
     logs/own_logs:
       exporters: [otlphttp/own_telemetry]
-      processors: []
+      # we want to send only error logs
+      processors: [filter/non_error_logs]
       receivers: [filelog/own_logs]
 {{- end }}
 
@@ -377,6 +378,14 @@ receivers:
       {{- $pods := .Values.presets.logsCollection.whitelist.pods }}
       {{- $containers := .Values.presets.logsCollection.whitelist.containers }}
       {{- $additionalInclude := .Values.presets.logsCollection.whitelist.additionalInclude }}
+      # Include specific container's logs using whitelist config.
+      # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
+      {{- if .Values.presets.logsCollection.whitelist.signozLogs }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
+      {{- end }}
+      {{- end }}
       {{- range $namespace := $namespaces }}
       - /var/log/pods/{{ $namespace }}_*/*/*.log
       {{- end }}
@@ -401,9 +410,14 @@ receivers:
     # Exclude specific container's logs using blacklist config or includeSigNozLogs flag.
     # The file format is /var/log/pods/<namespace_name>_<pod_name>_<pod_uid>/<container_name>/<run_id>.log
     exclude:
+      {{- if .Values.presets.logsCollection.blacklist.signozLogs }}
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- if and .Values.namespace (ne .Release.Namespace .Values.namespace) }}
+      - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-signoz-*/*/*.log
       - /var/log/pods/{{ .Values.namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
+      {{- end }}
+      {{- end }}
       {{- range $namespace := $namespaces }}
       - /var/log/pods/{{ $namespace }}_*/*/*.log
       {{- end }}
