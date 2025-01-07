@@ -13,9 +13,13 @@ metadata:
     {{- with .Values.schemaMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if and .Release.IsUpgrade .Values.schemaMigrator.upgradeHelmHooks }}
+    {{- if .Values.schemaMigrator.upgradeHelmHooks }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    {{- if .Release.IsUpgrade }}
     helm.sh/hook: pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
+    {{- end }}
     {{- end }}
 spec:
   template:
@@ -23,7 +27,6 @@ spec:
       labels:
         {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-sync
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: schema-migrator-sync-init

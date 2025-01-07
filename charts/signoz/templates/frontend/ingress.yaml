@@ -1,3 +1,4 @@
+{{- if .Values.frontend.enabled }}
 {{- if .Values.frontend.ingress.enabled -}}
 {{- $fullName := include "frontend.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
@@ -50,4 +51,5 @@ spec:
               {{- end }}
           {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}

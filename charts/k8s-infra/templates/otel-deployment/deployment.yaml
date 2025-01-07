@@ -62,6 +62,9 @@ spec:
               - key: key.pem
                 path: key.pem
         {{- end }}
+        {{- with .Values.otelDeployment.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: {{ template "otelDeployment.fullname" . }}
           image: {{ template "otelDeployment.image" . }}
@@ -104,6 +107,9 @@ spec:
             {{- if .Values.otelTlsSecrets.enabled }}
             - name: {{ include "k8s-infra.fullname" . }}-deployment-secrets-vol
               mountPath: {{ default "/secrets" .Values.otelTlsSecrets.path }}
+            {{- end }}
+            {{- with .Values.otelDeployment.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- if .Values.otelDeployment.livenessProbe.enabled }}
           livenessProbe:

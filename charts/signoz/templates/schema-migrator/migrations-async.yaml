@@ -14,11 +14,11 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
     {{- if .Values.schemaMigrator.upgradeHelmHooks }}
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     {{- if .Release.IsUpgrade }}
-    helm.sh/hook: pre-upgrade
+    helm.sh/hook: post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
-    helm.sh/hook-weight: "1"
     {{- end }}
     {{- end }}
 spec:
