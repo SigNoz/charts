@@ -283,11 +283,10 @@ spec:
                 - name: data-volume
                   mountPath: /var/lib/clickhouse
               {{- end }}
-              {{- else if and (.Values.persistence.enabled) (.Values.persistence.existingClaim) }}
+              {{- if and (.Values.persistence.enabled) (.Values.persistence.existingClaim) }}
                 - name: existing-volumeclaim
                   mountPath: /var/lib/clickhouse
-               {{- end }}
-              {{- if .Values.persistence.enabled }}
+              {{- else if .Values.persistence.enabled }}
                 - name: data-volumeclaim-template
                   mountPath: /var/lib/clickhouse
               {{- end }}
