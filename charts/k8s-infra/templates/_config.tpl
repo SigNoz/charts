@@ -25,6 +25,9 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.ownTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOwnTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}  
 {{- if .Values.presets.ownTelemetry.logs.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnLogsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -80,6 +83,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.ownTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOwnTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -113,6 +119,12 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- define "opentelemetry-collector.applyOwnMetricsConfig" -}}
 {{- $config := .config }}
 {{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownMetricsConfig" .Values | fromYaml) $config }}
+{{- $config | toYaml }}
+{{- end }}
+
+{{- define "opentelemetry-collector.applyOwnTelemetryResourceConfig" -}}
+{{- $config := .config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownTelemetryResourceConfig" .Values | fromYaml) $config }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -270,6 +282,21 @@ service:
       # we want to send only error logs
       processors: [filter/non_error_logs]
       receivers: [filelog/own_logs]
+{{- end }}
+
+{{/*
+This will add resource attributes to the telemetry data for own telemetry.
+i.e ownMetricsConfig, ownTracesConfig
+*/}}
+{{- define "opentelemetry-collector.ownTelemetryResourceConfig" -}}
+service:
+  telemetry:
+    resource:
+      k8s.pod.name: ${env:K8S_POD_NAME}
+      k8s.container.name: ${env:K8S_CONTAINER_NAME}
+      k8s.node.name: ${env:K8S_NODE_NAME}
+      k8s.namespace.name: ${env:K8S_NAMESPACE}
+      k8s.cluster.name: ${env:K8S_CLUSTER_NAME}
 {{- end }}
 
 {{- define "opentelemetry-collector.otlpExporterConfig" -}}
