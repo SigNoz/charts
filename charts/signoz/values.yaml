@@ -554,7 +554,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.66.0
+    tag: 0.67.0
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for Query-Service
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -596,22 +596,22 @@ queryService:
     - --use-trace-new-schema=true
   # -- Additional environments to set for queryService
   additionalEnvs: {}
-# Environment variables for the Query Service.
-# You can specify variables in two ways:
-# 1. Flexible structure for advanced configurations (recommended):
-#    Example:
-#      additionalEnvs:
-#        MY_KEY:
-#          value: my-value  # Direct value
-#        SECRET_KEY:
-#          valueFrom:       # Reference from a Secret or ConfigMap
-#            secretKeyRef:
-#              name: my-secret
-#              key: my-key
-# 2. Simple key-value pairs (backward-compatible):
-#    Example:
-#      additionalEnvs:
-#        MY_KEY: my-value
+  # Environment variables for the Query Service.
+  # You can specify variables in two ways:
+  # 1. Flexible structure for advanced configurations (recommended):
+  #    Example:
+  #      additionalEnvs:
+  #        MY_KEY:
+  #          value: my-value  # Direct value
+  #        SECRET_KEY:
+  #          valueFrom:       # Reference from a Secret or ConfigMap
+  #            secretKeyRef:
+  #              name: my-secret
+  #              key: my-key
+  # 2. Simple key-value pairs (backward-compatible):
+  #    Example:
+  #      additionalEnvs:
+  #        MY_KEY: my-value
 
   initContainers:
     init:
@@ -795,7 +795,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.66.0
+    tag: 0.67.0
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for Frontend
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1201,7 +1201,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.111.21
+    tag: 0.111.22
     pullPolicy: IfNotPresent
   args:
     - "--up="
@@ -1351,7 +1351,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.21
+    tag: 0.111.22
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1403,7 +1403,6 @@ otelCollector:
     labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
-
     # -- LoadBalancer Source Ranges when service type is LoadBalancer
     loadBalancerSourceRanges: []
   # -- OtelCollector Deployment annotation.
@@ -1814,7 +1813,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.21
+    tag: 0.111.22
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
