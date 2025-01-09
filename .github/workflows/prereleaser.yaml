@@ -26,7 +26,7 @@ jobs:
       GITHUB_TEAM_NAME: releaser
       GITHUB_MEMBER_NAME: ${{ github.actor }}
   charts:
-    if: ${{ always() && (needs.verify.result == 'success' || github.event.name == 'repository_dispatch') }}
+    if: ${{ always() && (needs.verify.result == 'success' || github.event.action == 'prereleaser') }}
     uses: signoz/primus.workflows/.github/workflows/releaser.yaml@main
     secrets: inherit
     needs: [verify]
