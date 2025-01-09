@@ -646,7 +646,6 @@ processors:
 {{- if index $config.service.pipelines "metrics/scraper" }}
 {{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
 {{- end }}
-# prepend for "logs/own_logs"
 {{- if index $config.service.pipelines "logs/own_logs" }}
 {{- $_ := set (index $config.service.pipelines "logs/own_logs") "processors" (prepend (index (index $config.service.pipelines "logs/own_logs") "processors") "resourcedetection" | uniq) }}
 {{- end }}
@@ -670,7 +669,6 @@ processors:
 {{- if index $config.service.pipelines "metrics/scraper" }}
 {{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
 {{- end }}
-# prepend for "logs/own_logs"
 {{- if index $config.service.pipelines "logs/own_logs" }}
 {{- $_ := set (index $config.service.pipelines "logs/own_logs") "processors" (prepend (index (index $config.service.pipelines "logs/own_logs") "processors") "resourcedetection" | uniq) }}
 {{- end }}
