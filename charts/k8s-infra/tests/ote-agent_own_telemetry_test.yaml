@@ -133,6 +133,3 @@ tests:
                   propagators:
                   - tracecontext
                   - b3
-
-
-            
