@@ -29,7 +29,7 @@ set:
       enabled: false
 
 tests:
-  - it: should configure own telemetry with traces, metrics and logs
+  - it: should configure the log collection correctly
     asserts:
       - equal:
           path: data["otel-agent-config.yaml"]
