@@ -117,6 +117,7 @@ presets:
     # By default, kube-system and hotrod, locust pods are excluded.
     blacklist:
       enabled: true
+      signozLogs: true
       namespaces:
         - kube-system
       pods:
@@ -129,6 +130,7 @@ presets:
     # If whitelist is enabled, `include` is ignored.
     whitelist:
       enabled: false
+      signozLogs: true
       namespaces: []
       pods: []
       containers: []
