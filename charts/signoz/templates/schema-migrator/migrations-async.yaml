@@ -84,6 +84,8 @@ spec:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
           args:
             - async
+            - "--cluster-name"
+            - "$(CLICKHOUSE_CLUSTER)"
             - "--dsn"
             - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@{{ include "schemamigrator.url" . }}"
             {{- if .Values.schemaMigrator.enableReplication }}
