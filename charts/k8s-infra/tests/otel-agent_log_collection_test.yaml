@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: otel-agent_log_collection_test.yaml
+templates:
+  - otel-agent/configmap.yaml
+release:
+  name: k8s-infra
+  namespace: signoz
+set:
+  presets:
+    prometheus:
+      enabled: false
+    loggingExporter:
+      enabled: false
+    otlpExporter:
+      enabled: false
+    logsCollection:
+      enabled: true
+    hostMetrics:
+      enabled: false
+    kubeletMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: false
+    k8sEvents:
+      enabled: false
+
+tests:
+  - it: should configure the log collection correctly
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              filelog/k8s:
+                exclude:
+                - /var/log/pods/signoz_k8s-infra*-signoz-*/*/*.log
+                - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
+                - /var/log/pods/kube-system_*/*/*.log
+                - /var/log/pods/*_hotrod*_*/*/*.log
+                - /var/log/pods/*_locust*_*/*/*.log
+                include:
+                - /var/log/pods/*/*/*.log
+                include_file_name: false
+                include_file_path: true
+                operators:
+                - id: container-parser
+                  type: container
+                start_at: end
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888

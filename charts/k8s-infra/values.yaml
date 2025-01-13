@@ -90,9 +90,22 @@ presets:
     samplingThereafter: 500
   otlpExporter:
     enabled: true
+  selfTelemetry:
+    # OTLP HTTP endpoint to send own telemetry data to.
+    endpoint: ""
+    # Whether to use insecure mode.
+    insecure: true
+    # Whether to skip verifying the certificate.
+    insecureSkipVerify: true
+    traces:
+      enabled: false
+    metrics:
+      enabled: false
+    logs:
+      enabled: false
   logsCollection:
     enabled: true
-    startAt: beginning
+    startAt: end
     includeFilePath: true
     includeFileName: false
     # This include path patterns for log files to be collected.
