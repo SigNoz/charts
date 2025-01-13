@@ -19,16 +19,16 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- $values := deepCopy .Values.otelAgent }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelAgent.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.ownTelemetry.traces.enabled }}
+{{- if .Values.presets.selfTelemetry.traces.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if .Values.presets.ownTelemetry.metrics.enabled }}
+{{- if .Values.presets.selfTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.traces.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if or .Values.presets.selfTelemetry.metrics.enabled .Values.presets.selfTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applySelfTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}  
-{{- if .Values.presets.ownTelemetry.logs.enabled }}
+{{- if .Values.presets.selfTelemetry.logs.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnLogsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.logsCollection.enabled }}
@@ -52,8 +52,8 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if .Values.presets.loggingExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLoggingExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if .Values.presets.ownTelemetry.logs.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOtlpExporterOwnTelemetryConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if .Values.presets.selfTelemetry.logs.enabled }}
+{{- $config = (include "opentelemetry-collector.applyOtlpExporterSelfTelemetryConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.otlpExporter.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -77,14 +77,14 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $values := deepCopy .Values }}
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
-{{- if .Values.presets.ownTelemetry.traces.enabled }}
+{{- if .Values.presets.selfTelemetry.traces.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if .Values.presets.ownTelemetry.metrics.enabled }}
+{{- if .Values.presets.selfTelemetry.metrics.enabled }}
 {{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{- if or .Values.presets.ownTelemetry.metrics.enabled .Values.presets.ownTelemetry.traces.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- if or .Values.presets.selfTelemetry.metrics.enabled .Values.presets.selfTelemetry.traces.enabled }}
+{{- $config = (include "opentelemetry-collector.applySelfTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -131,9 +131,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $config | toYaml }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyOwnTelemetryResourceConfig" -}}
+{{- define "opentelemetry-collector.applySelfTelemetryResourceConfig" -}}
 {{- $config := .config }}
-{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownTelemetryResourceConfig" .Values | fromYaml) $config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.selfTelemetryResourceConfig" .Values | fromYaml) $config }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -194,21 +194,21 @@ exporters:
 {{- $config | toYaml }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyOtlpExporterOwnTelemetryConfig" -}}
-{{- $config := mustMergeOverwrite (include "opentelemetry-collector.otlpExporterOwnTelemetryConfig" .Values | fromYaml) .config }}
+{{- define "opentelemetry-collector.applyOtlpExporterSelfTelemetryConfig" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.otlpExporterSelfTelemetryConfig" .Values | fromYaml) .config }}
 {{- $config | toYaml }}
 {{- end }}
 
 
 
-{{- define "opentelemetry-collector.otlpExporterOwnTelemetryConfig" -}}
+{{- define "opentelemetry-collector.otlpExporterSelfTelemetryConfig" -}}
 exporters:
   otlphttp/own_telemetry:
-    {{- if .Values.presets.ownTelemetry.endpoint }}
-    endpoint: http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}
+    {{- if .Values.presets.selfTelemetry.endpoint }}
+    endpoint: http{{ if not .Values.presets.selfTelemetry.insecure }}s{{ end }}://{{ .Values.presets.selfTelemetry.endpoint }}
     tls:
-      insecure: {{ .Values.presets.ownTelemetry.insecure }}
-      insecure_skip_verify: {{ .Values.presets.ownTelemetry.insecureSkipVerify }}
+      insecure: {{ .Values.presets.selfTelemetry.insecure }}
+      insecure_skip_verify: {{ .Values.presets.selfTelemetry.insecureSkipVerify }}
     headers:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
     {{- else }}
@@ -222,7 +222,7 @@ exporters:
 {{- end }}
 
 {{/*
-Own traces config, if the endpoint is not set in the ownTelemetry config,
+Own traces config, if the endpoint is not set in the selfTelemetry config,
 it will use the same endpoint as regular otlp exporter.
 */}}
 {{- define "opentelemetry-collector.ownTracesConfig" -}}
@@ -234,8 +234,8 @@ service:
           exporter:
             otlp:
               protocol: http/protobuf
-              endpoint: {{ if .Values.presets.ownTelemetry.endpoint }}http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}{{ else }}http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}{{ end }}
-              insecure: {{ if .Values.presets.ownTelemetry.endpoint }}{{ .Values.presets.ownTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
+              endpoint: {{ if .Values.presets.selfTelemetry.endpoint }}http{{ if not .Values.presets.selfTelemetry.insecure }}s{{ end }}://{{ .Values.presets.selfTelemetry.endpoint }}{{ else }}http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}{{ end }}
+              insecure: {{ if .Values.presets.selfTelemetry.endpoint }}{{ .Values.presets.selfTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
               compression: gzip
               headers:
                 "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -245,7 +245,7 @@ service:
 {{- end }}
 
 {{/*
-Own metrics config, if the endpoint is not set in the ownTelemetry config,
+Own metrics config, if the endpoint is not set in the selfTelemetry config,
 it will use the same endpoint as regular otlp exporter.
 */}}
 {{- define "opentelemetry-collector.ownMetricsConfig" -}}
@@ -258,12 +258,12 @@ service:
             exporter:
               otlp:
                 protocol: http/protobuf
-                endpoint: {{ if .Values.presets.ownTelemetry.endpoint -}}
-                  http{{ if not .Values.presets.ownTelemetry.insecure }}s{{ end }}://{{ .Values.presets.ownTelemetry.endpoint }}
+                endpoint: {{ if .Values.presets.selfTelemetry.endpoint -}}
+                  http{{ if not .Values.presets.selfTelemetry.insecure }}s{{ end }}://{{ .Values.presets.selfTelemetry.endpoint }}
                 {{- else -}}
                   http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                 {{- end }}
-                insecure: {{ if .Values.presets.ownTelemetry.endpoint }}{{ .Values.presets.ownTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
+                insecure: {{ if .Values.presets.selfTelemetry.endpoint }}{{ .Values.presets.selfTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
                 compression: gzip
                 headers:
                   "signoz-access-token": "${env:SIGNOZ_API_KEY}"
@@ -271,7 +271,7 @@ service:
 
 {{/*
 OTEL go doesn't support logs yet, so we use filelog receiver to collect logs,
-if the endpoint is not set in the ownTelemetry config, it will use the same endpoint as regular otlp exporter.
+if the endpoint is not set in the selfTelemetry config, it will use the same endpoint as regular otlp exporter.
 */}}
 {{- define "opentelemetry-collector.ownLogsConfig" -}}
 receivers:
@@ -303,7 +303,7 @@ service:
 This will add resource attributes to the telemetry data for own telemetry.
 i.e ownMetricsConfig, ownTracesConfig
 */}}
-{{- define "opentelemetry-collector.ownTelemetryResourceConfig" -}}
+{{- define "opentelemetry-collector.selfTelemetryResourceConfig" -}}
 service:
   telemetry:
     resource:

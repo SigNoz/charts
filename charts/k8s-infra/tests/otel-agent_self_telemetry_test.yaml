@@ -1,20 +1,22 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: otel-deployment_own_telemetry_test.yaml
+suite: otel-agent_own_telemetry_test.yaml
 templates:
-  - otel-deployment/configmap.yaml
+  - otel-agent/configmap.yaml
 release:
   name: k8s-infra
   namespace: signoz
 set:
   presets:
-    ownTelemetry:
+    selfTelemetry:
+      endpoint: myhost:443
+      apiKey: myapikey
       traces:
         enabled: true
       metrics:
         enabled: true
       logs:
         enabled: true
-    # Disable other presets to focus on ownTelemetry
+    # Disable other presets to focus on selfTelemetry
     prometheus:
       enabled: false
     loggingExporter:
@@ -37,12 +39,19 @@ set:
       enabled: false
 
 tests:
-  - it: should configure own telemetry with traces, metrics. No logs required for deployment
+  - it: should configure own telemetry with traces, metrics and logs
     asserts:
       - equal:
-          path: data["otel-deployment-config.yaml"]
+          path: data["otel-agent-config.yaml"]
           value: |-
-            exporters: {}
+            exporters:
+              otlphttp/own_telemetry:
+                endpoint: http://myhost:443
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_API_KEY}
+                tls:
+                  insecure: true
+                  insecure_skip_verify: true
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -53,14 +62,41 @@ tests:
             processors:
               batch:
                 send_batch_size: 10000
-                timeout: 1s
-            receivers: {}
+                timeout: 200ms
+              filter/non_error_logs:
+                logs:
+                  log_record:
+                  - not IsMatch(body, ".*error.*")
+            receivers:
+              filelog/own_logs:
+                include:
+                - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
+                include_file_name: false
+                include_file_path: true
+                operators:
+                - id: container-parser
+                  type: container
+                start_at: end
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
             service:
               extensions:
               - health_check
               - zpages
               - pprof
-              pipelines: {}
+              pipelines:
+                logs/own_logs:
+                  exporters:
+                  - otlphttp/own_telemetry
+                  processors:
+                  - filter/non_error_logs
+                  receivers:
+                  - filelog/own_logs
               telemetry:
                 logs:
                   encoding: json
@@ -72,10 +108,10 @@ tests:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          endpoint: http://myhost:443
                           headers:
                             signoz-access-token: ${env:SIGNOZ_API_KEY}
-                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                          insecure: true
                           protocol: http/protobuf
                 resource:
                   k8s.cluster.name: ${env:K8S_CLUSTER_NAME}
@@ -89,10 +125,10 @@ tests:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          endpoint: http://myhost:443
                           headers:
                             signoz-access-token: ${env:SIGNOZ_API_KEY}
-                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                          insecure: true
                           protocol: http/protobuf
                   propagators:
                   - tracecontext
