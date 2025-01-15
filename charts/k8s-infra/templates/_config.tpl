@@ -20,16 +20,16 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelAgent.baseConfig" $data | fromYaml }}
 {{- if .Values.presets.selfTelemetry.traces.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applySelfTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.selfTelemetry.metrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applySelfMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if or .Values.presets.selfTelemetry.metrics.enabled .Values.presets.selfTelemetry.traces.enabled }}
 {{- $config = (include "opentelemetry-collector.applySelfTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}  
 {{- if .Values.presets.selfTelemetry.logs.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnLogsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applySelfLogsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.logsCollection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyLogsCollectionConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -78,10 +78,10 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $data := dict "Values" $values | mustMergeOverwrite (deepCopy .) }}
 {{- $config := include "otelDeployment.baseConfig" $data | fromYaml }}
 {{- if .Values.presets.selfTelemetry.traces.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applySelfTracesConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if .Values.presets.selfTelemetry.metrics.enabled }}
-{{- $config = (include "opentelemetry-collector.applyOwnMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- $config = (include "opentelemetry-collector.applySelfMetricsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
 {{- if or .Values.presets.selfTelemetry.metrics.enabled .Values.presets.selfTelemetry.traces.enabled }}
 {{- $config = (include "opentelemetry-collector.applySelfTelemetryResourceConfig" (dict "Values" $data "config" $config) | fromYaml) }}
@@ -119,15 +119,15 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- tpl (toYaml $config) . }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyOwnTracesConfig" -}}
+{{- define "opentelemetry-collector.applySelfTracesConfig" -}}
 {{- $config := .config }}
-{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownTracesConfig" .Values | fromYaml) $config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.selfTracesConfig" .Values | fromYaml) $config }}
 {{- $config | toYaml }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyOwnMetricsConfig" -}}
+{{- define "opentelemetry-collector.applySelfMetricsConfig" -}}
 {{- $config := .config }}
-{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownMetricsConfig" .Values | fromYaml) $config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.selfMetricsConfig" .Values | fromYaml) $config }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -137,9 +137,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- $config | toYaml }}
 {{- end }}
 
-{{- define "opentelemetry-collector.applyOwnLogsConfig" -}}
+{{- define "opentelemetry-collector.applySelfLogsConfig" -}}
 {{- $config := .config }}
-{{- $config = mustMergeOverwrite (include "opentelemetry-collector.ownLogsConfig" .Values | fromYaml) $config }}
+{{- $config = mustMergeOverwrite (include "opentelemetry-collector.selfLogsConfig" .Values | fromYaml) $config }}
 {{- $config | toYaml }}
 {{- end }}
 
@@ -203,7 +203,7 @@ exporters:
 
 {{- define "opentelemetry-collector.otlpExporterSelfTelemetryConfig" -}}
 exporters:
-  otlphttp/own_telemetry:
+  otlphttp/self_telemetry:
     {{- if .Values.presets.selfTelemetry.endpoint }}
     endpoint: http{{ if not .Values.presets.selfTelemetry.insecure }}s{{ end }}://{{ .Values.presets.selfTelemetry.endpoint }}
     tls:
@@ -222,10 +222,10 @@ exporters:
 {{- end }}
 
 {{/*
-Own traces config, if the endpoint is not set in the selfTelemetry config,
+Self traces config, if the endpoint is not set in the selfTelemetry config,
 it will use the same endpoint as regular otlp exporter.
 */}}
-{{- define "opentelemetry-collector.ownTracesConfig" -}}
+{{- define "opentelemetry-collector.selfTracesConfig" -}}
 service:
   telemetry:
     traces:
@@ -245,10 +245,10 @@ service:
 {{- end }}
 
 {{/*
-Own metrics config, if the endpoint is not set in the selfTelemetry config,
+Self metrics config, if the endpoint is not set in the selfTelemetry config,
 it will use the same endpoint as regular otlp exporter.
 */}}
-{{- define "opentelemetry-collector.ownMetricsConfig" -}}
+{{- define "opentelemetry-collector.selfMetricsConfig" -}}
 service:
   telemetry:
     metrics:
@@ -273,9 +273,9 @@ service:
 OTEL go doesn't support logs yet, so we use filelog receiver to collect logs,
 if the endpoint is not set in the selfTelemetry config, it will use the same endpoint as regular otlp exporter.
 */}}
-{{- define "opentelemetry-collector.ownLogsConfig" -}}
+{{- define "opentelemetry-collector.selfLogsConfig" -}}
 receivers:
-  filelog/own_logs:
+  filelog/self_logs:
     include:
       - /var/log/pods/{{ .Release.Namespace }}_{{ .Release.Name }}*-k8s-infra-*/*/*.log
     start_at: {{ .Values.presets.logsCollection.startAt }}
@@ -292,16 +292,16 @@ processors:
         - 'not IsMatch(body, ".*error.*")'
 service:
   pipelines:
-    logs/own_logs:
-      exporters: [otlphttp/own_telemetry]
+    logs/self_logs:
+      exporters: [otlphttp/self_telemetry]
       # we want to send only error logs
       processors: [filter/non_error_logs]
-      receivers: [filelog/own_logs]
+      receivers: [filelog/self_logs]
 {{- end }}
 
 {{/*
-This will add resource attributes to the telemetry data for own telemetry.
-i.e ownMetricsConfig, ownTracesConfig
+This will add resource attributes to the telemetry data for self telemetry.
+i.e selfMetricsConfig, selfTracesConfig
 */}}
 {{- define "opentelemetry-collector.selfTelemetryResourceConfig" -}}
 service:
@@ -646,8 +646,8 @@ processors:
 {{- if index $config.service.pipelines "metrics/scraper" }}
 {{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
 {{- end }}
-{{- if index $config.service.pipelines "logs/own_logs" }}
-{{- $_ := set (index $config.service.pipelines "logs/own_logs") "processors" (prepend (index (index $config.service.pipelines "logs/own_logs") "processors") "resourcedetection" | uniq) }}
+{{- if index $config.service.pipelines "logs/self_logs" }}
+{{- $_ := set (index $config.service.pipelines "logs/self_logs") "processors" (prepend (index (index $config.service.pipelines "logs/self_logs") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -669,8 +669,8 @@ processors:
 {{- if index $config.service.pipelines "metrics/scraper" }}
 {{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resourcedetection" | uniq) }}
 {{- end }}
-{{- if index $config.service.pipelines "logs/own_logs" }}
-{{- $_ := set (index $config.service.pipelines "logs/own_logs") "processors" (prepend (index (index $config.service.pipelines "logs/own_logs") "processors") "resourcedetection" | uniq) }}
+{{- if index $config.service.pipelines "logs/self_logs" }}
+{{- $_ := set (index $config.service.pipelines "logs/self_logs") "processors" (prepend (index (index $config.service.pipelines "logs/self_logs") "processors") "resourcedetection" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}

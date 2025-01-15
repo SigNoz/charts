@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: otel-agent_own_telemetry_test.yaml
+suite: otel-agent_self_telemetry_test.yaml
 templates:
   - otel-agent/configmap.yaml
 release:
@@ -39,13 +39,13 @@ set:
       enabled: false
 
 tests:
-  - it: should configure own telemetry with traces, metrics and logs
+  - it: should configure self telemetry with traces, metrics and logs
     asserts:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
             exporters:
-              otlphttp/own_telemetry:
+              otlphttp/self_telemetry:
                 endpoint: http://myhost:443
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
@@ -68,7 +68,7 @@ tests:
                   log_record:
                   - not IsMatch(body, ".*error.*")
             receivers:
-              filelog/own_logs:
+              filelog/self_logs:
                 include:
                 - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
                 include_file_name: false
@@ -90,13 +90,13 @@ tests:
               - zpages
               - pprof
               pipelines:
-                logs/own_logs:
+                logs/self_logs:
                   exporters:
-                  - otlphttp/own_telemetry
+                  - otlphttp/self_telemetry
                   processors:
                   - filter/non_error_logs
                   receivers:
-                  - filelog/own_logs
+                  - filelog/self_logs
               telemetry:
                 logs:
                   encoding: json
