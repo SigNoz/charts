@@ -74,7 +74,7 @@ tests:
                           compression: gzip
                           endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_API_KEY}
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
                           protocol: http/protobuf
                 resource:
@@ -91,7 +91,7 @@ tests:
                           compression: gzip
                           endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_API_KEY}
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
                           protocol: http/protobuf
                   propagators:

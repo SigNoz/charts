@@ -210,14 +210,14 @@ exporters:
       insecure: {{ .Values.presets.selfTelemetry.insecure }}
       insecure_skip_verify: {{ .Values.presets.selfTelemetry.insecureSkipVerify }}
     headers:
-      "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+      "signoz-access-token": "${env:SIGNOZ_SELF_TELEMETRY_API_KEY}"
     {{- else }}
     endpoint: http{{ if not .Values.otelInsecure }}s{{ end }}://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
       insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
       insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
     headers:
-      "signoz-access-token": ${env:SIGNOZ_API_KEY}
+      "signoz-access-token": ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
     {{- end }}
 {{- end }}
 
@@ -238,7 +238,7 @@ service:
               insecure: {{ if .Values.presets.selfTelemetry.endpoint }}{{ .Values.presets.selfTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
               compression: gzip
               headers:
-                "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+                "signoz-access-token": "${env:SIGNOZ_SELF_TELEMETRY_API_KEY}"
       propagators:
       - tracecontext
       - b3
@@ -266,7 +266,7 @@ service:
                 insecure: {{ if .Values.presets.selfTelemetry.endpoint }}{{ .Values.presets.selfTelemetry.insecure }}{{ else }}${env:OTEL_EXPORTER_OTLP_INSECURE}{{ end }}
                 compression: gzip
                 headers:
-                  "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+                  "signoz-access-token": "${env:SIGNOZ_SELF_TELEMETRY_API_KEY}"
 {{- end }}
 
 {{/*

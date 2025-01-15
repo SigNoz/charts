@@ -48,7 +48,7 @@ tests:
               otlphttp/self_telemetry:
                 endpoint: http://myhost:443
                 headers:
-                  signoz-access-token: ${env:SIGNOZ_API_KEY}
+                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                 tls:
                   insecure: true
                   insecure_skip_verify: true
@@ -110,7 +110,7 @@ tests:
                           compression: gzip
                           endpoint: http://myhost:443
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_API_KEY}
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: true
                           protocol: http/protobuf
                 resource:
@@ -127,7 +127,7 @@ tests:
                           compression: gzip
                           endpoint: http://myhost:443
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_API_KEY}
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: true
                           protocol: http/protobuf
                   propagators:

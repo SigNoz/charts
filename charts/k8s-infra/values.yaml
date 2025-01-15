@@ -97,6 +97,12 @@ presets:
     insecure: true
     # Whether to skip verifying the certificate.
     insecureSkipVerify: true
+    # -- API key of SigNoz SaaS
+    signozApiKey: ""
+    # -- Existing secret name to be used for API key.
+    apiKeyExistingSecretName: ""
+    # -- Existing secret key to be used for API key.
+    apiKeyExistingSecretKey: ""
     traces:
       enabled: false
     metrics:

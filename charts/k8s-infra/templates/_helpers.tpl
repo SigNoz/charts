@@ -408,6 +408,13 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
       name: {{ include "otel.apiKey.secretName" . }}
       key: {{ include "otel.apiKey.secretKey" . }}
 {{- end }}
+{{- if or .Values.presets.selfTelemetry.apiKeyExistingSecretName .Values.presets.selfTelemetry.signozApiKey }}
+- name: SIGNOZ_SELF_TELEMETRY_API_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "otel.selfTelemetry.apiKey.secretName" . }}
+      key: {{ include "otel.selfTelemetry.apiKey.secretKey" . }}
+{{- end }}
 - name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
   value: {{ include "otel.insecureSkipVerify" . }}
 - name: OTEL_SECRETS_PATH
@@ -437,6 +444,30 @@ Secret key to be used for SigNoz API key.
 {{- define "otel.apiKey.secretKey" }}
 {{- if .Values.apiKeyExistingSecretName }}
 {{- required "You need to provide apiKeyExistingSecretKey when an apiKeyExistingSecretName is specified" .Values.apiKeyExistingSecretKey }}
+{{- else }}
+{{- print "signoz-apikey" }}
+{{- end }}
+{{- end }}
+
+
+
+{{/*
+Secret name to be used for SigNoz Self Telemetry API key.
+*/}}
+{{- define "otel.selfTelemetry.apiKey.secretName" }}
+{{- if .Values.presets.selfTelemetry.apiKeyExistingSecretName }}
+{{- .Values.presets.selfTelemetry.apiKeyExistingSecretName }}
+{{- else }}
+{{- include "k8s-infra.fullname" . }}-self-telemetry-apikey-secret
+{{- end }}
+{{- end }}
+
+{{/*
+Secret key to be used for SigNoz Self Telemetry API key.
+*/}}
+{{- define "otel.selfTelemetry.apiKey.secretKey" }}
+{{- if .Values.presets.selfTelemetry.apiKeyExistingSecretName }}
+{{- required "You need to provide apiKeyExistingSecretKey when an apiKeyExistingSecretName is specified" .Values.presets.selfTelemetry.apiKeyExistingSecretKey }}
 {{- else }}
 {{- print "signoz-apikey" }}
 {{- end }}
