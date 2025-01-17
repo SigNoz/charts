@@ -11,7 +11,7 @@ set:
   presets:
     selfTelemetry:
       endpoint: selftelemetryhost:443
-      apiKey: selftelemetryapikey
+      signozApiKey: selftelemetryapikey
       traces:
         enabled: true
       metrics:
