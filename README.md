@@ -13,11 +13,11 @@ $ helm install -n platform  --create-namespace my-release signoz/signoz
 
 ### Setup a Kubernetes Cluster
 
-The quickest way to setup a staging/production Kubernetes cluster is with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/),
+The quickest way to set up a staging/production Kubernetes cluster is with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/),
 [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/) or [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/)
 using their respective quick-start guides.
 
-For setting up Kubernetes on other cloud platforms, bare-metal servers, or local machine refer to the Kubernetes
+For setting up Kubernetes on other cloud platforms, bare-metal servers, or local machines refer to the Kubernetes
 [getting started guide](https://kubernetes.io/docs/setup/).
 
 ### Install kubectl
