@@ -100,6 +100,8 @@ spec:
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args:
+            - --cluster
+            - "$(CLICKHOUSE_CLUSTER)"
             - --config=/root/config/prometheus.yml
             {{- if .Values.queryService.cache.enabled }}
             - --experimental.cache-config
