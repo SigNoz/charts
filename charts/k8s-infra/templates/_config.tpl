@@ -499,10 +499,12 @@ processors:
     {{- end}}
 {{- end }}
 
+# TODO(srikanthccv): remove separate k8sattributes config for deployment when mode
+# of operation is clearly defined for collector.
 {{- define "opentelemetry-collector.kubernetesAttributesConfigForDeployment" -}}
 processors:
   k8sattributes:
-    passthrough: true
+    passthrough: false
     pod_association:
     {{ range $association := .Values.presets.kubernetesAttributes.podAssociation }}
       - {{ toYaml $association | nindent 8 }}
