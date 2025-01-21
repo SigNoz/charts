@@ -100,6 +100,8 @@ spec:
           image: {{ template "queryService.image" . }}
           imagePullPolicy: {{ .Values.queryService.image.pullPolicy }}
           args:
+            - --cluster
+            - "$(CLICKHOUSE_CLUSTER)"
             - --config=/root/config/prometheus.yml
             {{- if .Values.queryService.cache.enabled }}
             - --experimental.cache-config
@@ -138,9 +140,27 @@ spec:
               value: {{ quote .Values.queryService.configVars.telemetryEnabled }}
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.queryService.configVars.deploymentType }}
-            {{- range $key, $val := .Values.queryService.additionalEnvs }}
-            - name: {{ $key }}
-              value: {{ $val | toYaml }}
+            {{- include "signoz.renderAdditionalEnv" .Values.queryService.additionalEnvs | nindent 12 }}
+            {{- if .Values.queryService.smtpVars.enabled }}
+            - name: SMTP_ENABLED
+              value: "true"
+            {{- range $keyName, $envName := dict "fromKey" "SMTP_FROM"
+                       "hostKey" "SMTP_HOST"
+                       "portKey" "SMTP_PORT"
+                       "usernameKey" "SMTP_USERNAME"
+                       "passwordKey" "SMTP_PASSWORD" }}
+            {{- $keyInSecret := get $.Values.queryService.smtpVars.existingSecret $keyName }}
+            {{- if $keyInSecret }}
+              {{- if and $keyInSecret (hasKey $.Values.queryService.additionalEnvs $envName)}}
+                {{- fail (printf "Error: SMTP variable '%s' is configured both in .Values.queryService.additionalEnvs and .Values.queryService.smtpVars.existingSecret.%s. Please use only one configuration method to avoid conflicts." $envName $keyName)}}
+              {{- end}}
+            - name: {{$envName}}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required (printf "'%s' is set but secret name is missing: .Values.queryService.smtpVars.existingSecret" $keyName) $.Values.queryService.smtpVars.existingSecret.name }}
+                  key: {{ $keyInSecret }}
+            {{- end }}
+            {{- end }}
             {{- end }}
           {{- if .Values.queryService.livenessProbe.enabled }}
           livenessProbe:

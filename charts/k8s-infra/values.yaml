@@ -90,9 +90,28 @@ presets:
     samplingThereafter: 500
   otlpExporter:
     enabled: true
+  selfTelemetry:
+    # OTLP HTTP endpoint to send own telemetry data to.
+    endpoint: ""
+    # Whether to use insecure mode.
+    insecure: true
+    # Whether to skip verifying the certificate.
+    insecureSkipVerify: true
+    # -- API key of SigNoz SaaS
+    signozApiKey: ""
+    # -- Existing secret name to be used for API key.
+    apiKeyExistingSecretName: ""
+    # -- Existing secret key to be used for API key.
+    apiKeyExistingSecretKey: ""
+    traces:
+      enabled: false
+    metrics:
+      enabled: false
+    logs:
+      enabled: false
   logsCollection:
     enabled: true
-    startAt: beginning
+    startAt: end
     includeFilePath: true
     includeFileName: false
     # This include path patterns for log files to be collected.
@@ -275,6 +294,10 @@ presets:
       - k8s.pod.name
       - k8s.pod.uid
       - k8s.pod.start_time
+    # -- Which labels to extract from a list of metadata fields.
+    extractLabels: []
+    # -- Which annotations to extract from a list of metadata fields.
+    extractAnnotations: []
   clusterMetrics:
     enabled: true
     collectionInterval: 30s
@@ -305,6 +328,24 @@ presets:
         enabled: true
       k8s.pod.status_reason:
         enabled: true
+  prometheus:
+    # -- Whether to enable metrics scraping using pod annotation
+    enabled: false
+    # -- Prefix for the pod annotations to be used for metrics scraping
+    annotationsPrefix: signoz.io
+    # -- How often to scrape metrics
+    scrapeInterval: 60s
+    # -- Whether to only scrape metrics from pods in the same namespace
+    namespaceScoped: false
+    # -- If set, only scrape metrics from pods in the specified namespaces
+    namespaces: []
+    # -- This will include all pod labels in the metrics, could potentially cause
+    # performance issues with large number of pods with many labels
+    includePodLabel: false
+    # -- This is not recommended in case of multiple containers or init containers in a pod
+    # Since it will create multiple timeseries for the same pod metrics with different container names
+    # containers with `-init` suffix in the name will be ignored
+    includeContainerName: false
   resourceDetection:
     enabled: true
     timeout: 2s
@@ -663,6 +704,23 @@ otelAgent:
           processors: [batch]
           exporters: []
 
+  # -- Additional volumes for otelAgent
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelAgent
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true
+
 # Default values for OtelDeployment
 otelDeployment:
   enabled: true
@@ -949,7 +1007,28 @@ otelDeployment:
           receivers: []
           processors: [batch]
           exporters: []
+        metrics/scraper:
+          receivers: []
+          processors: [batch]
+          exporters: []
         logs:
           receivers: []
           processors: [batch]
           exporters: []
+
+  # -- Additional volumes for otelDeployment
+  extraVolumes: []
+  # - name: config-volume
+  #   configMap:
+  #     name: special-config
+  # - name: secret-volume
+  #   secret:
+  #     secretName: special-secret
+
+  # -- Additional volume mounts for otelDeployment
+  extraVolumeMounts: []
+  # - name: config-volume
+  #   mountPath: /etc/config
+  # - name: secret-volume
+  #   mountPath: /etc/secret
+  #   readOnly: true

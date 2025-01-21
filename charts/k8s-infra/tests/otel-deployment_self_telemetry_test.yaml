@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: otel-deployment_self_telemetry_test.yaml
+templates:
+  - otel-deployment/configmap.yaml
+release:
+  name: k8s-infra
+  namespace: signoz
+set:
+  presets:
+    selfTelemetry:
+      traces:
+        enabled: true
+      metrics:
+        enabled: true
+      logs:
+        enabled: true
+    # Disable other presets to focus on selfTelemetry
+    prometheus:
+      enabled: false
+    loggingExporter:
+      enabled: false
+    otlpExporter:
+      enabled: false
+    logsCollection:
+      enabled: false
+    hostMetrics:
+      enabled: false
+    kubeletMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: false
+    k8sEvents:
+      enabled: false
+
+tests:
+  - it: should configure self telemetry with traces, metrics. No logs required for deployment
+    asserts:
+      - equal:
+          path: data["otel-deployment-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 1s
+            receivers: {}
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+                  level: detailed
+                  readers:
+                  - periodic:
+                      exporter:
+                        otlp:
+                          compression: gzip
+                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          headers:
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                          protocol: http/protobuf
+                resource:
+                  k8s.cluster.name: ${env:K8S_CLUSTER_NAME}
+                  k8s.container.name: ${env:K8S_CONTAINER_NAME}
+                  k8s.namespace.name: ${env:K8S_NAMESPACE}
+                  k8s.node.name: ${env:K8S_NODE_NAME}
+                  k8s.pod.name: ${env:K8S_POD_NAME}
+                traces:
+                  processors:
+                  - batch:
+                      exporter:
+                        otlp:
+                          compression: gzip
+                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          headers:
+                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                          protocol: http/protobuf
+                  propagators:
+                  - tracecontext
+                  - b3

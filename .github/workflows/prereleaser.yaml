@@ -1,0 +1,37 @@
+name: prereleaser
+
+on:
+  # trigger on repository_dispatch event from other GitHub repository workflows
+  repository_dispatch:
+    types: [prereleaser]
+
+  # allow manual triggering of the workflow by a maintainer
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type of the release"
+        type: choice
+        required: true
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+
+jobs:
+  verify:
+    if: ${{ github.event.action != 'prereleaser' }}
+    uses: signoz/primus.workflows/.github/workflows/github-verify.yaml@main
+    secrets: inherit
+    with:
+      PRIMUS_REF: main
+      GITHUB_TEAM_NAME: releaser
+      GITHUB_MEMBER_NAME: ${{ github.actor }}
+  charts:
+    if: ${{ always() && (needs.verify.result != 'skipped' || github.event.action == 'prereleaser') }}
+    uses: signoz/primus.workflows/.github/workflows/releaser.yaml@main
+    secrets: inherit
+    needs: [verify]
+    with:
+      PRIMUS_REF: main
+      PROJECT_NAME: charts
+      RELEASE_TYPE: ${{ (github.event.client_payload && github.event.client_payload.release_type) || inputs.release_type }}
