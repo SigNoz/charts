@@ -1786,6 +1786,12 @@ otelCollector:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
         use_new_schema: true
+      metadataexporter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
+        timeout: 10s
+        tenant_id: ${env:TENANT_ID}
+        cache:
+          provider: in_memory
     service:
       telemetry:
         logs:
@@ -1797,15 +1803,15 @@ otelCollector:
         traces:
           receivers: [otlp, jaeger]
           processors: [signozspanmetrics/delta, batch]
-          exporters: [clickhousetraces]
+          exporters: [clickhousetraces, metadataexporter]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [clickhousemetricswrite]
+          exporters: [clickhousemetricswrite, metadataexporter]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
-          exporters: [clickhouselogsexporter]
+          exporters: [clickhouselogsexporter, metadataexporter]
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
   enabled: true
@@ -2133,6 +2139,12 @@ otelCollectorMetrics:
       clickhousemetricswrite:
         timeout: 15s
         endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
+      metadataexporter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
+        timeout: 10s
+        tenant_id: ${env:TENANT_ID}
+        cache:
+          provider: in_memory
     service:
       telemetry:
         logs:
@@ -2144,6 +2156,6 @@ otelCollectorMetrics:
         metrics:
           receivers: [prometheus]
           processors: [batch]
-          exporters: [clickhousemetricswrite]
+          exporters: [clickhousemetricswrite, metadataexporter]
 signoz-otel-gateway:
   enabled: false
