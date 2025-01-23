@@ -554,7 +554,7 @@ queryService:
   image:
     registry: docker.io
     repository: signoz/query-service
-    tag: 0.68.0
+    tag: 0.69.0
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for Query-Service
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -795,7 +795,7 @@ frontend:
   image:
     registry: docker.io
     repository: signoz/frontend
-    tag: 0.68.0
+    tag: 0.69.0
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for Frontend
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1201,7 +1201,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.111.23
+    tag: 0.111.24
     pullPolicy: IfNotPresent
   args:
     - "--up="
@@ -1351,7 +1351,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.23
+    tag: 0.111.24
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1786,6 +1786,12 @@ otelCollector:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
         timeout: 10s
         use_new_schema: true
+      metadataexporter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
+        timeout: 10s
+        tenant_id: ${env:TENANT_ID}
+        cache:
+          provider: in_memory
     service:
       telemetry:
         logs:
@@ -1797,15 +1803,15 @@ otelCollector:
         traces:
           receivers: [otlp, jaeger]
           processors: [signozspanmetrics/delta, batch]
-          exporters: [clickhousetraces]
+          exporters: [clickhousetraces, metadataexporter]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [clickhousemetricswrite]
+          exporters: [clickhousemetricswrite, metadataexporter]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
-          exporters: [clickhouselogsexporter]
+          exporters: [clickhouselogsexporter, metadataexporter]
 # Default values for OtelCollectorMetrics
 otelCollectorMetrics:
   enabled: true
@@ -1813,7 +1819,7 @@ otelCollectorMetrics:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.23
+    tag: 0.111.24
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -2133,6 +2139,12 @@ otelCollectorMetrics:
       clickhousemetricswrite:
         timeout: 15s
         endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
+      metadataexporter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
+        timeout: 10s
+        tenant_id: ${env:TENANT_ID}
+        cache:
+          provider: in_memory
     service:
       telemetry:
         logs:
@@ -2144,6 +2156,6 @@ otelCollectorMetrics:
         metrics:
           receivers: [prometheus]
           processors: [batch]
-          exporters: [clickhousemetricswrite]
+          exporters: [clickhousemetricswrite, metadataexporter]
 signoz-otel-gateway:
   enabled: false
