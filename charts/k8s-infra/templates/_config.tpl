@@ -89,6 +89,9 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if .Values.presets.resourceDetection.enabled }}
 {{- $config = (include "opentelemetry-collector.applyResourceDetectionConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.kubernetesAttributes.enabled }}
+{{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfigForDeployment" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.global.deploymentEnvironment }}
 {{- $config = (include "opentelemetry-collector.applyDeploymentEnvironmentConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -675,6 +678,23 @@ processors:
 {{- $config | toYaml }}
 {{- end }}
 
+{{- define "opentelemetry-collector.applyKubernetesAttributesConfigForDeployment" -}}
+{{- $config := mustMergeOverwrite (include "opentelemetry-collector.kubernetesAttributesConfigForDeployment" .Values | fromYaml) .config }}
+{{- if $config.service.pipelines.logs }}
+{{- $_ := set $config.service.pipelines.logs "processors" (prepend $config.service.pipelines.logs.processors "k8sattributes" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.metrics }}
+{{- $_ := set $config.service.pipelines.metrics "processors" (prepend $config.service.pipelines.metrics.processors "k8sattributes" | uniq) }}
+{{- end }}
+{{- if $config.service.pipelines.traces }}
+{{- $_ := set $config.service.pipelines.traces "processors" (prepend $config.service.pipelines.traces.processors "k8sattributes" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/internal" }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "k8sattributes" | uniq) }}
+{{- end }}
+{{- $config | toYaml }}
+{{- end }}
+
 {{- define "opentelemetry-collector.resourceDetectionConfig" -}}
 processors:
   resourcedetection:
@@ -770,6 +790,21 @@ processors:
         azure.resourcegroup.name:
           enabled: false
     {{- end}}
+{{- end }}
+
+# TODO(srikanthccv): remove separate k8sattributes config for deployment when mode
+# of operation is clearly defined for collector.
+{{- define "opentelemetry-collector.kubernetesAttributesConfigForDeployment" -}}
+processors:
+  k8sattributes:
+    passthrough: false
+    pod_association:
+    {{ range $association := .Values.presets.kubernetesAttributes.podAssociation }}
+      - {{ toYaml $association | nindent 8 }}
+    {{ end }}
+    extract:
+      metadata:
+        {{ toYaml .Values.presets.kubernetesAttributes.extractMetadatas | nindent 8 }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyDeploymentEnvironmentConfig" -}}
