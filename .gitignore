@@ -1,6 +1,8 @@
 ### macOS ###
 # General
 .DS_Store
+# Local
+.local/
 
 ### Helm ###
 # Chart dependencies
