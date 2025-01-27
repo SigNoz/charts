@@ -363,6 +363,7 @@ initContainers:
         cd /tmp
         wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
         tar -xzf histogram-quantile.tar.gz
+        chmod +x histogram-quantile
         mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
         echo "histogram-quantile installed successfully"
   init:
