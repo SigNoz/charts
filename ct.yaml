@@ -6,6 +6,7 @@ charts:
   - charts/clickhouse
   - charts/k8s-infra
   - charts/signoz
+  - charts/hotrod
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:

@@ -1,0 +1,177 @@
+otel:
+  # -- OTLP HTTP Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
+  endpoint: null
+  # # -- Whether to use insecure mode for the endpoint
+  # insecure: true
+  # -- Ingestion key in case of secured deployment of SigNoz Cloud/Enterprise
+  ingestionKey: ""
+  # -- Existing secret name to be used for ingestion key.
+  existingSecretName: ""
+  # -- Existing secret key to be used for ingestion key, defaults to `signoz-ingestion-key`
+  existingSecretKey: ""
+# -- Number of replicas for the hotrod deployment
+replicaCount: 1
+# Image for hotrod
+image:
+  # -- Image repository for hotrod
+  repository: coolboi567/hotrod
+  # -- Image tag for hotrod, if not set defaults to chart appVersion
+  tag: ""
+  # -- Image pull policy for hotrod
+  pullPolicy: IfNotPresent
+# -- Image pull secrets for hotrod
+imagePullSecrets: []
+# -- Name override for hotrod
+nameOverride: ""
+# -- Full name override for hotrod
+fullnameOverride: ""
+# -- Additional environment variables for hotrod
+additionalEnvs: []
+  # - name: env_key
+  #   value: env_value
+# Service account for hotrod
+serviceAccount:
+  # -- Whether to create a service account
+  create: false
+  # -- Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- Name of the service account to use
+  name: ""
+# -- Pod annotations for hotrod
+podAnnotations: {}
+# -- Pod labels for hotrod
+podLabels: {}
+# -- Pod security context for hotrod
+podSecurityContext: {}
+# -- Security context for hotrod
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+# -- Service for hotrod
+service:
+  # -- Whether to create a service for hotrod
+  create: true
+  # -- Service type for hotrod
+  type: ClusterIP
+  # -- Service port for hotrod
+  port: 8080
+# Ingress for hotrod
+ingress:
+  # -- Whether to enable ingress for hotrod
+  enabled: false
+  # -- Class name for ingress for hotrod
+  className: ""
+  # -- Annotations for ingress for hotrod
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Hosts for ingress for hotrod
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  # -- TLS for ingress for hotrod
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+# -- Resources for hotrod
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+# -- Liveness probe for hotrod
+livenessProbe: {}
+  # httpGet:
+  #   path: /
+  #   port: http
+# -- Readiness probe for hotrod
+readinessProbe: {}
+  # httpGet:
+  #   path: /
+  #   port: http
+# -- Node selector for hotrod
+nodeSelector: {}
+# -- Tolerations for hotrod
+tolerations: []
+# -- Affinity for hotrod
+affinity: {}
+#########################
+# Locust Deployment     #
+#########################
+locust:
+  # -- Whether to enable locust 
+  enabled: true
+  image:
+    # -- Image repository for locust
+    repository: signoz/locust
+    # -- Image tag for locust
+    tag: 1.2.3
+    # -- Image pull policy for locust
+    pullPolicy: IfNotPresent
+  ports:
+    comm:
+      # -- Whether to enable communication port for locust
+      enabled: true
+      # -- Container port for communication
+      containerPort: 5557
+      # -- Service port for communication
+      servicePort: 5557
+      # -- Node port for communication
+      nodePort: ""
+      # -- Protocol for communication
+      protocol: TCP
+    comm-plus-1:
+      # -- Whether to enable communication-plus-1 port for locust
+      enabled: true
+      # -- Container port for communication-plus-1
+      containerPort: 5558
+      # -- Service port for communication-plus-1
+      servicePort: 5558
+      # -- Node port for communication-plus-1
+      nodePort: ""
+      # -- Protocol for communication-plus-1
+      protocol: TCP
+    web-ui:
+      # -- Whether to enable web-ui port for locust
+      enabled: true
+      # -- Container port for web-ui
+      containerPort: 8089
+      # -- Service port for web-ui
+      servicePort: 8089
+      # -- Node port for web-ui
+      nodePort: ""
+      # -- Protocol for web-ui
+      protocol: TCP
+  service:
+    # -- Whether to create a service for locust
+    create: true
+    # -- Service type for locust
+    type: ClusterIP
+  serviceAccount:
+    # -- Whether to create a service account for locust
+    create: false
+    # -- Automatically mount a ServiceAccount's API credentials?
+    automount: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- Name of the service account to use
+    name: ""
+  # -- Resources for locust
+  resources: {}
+  # -- Node selector for locust
+  nodeSelector: {}
+  # -- Tolerations for locust
+  tolerations: []
+  # -- Affinity for locust
+  affinity: {}

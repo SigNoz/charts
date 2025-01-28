@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hotrod.fullname" . }}
+  labels:
+    {{- include "hotrod.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "hotrod.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hotrod.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "hotrod.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: hotrod
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - all
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            {{- include "hotrod.otlp-env" . | nindent 12 }}
+            {{- range .Values.additionalEnvs }}
+            - {{ . | toYaml }}
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: locust
+          securityContext:
+            {{- toYaml .Values.locust.securityContext | nindent 12 }}
+          image: "{{ .Values.locust.image.repository }}:{{ .Values.locust.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.locust.image.pullPolicy }}
+          env:
+            - name: LOCUST_MODE
+              value: standalone
+            - name: ATTACKED_HOST
+              value: http://localhost:{{ .Values.service.port }}
+            - name: TASK_DELAY_FROM
+              value: "45"
+            - name: TASK_DELAY_TO
+              value: "60"
+            - name: QUIET_MODE
+              value: "false"
+            - name: LOCUST_OPTS
+              value: "--headless -u 6 -r 2 --print-stats"
+          {{- with .Values.locust.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: /locust
+              name: locust-scripts
+      volumes:
+        - name: locust-scripts
+          configMap:
+            name: {{ include "hotrod.locust.fullname" . }}-scripts
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
