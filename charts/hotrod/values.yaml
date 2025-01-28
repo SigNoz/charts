@@ -110,7 +110,7 @@ affinity: {}
 # Locust Deployment     #
 #########################
 locust:
-  # -- Whether to enable locust 
+  # -- Whether to enable locust
   enabled: true
   image:
     # -- Image repository for locust
