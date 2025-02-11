@@ -12,6 +12,9 @@ metadata:
 spec:
   endpoints:
     - port: {{ include "clickhouseOperator.fullname" $ }}-metrics
+      path: /metrics
+      scheme: http
+      honorLabels: true
   selector:
     matchLabels:
       {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
