@@ -569,6 +569,9 @@ clickhouseInstance:
 ###
 ###
 clickhouseOperator:
+  # -- Whether to install the Clickhouse Operator or not
+  enabled: true
+
   # -- name of the component
   name: operator
 
