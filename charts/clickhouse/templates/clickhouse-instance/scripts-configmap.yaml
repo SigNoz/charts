@@ -1,3 +1,4 @@
+{{- if .Values.clickhouseInstance.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,19 +9,19 @@ metadata:
 data:
   wait-until-ready.sh: |
     #!/bin/bash
-    
+
     # Delay between attempts in seconds
     DELAY=10
     # Default host and port
     HOST="localhost"
     PORT="8123"
-    
+
     echo "Waiting for Clickhouse to become ready..."
-    
+
     while true; do
         response=$(wget --spider -S "http://${HOST}:${PORT}/ping" 2>&1)
         exit_code=$?
-        
+
         if [ $exit_code -eq 0 ]; then
             echo "Clickhouse is ready!"
             exit 0
@@ -29,3 +30,4 @@ data:
             sleep $DELAY
         fi
     done
+{{- end }}
