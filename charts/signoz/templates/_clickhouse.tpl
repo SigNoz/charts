@@ -20,6 +20,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ include "clickhouse.httpPort" . | quote }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.cluster | quote }}
+- name: SIGNOZ_CLUSTER
+  value: {{ .Values.clickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
   value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
 - name: CLICKHOUSE_TRACE_DATABASE
@@ -42,6 +44,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 - name: CLICKHOUSE_HTTP_PORT
   value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
 - name: CLICKHOUSE_CLUSTER
+  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
+- name: SIGNOZ_CLUSTER
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_DATABASE
   value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}

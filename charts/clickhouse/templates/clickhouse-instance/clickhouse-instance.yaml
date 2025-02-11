@@ -217,7 +217,9 @@ spec:
                   containerPort: 9000
                 - name: interserver
                   containerPort: 9009
-
+                - name: metrics
+                  containerPort: 9363
+                  
               volumeMounts:
               {{- if not .Values.persistence.enabled }}
                 - name: data-volume
