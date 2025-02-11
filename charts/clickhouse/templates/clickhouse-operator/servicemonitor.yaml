@@ -17,7 +17,7 @@ spec:
       honorLabels: true
   selector:
     matchLabels:
-      {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
+      {{- include "clickhouseOperator.selectorLabels" $ | nindent 6 }}
   {{- with .Values.clickhouseOperator.serviceMonitor.interval }}
   interval: {{ . }}
   {{- end }}
@@ -26,10 +26,10 @@ spec:
   {{- end }}
   {{- with .Values.clickhouseOperator.serviceMonitor.relabelings }}
   relabelings:
-    {{- toYaml . | nindent 8 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with .Values.clickhouseOperator.serviceMonitor.metricRelabelings }}
   metricRelabelings:
-    {{- toYaml . | nindent 8 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
