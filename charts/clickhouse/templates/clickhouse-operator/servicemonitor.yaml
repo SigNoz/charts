@@ -1,0 +1,32 @@
+{{- if .Values.clickhouseOperator.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "clickhouseOperator.fullname" . }}-metrics
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouseOperator.labels" . | nindent 4 }}
+    {{- if .Values.clickhouseOperator.serviceMonitor.additionalLabels }}
+    {{- toYaml .Values.clickhouseOperator.serviceMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - port: {{ include "clickhouseOperator.fullname" $ }}-metrics
+  selector:
+    matchLabels:
+      {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
+  {{- with .Values.clickhouseOperator.serviceMonitor.interval }}
+  interval: {{ . }}
+  {{- end }}
+  {{- with .Values.clickhouseOperator.serviceMonitor.scrapeTimeout }}
+  scrapeTimeout: {{ . }}
+  {{- end }}
+  {{- with .Values.clickhouseOperator.serviceMonitor.relabelings }}
+  relabelings:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- with .Values.clickhouseOperator.serviceMonitor.metricRelabelings }}
+  metricRelabelings:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+{{- end }}
