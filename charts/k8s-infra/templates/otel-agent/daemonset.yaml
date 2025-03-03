@@ -109,7 +109,7 @@ spec:
               {{- $attribs = printf "%s,%s" $attribs .Values.presets.resourceDetection.envResourceAttributes }}
               {{- end }}
               value: {{ $attribs | quote }}
-            {{- range $key, $val := .Values.otelDeployment.additionalEnvs }}
+            {{- range $key, $val := .Values.otelAgent.additionalEnvs }}
             - name: {{ $key }}
               {{- if kindIs "map" $val }}
               {{- toYaml $val | nindent 14 }}
