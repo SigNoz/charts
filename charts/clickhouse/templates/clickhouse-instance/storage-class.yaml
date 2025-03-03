@@ -1,5 +1,5 @@
-{{- if .Values.installCustomStorageClass -}}
-
+{{- if .Values.clickhouseInstance.enabled }}
+{{- if .Values.clickhouseInstance.installCustomStorageClass -}}
 {{- if hasPrefix "gcp" .Values.global.cloud -}}
 #
 # GCP resizable storage class
@@ -30,4 +30,5 @@ parameters:
 reclaimPolicy: Retain
 allowVolumeExpansion: true
 {{- end -}}
+{{- end }}
 {{- end }}
