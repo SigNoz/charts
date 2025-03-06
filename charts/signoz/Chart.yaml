@@ -22,7 +22,7 @@ dependencies:
   - name: clickhouse
     repository: https://charts.signoz.io
     condition: clickhouse.enabled
-    version: 24.1.15
+    version: 24.1.16
   - name: signoz-otel-gateway
     repository: https://charts.signoz.io
     condition: signoz-otel-gateway.enabled
