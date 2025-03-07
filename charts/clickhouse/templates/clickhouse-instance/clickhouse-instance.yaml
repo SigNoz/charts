@@ -347,7 +347,7 @@ spec:
             {{- end }}
 
             {{- if .Values.extraContainers }}
-              {{- toYaml .Values.extraContainers | nindent 14 }}
+              {{- toYaml .Values.extraContainers | nindent 12 }}
             {{- end }}
 
     serviceTemplates:

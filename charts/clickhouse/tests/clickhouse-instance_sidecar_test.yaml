@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-instance_sidecar_test.yaml
+templates:
+  - templates/clickhouse-instance/clickhouse-instance.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: There should be 1 extra container, for a total of 2.
+    set:
+      extraContainers:
+        - name: clickhouse-backup
+          image: altinity/clickhouse-backup:latest
+          imagePullPolicy: Always
+          args:
+            - "server"
+          ports:
+            - name: backup-rest
+              containerPort: 7171
+    asserts:
+      - lengthEqual:
+          path: spec.templates.podTemplates[0].spec.containers
+          count: 2
+      - contains:
+          any: true
+          path: spec.templates.podTemplates[0].spec.containers
+          content:
+            name: clickhouse-backup
+            image: altinity/clickhouse-backup:latest
+            imagePullPolicy: Always
+            args:
+              - "server"
+            ports:
+              - name: backup-rest
+                containerPort: 7171
