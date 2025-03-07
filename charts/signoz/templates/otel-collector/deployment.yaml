@@ -121,7 +121,11 @@ spec:
               value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
             {{- range $key, $val := .Values.otelCollector.additionalEnvs }}
             - name: {{ $key }}
+              {{- if kindIs "map" $val }}
+              {{- toYaml $val | nindent 14 }}
+              {{- else }}
               value: {{ $val | toYaml }}
+              {{- end }}
             {{- end }}
           volumeMounts:
             - name: otel-collector-config-vol
