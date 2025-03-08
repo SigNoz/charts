@@ -1,4 +1,5 @@
-{{- if and .Values.alertmanager.config .Values.alertmanager.enabled -}}
+{{- if .Values.alertmanager.enabled }}
+{{- if .Values.alertmanager.config -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,4 +13,5 @@ data:
   {{ $key }}: |-
     {{- $value | nindent 4 }}
   {{- end }}
+{{- end }}
 {{- end }}
