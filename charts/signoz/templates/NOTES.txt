@@ -37,5 +37,7 @@
 {{- end }}
 
 {{- if .Release.IsUpgrade }}
-NOTE: We no longer bundle K8s-Infra chart with the SigNoz chart installation. For any existing set up, please install k8s-infra chart separately with the relevant override values.
+NOTES:
+- We no longer bundle K8s-Infra chart with the SigNoz chart installation. For any existing set up, please install k8s-infra chart separately with the relevant override values.
+- OtelCollectorMetrics is no longer bundled with the SigNoz chart and has been removed. See https://github.com/SigNoz/charts/issues/593 for more details.
 {{- end }}
