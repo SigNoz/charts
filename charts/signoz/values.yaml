@@ -602,8 +602,7 @@ signoz:
     - --use-logs-new-schema=true
     - --use-trace-new-schema=true
   # -- Additional environments to set for signoz
-  additionalEnvs:
-    SIGNOZ_ALERTMANAGER_PROVIDER: signoz
+  additionalEnvs: {}
   # Environment variables for the Query Service.
   # You can specify variables in two ways:
   # 1. Flexible structure for advanced configurations (recommended):
@@ -671,6 +670,7 @@ signoz:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
+    alertmanagerProvider: signoz
   smtpVars:
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     enabled: false
