@@ -40,13 +40,6 @@ Return namespace of the signoz release
 {{- end -}}
 
 {{/*
-Create a default fully qualified app name for signoz.
-*/}}
-{{- define "signoz.fullname" -}}
-{{- printf "%s-%s" (include "signoz.fullname" .) .Values.signoz.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
 Common labels
 */}}
 {{- define "signoz.labels" -}}
