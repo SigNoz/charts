@@ -17,7 +17,7 @@ clickhouse chart is seldom updated to to sync major enhancements.
   - [minikube](https://minikube.sigs.k8s.io/docs/start/)
 - create a k8s cluster and make sure `kubectl` points to the locally created k8s cluster
 - run `make dev-install` to install SigNoz chart with `my-release` release name in `platform` namespace.
-- run `kubectl -n platform port-forward svc/my-release-signoz 3301:3301` to make SigNoz UI available at [localhost:3301](http://localhost:3301)
+- run `kubectl -n platform port-forward svc/my-release-signoz 8080:8080` to make SigNoz UI available at [localhost:8080](http://localhost:8080)
 
 **To install HotROD sample app:**
 
