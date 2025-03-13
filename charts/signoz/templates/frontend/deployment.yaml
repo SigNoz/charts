@@ -62,7 +62,7 @@ spec:
           command:
             - sh
             - -c
-            - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --spider -q {{ include "signoz.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
           resources:
             {{- toYaml .Values.frontend.initContainers.init.resources | nindent 12 }}
@@ -83,7 +83,7 @@ spec:
           {{- end }}
           env:
           - name: REACT_APP_QUERY_SERVICE_URL
-            value: "{{ .Values.queryService.fullname }}:{{ .Values.queryService.service.port }}"
+            value: "{{ .Values.signoz.fullname }}:{{ .Values.signoz.service.port }}"
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/conf.d

@@ -554,19 +554,19 @@ externalClickhouse:
   httpPort: 8123
   # -- TCP port of Clickhouse
   tcpPort: 9000
-# Default values for query-service
-queryService:
-  name: "query-service"
+# Default values for signoz
+signoz:
+  name: "signoz"
   replicaCount: 1
   image:
     registry: docker.io
-    repository: signoz/query-service
+    repository: signoz/signoz
     tag: 0.75.0
     pullPolicy: IfNotPresent
-  # -- Image Registry Secret Names for Query-Service
+  # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
-  # Query-Service Service Account
+  # signoz Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -575,19 +575,19 @@ queryService:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
-  # Query-Service service
+  # signoz service
   service:
-    # -- Annotations to use by service associated to Query-Service
+    # -- Annotations to use by service associated to signoz
     annotations: {}
-    # -- Labels to use by service associated to Query-Service
+    # -- Labels to use by service associated to signoz
     labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
-    # -- Query-Service HTTP port
+    # -- signoz HTTP port
     port: 8080
-    # -- Query-Service Internal port
+    # -- signoz Internal port
     internalPort: 8085
-    # -- Query-Service OpAMP Internal port
+    # -- signoz OpAMP Internal port
     opampPort: 4320
     # -- Set this to you want to force a specific nodePort for http.
     # Must be use with service.type=NodePort
@@ -595,14 +595,15 @@ queryService:
     # -- Set this to you want to force a specific nodePort for internal.
     # Must be use with service.type=NodePort
     internalNodePort: null
-  # -- Query-Service annotations
+  # -- signoz annotations
   annotations:
-  # -- Query-Service additional arguments for command line
+  # -- signoz additional arguments for command line
   additionalArgs:
     - --use-logs-new-schema=true
     - --use-trace-new-schema=true
-  # -- Additional environments to set for queryService
-  additionalEnvs: {}
+  # -- Additional environments to set for signoz
+  additionalEnvs:
+    SIGNOZ_ALERTMANAGER_PROVIDER: signoz
   # Environment variables for the Query Service.
   # You can specify variables in two ways:
   # 1. Flexible structure for advanced configurations (recommended):
@@ -686,13 +687,13 @@ queryService:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
-  # Query-Service cache options
+  # signoz cache options
   cache:
-    # -- Whether to enable cache for Query-Service
+    # -- Whether to enable cache for signoz
     enabled: true
-    # -- Cache flux interval for Query-Service
+    # -- Cache flux interval for signoz
     fluxInterval: 30m
-    # -- Cache configurations for Query-Service
+    # -- Cache configurations for signoz
     config:
       name: cache
       provider: inmemory
@@ -734,27 +735,27 @@ queryService:
   # -- Custom readiness probe
   customReadinessProbe: {}
   ingress:
-    # -- Enable ingress for Query-Service
+    # -- Enable ingress for signoz
     enabled: false
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
-    # -- Annotations to Query-Service Ingress
+    # -- Annotations to signoz Ingress
     annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # -- Query-Service Ingress Host names with their path details
+    # -- signoz Ingress Host names with their path details
     hosts:
-      - host: query-service.domain.com
+      - host: signoz.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # -- Query-Service Ingress TLS
+    # -- signoz Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
-    #      - query-service.domain.com
+    #      - signoz.domain.com
   # -- Configure resource requests and limits. Update according to your own use
   # case as these values might not be suitable for your workload.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -767,15 +768,15 @@ queryService:
       # limits:
       #   cpu: 750m
       #   memory: 1000Mi
-  # -- QueryService priority class name
+  # -- Priority class name for signoz
   priorityClassName: ""
-  # -- Node selector for settings for QueryService pod
+  # -- Node selector for settings for signoz pod
   nodeSelector: {}
-  # -- Toleration labels for QueryService pod assignment
+  # -- Toleration labels for signoz pod assignment
   tolerations: []
-  # -- Affinity settings for QueryService pod
+  # -- Affinity settings for signoz pod
   affinity: {}
-  # -- TopologySpreadConstraints describes how QueryService pods ought to spread
+  # -- TopologySpreadConstraints describes how g pods ought to spread
   topologySpreadConstraints: []
   persistence:
     # -- Enable data persistence using PVC for SQLiteDB data.
@@ -837,8 +838,8 @@ frontend:
       command:
         delay: 5
         endpoint: /api/v1/health?live=1
-        waitMessage: "waiting for query-service"
-        doneMessage: "query-service ready, starting frontend now"
+        waitMessage: "waiting for signoz"
+        doneMessage: "signoz ready, starting frontend now"
       resources: {}
       # requests:
       #   cpu: 100m
@@ -956,7 +957,7 @@ frontend:
   topologySpreadConstraints: []
 # Default values for Alertmanager
 alertmanager:
-  enabled: true
+  enabled: false
   name: "alertmanager"
   replicaCount: 1
   image:
@@ -1010,8 +1011,8 @@ alertmanager:
       command:
         delay: 5
         endpoint: /api/v1/health?live=1
-        waitMessage: "waiting for query-service"
-        doneMessage: "query-service ready, starting alertmanager now"
+        waitMessage: "waiting for signoz"
+        doneMessage: "signoz ready, starting alertmanager now"
       resources: {}
       # requests:
       #   cpu: 100m

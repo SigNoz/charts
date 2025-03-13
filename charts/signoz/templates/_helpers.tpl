@@ -40,18 +40,18 @@ Return namespace of the signoz release
 {{- end -}}
 
 {{/*
-Create a default fully qualified app name for queryService.
+Create a default fully qualified app name for signoz.
 */}}
-{{- define "queryService.fullname" -}}
-{{- printf "%s-%s" (include "signoz.fullname" .) .Values.queryService.name | trunc 63 | trimSuffix "-" -}}
+{{- define "signoz.fullname" -}}
+{{- printf "%s-%s" (include "signoz.fullname" .) .Values.signoz.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "queryService.labels" -}}
+{{- define "signoz.labels" -}}
 helm.sh/chart: {{ include "signoz.chart" . }}
-{{ include "queryService.selectorLabels" . }}
+{{ include "signoz.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -61,30 +61,30 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "queryService.selectorLabels" -}}
+{{- define "signoz.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "query-service" .Values.queryService.name }}
+app.kubernetes.io/component: {{ default "signoz" .Values.signoz.name }}
 {{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "queryService.serviceAccountName" -}}
-{{- if .Values.queryService.serviceAccount.create -}}
-    {{ default (include "queryService.fullname" .) .Values.queryService.serviceAccount.name }}
+{{- define "signoz.serviceAccountName" -}}
+{{- if .Values.signoz.serviceAccount.create -}}
+    {{ default (include "signoz.fullname" .) .Values.signoz.serviceAccount.name }}
 {{- else -}}
-    {{ default "default" .Values.queryService.serviceAccount.name }}
+    {{ default "default" .Values.signoz.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Return the initContainers image name
 */}}
-{{- define "queryService.initContainers.init.image" -}}
-{{- $registryName := default .Values.queryService.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.queryService.initContainers.init.image.repository -}}
-{{- $tag := .Values.queryService.initContainers.init.image.tag | toString -}}
+{{- define "signoz.initContainers.init.image" -}}
+{{- $registryName := default .Values.signoz.initContainers.init.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.signoz.initContainers.init.image.repository -}}
+{{- $tag := .Values.signoz.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -95,10 +95,10 @@ Return the initContainers image name
 {{/*
 Return the initContainers image name for migration
 */}}
-{{- define "queryService.initContainers.migration.image" -}}
-{{- $registryName := default .Values.queryService.initContainers.migration.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.queryService.initContainers.migration.image.repository -}}
-{{- $tag := .Values.queryService.initContainers.migration.image.tag | toString -}}
+{{- define "signoz.initContainers.migration.image" -}}
+{{- $registryName := default .Values.signoz.initContainers.migration.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.signoz.initContainers.migration.image.repository -}}
+{{- $tag := .Values.signoz.initContainers.migration.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -107,12 +107,12 @@ Return the initContainers image name for migration
 {{- end -}}
 
 {{/*
-Return the proper queryService image name
+Return the proper signoz image name
 */}}
-{{- define "queryService.image" -}}
-{{- $registryName := default .Values.queryService.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.queryService.image.repository -}}
-{{- $tag := default .Chart.AppVersion .Values.queryService.image.tag | toString -}}
+{{- define "signoz.image" -}}
+{{- $registryName := default .Values.signoz.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.signoz.image.repository -}}
+{{- $tag := default .Chart.AppVersion .Values.signoz.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -121,31 +121,31 @@ Return the proper queryService image name
 {{- end -}}
 
 {{/*
-Set query-service port
+Set signoz port
 */}}
-{{- define "queryService.port" -}}
-{{- default 8080 .Values.queryService.service.port  -}}
+{{- define "signoz.port" -}}
+{{- default 8080 .Values.signoz.service.port  -}}
 {{- end -}}
 
 {{/*
-Set query-service internal port
+Set signoz internal port
 */}}
-{{- define "queryService.internalPort" -}}
-{{- default 8085 .Values.queryService.service.internalPort  -}}
+{{- define "signoz.internalPort" -}}
+{{- default 8085 .Values.signoz.service.internalPort  -}}
 {{- end -}}
 
 {{/*
-Set query-service url
+Set signoz url
 */}}
-{{- define "queryService.url" -}}
-{{ include "queryService.fullname" . }}:{{ include "queryService.port" . }}
+{{- define "signoz.url" -}}
+{{ include "signoz.fullname" . }}:{{ include "signoz.port" . }}
 {{- end -}}
 
 {{/*
-Set query-service internal url
+Set signoz internal url
 */}}
-{{- define "queryService.internalUrl" -}}
-{{ include "queryService.fullname" . }}:{{ include "queryService.internalPort" . }}
+{{- define "signoz.internalUrl" -}}
+{{ include "signoz.fullname" . }}:{{ include "signoz.internalPort" . }}
 {{- end -}}
 
 
@@ -293,7 +293,7 @@ Return the proper otelCollector image name
 {{- end -}}
 
 {{/*
-Set query-service url
+Set signoz url
 */}}
 {{- define "alertmanager.url" -}}
 {{ include "alertmanager.fullname" . }}:{{ include "alertmanager.port" . }}

@@ -70,7 +70,7 @@ spec:
           command:
             - sh
             - -c
-            - until wget --spider -q {{ include "queryService.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+            - until wget --spider -q {{ include "signoz.url" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
           {{- end }}
           resources:
             {{- toYaml .Values.alertmanager.initContainers.init.resources | nindent 12 }}
@@ -114,7 +114,7 @@ spec:
           {{- end }}
           args:
             - --storage.path=/alertmanager
-            - --queryService.url=http://{{ include "queryService.internalUrl" . }}
+            - --queryService.url=http://{{ include "signoz.internalUrl" . }}
             - --cluster.advertise-address=$(POD_IP):{{ $svcClusterPort }}
             {{- if or (gt (int .Values.alertmanager.replicaCount) 1) (.Values.alertmanager.additionalPeers) }}
             - --cluster.listen-address=0.0.0.0:{{ $svcClusterPort }}
