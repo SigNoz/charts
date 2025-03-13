@@ -91,6 +91,9 @@ spec:
             - name: signoz-db-volume
           {{- end }}
               mountPath: /var/lib/signoz
+          {{- if .migration.additionalVolumeMounts }}
+            {{- toYaml .migration.additionalVolumeMounts | nindent 12 }}
+          {{- end }}
         {{- end }}
       {{- end }}
       containers:
@@ -207,6 +210,9 @@ spec:
             - name: signoz-db-volume
           {{- end }}
               mountPath: /var/lib/signoz/
+          {{- if .Values.signoz.additionalVolumeMounts }}
+            {{- toYaml .Values.signoz.additionalVolumeMounts | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.signoz.resources | nindent 12 }}
       volumes:
@@ -215,14 +221,20 @@ spec:
             name: {{ include "signoz.fullname" . }}
         - name: dashboards
           emptyDir: {}
-      {{- if (not .Values.signoz.persistence.enabled) }}
+        {{- if (not .Values.signoz.persistence.enabled) }}
         - name: signoz-db-volume
           emptyDir: {}
-      {{- else if .Values.signoz.persistence.existingClaim }}
+        {{- else if .Values.signoz.persistence.existingClaim }}
         - name: signoz-db-existing-claim
           persistentVolumeClaim:
             claimName: {{ .Values.signoz.persistence.existingClaim }}
-      {{- end }}
+        {{- end }}
+        {{- if .Values.signoz.additionalVolumes }}
+          {{- toYaml .Values.signoz.additionalVolumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.signoz.initContainers.migration.additionalVolumes }}
+          {{- toYaml .Values.signoz.initContainers.migration.additionalVolumes | nindent 8 }}
+        {{- end }}
 
 {{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) }}
   volumeClaimTemplates:

@@ -662,6 +662,10 @@ signoz:
       # limits:
       #   cpu: 100m
       #   memory: 100Mi
+      # -- Additional volume mounts for signoz
+      additionalVolumeMounts: []
+      # -- Additional volumes for signoz
+      additionalVolumes: []
   configVars:
     storage: clickhouse
     # ClickHouse URL is set and applied internally.
@@ -709,6 +713,11 @@ signoz:
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+  # -- Additional volume mounts for signoz
+  additionalVolumeMounts: []
+  # -- Additional volumes for signoz
+  additionalVolumes: []
 
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
