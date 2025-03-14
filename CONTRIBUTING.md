@@ -1,14 +1,12 @@
 # How to Contribute
 
-There are primarily 3 charts in the SigNoz Helm Charts repository:
+There are primarily 2 charts in the SigNoz Helm Charts repository:
 
-- SigNoz (frontend, query service, otel collector, and otel collector metrics)
-- ClickHouse
-- Alertmanager
+- signoz: signoz and signoz collector
+- clickhouse: clickhouse and zookeeper
 
-SigNoz chart is where most of the developments are done.
-ClickHouse chart is seldom updated to to sync major enhancements.
-Alertmanager chart is rarely updated.
+signoz chart is where most of the developments are done.
+clickhouse chart is seldom updated to to sync major enhancements.
 
 ### To run helm chart for local development
 
@@ -19,7 +17,7 @@ Alertmanager chart is rarely updated.
   - [minikube](https://minikube.sigs.k8s.io/docs/start/)
 - create a k8s cluster and make sure `kubectl` points to the locally created k8s cluster
 - run `make dev-install` to install SigNoz chart with `my-release` release name in `platform` namespace.
-- run `kubectl -n platform port-forward svc/my-release-signoz-frontend 3301:3301` to make SigNoz UI available at [localhost:3301](http://localhost:3301)
+- run `kubectl -n platform port-forward svc/my-release-signoz 8080:8080` to make SigNoz UI available at [localhost:8080](http://localhost:8080)
 
 **To install HotROD sample app:**
 

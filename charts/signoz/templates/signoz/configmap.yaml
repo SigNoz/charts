@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "queryService.fullname" . }}
+  name: {{ include "signoz.fullname" . }}
 data:
   prometheus.yml: |
     # my global config
@@ -30,7 +30,7 @@ data:
     remote_read:
       - url: {{ include "clickhouse.metricsUrl" . }}
 
-  {{ if .Values.queryService.cache.enabled }}
+  {{ if .Values.signoz.cache.enabled }}
   cache.yaml: |
-    {{- toYaml .Values.queryService.cache.config | nindent 4 }}
+    {{- toYaml .Values.signoz.cache.config | nindent 4 }}
   {{ end }}

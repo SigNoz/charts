@@ -554,19 +554,19 @@ externalClickhouse:
   httpPort: 8123
   # -- TCP port of Clickhouse
   tcpPort: 9000
-# Default values for query-service
-queryService:
-  name: "query-service"
+# Default values for signoz
+signoz:
+  name: "signoz"
   replicaCount: 1
   image:
     registry: docker.io
-    repository: signoz/query-service
-    tag: 0.75.0
+    repository: signoz/signoz
+    tag: v0.76.0-rc.3
     pullPolicy: IfNotPresent
-  # -- Image Registry Secret Names for Query-Service
+  # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
   imagePullSecrets: []
-  # Query-Service Service Account
+  # signoz Service Account
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -575,19 +575,19 @@ queryService:
     # The name of the service account to use.
     # If not set and create is true, a name is generated using the fullname template
     name:
-  # Query-Service service
+  # signoz service
   service:
-    # -- Annotations to use by service associated to Query-Service
+    # -- Annotations to use by service associated to signoz
     annotations: {}
-    # -- Labels to use by service associated to Query-Service
+    # -- Labels to use by service associated to signoz
     labels: {}
     # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
     type: ClusterIP
-    # -- Query-Service HTTP port
+    # -- signoz HTTP port
     port: 8080
-    # -- Query-Service Internal port
+    # -- signoz Internal port
     internalPort: 8085
-    # -- Query-Service OpAMP Internal port
+    # -- signoz OpAMP Internal port
     opampPort: 4320
     # -- Set this to you want to force a specific nodePort for http.
     # Must be use with service.type=NodePort
@@ -595,13 +595,13 @@ queryService:
     # -- Set this to you want to force a specific nodePort for internal.
     # Must be use with service.type=NodePort
     internalNodePort: null
-  # -- Query-Service annotations
+  # -- signoz annotations
   annotations:
-  # -- Query-Service additional arguments for command line
+  # -- signoz additional arguments for command line
   additionalArgs:
     - --use-logs-new-schema=true
     - --use-trace-new-schema=true
-  # -- Additional environments to set for queryService
+  # -- Additional environments to set for signoz
   additionalEnvs: {}
   # Environment variables for the Query Service.
   # You can specify variables in two ways:
@@ -662,6 +662,10 @@ queryService:
       # limits:
       #   cpu: 100m
       #   memory: 100Mi
+      # -- Additional volume mounts for signoz
+      additionalVolumeMounts: []
+      # -- Additional volumes for signoz
+      additionalVolumes: []
   configVars:
     storage: clickhouse
     # ClickHouse URL is set and applied internally.
@@ -670,6 +674,7 @@ queryService:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
+    alertmanagerProvider: signoz
   smtpVars:
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     enabled: false
@@ -686,13 +691,13 @@ queryService:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
-  # Query-Service cache options
+  # signoz cache options
   cache:
-    # -- Whether to enable cache for Query-Service
+    # -- Whether to enable cache for signoz
     enabled: true
-    # -- Cache flux interval for Query-Service
+    # -- Cache flux interval for signoz
     fluxInterval: 30m
-    # -- Cache configurations for Query-Service
+    # -- Cache configurations for signoz
     config:
       name: cache
       provider: inmemory
@@ -708,6 +713,11 @@ queryService:
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+  # -- Additional volume mounts for signoz
+  additionalVolumeMounts: []
+  # -- Additional volumes for signoz
+  additionalVolumes: []
 
   # -- Configure liveness and readiness probes.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
@@ -734,27 +744,27 @@ queryService:
   # -- Custom readiness probe
   customReadinessProbe: {}
   ingress:
-    # -- Enable ingress for Query-Service
+    # -- Enable ingress for signoz
     enabled: false
     # -- Ingress Class Name to be used to identify ingress controllers
     className: ""
-    # -- Annotations to Query-Service Ingress
+    # -- Annotations to signoz Ingress
     annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # -- Query-Service Ingress Host names with their path details
+    # -- signoz Ingress Host names with their path details
     hosts:
-      - host: query-service.domain.com
+      - host: signoz.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # -- Query-Service Ingress TLS
+    # -- signoz Ingress TLS
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
-    #      - query-service.domain.com
+    #      - signoz.domain.com
   # -- Configure resource requests and limits. Update according to your own use
   # case as these values might not be suitable for your workload.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -767,15 +777,15 @@ queryService:
       # limits:
       #   cpu: 750m
       #   memory: 1000Mi
-  # -- QueryService priority class name
+  # -- Priority class name for signoz
   priorityClassName: ""
-  # -- Node selector for settings for QueryService pod
+  # -- Node selector for settings for signoz pod
   nodeSelector: {}
-  # -- Toleration labels for QueryService pod assignment
+  # -- Toleration labels for signoz pod assignment
   tolerations: []
-  # -- Affinity settings for QueryService pod
+  # -- Affinity settings for signoz pod
   affinity: {}
-  # -- TopologySpreadConstraints describes how QueryService pods ought to spread
+  # -- TopologySpreadConstraints describes how g pods ought to spread
   topologySpreadConstraints: []
   persistence:
     # -- Enable data persistence using PVC for SQLiteDB data.
@@ -794,169 +804,9 @@ queryService:
       - ReadWriteOnce
     # -- Persistent Volume size
     size: 1Gi
-# Default values for frontend
-frontend:
-  enabled: true
-  name: "frontend"
-  replicaCount: 1
-  image:
-    registry: docker.io
-    repository: signoz/frontend
-    tag: 0.75.0
-    pullPolicy: IfNotPresent
-  # -- Image Registry Secret Names for Frontend
-  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
-  imagePullSecrets: []
-  # Frontend Service Account
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
-  # Frontend service
-  service:
-    # -- Annotations to use by service associated to Frontend
-    annotations: {}
-    # -- Labels to use by service associated to Frontend
-    labels: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-    # -- Frontend HTTP port
-    port: 3301
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        delay: 5
-        endpoint: /api/v1/health?live=1
-        waitMessage: "waiting for query-service"
-        doneMessage: "query-service ready, starting frontend now"
-      resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 11
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
-    behavior: {}
-    # scaleDown:
-    #   stabilizationWindowSeconds: 300
-    #  policies:
-    #   - type: Pods
-    #     value: 1
-    #     periodSeconds: 180
-    # scaleUp:
-    #   stabilizationWindowSeconds: 300
-    #   policies:
-    #   - type: Pods
-    #     value: 2
-    #     periodSeconds: 60
-
-    autoscalingTemplate: []
-    keda:
-      enabled: false
-      # -- Polling interval for metrics data
-      # Checks 30sec periodically for metrics data
-      pollingInterval: "30"
-      # -- Cooldown period for metrics data
-      # Once the load decreased, it will wait for 5 min and downscale
-      cooldownPeriod: "300"
-      # -- Minimum replica count
-      # Should be >= replicaCount specified in values.yaml
-      minReplicaCount: "1"
-      # -- Maximum replica count
-      maxReplicaCount: "5"
-      triggers:
-        - type: memory
-          metadata:
-            type: Utilization
-            # HPA makes sure average Utilization <=80 by adding new pods
-            value: "80"
-        - type: cpu
-          metadata:
-            type: Utilization
-            # HPA makes sure average Utilization <=80 by adding new pods
-            value: "80"
-  configVars: {}
-  # -- Frontend deployment annotations
-  annotations:
-  # -- Frontend pod security context
-  podSecurityContext: {}
-  # fsGroup: 2000
-
-  securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-  ingress:
-    # -- Enable ingress for Frontend
-    enabled: false
-    # -- Ingress Class Name to be used to identify ingress controllers
-    className: ""
-    # -- Annotations to Frontend Ingress
-    annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # -- Frontend Ingress Host names with their path details
-    hosts:
-      - host: frontend.domain.com
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            port: 3301
-    # -- Frontend Ingress TLS
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - frontend.domain.com
-  # -- Frontend Nginx extra configurations
-  nginxExtraConfig: |
-    client_max_body_size 24M;
-    large_client_header_buffers 8 16k;
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might not be suitable for your workload.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  #
-  # @default -- See `values.yaml` for defaults
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-      # limits:
-      #   cpu: 200m
-      #   memory: 200Mi
-  # -- Frontend priority class name
-  priorityClassName: ""
-  # -- Node selector for settings for Frontend pod
-  nodeSelector: {}
-  # -- Toleration labels for Frontend pod assignment
-  tolerations: []
-  # -- Affinity settings for Frontend pod
-  affinity: {}
-  # -- TopologySpreadConstraints describes how Frontend pods ought to spread
-  topologySpreadConstraints: []
 # Default values for Alertmanager
 alertmanager:
-  enabled: true
+  enabled: false
   name: "alertmanager"
   replicaCount: 1
   image:
@@ -1010,8 +860,8 @@ alertmanager:
       command:
         delay: 5
         endpoint: /api/v1/health?live=1
-        waitMessage: "waiting for query-service"
-        doneMessage: "query-service ready, starting alertmanager now"
+        waitMessage: "waiting for signoz"
+        doneMessage: "signoz ready, starting alertmanager now"
       resources: {}
       # requests:
       #   cpu: 100m
@@ -1141,37 +991,6 @@ alertmanager:
   # route:
   #   receiver: 'slack-notifications'
 
-  ## Templates are no longer needed as they are included
-  ## from frontend placeholder while creating alert channels.
-  # templates:
-  #   title.tmpl: |-
-  #       {{ define "slack.title" }}
-  #       [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
-  #       {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
-  #         {{" "}}(
-  #         {{- with .CommonLabels.Remove .GroupLabels.Names }}
-  #           {{- range $index, $label := .SortedPairs -}}
-  #             {{ if $index }}, {{ end }}
-  #             {{- $label.Name }}="{{ $label.Value -}}"
-  #           {{- end }}
-  #         {{- end -}}
-  #         )
-  #       {{- end }}
-  #       {{ end }}
-  #   text.tmpl: |-
-  #       {{ define "slack.text" }}
-  #       {{ range .Alerts -}}
-  #       *Alert:* {{ .Labels.alertname }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
-
-  #       *Summary:* {{ .Annotations.summary }}
-  #       *Description:* {{ .Annotations.description }}
-
-  #       *Details:*
-  #         {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
-  #         {{ end }}
-  #       {{ end }}
-  #       {{ end }}
-
   ## Monitors ConfigMap changes and POSTs to a URL
   ## Ref: https://github.com/jimmidyson/configmap-reload
   ##
@@ -1208,7 +1027,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.111.29
+    tag: 0.111.30
     pullPolicy: IfNotPresent
   args:
     - "--up="
@@ -1358,7 +1177,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.29
+    tag: 0.111.30
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
