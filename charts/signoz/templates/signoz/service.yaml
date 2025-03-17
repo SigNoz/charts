@@ -36,8 +36,8 @@ spec:
       {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
       protocol: TCP
       targetPort: opamp-internal
-      {{- if eq .type "NodePort" }}
-      nodePort: ""
+      {{- if (and (eq .type "NodePort") .opampInternalNodePort) }}
+      nodePort: {{ .opampInternalNodePort }}
       {{- end }}
 {{- end }}
   selector:

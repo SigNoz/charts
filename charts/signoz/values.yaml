@@ -589,12 +589,15 @@ signoz:
     internalPort: 8085
     # -- signoz OpAMP Internal port
     opampPort: 4320
-    # -- Set this to you want to force a specific nodePort for http.
+    # -- Set this if you want to force a specific nodePort for http.
     # Must be use with service.type=NodePort
     nodePort: null
-    # -- Set this to you want to force a specific nodePort for internal.
+    # -- Set this if you want to force a specific nodePort for internal.
     # Must be use with service.type=NodePort
     internalNodePort: null
+    # -- Set this if you want to force a specific nodePort for OpAMP.
+    # Must be use with service.type=NodePort
+    opampInternalNodePort: null
   # -- signoz annotations
   annotations:
   # -- signoz additional arguments for command line
