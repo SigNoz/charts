@@ -561,7 +561,7 @@ signoz:
   image:
     registry: docker.io
     repository: signoz/signoz
-    tag: v0.76.0
+    tag: v0.76.1
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1026,7 +1026,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: 0.111.30
+    tag: 0.111.34
     pullPolicy: IfNotPresent
   args:
     - "--up="
@@ -1176,7 +1176,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: 0.111.30
+    tag: 0.111.34
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -1204,7 +1204,7 @@ otelCollector:
   # OpenTelemetry Collector executable
   command:
     # -- OtelCollector command name
-    name: /signoz-collector
+    name: /signoz-otel-collector
     # -- OtelCollector command extra arguments
     extraArgs:
       - --feature-gates=-pkg.translator.prometheus.NormalizeName
