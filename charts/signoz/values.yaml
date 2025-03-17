@@ -1204,7 +1204,7 @@ otelCollector:
   # OpenTelemetry Collector executable
   command:
     # -- OtelCollector command name
-    name: /signoz-collector
+    name: /signoz-otel-collector
     # -- OtelCollector command extra arguments
     extraArgs:
       - --feature-gates=-pkg.translator.prometheus.NormalizeName
