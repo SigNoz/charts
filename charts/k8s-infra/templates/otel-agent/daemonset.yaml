@@ -111,7 +111,11 @@ spec:
               value: {{ $attribs | quote }}
             {{- range $key, $val := .Values.otelAgent.additionalEnvs }}
             - name: {{ $key }}
+              {{- if kindIs "map" $val }}
+              {{- toYaml $val | nindent 14 }}
+              {{- else }}
               value: {{ $val | toYaml }}
+              {{- end }}
             {{- end }}
           securityContext:
             {{- toYaml .Values.otelAgent.securityContext | nindent 12 }}
