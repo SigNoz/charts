@@ -480,7 +480,9 @@ receivers:
 receivers:
   hostmetrics:
     collection_interval: {{ .Values.presets.hostMetrics.collectionInterval }}
+    {{- if ne .Values.global.cloud "gcp/autogke" }}
     root_path: /hostfs
+    {{- end }}
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
       {{ $key }}: {{- $val | toYaml | nindent 8 }}
