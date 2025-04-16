@@ -3100,6 +3100,46 @@ entries:
     version: 0.1.0
   signoz:
   - apiVersion: v2
+    appVersion: v0.79.1
+    created: "2025-04-16T18:47:57.301542492Z"
+    dependencies:
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://charts.signoz.io
+      version: 24.1.15
+    - condition: signoz-otel-gateway.enabled
+      name: signoz-otel-gateway
+      repository: https://charts.signoz.io
+      version: 0.0.1
+    description: SigNoz Observability Platform Helm Chart
+    digest: eb2aa5119e21a854761bb38b1206b4bf4fe1f13ca7dfaf3b225cfbe6f199ef69
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    - distributed logging
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/signoz/signoz
+    - https://github.com/signoz/alertmanager
+    - https://github.com/signoz/signoz-otel-collector
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.77.1/signoz-0.77.1.tgz
+    version: 0.77.1
+  - apiVersion: v2
     appVersion: v0.79.0
     created: "2025-04-16T08:29:10.292094739Z"
     dependencies:
@@ -13111,4 +13151,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-otel-gateway-0.0.1/signoz-otel-gateway-0.0.1.tgz
     version: 0.0.1
-generated: "2025-04-16T08:29:10.29279202Z"
+generated: "2025-04-16T18:47:57.302545687Z"
