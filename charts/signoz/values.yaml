@@ -637,12 +637,12 @@ signoz:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
     migration:
       enabled: false
       image:
@@ -659,12 +659,12 @@ signoz:
       #   sleep 10  # Replace with actual migration command
       #   echo "Migration completed"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
       # -- Additional volume mounts for signoz
       additionalVolumeMounts: []
       # -- Additional volumes for signoz
@@ -776,9 +776,9 @@ signoz:
     requests:
       cpu: 100m
       memory: 100Mi
-      # limits:
-      #   cpu: 750m
-      #   memory: 1000Mi
+  #   limits:
+  #     cpu: 750m
+  #     memory: 1000Mi
   # -- Priority class name for signoz
   priorityClassName: ""
   # -- Node selector for settings for signoz pod
@@ -865,12 +865,12 @@ alertmanager:
         waitMessage: "waiting for signoz"
         doneMessage: "signoz ready, starting alertmanager now"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
   podSecurityContext:
     fsGroup: 65534
   dnsConfig: {}
@@ -931,9 +931,9 @@ alertmanager:
     requests:
       cpu: 100m
       memory: 100Mi
-      # limits:
-      #   cpu: 200m
-      #   memory: 200Mi
+  #   limits:
+  #     cpu: 200m
+  #     memory: 200Mi
   # -- Alertmanager priority class name
   priorityClassName: ""
   # -- Node selector for settings for Alertmanager pod
@@ -1019,9 +1019,9 @@ alertmanager:
       requests:
         cpu: 100m
         memory: 100Mi
-        # limits:
-        #   cpu: 200m
-        #   memory: 200Mi
+    #   limits:
+    #     cpu: 200m
+    #     memory: 200Mi
 # Default values for schemaMigrator
 schemaMigrator:
   enabled: true
@@ -1064,12 +1064,12 @@ schemaMigrator:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting schema migrator now"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
     chReady:
       enabled: true
       image:
@@ -1127,12 +1127,12 @@ schemaMigrator:
           done
           echo "clickhouse ready, starting schema migrator now"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
     wait:
       enabled: true
       image:
@@ -1198,12 +1198,12 @@ otelCollector:
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
       resources: {}
-      # requests:
-      #   cpu: 100m
-      #   memory: 100Mi
-      # limits:
-      #   cpu: 100m
-      #   memory: 100Mi
+      #   requests:
+      #     cpu: 100m
+      #     memory: 100Mi
+      #   limits:
+      #     cpu: 100m
+      #     memory: 100Mi
   # OpenTelemetry Collector executable
   command:
     # -- OtelCollector command name
@@ -1469,9 +1469,9 @@ otelCollector:
     requests:
       cpu: 100m
       memory: 200Mi
-      # limits:
-      #   cpu: "1"
-      #   memory: 2Gi
+  #   limits:
+  #     cpu: "1"
+  #     memory: 2Gi
   # -- OtelCollector priority class name
   priorityClassName: ""
   # -- Node selector for settings for OtelCollector pod
