@@ -601,9 +601,7 @@ signoz:
   # -- signoz annotations
   annotations:
   # -- signoz additional arguments for command line
-  additionalArgs:
-    - --use-logs-new-schema=true
-    - --use-trace-new-schema=true
+  additionalArgs: []
   # -- Additional environments to set for signoz
   additionalEnvs: {}
   # Environment variables for the Query Service.
