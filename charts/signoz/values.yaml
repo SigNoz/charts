@@ -692,9 +692,12 @@ signoz:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
+  # -- Pod security context for signoz
   podSecurityContext: {}
   # fsGroup: 2000
-
+  # -- Pod annotations for signoz
+  podAnnotations: {}
+  # -- Security context for signoz
   securityContext: {}
   # capabilities:
   #   drop:
