@@ -99,7 +99,11 @@ spec:
               value: signoz.component=$(SIGNOZ_COMPONENT),k8s.cluster.name=$(K8S_CLUSTER_NAME)
             {{- range $key, $val := .Values.otelDeployment.additionalEnvs }}
             - name: {{ $key }}
+              {{- if kindIs "map" $val }}
+              {{- toYaml $val | nindent 14 }}
+              {{- else }}
               value: {{ $val | toYaml }}
+              {{- end }}
             {{- end }}
           volumeMounts:
             - name: otel-deployment-config-vol
