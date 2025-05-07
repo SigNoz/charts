@@ -1,0 +1,9 @@
+{{ if .Values.signoz.cache.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "signoz.fullname" . }}
+data:
+  cache.yaml: |
+    {{- toYaml .Values.signoz.cache.config | nindent 4 }}
+{{ end }}

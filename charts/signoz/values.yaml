@@ -601,7 +601,9 @@ signoz:
   # -- signoz annotations
   annotations:
   # -- signoz additional arguments for command line
-  additionalArgs: []
+  additionalArgs:
+    - --use-logs-new-schema=true
+    - --use-trace-new-schema=true
   # -- Additional environments to set for signoz
   additionalEnvs: {}
   # Environment variables for the Query Service.
@@ -692,6 +694,18 @@ signoz:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
+  # signoz cache options
+  cache:
+    # -- Whether to enable cache for signoz
+    enabled: true
+    # -- Cache flux interval for signoz
+    fluxInterval: 30m
+    # -- Cache configurations for signoz
+    config:
+      name: cache
+      provider: inmemory
+      inmemory:
+        ttl: 168h
   # -- Pod security context for signoz
   podSecurityContext: {}
   # fsGroup: 2000
