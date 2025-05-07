@@ -179,20 +179,24 @@ exporters:
 
 {{- define "opentelemetry-collector.applyOtlpExporterConfig" -}}
 {{- $config := mustMergeOverwrite (include "opentelemetry-collector.otlpExporterConfig" .Values | fromYaml) .config }}
+{{- $otlpExporter := "otlp" }}
+{{- if .Values.otelHttp }}
+{{- $otlpExporter = "otlphttp" }}
+{{- end }}
 {{- if $config.service.pipelines.logs }}
-{{- $_ := set $config.service.pipelines.logs "exporters" (append $config.service.pipelines.logs.exporters "otlp" | uniq)  }}
+{{- $_ := set $config.service.pipelines.logs "exporters" (append $config.service.pipelines.logs.exporters $otlpExporter | uniq)  }}
 {{- end }}
 {{- if $config.service.pipelines.metrics }}
-{{- $_ := set $config.service.pipelines.metrics "exporters" (prepend $config.service.pipelines.metrics.exporters "otlp" | uniq)  }}
+{{- $_ := set $config.service.pipelines.metrics "exporters" (prepend $config.service.pipelines.metrics.exporters $otlpExporter | uniq)  }}
 {{- end }}
 {{- if $config.service.pipelines.traces }}
-{{- $_ := set $config.service.pipelines.traces "exporters" (prepend $config.service.pipelines.traces.exporters "otlp" | uniq)  }}
+{{- $_ := set $config.service.pipelines.traces "exporters" (prepend $config.service.pipelines.traces.exporters $otlpExporter | uniq)  }}
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
-{{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") "otlp" | uniq)  }}
+{{- $_ := set (index $config.service.pipelines "metrics/internal") "exporters" (prepend (index (index $config.service.pipelines "metrics/internal") "exporters") $otlpExporter | uniq)  }}
 {{- end }}
 {{- if index $config.service.pipelines "metrics/scraper" }}
-{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") "otlp" | uniq)  }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "exporters" (prepend (index (index $config.service.pipelines "metrics/scraper") "exporters") $otlpExporter | uniq)  }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}
@@ -319,6 +323,22 @@ service:
 
 {{- define "opentelemetry-collector.otlpExporterConfig" -}}
 exporters:
+  {{- if .Values.otelHttp }}
+  otlphttp:
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+      insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      {{- if .Values.otelTlsSecrets.enabled }}
+      cert_file: ${env:OTEL_SECRETS_PATH}/cert.pem
+      key_file: ${env:OTEL_SECRETS_PATH}/key.pem
+      {{- if .Values.otelTlsSecrets.ca }}
+      ca_file: ${env:OTEL_SECRETS_PATH}/ca.pem
+      {{- end }}
+      {{- end }}
+    headers:
+      "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+  {{- else }}
   otlp:
     endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
@@ -333,6 +353,7 @@ exporters:
       {{- end }}
     headers:
       "signoz-access-token": "${env:SIGNOZ_API_KEY}"
+  {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyClusterMetricsConfig" -}}

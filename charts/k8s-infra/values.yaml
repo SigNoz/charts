@@ -41,6 +41,9 @@ otelCollectorEndpoint: null
 # Set this to false, in case of secure OTLP endpoint.
 otelInsecure: true
 
+# -- Whether to use otlphttp exporter for the OTLP endpoint. If set to false, otlp exporter (grpc) will be used.
+otelHttp: false
+
 # -- Whether to skip verifying the certificate.
 insecureSkipVerify: false
 
