@@ -1,11 +1,7 @@
-
-You have just deployed K8s-Infra chart:
+You have just deployed k8s-infra chart:
 
 - otel-agent version: '{{ .Values.otelAgent.image.tag }}'
 - otel-deployment version: '{{ .Values.otelDeployment.image.tag }}'
-
-NOTE: If you enable Prometheus preset in this chart and have installed SigNoz helm chart in the same cluster,
-      please set otelCollectorMetrics.enabled to false in the signoz chart to avoid data duplication.
 
 {{- if not .Values.otelAgent.configMap.create }}
 [WARNING] otel-agent "configMap" will not be created and "otelAgent.config" will not take effect.
