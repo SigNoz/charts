@@ -692,18 +692,6 @@ signoz:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
-  # signoz cache options
-  cache:
-    # -- Whether to enable cache for signoz
-    enabled: true
-    # -- Cache flux interval for signoz
-    fluxInterval: 30m
-    # -- Cache configurations for signoz
-    config:
-      name: cache
-      provider: inmemory
-      inmemory:
-        ttl: 168h
   podSecurityContext: {}
   # fsGroup: 2000
 

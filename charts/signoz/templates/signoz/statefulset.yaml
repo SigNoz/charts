@@ -105,12 +105,6 @@ spec:
           args:
             - --cluster
             - "$(CLICKHOUSE_CLUSTER)"
-            {{- if .Values.signoz.cache.enabled }}
-            - --experimental.cache-config
-            - /root/config/cache.yaml
-            - --flux-interval
-            - {{ .Values.signoz.cache.fluxInterval }}
-            {{- end }}
             {{- range .Values.signoz.additionalArgs }}
             - {{ . | quote }}
             {{- end }}
@@ -195,10 +189,6 @@ spec:
           readinessProbe: {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
           {{- end }}
           volumeMounts:
-            {{- if .Values.signoz.cache.enabled }}
-            - name: cache
-              mountPath: /root/config
-            {{- end }}
             - name: dashboards
               mountPath: /root/config/dashboards
           {{- if .Values.signoz.persistence.enabled }}
@@ -217,11 +207,6 @@ spec:
           resources:
             {{- toYaml .Values.signoz.resources | nindent 12 }}
       volumes:
-        {{- if .Values.signoz.cache.enabled }}
-        - name: cache
-          configMap:
-            name: {{ include "signoz.fullname" . }}
-        {{- end }}
         - name: dashboards
           emptyDir: {}
         {{- if (not .Values.signoz.persistence.enabled) }}
