@@ -561,7 +561,7 @@ signoz:
   image:
     registry: docker.io
     repository: signoz/signoz
-    tag: v0.81.0
+    tag: v0.82.1
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -601,9 +601,7 @@ signoz:
   # -- signoz annotations
   annotations:
   # -- signoz additional arguments for command line
-  additionalArgs:
-    - --use-logs-new-schema=true
-    - --use-trace-new-schema=true
+  additionalArgs: []
   # -- Additional environments to set for signoz
   additionalEnvs: {}
   # Environment variables for the Query Service.
@@ -694,21 +692,12 @@ signoz:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
-  # signoz cache options
-  cache:
-    # -- Whether to enable cache for signoz
-    enabled: true
-    # -- Cache flux interval for signoz
-    fluxInterval: 30m
-    # -- Cache configurations for signoz
-    config:
-      name: cache
-      provider: inmemory
-      inmemory:
-        ttl: 168h
+  # -- Pod security context for signoz
   podSecurityContext: {}
   # fsGroup: 2000
-
+  # -- Pod annotations for signoz
+  podAnnotations: {}
+  # -- Security context for signoz
   securityContext: {}
   # capabilities:
   #   drop:
@@ -1029,7 +1018,7 @@ schemaMigrator:
   image:
     registry: docker.io
     repository: signoz/signoz-schema-migrator
-    tag: v0.111.40
+    tag: v0.111.41
     pullPolicy: IfNotPresent
   args:
     - "--up="
@@ -1179,7 +1168,7 @@ otelCollector:
   image:
     registry: docker.io
     repository: signoz/signoz-otel-collector
-    tag: v0.111.40
+    tag: v0.111.41
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for OtelCollector
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
