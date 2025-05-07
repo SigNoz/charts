@@ -675,7 +675,6 @@ signoz:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
-    alertmanagerProvider: signoz
   smtpVars:
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     enabled: false
