@@ -130,10 +130,6 @@ spec:
             {{- else }}
               value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
             {{- end }}
-            {{- if .Values.alertmanager.enabled }}
-            - name: SIGNOZ_ALERTMANAGER_LEGACY_API__URL
-              value: http://{{ include "alertmanager.url" . }}/api/
-            {{- end }}
             - name: GODEBUG
               value: {{ .Values.signoz.configVars.goDebug }}
             - name: TELEMETRY_ENABLED
@@ -141,7 +137,7 @@ spec:
             - name: DEPLOYMENT_TYPE
               value: {{ .Values.signoz.configVars.deploymentType }}
             - name: SIGNOZ_ALERTMANAGER_PROVIDER
-              value: {{ .Values.signoz.configVars.alertmanagerProvider }}
+              value: signoz
             {{- include "signoz.renderAdditionalEnv" .Values.signoz.additionalEnvs | nindent 12 }}
             {{- if .Values.signoz.smtpVars.enabled }}
             - name: SMTP_ENABLED
