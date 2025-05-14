@@ -561,7 +561,7 @@ signoz:
   image:
     registry: docker.io
     repository: signoz/signoz
-    tag: v0.82.0
+    tag: v0.83.0
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -601,9 +601,7 @@ signoz:
   # -- signoz annotations
   annotations:
   # -- signoz additional arguments for command line
-  additionalArgs:
-    - --use-logs-new-schema=true
-    - --use-trace-new-schema=true
+  additionalArgs: []
   # -- Additional environments to set for signoz
   additionalEnvs: {}
   # Environment variables for the Query Service.
@@ -677,7 +675,6 @@ signoz:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
-    alertmanagerProvider: signoz
   smtpVars:
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     enabled: false
@@ -694,21 +691,12 @@ signoz:
       usernameKey: ""
       # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
       passwordKey: ""
-  # signoz cache options
-  cache:
-    # -- Whether to enable cache for signoz
-    enabled: true
-    # -- Cache flux interval for signoz
-    fluxInterval: 30m
-    # -- Cache configurations for signoz
-    config:
-      name: cache
-      provider: inmemory
-      inmemory:
-        ttl: 168h
+  # -- Pod security context for signoz
   podSecurityContext: {}
   # fsGroup: 2000
-
+  # -- Pod annotations for signoz
+  podAnnotations: {}
+  # -- Security context for signoz
   securityContext: {}
   # capabilities:
   #   drop:
@@ -806,222 +794,7 @@ signoz:
       - ReadWriteOnce
     # -- Persistent Volume size
     size: 1Gi
-# Default values for Alertmanager
-alertmanager:
-  enabled: false
-  name: "alertmanager"
-  replicaCount: 1
-  image:
-    registry: docker.io
-    repository: signoz/alertmanager
-    pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.23.7
-  # -- Image Registry Secret Names for Alertmanager
-  # If set, this has higher precedence than the root level or global value of imagePullSecrets.
-  imagePullSecrets: []
-  # -- Alertmanager custom command override
-  command: []
-  # -- Alertmanager extra Arguments
-  extraArgs: {}
-  # Alertmanager Service Account
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name:
-  # Alertmanager service
-  service:
-    # -- Annotations to use by service associated to Alertmanager
-    annotations: {}
-    # -- Labels to use by service associated to Alertmanager
-    labels: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-    type: ClusterIP
-    # -- Alertmanager HTTP port
-    port: 9093
-    # -- Alertmanager cluster port
-    clusterPort: 9094
-    # -- Set this to you want to force a specific nodePort. Must be use with service.type=NodePort
-    nodePort: null
-  # -- Additional environments to set for Alertmanager
-  additionalEnvs: {}
-  # env_key: env_value
 
-  initContainers:
-    init:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        delay: 5
-        endpoint: /api/v1/health?live=1
-        waitMessage: "waiting for signoz"
-        doneMessage: "signoz ready, starting alertmanager now"
-      resources: {}
-      #   requests:
-      #     cpu: 100m
-      #     memory: 100Mi
-      #   limits:
-      #     cpu: 100m
-      #     memory: 100Mi
-  podSecurityContext:
-    fsGroup: 65534
-  dnsConfig: {}
-  # nameservers:
-  #   - 1.2.3.4
-  # searches:
-  #   - ns1.svc.cluster-domain.example
-  #   - my.dns.search.suffix
-  # options:
-  #   - name: ndots
-  #     value: "2"
-  #   - name: edns0
-  securityContext:
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    runAsUser: 65534
-    runAsNonRoot: true
-    runAsGroup: 65534
-  additionalPeers: []
-  livenessProbe:
-    httpGet:
-      path: /
-      port: http
-  readinessProbe:
-    httpGet:
-      path: /
-      port: http
-  ingress:
-    # -- Enable ingress for Alertmanager
-    enabled: false
-    # -- Ingress Class Name to be used to identify ingress controllers
-    className: ""
-    # -- Annotations to Alertmanager Ingress
-    annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # -- Alertmanager Ingress Host names with their path details
-    hosts:
-      - host: alertmanager.domain.com
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            port: 9093
-    # -- Alertmanager Ingress TLS
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - alertmanager.domain.com
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might not be suitable for your workload.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  #
-  # @default -- See `values.yaml` for defaults
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-  #   limits:
-  #     cpu: 200m
-  #     memory: 200Mi
-  # -- Alertmanager priority class name
-  priorityClassName: ""
-  # -- Node selector for settings for Alertmanager pod
-  nodeSelector: {}
-  # -- Toleration labels for Alertmanager pod assignment
-  tolerations: []
-  # -- Affinity settings for Alertmanager pod
-  affinity: {}
-  # -- TopologySpreadConstraints describes how Alertmanager pods ought to spread
-  topologySpreadConstraints: []
-  statefulSet:
-    annotations:
-  podAnnotations: {}
-  podLabels: {}
-  # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
-  podDisruptionBudget: {}
-  # maxUnavailable: 1
-  # minAvailable: 1
-
-  persistence:
-    # -- Enable data persistence using PVC for Alertmanager data.
-    enabled: true
-    # -- Name of an existing PVC to use (only when deploying a single replica)
-    existingClaim: ""
-    # -- Persistent Volume Storage Class to use.
-    # If defined, `storageClassName: <storageClass>`.
-    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
-    # If undefined (the default) or set to `null`, no storageClassName spec is
-    # set, choosing the default provisioner.
-    #
-    storageClass: null
-    # -- Access Modes for persistent volume
-    accessModes:
-      - ReadWriteOnce
-    # -- Persistent Volume size
-    size: 100Mi
-  ## Using the config, alertmanager.yml file is created.
-  ## We no longer need the config file as query services
-  ## delivers the required config.
-  # config:
-  # global:
-  #   resolve_timeout: 1m
-  #   slack_api_url: 'https://hooks.slack.com/services/xxx'
-
-  # templates:
-  #   - '/etc/alertmanager/*.tmpl'
-
-  # receivers:
-  # - name: 'slack-notifications'
-  #   slack_configs:
-  #   - channel: '#alerts'
-  #     send_resolved: true
-  #     icon_url: https://avatars3.githubusercontent.com/u/3380462
-  #     title: '{{ template "slack.title" . }}'
-  #     text: '{{ template "slack.text" . }}'
-
-  # route:
-  #   receiver: 'slack-notifications'
-
-  ## Monitors ConfigMap changes and POSTs to a URL
-  ## Ref: https://github.com/jimmidyson/configmap-reload
-  ##
-  configmapReload:
-    ## If false, the configmap-reload container will not be deployed
-    ##
-    enabled: false
-    ## configmap-reload container name
-    ##
-    name: configmap-reload
-    ## configmap-reload container image
-    ##
-    image:
-      repository: jimmidyson/configmap-reload
-      tag: v0.5.0
-      pullPolicy: IfNotPresent
-    # containerPort: 9533
-
-    # -- Configure resource requests and limits. Update as per your need.
-    # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-    #
-    # @default -- See `values.yaml` for defaults
-    resources:
-      requests:
-        cpu: 100m
-        memory: 100Mi
-        #   limits:
-        #     cpu: 200m
-        #     memory: 200Mi
 # Default values for schemaMigrator
 schemaMigrator:
   enabled: true
