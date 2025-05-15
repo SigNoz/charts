@@ -109,10 +109,7 @@ spec:
               {{- $attribs = printf "%s,%s" $attribs .Values.presets.resourceDetection.envResourceAttributes }}
               {{- end }}
               value: {{ $attribs | quote }}
-            {{- range $key, $val := .Values.otelAgent.additionalEnvs }}
-            - name: {{ $key }}
-              value: {{ $val | toYaml }}
-            {{- end }}
+            {{- include "renderAdditionalEnv" .Values.otelAgent.additionalEnvs | nindent 12 }}
           securityContext:
             {{- toYaml .Values.otelAgent.securityContext | nindent 12 }}
           volumeMounts:

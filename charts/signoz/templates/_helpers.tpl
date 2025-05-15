@@ -494,7 +494,7 @@ imagePullSecrets:
 {{- end }}
 
 {{/*
-Function to render environment variables 
+Function to render additional environment variables 
 */}}
 {{- define "signoz.renderAdditionalEnv" -}}
 {{- $dict := . -}}
@@ -518,4 +518,3 @@ Function to render environment variables
 {{- end -}}
 {{- end -}}
 {{- end -}}
-
