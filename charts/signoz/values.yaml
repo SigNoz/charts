@@ -1210,55 +1210,54 @@ otelCollector:
   # -- Extra volumes for OtelCollector pod
   extraVolumes: []
   ingress:
-    grpc:
-      # -- Enable gRPC ingress for OtelCollector
-      enabled: false
-      # -- Ingress Class Name to be used to identify ingress controllers
-      className: ""
-      # -- Annotations to OtelCollector Ingress
-      annotations: {}
-      # cert-manager.io/cluster-issuer: letsencrypt-prod
-      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      # -- OtelCollector Ingress Host names with their path details
-      hosts:
-        - host: otelcollector.domain.com
-          paths:
-            - path: /
-              pathType: ImplementationSpecific
-              port: 4317
-      # -- OtelCollector Ingress TLS
-      tls: []
-      #  - secretName: chart-example-tls
-      #    hosts:
-      #      - otelcollector.domain.com
+    # -- Enable gRPC ingress for OtelCollector
+    enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
+    className: ""
+    # -- Annotations to OtelCollector Ingress
+    annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # -- OtelCollector Ingress Host names with their path details
+    hosts:
+      - host: otelcollector.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: 4317
+    # -- OtelCollector Ingress TLS
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otelcollector.domain.com
 
-    http:
-      # -- Enable HTTP ingress for OtelCollector
-      enabled: false
-      # -- Ingress Class Name to be used to identify ingress controllers
-      className: ""
-      # -- Annotations to OtelCollector Ingress
-      annotations: {}
-      # cert-manager.io/cluster-issuer: letsencrypt-prod
-      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      # -- OtelCollector Ingress Host names with their path details
-      hosts:
-        - host: otelcollector.domain.com
-          paths:
-            - path: /
-              pathType: ImplementationSpecific
-              port: 4318
-      # -- OtelCollector Ingress TLS
-      tls: []
-      #  - secretName: chart-example-tls
-      #    hosts:
-      #      - otelcollector.domain.com
+  httpIngress:
+    # -- Enable HTTP ingress for OtelCollector. Creates separate ingress for HTTP.
+    enabled: false
+    # -- Ingress Class Name to be used to identify ingress controllers
+    className: ""
+    # -- Annotations to OtelCollector Ingress
+    annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # -- OtelCollector Ingress Host names with their path details
+    hosts:
+      - host: otelcollector.domain.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: 4318
+    # -- OtelCollector Ingress TLS
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - otelcollector.domain.com
   # -- Configure resource requests and limits. Update according to your own use
   # case as these values might not be suitable for your workload.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/

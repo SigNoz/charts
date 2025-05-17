@@ -1,4 +1,4 @@
-{{- if .Values.otelCollector.ingress.http.enabled -}}
+{{- if .Values.otelCollector.httpIngress.enabled -}}
 {{- $fullName := include "otelCollector.fullname" . -}}
 {{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
@@ -8,17 +8,17 @@ metadata:
   name: {{ $fullName }}-http
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
-  {{- with .Values.otelCollector.ingress.http.annotations }}
+  {{- with .Values.otelCollector.httpIngress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.otelCollector.ingress.http.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.otelCollector.ingress.http.className }}
+  {{- if and .Values.otelCollector.httpIngress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.otelCollector.httpIngress.className }}
   {{- end }}
-  {{- if .Values.otelCollector.ingress.http.tls }}
+  {{- if .Values.otelCollector.httpIngress.tls }}
   tls:
-    {{- range .Values.otelCollector.ingress.http.tls }}
+    {{- range .Values.otelCollector.httpIngress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -29,7 +29,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.otelCollector.ingress.http.hosts }}
+    {{- range .Values.otelCollector.httpIngress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
