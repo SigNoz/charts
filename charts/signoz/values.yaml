@@ -561,7 +561,7 @@ signoz:
   image:
     registry: docker.io
     repository: signoz/signoz
-    tag: v0.83.0
+    tag: v0.84.1
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
@@ -794,7 +794,6 @@ signoz:
       - ReadWriteOnce
     # -- Persistent Volume size
     size: 1Gi
-
 # Default values for schemaMigrator
 schemaMigrator:
   enabled: true
