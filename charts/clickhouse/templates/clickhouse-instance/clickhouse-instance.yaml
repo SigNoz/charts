@@ -346,9 +346,9 @@ spec:
                 - name: logs-system-config
                   mountPath: /conf
             {{- end }}
-
-            {{- if .Values.clickhouseInstance.extraContainers }}
-              {{- toYaml .Values.clickhouseInstance.extraContainers | nindent 14 }}
+            
+            {{- if .Values.extraContainers }}
+              {{- toYaml .Values.extraContainers | nindent 12 }}
             {{- end }}
 
     serviceTemplates:

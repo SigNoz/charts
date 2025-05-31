@@ -1,0 +1,243 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "signoz.fullname" . }}
+  labels:
+    {{- include "signoz.labels" . | nindent 4 }}
+  {{- if .Values.signoz.annotations }}
+  annotations:
+    {{- toYaml .Values.signoz.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "signoz.fullname" . }}
+  replicas: {{ .Values.signoz.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "signoz.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if .Values.signoz.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.signoz.podAnnotations | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "signoz.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.signoz.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "signoz.serviceAccountName" . }}
+      priorityClassName: {{ .Values.signoz.priorityClassName | quote }}
+      {{- with .Values.signoz.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.signoz.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.signoz.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.signoz.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.signoz.podSecurityContext | nindent 8 }}
+      {{- with .Values.signoz.initContainers }}
+      initContainers:
+        {{- if .init.enabled }}
+        - name: {{ include "signoz.fullname" $ }}-init
+          image: {{ include "signoz.initContainers.init.image" $ }}
+          imagePullPolicy: {{ .init.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- with .init.command }}
+          command:
+            - sh
+            - -c
+            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
+          {{- end }}
+          resources:
+            {{- toYaml .init.resources | nindent 12 }}
+        {{- end }}
+        {{- if .migration.enabled }}
+        - name: {{ include "signoz.fullname" $ }}-migration
+          image: {{ include "signoz.initContainers.migration.image" $ }}
+          imagePullPolicy: {{ .migration.image.pullPolicy }}
+          env:
+            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+          {{- if .migration.args }}
+          args:
+            {{- toYaml .migration.args | nindent 12 }}
+          {{- end }}
+          {{- if .migration.command }}
+          command:
+            {{- toYaml .migration.command | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .migration.resources | nindent 12 }}
+          volumeMounts:
+          {{- if $.Values.signoz.persistence.enabled }}
+          {{- if $.Values.signoz.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz
+          {{- if .migration.additionalVolumeMounts }}
+            {{- toYaml .migration.additionalVolumeMounts | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: signoz
+          securityContext:
+            {{- toYaml .Values.signoz.securityContext | nindent 12 }}
+          image: {{ template "signoz.image" . }}
+          imagePullPolicy: {{ .Values.signoz.image.pullPolicy }}
+          args:
+            - --cluster
+            - "$(CLICKHOUSE_CLUSTER)"
+            {{- range .Values.signoz.additionalArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ default 8080  .Values.signoz.service.port }}
+              protocol: TCP
+            - name: http-internal
+              containerPort: {{ default 8085 .Values.signoz.service.internalPort }}
+              protocol: TCP
+            - name: opamp-internal
+              containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
+              protocol: TCP
+          env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
+            - name: STORAGE
+              value: {{ .Values.signoz.configVars.storage }}
+            - name: ClickHouseUrl
+            {{- if hasKey .Values.signoz.configVars "clickHouseUrl" }}
+              value: {{ .Values.signoz.configVars.clickHouseUrl }}
+            {{- else }}
+              value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
+            {{- end }}
+            - name: GODEBUG
+              value: {{ .Values.signoz.configVars.goDebug }}
+            - name: TELEMETRY_ENABLED
+              value: {{ quote .Values.signoz.configVars.telemetryEnabled }}
+            - name: DEPLOYMENT_TYPE
+              value: {{ .Values.signoz.configVars.deploymentType }}
+            - name: SIGNOZ_ALERTMANAGER_PROVIDER
+              value: signoz
+            {{- include "signoz.renderAdditionalEnv" .Values.signoz.additionalEnvs | nindent 12 }}
+            {{- if .Values.signoz.smtpVars.enabled }}
+            - name: SMTP_ENABLED
+              value: "true"
+            {{- range $keyName, $envName := dict "fromKey" "SMTP_FROM"
+                       "hostKey" "SMTP_HOST"
+                       "portKey" "SMTP_PORT"
+                       "usernameKey" "SMTP_USERNAME"
+                       "passwordKey" "SMTP_PASSWORD" }}
+            {{- $keyInSecret := get $.Values.signoz.smtpVars.existingSecret $keyName }}
+            {{- if $keyInSecret }}
+              {{- if and $keyInSecret (hasKey $.Values.signoz.additionalEnvs $envName)}}
+                {{- fail (printf "Error: SMTP variable '%s' is configured both in .Values.signoz.additionalEnvs and .Values.signoz.smtpVars.existingSecret.%s. Please use only one configuration method to avoid conflicts." $envName $keyName)}}
+              {{- end}}
+            - name: {{$envName}}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required (printf "'%s' is set but secret name is missing: .Values.signoz.smtpVars.existingSecret" $keyName) $.Values.signoz.smtpVars.existingSecret.name }}
+                  key: {{ $keyInSecret }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- if .Values.signoz.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.signoz.livenessProbe.port }}
+              path: {{ .Values.signoz.livenessProbe.path }}
+            initialDelaySeconds: {{ .Values.signoz.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.signoz.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.signoz.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.signoz.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.signoz.livenessProbe.failureThreshold }}
+          {{- else if .Values.signoz.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.signoz.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.signoz.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.signoz.readinessProbe.port }}
+              path: {{ .Values.signoz.readinessProbe.path }}
+            initialDelaySeconds: {{ .Values.signoz.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.signoz.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.signoz.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.signoz.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.signoz.readinessProbe.failureThreshold }}
+          {{- else if .Values.signoz.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: dashboards
+              mountPath: /root/config/dashboards
+          {{- if .Values.signoz.persistence.enabled }}
+          {{- if .Values.signoz.persistence.existingClaim }}
+            - name: signoz-db-existing-claim
+          {{- else }}
+            - name: signoz-db
+          {{- end }}
+          {{- else }}
+            - name: signoz-db-volume
+          {{- end }}
+              mountPath: /var/lib/signoz/
+          {{- if .Values.signoz.additionalVolumeMounts }}
+            {{- toYaml .Values.signoz.additionalVolumeMounts | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.signoz.resources | nindent 12 }}
+      volumes:
+        - name: dashboards
+          emptyDir: {}
+        {{- if (not .Values.signoz.persistence.enabled) }}
+        - name: signoz-db-volume
+          emptyDir: {}
+        {{- else if .Values.signoz.persistence.existingClaim }}
+        - name: signoz-db-existing-claim
+          persistentVolumeClaim:
+            claimName: {{ .Values.signoz.persistence.existingClaim }}
+        {{- end }}
+        {{- if .Values.signoz.additionalVolumes }}
+          {{- toYaml .Values.signoz.additionalVolumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.signoz.initContainers.migration.additionalVolumes }}
+          {{- toYaml .Values.signoz.initContainers.migration.additionalVolumes | nindent 8 }}
+        {{- end }}
+
+{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: signoz-db
+      spec:
+        accessModes:
+          {{- toYaml .Values.signoz.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.signoz.persistence.size }}
+      {{- $storageClass := default .Values.signoz.persistence.storageClass .Values.global.storageClass -}}
+      {{- if $storageClass -}}
+      {{- if (eq "-" $storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: {{ $storageClass }}
+      {{- end }}
+      {{- end }}
+{{- end }}
