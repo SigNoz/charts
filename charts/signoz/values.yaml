@@ -561,7 +561,7 @@ signoz:
   image:
     registry: docker.io
     repository: signoz/signoz
-    tag: v0.86.0
+    tag: v0.86.1
     pullPolicy: IfNotPresent
   # -- Image Registry Secret Names for signoz
   # If set, this has higher precedence than the root level or global value of imagePullSecrets.
