@@ -45,7 +45,7 @@ zookeeper:
     # -- Zookeeper image tag.
     # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
     # Please override the default only if you know what you are doing.
-    tag: 3.7.1
+    tag: 3.9.3
 
   # -- Name override for zookeeper app
   nameOverride: ""
@@ -170,7 +170,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 24.1.2-alpine
+  tag: 25.5.3-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
