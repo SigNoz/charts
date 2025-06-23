@@ -1583,7 +1583,7 @@ otelCollector:
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       # memory_limiter: null
       signozspanmetrics/delta:
-        metrics_exporter: clickhousemetricswrite, signozclickhousemetrics
+        metrics_exporter: signozclickhousemetrics
         latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
         dimensions_cache_size: 100000
         dimensions:
@@ -1639,7 +1639,7 @@ otelCollector:
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [clickhousemetricswrite, metadataexporter, signozclickhousemetrics]
+          exporters: [ metadataexporter, signozclickhousemetrics]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
