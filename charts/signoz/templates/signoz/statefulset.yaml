@@ -67,11 +67,13 @@ spec:
             {{- toYaml .init.resources | nindent 12 }}
         {{- end }}
         {{- if .migration.enabled }}
-        - name: {{ include "signoz.fullname" $ }}-migration
+        - name: migration
           image: {{ include "signoz.initContainers.migration.image" $ }}
           imagePullPolicy: {{ .migration.image.pullPolicy }}
           env:
-            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
+            {{- include "snippet.migration-credentials" $ | nindent 12 }}
+            {{- include "signoz.renderAdditionalEnv" .migration.additionalEnvs | nindent 12 }}
+
           {{- if .migration.args }}
           args:
             {{- toYaml .migration.args | nindent 12 }}
