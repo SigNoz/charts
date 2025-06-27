@@ -68,6 +68,23 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 {{- end }}
 {{- end }}
 
+{{- define "snippet.migration-credentials"}}
+{{- if .Values.signoz.initContainers.migration.enabled -}}
+- name: SQL_DB_PATH
+  value: /var/lib/signoz/signoz.db
+- name: CH_ADDR
+  value: "{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}"
+- name: CH_DATABASE
+  value: "signoz_metrics"
+- name: CH_USER
+  value: {{ .Values.clickhouse.user | quote }}
+- name: CH_PASS
+  value: {{ .Values.clickhouse.password | quote }}
+- name: CH_MAX_OPEN_CONNS
+  value: "10"
+{{- end }}
+{{- end }}
+
 {{/*
 Minimized ClickHouse ENV variables for user credentials
 */}}

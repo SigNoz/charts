@@ -642,13 +642,26 @@ signoz:
       #     cpu: 100m
       #     memory: 100Mi
     migration:
-      enabled: false
+      enabled: true
       image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
+        registry: signoz.io
+        repository: migrate
+        tag: v0.70.5
         pullPolicy: IfNotPresent
-      args: []
+      args: ['migrate-meta']
+      additionalEnvs: 
+        CH_MAX_MEMORY_USAGE:
+            value: "8388608000"
+        CH_MAX_BYTES_BEFORE_EXTERNAL_GROUP_BY:
+          value: "524288000"
+        CH_MAX_BYTES_BEFORE_EXTERNAL_SORT:
+          value: "524288000"
+        NOT_FOUND_METRICS_MAP:
+          value: "rpc_server_responses_per_rpc_bucket=rpc.server.responses_per_rpc.bucket"
+        NOT_FOUND_ATTR_MAP:
+          value: "http_scheme=http.scheme,net_peer_name=net.peer.name,net_peer_port=net.peer.port,net_protocol_name=net.protocol.name,net_protocol_version=net.protocol.version,rpc_grpc_status_code=rpc.grpc.status_code,rpc_method=rpc.method,rpc_service=rpc.service,rpc_system=rpc.system"
+        SKIP_METRICS_MAP:
+          value: "dd_internal_stats_payload=true"
       command: []
       # - sh
       # - -c
