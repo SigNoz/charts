@@ -138,6 +138,8 @@ spec:
               value: {{ .Values.signoz.configVars.deploymentType }}
             - name: SIGNOZ_ALERTMANAGER_PROVIDER
               value: signoz
+            - name: DOT_METRICS_ENABLED
+              value: {{ quote .Values.signoz.configVars.dotMetricsEnabled}}
             {{- include "signoz.renderAdditionalEnv" .Values.signoz.additionalEnvs | nindent 12 }}
             {{- if .Values.signoz.smtpVars.enabled }}
             - name: SMTP_ENABLED
