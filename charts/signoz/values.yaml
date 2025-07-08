@@ -675,6 +675,7 @@ signoz:
     goDebug: netdns=go
     telemetryEnabled: true
     deploymentType: kubernetes-helm
+    dotMetricsEnabled: true
   smtpVars:
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     enabled: false
@@ -1355,7 +1356,7 @@ otelCollector:
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       # memory_limiter: null
       signozspanmetrics/delta:
-        metrics_exporter: clickhousemetricswrite, signozclickhousemetrics
+        metrics_exporter: signozclickhousemetrics
         latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 50ms, 100ms, 250ms, 500ms, 1000ms, 1400ms, 2000ms, 5s, 10s, 20s, 40s, 60s]
         dimensions_cache_size: 100000
         dimensions:
@@ -1377,12 +1378,6 @@ otelCollector:
         datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
         low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
         use_new_schema: true
-      clickhousemetricswrite:
-        endpoint: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
-        timeout: 15s
-        resource_to_telemetry_conversion:
-          enabled: true
-        disable_v2: true
       signozclickhousemetrics:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
         timeout: 45s
@@ -1409,7 +1404,7 @@ otelCollector:
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [clickhousemetricswrite, metadataexporter, signozclickhousemetrics]
+          exporters: [metadataexporter, signozclickhousemetrics]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
