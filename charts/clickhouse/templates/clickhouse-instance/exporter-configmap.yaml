@@ -1,4 +1,5 @@
-{{- if .Values.logs.system.enabled }}
+{{- if .Values.clickhouseInstance.enabled }}
+{{- if .Values.clickhouseInstance.logs.system.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,5 +9,6 @@ metadata:
     {{- include "clickhouse.labels" . | nindent 4 }}
 data:
   config.yaml: |-
-    {{- toYaml .Values.logs.system.config | nindent 4 }}
+    {{- toYaml .Values.clickhouseInstance.logs.system.config | nindent 4 }}
+{{- end }}
 {{- end }}
