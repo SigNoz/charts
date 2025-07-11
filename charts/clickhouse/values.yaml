@@ -568,6 +568,8 @@ installCustomStorageClass: false
 ###
 ###
 clickhouseOperator:
+  service:
+    enabled: true
   # -- name of the component
   name: operator
 
