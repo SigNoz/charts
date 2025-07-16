@@ -619,8 +619,8 @@ signoz:
     #    Example:
     #      env:
     #        MY_KEY: my-value
-    storage: "clickhouse"
-    godebug: "netdns=go"
+    storage: clickhouse
+    godebug: netdns=go
     telemetry_enabled: true
     deployment_type: kubernetes-helm
     dot_metrics_enabled: true
@@ -632,36 +632,6 @@ signoz:
 
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
     smtp_enabled: false
-    # -- Name of key in secret to get value for `SMTP_FROM`. If empty, the env variable will not be set.
-    smtp_from:
-      valueFrom:
-        secretKeyRef:
-          name: ""
-          key: ""
-    # -- Name of key in secret to get value for `SMTP_HOST`. If empty, the env variable will not be set.
-    smtp_host:
-      valueFrom:
-        secretKeyRef:
-          name: ""
-          key: ""
-    # -- Name of key in secret to get value for `SMTP_PORT`. If empty, the env variable will not be set.
-    smtp_port:
-      valueFrom:
-        secretKeyRef:
-          name: ""
-          key: ""
-    # -- Name of key in secret to get value for `SMTP_USERNAME`. If empty, the env variable will not be set.
-    smtp_username:
-      valueFrom:
-        secretKeyRef:
-          name: ""
-          key: ""
-    # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
-    smtp_password:
-      valueFrom:
-        secretKeyRef:
-          name: ""
-          key: ""
 
   initContainers:
     init:
