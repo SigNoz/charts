@@ -662,7 +662,6 @@ signoz:
         secretKeyRef:
           name: ""
           key: ""
-    
 
   initContainers:
     init:
