@@ -27,5 +27,6 @@ jobs:
       - name: Check if docs are different
         run: |
           make chart-docs CHARTS=charts/signoz,charts/k8s-infra
+          git diff
           git diff --compact-summary --exit-code || (echo; echo "Unexpected difference in Docs. Run make chart-docs locally and commit."; exit 1)
 
