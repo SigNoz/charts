@@ -121,47 +121,18 @@ spec:
               containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
               protocol: TCP
           env:
+            {{- if (hasKey $.Values.signoz "configVars") }}
+                {{- fail (printf "Error: signoz.configVars has been deprecated. Use signoz.env instead.") }}
+            {{- end}}
+              {{- if (hasKey $.Values.signoz "smtpVars") }}
+                {{- fail (printf "Error: signoz.smtpVars has been deprecated. Use signoz.env instead.") }}
+            {{- end}}
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-            - name: STORAGE
-              value: {{ .Values.signoz.configVars.storage }}
             - name: ClickHouseUrl
-            {{- if hasKey .Values.signoz.configVars "clickHouseUrl" }}
-              value: {{ .Values.signoz.configVars.clickHouseUrl }}
-            {{- else }}
+            {{- if (not .Values.signoz.env.clickHouseUrl) }}
               value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
             {{- end }}
-            - name: GODEBUG
-              value: {{ .Values.signoz.configVars.goDebug }}
-            - name: TELEMETRY_ENABLED
-              value: {{ quote .Values.signoz.configVars.telemetryEnabled }}
-            - name: DEPLOYMENT_TYPE
-              value: {{ .Values.signoz.configVars.deploymentType }}
-            - name: SIGNOZ_ALERTMANAGER_PROVIDER
-              value: signoz
-            - name: DOT_METRICS_ENABLED
-              value: {{ quote .Values.signoz.configVars.dotMetricsEnabled}}
-            {{- include "signoz.renderAdditionalEnv" .Values.signoz.additionalEnvs | nindent 12 }}
-            {{- if .Values.signoz.smtpVars.enabled }}
-            - name: SMTP_ENABLED
-              value: "true"
-            {{- range $keyName, $envName := dict "fromKey" "SMTP_FROM"
-                       "hostKey" "SMTP_HOST"
-                       "portKey" "SMTP_PORT"
-                       "usernameKey" "SMTP_USERNAME"
-                       "passwordKey" "SMTP_PASSWORD" }}
-            {{- $keyInSecret := get $.Values.signoz.smtpVars.existingSecret $keyName }}
-            {{- if $keyInSecret }}
-              {{- if and $keyInSecret (hasKey $.Values.signoz.additionalEnvs $envName)}}
-                {{- fail (printf "Error: SMTP variable '%s' is configured both in .Values.signoz.additionalEnvs and .Values.signoz.smtpVars.existingSecret.%s. Please use only one configuration method to avoid conflicts." $envName $keyName)}}
-              {{- end}}
-            - name: {{$envName}}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ required (printf "'%s' is set but secret name is missing: .Values.signoz.smtpVars.existingSecret" $keyName) $.Values.signoz.smtpVars.existingSecret.name }}
-                  key: {{ $keyInSecret }}
-            {{- end }}
-            {{- end }}
-            {{- end }}
+            {{- include "signoz.renderEnv" .Values.signoz.env | nindent 12 }}
           {{- if .Values.signoz.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
