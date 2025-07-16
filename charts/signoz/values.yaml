@@ -602,24 +602,74 @@ signoz:
   annotations:
   # -- signoz additional arguments for command line
   additionalArgs: []
-  # -- Additional environments to set for signoz
-  additionalEnvs: {}
-  # Environment variables for the Query Service.
-  # You can specify variables in two ways:
-  # 1. Flexible structure for advanced configurations (recommended):
-  #    Example:
-  #      additionalEnvs:
-  #        MY_KEY:
-  #          value: my-value  # Direct value
-  #        SECRET_KEY:
-  #          valueFrom:       # Reference from a Secret or ConfigMap
-  #            secretKeyRef:
-  #              name: my-secret
-  #              key: my-key
-  # 2. Simple key-value pairs (backward-compatible):
-  #    Example:
-  #      additionalEnvs:
-  #        MY_KEY: my-value
+  env:
+    # Environment variables for the SigNoz.
+    # You can specify variables in two ways:
+    # 1. Flexible structure for advanced configurations (recommended):
+    #    Example:
+    #      env:
+    #        MY_KEY:
+    #          value: my-value  # Direct value
+    #        SECRET_KEY:
+    #          valueFrom:       # Reference from a Secret or ConfigMap
+    #            secretKeyRef:
+    #              name: my-secret
+    #              key: my-key
+    # 2. Simple key-value pairs (backward-compatible):
+    #    Example:
+    #      env:
+    #        MY_KEY: my-value
+    storage:
+      value: clickhouse
+    godebug:
+      value: netdns=go
+    telemetry_enabled:
+      value: true
+    deployment_type:
+      value: kubernetes-helm
+    dot_metrics_enabled:
+      value: true
+    signoz_alertmanager_provider:
+      value: "signoz"
+
+    # ClickHouse URL is set and applied internally.
+    # Don't override unless you know what you are doing.
+    # clickHouseUrl: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
+
+    # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
+    smtp_enabled:
+      value: false
+    # -- Name of key in secret to get value for `SMTP_FROM`. If empty, the env variable will not be set.
+    smtp_from:
+      valueFrom:
+        secretKeyRef:
+          name: ""
+          key: ""
+    # -- Name of key in secret to get value for `SMTP_HOST`. If empty, the env variable will not be set.
+    smtp_host:
+      valueFrom:
+        secretKeyRef:
+          name: ""
+          key: ""
+    # -- Name of key in secret to get value for `SMTP_PORT`. If empty, the env variable will not be set.
+    smtp_port:
+      valueFrom:
+        secretKeyRef:
+          name: ""
+          key: ""
+    # -- Name of key in secret to get value for `SMTP_USERNAME`. If empty, the env variable will not be set.
+    smtp_username:
+      valueFrom:
+        secretKeyRef:
+          name: ""
+          key: ""
+    # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
+    smtp_password:
+      valueFrom:
+        secretKeyRef:
+          name: ""
+          key: ""
+    
 
   initContainers:
     init:
@@ -667,31 +717,7 @@ signoz:
       additionalVolumeMounts: []
       # -- Additional volumes for signoz
       additionalVolumes: []
-  configVars:
-    storage: clickhouse
-    # ClickHouse URL is set and applied internally.
-    # Don't override unless you know what you are doing.
-    # clickHouseUrl: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
-    goDebug: netdns=go
-    telemetryEnabled: true
-    deploymentType: kubernetes-helm
-    dotMetricsEnabled: true
-  smtpVars:
-    # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
-    enabled: false
-    existingSecret:
-      # -- Name of the existing k8s secret containing the SMTP values. Required when any secret key is specified.
-      name: ""
-      # -- Name of key in secret to get value for `SMTP_FROM`. If empty, the env variable will not be set.
-      fromKey: ""
-      # -- Name of key in secret to get value for `SMTP_HOST`. If empty, the env variable will not be set.
-      hostKey: ""
-      # -- Name of key in secret to get value for `SMTP_PORT`. If empty, the env variable will not be set.
-      portKey: ""
-      # -- Name of key in secret to get value for `SMTP_USERNAME`. If empty, the env variable will not be set.
-      usernameKey: ""
-      # -- Name of key in secret to get value for `SMTP_PASSWORD`. If empty, the env variable will not be set.
-      passwordKey: ""
+
   # -- Pod security context for signoz
   podSecurityContext: {}
   # fsGroup: 2000
