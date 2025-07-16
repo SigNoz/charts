@@ -1,0 +1,38 @@
+
+
+name: "Generate Helm Docs"
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  helm-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: go-install
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Download Helm Docs Tool
+        run: |
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.11.0
+
+      - name: Generate Helm Docs
+        run: |
+          make chart-docs CHARTS=charts/signoz,charts/k8s-infra
+
+      - name: Check if docs are different
+        run: |
+          make chart-docs CHARTS=charts/signoz,charts/k8s-infra
+          if [ ! -z "$(git status --porcelain)" ]; then
+            echo -e 'Documentation outdated! (Run make chart-docs locally and commit)'
+            exit 1
+          else
+            echo -e 'Documentation up to date'
+          fi
