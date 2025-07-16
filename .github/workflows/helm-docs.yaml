@@ -23,10 +23,6 @@ jobs:
         run: |
           go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.11.0
 
-      - name: Generate Helm Docs
-        run: |
-          make chart-docs CHARTS=charts/signoz,charts/k8s-infra
-
       - name: Check if docs are different
         run: |
           make chart-docs CHARTS=charts/signoz,charts/k8s-infra
