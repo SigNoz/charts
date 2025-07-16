@@ -1,0 +1,110 @@
+
+# SigNoz
+
+{{ template "chart.badgesSection" . }}
+
+SigNoz is an open-source APM. It helps developers monitor their applications & troubleshoot problems,
+an open-source alternative to DataDog, NewRelic, etc. Open source Application Performance Monitoring (APM)
+& Observability tool.
+
+### TL;DR;
+
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/signoz
+```
+
+### Introduction
+
+This chart bootstraps [SigNoz](https://signoz.io) cluster deployment on a
+Kubernetes cluster using [Helm](https://helm.sh) package manager.
+
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+
+### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/signoz
+```
+
+These commands deploy SigNoz on the Kubernetes cluster in the default configuration.
+The [Configuration](#configuration) section lists the parameters that can be configured during installation:
+
+> **Tip**: List all releases using `helm list`
+
+### Uninstalling the chart
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+The command above removes all the Kubernetes components associated
+with the chart and deletes the release.
+
+Deletion of the StatefulSet doesn't cascade to deleting associated PVCs. To delete them:
+
+```bash
+kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
+```
+
+Sometimes everything doesn't get properly removed. If that happens try deleting the namespace:
+
+```bash
+kubectl delete namespace platform
+```
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault)  -}}
+{{- $notationType := .NotationType }}
+{{- if (and (hasPrefix "`" $defaultValue) (hasSuffix "`" $defaultValue) ) -}}
+{{- $defaultValue = (toPrettyJson (fromJson (trimAll "`" (default .Default .AutoDefault) ) ) ) -}}
+{{- $notationType = "json" }}
+{{- end -}}
+{{- if (eq $notationType "tpl" ) }}
+<pre lang="{{ $notationType }}">
+{{ .Key }}: |
+{{- $defaultValue | nindent 2 }}
+</pre>
+{{- else }}
+<pre lang="{{ $notationType }}">
+{{ $defaultValue }}
+</pre>
+{{- end }}
+{{ end }}
+
+
+{{ define "chart.valuesTableHtml" }}
+<table height="400px" >
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Values }}
+		<tr>
+			<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+			<td>{{.Type}}</td>
+			<td>
+				<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+			</td>
+			<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+		</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}
+

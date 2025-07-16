@@ -49,3 +49,7 @@ dev-install: local-setup
 re-install: delete install
 
 purge: delete delete-namespace
+
+# generate docs for the chart with respective templates in ./helm-docs
+chart-docs:
+	helm-docs --chart-search-root=charts --template-files=README.md.gotmpl --chart-to-generate=charts/signoz,charts/k8s-infra --sort-values-order=file

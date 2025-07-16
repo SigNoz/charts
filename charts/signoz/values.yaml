@@ -831,6 +831,7 @@ schemaMigrator:
       #   limits:
       #     cpu: 100m
       #     memory: 100Mi
+    # @ignored
     chReady:
       enabled: true
       image:
