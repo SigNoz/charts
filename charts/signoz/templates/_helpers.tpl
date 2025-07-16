@@ -513,7 +513,7 @@ Function to render environment variables
   value: {{ $val | quote }}
 {{- else }}
 - name: {{ $key }}
-  value: {{ $val | quote }}
+  value: {{ $val | quote}}
 {{- end }}
 {{- end -}}
 {{- end -}}

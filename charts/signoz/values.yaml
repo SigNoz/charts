@@ -619,26 +619,19 @@ signoz:
     #    Example:
     #      env:
     #        MY_KEY: my-value
-    storage:
-      value: clickhouse
-    godebug:
-      value: netdns=go
-    telemetry_enabled:
-      value: true
-    deployment_type:
-      value: kubernetes-helm
-    dot_metrics_enabled:
-      value: true
-    signoz_alertmanager_provider:
-      value: "signoz"
+    storage: "clickhouse"
+    godebug: "netdns=go"
+    telemetry_enabled: true
+    deployment_type: kubernetes-helm
+    dot_metrics_enabled: true
+    signoz_alertmanager_provider: signoz
 
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
     # clickHouseUrl: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
 
     # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
-    smtp_enabled:
-      value: false
+    smtp_enabled: false
     # -- Name of key in secret to get value for `SMTP_FROM`. If empty, the env variable will not be set.
     smtp_from:
       valueFrom:
