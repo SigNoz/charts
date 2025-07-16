@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.86.0](https://img.shields.io/badge/Version-0.86.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.89.0](https://img.shields.io/badge/AppVersion-v0.89.0-informational?style=flat-square)
+![Version: 0.87.1](https://img.shields.io/badge/Version-0.87.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.90.1](https://img.shields.io/badge/AppVersion-v0.90.1-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -351,7 +351,7 @@ signoz:
 			<td id="signoz--image--tag"><a href="./values.yaml#L564">signoz.image.tag</a></td>
 			<td>string</td>
 			<td>
-				<div style="max-width: 300px;"><code>"v0.89.0"</code>
+				<div style="max-width: 300px;"><code>"v0.90.1"</code>
 </div>
 			</td>
 			<td></td>
@@ -1093,7 +1093,7 @@ signoz:
 			<td id="schemaMigrator--image--tag"><a href="./values.yaml#L793">schemaMigrator.image.tag</a></td>
 			<td>string</td>
 			<td>
-				<div style="max-width: 300px;"><code>"v0.128.0"</code>
+				<div style="max-width: 300px;"><code>"v0.128.2"</code>
 </div>
 			</td>
 			<td></td>
@@ -1435,7 +1435,7 @@ signoz:
 			<td id="otelCollector--image--tag"><a href="./values.yaml#L944">otelCollector.image.tag</a></td>
 			<td>string</td>
 			<td>
-				<div style="max-width: 300px;"><code>"v0.128.0"</code>
+				<div style="max-width: 300px;"><code>"v0.128.2"</code>
 </div>
 			</td>
 			<td></td>
