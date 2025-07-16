@@ -3,9 +3,7 @@
 
 {{ template "chart.badgesSection" . }}
 
-SigNoz is an open-source APM. It helps developers monitor their applications & troubleshoot problems,
-an open-source alternative to DataDog, NewRelic, etc. Open source Application Performance Monitoring (APM)
-& Observability tool.
+SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
 ### TL;DR;
 
@@ -66,22 +64,11 @@ kubectl delete namespace platform
 
 
 {{ define "chart.valueDefaultColumnRender" }}
-{{- $defaultValue := (default .Default .AutoDefault)  -}}
-{{- $notationType := .NotationType }}
-{{- if (and (hasPrefix "`" $defaultValue) (hasSuffix "`" $defaultValue) ) -}}
-{{- $defaultValue = (toPrettyJson (fromJson (trimAll "`" (default .Default .AutoDefault) ) ) ) -}}
-{{- $notationType = "json" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toPrettyJson (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-{{- if (eq $notationType "tpl" ) }}
-<pre lang="{{ $notationType }}">
-{{ .Key }}: |
-{{- $defaultValue | nindent 2 }}
-</pre>
-{{- else }}
-<pre lang="{{ $notationType }}">
-{{ $defaultValue }}
-</pre>
-{{- end }}
+<code>{{ $defaultValue }}</code>
 {{ end }}
 
 {{define "chart.valuesHeader"}}
