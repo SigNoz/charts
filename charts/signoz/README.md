@@ -94,7 +94,7 @@ signoz:
       key: my-smtp-host-key
 ```
 
-<h2> Configuration </h2>
+## Configuration
 
 <table>
 	<thead>
