@@ -16,8 +16,9 @@ helm install -n platform --create-namespace "my-release" signoz/k8s-infra
 
 ### Introduction
 
-This chart bootstraps [SigNoz](https://signoz.io) cluster deployment on a
-Kubernetes cluster using [Helm](https://helm.sh) package manager.
+The `k8s-infra` chart provides Kubernetes infrastructure observability by deploying OpenTelemetry components and related resources using the [Helm](https://helm.sh) package manager.
+
+It enables collection of metrics, logs, and events from your Kubernetes cluster, making it easier to monitor and troubleshoot your infrastructure with SigNoz.
 
 ### Prerequisites
 
@@ -33,7 +34,7 @@ helm repo add signoz https://charts.signoz.io
 helm -n platform --create-namespace install "my-release" signoz/k8s-infra
 ```
 
-These commands deploy SigNoz on the Kubernetes cluster in the default configuration.
+These commands deploy K8s-infra on the Kubernetes cluster in the default configuration.
 The [Configuration](#configuration) section lists the parameters that can be configured during installation:
 
 > **Tip**: List all releases using `helm list`
