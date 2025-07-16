@@ -510,10 +510,7 @@ Function to render environment variables
 {{ toYaml $val | indent 2 -}}
 {{- else if eq $valueType "string" }}
 - name: {{ $key }}
-  value: "rtrye"
-{{- else if eq $valueType "bool" }}
-- name: {{ $key }}
-  value: "rtrye"
+  value: {{ $val | quote }}
 {{- else }}
 - name: {{ $key }}
   value: {{ $val | quote }}
