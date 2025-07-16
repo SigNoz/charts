@@ -50,6 +50,11 @@ re-install: delete install
 
 purge: delete delete-namespace
 
-# generate docs for the chart with respective templates in ./helm-docs
+# generate docs for the signoz and k8s-infra chart with respective templates
+# generate docs for specified charts with respective templates
+# Usage: make chart-docs CHARTS=chart1,chart2
+# Example: make chart-docs CHARTS=charts/signoz,charts/k8s-infra
+CHARTS ?= charts/signoz,charts/k8s-infra
+
 chart-docs:
-	helm-docs --chart-search-root=charts --template-files=README.md.gotmpl --chart-to-generate=charts/signoz,charts/k8s-infra --sort-values-order=file
+	helm-docs --chart-search-root=charts --template-files=README.md.gotmpl --chart-to-generate=$(CHARTS) --sort-values-order=file
