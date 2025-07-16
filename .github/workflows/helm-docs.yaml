@@ -27,10 +27,5 @@ jobs:
       - name: Check if docs are different
         run: |
           make chart-docs CHARTS=charts/signoz,charts/k8s-infra
-          if git diff --compact-summary --exit-code; then
-            echo -e 'Documentation up to date'
-          else
-            echo -e 'Documentation outdated! (Run make chart-docs locally and commit)'
-            exit 1
-          fi
+          git diff --compact-summary --exit-code || (echo; echo "Unexpected difference in Docs. Run make chart-docs locally and commit."; exit 1)
 
