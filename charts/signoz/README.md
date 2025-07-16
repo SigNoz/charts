@@ -77,11 +77,11 @@ Both configuration options must now be specified under `signoz.env` instead.
 ```yaml
 signoz:
   configVars:
-	storage: clickhouse
+   storage: clickhouse
   smtpVars:
     existingSecret:
-		name: my-secret-name
-		hostKey: my-smtp-host-key
+     name: my-secret-name
+     hostKey: my-smtp-host-key
 ```
 
 **After:**
@@ -90,13 +90,13 @@ signoz:
   env:
     storage: clickhouse
     smtp_port:
-		valueFrom:
-		 secretKeyRef:
-		 	name: my-secret-name
-			key: my-smtp-host-key
+     valueFrom:
+      secretKeyRef:
+      name: my-secret-name
+      key: my-smtp-host-key
 ```
 
-## Values
+<h2> Configuration </h2>
 
 <table height="400px" >
 	<thead>

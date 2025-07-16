@@ -84,6 +84,9 @@ kubectl delete namespace platform
 {{- end }}
 {{ end }}
 
+{{define "chart.valuesHeader"}}
+<h2> Configuration </h2>
+{{end}}
 
 {{ define "chart.valuesTableHtml" }}
 <table height="400px" >

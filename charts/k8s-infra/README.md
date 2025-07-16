@@ -64,7 +64,7 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-## Values
+<h2> Configuration </h2>
 
 <table height="400px" >
 	<thead>
