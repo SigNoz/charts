@@ -619,9 +619,9 @@ signoz:
   #    Example:
   #      env:
   #        MY_KEY: my-value
+  # -- Please refer to the documentation for a complete list of environment variables.
+  # https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
   env:
-    # Please refer to the documentation for a complete list of environment variables.
-    # https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
     signoz_telemetrystore_provider: clickhouse
     signoz_alertmanager_provider: signoz
     dot_metrics_enabled: true
@@ -630,7 +630,7 @@ signoz:
     # Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
 
-    # -- Enable SMTP for user invitations. Sets `SIGNOZ_EMAILING_ENABLED` to true when enabled.
+    # Enable SMTP for user invitations. Sets `SIGNOZ_EMAILING_ENABLED` to true when enabled.
     # Please check out the docs: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/#version-greater-than-084x for more details.
     signoz_emailing_enabled: false
 

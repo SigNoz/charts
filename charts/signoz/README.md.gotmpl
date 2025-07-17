@@ -97,9 +97,9 @@ signoz:
 {{ define "chart.valueDefaultColumnRender" }}
 {{- $defaultValue := (default .Default .AutoDefault) -}}
 {{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
-{{- $defaultValue = (toPrettyJson (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-<code>{{ $defaultValue }}</code>
+<pre lang="tpl/array">{{ $defaultValue }}</pre>
 {{ end }}
 
 {{define "chart.valuesHeader"}}

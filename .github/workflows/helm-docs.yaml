@@ -22,7 +22,7 @@ jobs:
 
       - name: Download helm-docs
         run: |
-          go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.11.0
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 
       - name: Check if docs are different
         run: |
