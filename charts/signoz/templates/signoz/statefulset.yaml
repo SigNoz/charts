@@ -128,11 +128,7 @@ spec:
                 {{- fail (printf "Error: signoz.smtpVars has been deprecated. Use signoz.env instead.") }}
             {{- end}}
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-            - name: ClickHouseUrl
-            {{- if (not .Values.signoz.env.clickHouseUrl) }}
-              value: tcp://{{ include "clickhouse.clickHouseUrl" . }}
-            {{- end }}
-            {{- include "signoz.renderEnv" .Values.signoz.env | nindent 12 }}
+            {{- include "signoz.env" . | nindent 12 }}
           {{- if .Values.signoz.livenessProbe.enabled }}
           livenessProbe:
             httpGet:

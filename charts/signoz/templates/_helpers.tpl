@@ -493,6 +493,31 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
+
+{{/* 
+Create Env
+*/}}
+{{- define "signoz.env" -}}
+
+{{/*
+====== Default ENV ======
+*/}}
+{{- $defaultEnv := dict "clickHouseUrl" (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .)) }}
+
+{{/*
+===== USER ENV VARIABLES =====
+*/}}
+{{- $userEnv := .Values.signoz.env | default dict -}}
+
+{{/*
+====== MERGE AND RENDER ENV BLOCK ======
+*/}}
+
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv -}}
+{{- template "signoz.renderEnv" $completeEnv -}}
+{{- end -}}
+
+
 {{/*
 Function to render environment variables 
 */}}
