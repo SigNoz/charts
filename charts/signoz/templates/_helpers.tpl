@@ -502,7 +502,10 @@ Create Env
 {{/*
 ====== Default ENV ======
 */}}
-{{- $defaultEnv := dict "clickHouseUrl" (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .)) }}
+{{- $defaultEnv := dict
+    "signoz_telemetrystore_clickhouse_dsn"     (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .))
+    "signoz_telemetrystore_clickhouse_cluster" (include "clickhouse.cluster" .)
+}}
 
 {{/*
 ===== USER ENV VARIABLES =====

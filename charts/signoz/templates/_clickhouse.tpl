@@ -228,3 +228,12 @@ Return the ClickHouse Traces URL
   {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
 {{- end -}}
 {{- end -}}
+
+
+{{- define "clickhouse.cluster" -}}
+{{- if .Values.clickhouse.enabled -}}
+  {{.Values.clickhouse.cluster }}
+{{- else -}}
+  {{- required "externalClickhouse.cluster is required if using external clickhouse" .Values.clickhouse.cluster . }}
+{{- end -}}
+{{- end -}}
