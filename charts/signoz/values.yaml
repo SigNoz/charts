@@ -625,7 +625,7 @@ signoz:
     signoz_telemetrystore_provider: clickhouse
     signoz_alertmanager_provider: signoz
     dot_metrics_enabled: true
-    
+
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
     # signoz_telemetrystore_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
