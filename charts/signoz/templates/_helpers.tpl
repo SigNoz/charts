@@ -520,7 +520,6 @@ Create Env
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{- end -}}
 
-
 {{/*
 Function to render environment variables 
 */}}
