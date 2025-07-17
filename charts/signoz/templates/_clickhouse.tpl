@@ -232,8 +232,8 @@ Return the ClickHouse Traces URL
 
 {{- define "clickhouse.cluster" -}}
 {{- if .Values.clickhouse.enabled -}}
-  {{.Values.clickhouse.cluster }}
+  {{ .Values.clickhouse.cluster }}
 {{- else -}}
-  {{- required "externalClickhouse.cluster is required if using external clickhouse" .Values.clickhouse.cluster . }}
+  {{- required "externalClickhouse.cluster is required if using external clickhouse" .Values.externalClickhouse.cluster }}
 {{- end -}}
 {{- end -}}
