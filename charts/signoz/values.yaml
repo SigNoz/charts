@@ -602,36 +602,37 @@ signoz:
   annotations:
   # -- signoz additional arguments for command line
   additionalArgs: []
+
+  # Environment variables for the SigNoz.
+  # You can specify variables in two ways:
+  # 1. Flexible structure for advanced configurations (recommended):
+  #    Example:
+  #      env:
+  #        MY_KEY:
+  #          value: my-value  # Direct value
+  #        SECRET_KEY:
+  #          valueFrom:       # Reference from a Secret or ConfigMap
+  #            secretKeyRef:
+  #              name: my-secret
+  #              key: my-key
+  # 2. Simple key-value pairs (backward-compatible):
+  #    Example:
+  #      env:
+  #        MY_KEY: my-value
+  # -- Please refer to the documentation for a complete list of environment variables.
+  # https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
   env:
-    # Environment variables for the SigNoz.
-    # You can specify variables in two ways:
-    # 1. Flexible structure for advanced configurations (recommended):
-    #    Example:
-    #      env:
-    #        MY_KEY:
-    #          value: my-value  # Direct value
-    #        SECRET_KEY:
-    #          valueFrom:       # Reference from a Secret or ConfigMap
-    #            secretKeyRef:
-    #              name: my-secret
-    #              key: my-key
-    # 2. Simple key-value pairs (backward-compatible):
-    #    Example:
-    #      env:
-    #        MY_KEY: my-value
-    storage: clickhouse
-    godebug: netdns=go
-    telemetry_enabled: true
-    deployment_type: kubernetes-helm
-    dot_metrics_enabled: true
+    signoz_telemetrystore_provider: clickhouse
     signoz_alertmanager_provider: signoz
+    dot_metrics_enabled: true
 
     # ClickHouse URL is set and applied internally.
     # Don't override unless you know what you are doing.
-    # clickHouseUrl: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
+    # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
 
-    # -- Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.
-    smtp_enabled: false
+    # Enable SMTP for user invitations. Sets `SIGNOZ_EMAILING_ENABLED` to true when enabled.
+    # Please check out the docs: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/#version-greater-than-084x for more details.
+    signoz_emailing_enabled: false
 
   initContainers:
     init:

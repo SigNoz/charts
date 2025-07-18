@@ -55,6 +55,6 @@ purge: delete delete-namespace
 # Usage: make chart-docs CHARTS=chart1,chart2
 # Example: make chart-docs CHARTS=charts/signoz,charts/k8s-infra
 CHARTS ?= charts/signoz,charts/k8s-infra
-HELM_DOCS = go run github.com/norwoodj/helm-docs/cmd/helm-docs@v1.11.0
+HELM_DOCS = go run github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 chart-docs:
 	$(HELM_DOCS) --chart-search-root=charts --template-files=README.md.gotmpl --chart-to-generate=$(CHARTS) --sort-values-order=file
