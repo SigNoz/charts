@@ -790,8 +790,11 @@ signoz:
 
   # signoz.env -- Environment variables for SigNoz.
   # Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
+  # Note on Variable Naming: Environment variables are derived from the YAML configuration.
+  # For example, a key `provider` under the `telemetry_store` section becomes
+  # `signoz_telemetrystore_provider`.
   # @section -- SigNoz Environment
-  # @default -- See values
+  # @default -- "See values"
   env:
     signoz_telemetrystore_provider: clickhouse
     signoz_alertmanager_provider: signoz
