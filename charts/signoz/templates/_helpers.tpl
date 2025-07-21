@@ -513,10 +513,46 @@ Create Env
 {{- $userEnv := .Values.signoz.env | default dict -}}
 
 {{/*
+====== DEPRECATION & BACKWARD COMPATIBILITY ======
+*/}}
+{{- $legacyEnv := dict -}}
+{{- if .Values.signoz.additionalEnvs }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}
+
+{{- if and .Values.configVars .Values.signoz.configVars.clickHouseUrl }}
+  {{- $legacyEnv = mergeOverwrite $legacyEnv (dict "signoz_telemetrystore_clickhouse_dsn" .Values.signoz.configVars.clickHouseUrl) -}}
+{{- end }}
+
+{{- $smtpSecretEnv := dict -}}
+{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret.name }}
+  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_ENABLED" .Values.signoz.smtpVars.enabled) -}}
+  {{- with .Values.signoz.smtpVars.existingSecret }}
+    {{- $secretName := .name -}}
+    {{- if .fromKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_SMTP_FROM" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .fromKey)))) -}}
+    {{- end }}
+    {{- if .hostKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_SMTP_HOST" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .hostKey)))) -}}
+    {{- end }}
+    {{- if .portKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_SMTP_PORT" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .portKey)))) -}}
+    {{- end }}
+    {{- if .usernameKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_SMTP_AUTH_USERNAME" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .usernameKey)))) -}}
+    {{- end }}
+    {{- if .passwordKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "SIGNOZ_EMAILING_SMTP_AUTH_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .passwordKey)))) -}}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+{{/*
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv  -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{- end -}}
 
