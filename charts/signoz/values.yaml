@@ -3,28 +3,34 @@
 global:
   # global.imageRegistry -- Overrides the Image registry globally for all components.
   # @default -- null
+  # @section -- Global Settings
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
   # global.imagePullSecrets -- Global Image Pull Secrets.
   # @default -- []
+  # @section -- Global Settings
   imagePullSecrets: []
   # global.storageClass -- Overrides the storage class for all PVCs with persistence enabled.
   # If not set, the default storage class is used.
   # If set to "-", storageClassName will be an empty string, which disables dynamic provisioning.
   # @default -- null
+  # @section -- Global Settings
   storageClass: null
   # global.clusterDomain -- The Kubernetes cluster domain.
   # It is used only when components are installed in different namespaces.
   # @default -- "cluster.local"
+  # @section -- Global Settings
   clusterDomain: cluster.local
   # global.clusterName -- The Kubernetes cluster name.
   # It is used to attach to telemetry data via the resource detection processor.
   # @default -- ""
+  # @section -- Global Settings
   clusterName: ""
   # global.cloud -- The Kubernetes cluster cloud provider and distribution (if any).
   # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
   # The storage class for persistent volumes is selected based on this value.
   # When set to 'aws' or 'gcp' with `installCustomStorageClass` enabled, a new expandable storage class is created.
   # @default -- "other"
+  # @section -- Global Settings
   cloud: other
 # -- Override the default chart name.
 # @section -- General Settings
@@ -161,27 +167,27 @@ clickhouse:
   fullnameOverride: ""
 
   # clickhouse.cluster -- ClickHouse cluster name.
-  # @section -- ClickHouse Database
+  # @section -- ClickHouse Settings
   # @default -- "cluster"
   cluster: cluster
-  # clickhouse.database -- ClickHouse database for SigNoz Metrics.
-  # @section -- ClickHouse Database
+  # clickhouse.database -- ClickHouse Settings for SigNoz Metrics.
+  # @section -- ClickHouse Settings
   # @default -- "signoz_metrics"
   database: signoz_metrics
-  # clickhouse.traceDatabase -- ClickHouse database for SigNoz Traces.
-  # @section -- ClickHouse Database
+  # clickhouse.traceDatabase -- ClickHouse Settings for SigNoz Traces.
+  # @section -- ClickHouse Settings
   # @default -- "signoz_traces"
   traceDatabase: signoz_traces
-  # clickhouse.logDatabase -- ClickHouse database for SigNoz Logs.
-  # @section -- ClickHouse Database
+  # clickhouse.logDatabase -- ClickHouse Settings for SigNoz Logs.
+  # @section -- ClickHouse Settings
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
   # clickhouse.user -- ClickHouse user.
-  # @section -- ClickHouse Database
+  # @section -- ClickHouse Settings
   # @default -- "admin"
   user: admin
   # clickhouse.password -- ClickHouse password.
-  # @section -- ClickHouse Database
+  # @section -- ClickHouse Settings
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
@@ -212,7 +218,7 @@ clickhouse:
   # @default -- {}
   annotations: {}
   # clickhouse.serviceAccount -- ClickHouse Service Account configuration.
-  # @section -- ClickHouse Security
+  # @section -- ClickHouse Settings
   serviceAccount:
     # clickhouse.serviceAccount.create -- Specifies whether a service account should be created.
     # @default -- true
@@ -224,7 +230,7 @@ clickhouse:
     # @default -- null
     name:
   # clickhouse.service -- ClickHouse service configuration.
-  # @section -- ClickHouse Networking
+  # @section -- ClickHouse Settings
   service:
     # clickhouse.service.annotations -- Annotations for the ClickHouse service.
     # @default -- {}
@@ -239,11 +245,11 @@ clickhouse:
     # @default -- 9000
     tcpPort: 9000
   # clickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
-  # @section -- ClickHouse Networking
+  # @section -- ClickHouse Settings
   # @default -- false
   secure: false
   # clickhouse.verify -- Whether to verify the TLS certificate on connection to ClickHouse.
-  # @section -- ClickHouse Networking
+  # @section -- ClickHouse Settings
   # @default -- false
   verify: false
   # clickhouse.externalZookeeper -- Configuration for an external Zookeeper.
@@ -255,15 +261,15 @@ clickhouse:
   #   port: 2181
 
   # clickhouse.nodeSelector -- Node selector for assigning the ClickHouse pod.
-  # @section -- ClickHouse Scheduling
+  # @section -- ClickHouse Settings
   # @default -- {}
   nodeSelector: {}
   # clickhouse.tolerations -- Toleration labels for ClickHouse pod assignment.
-  # @section -- ClickHouse Scheduling
+  # @section -- ClickHouse Settings
   # @default -- []
   tolerations: []
   # clickhouse.affinity -- Affinity settings for the ClickHouse pod.
-  # @section -- ClickHouse Scheduling
+  # @section -- ClickHouse Settings
   # @default -- {}
   affinity: {}
   # clickhouse.resources -- Configure resource requests and limits. Update according to your use case.
@@ -279,7 +285,7 @@ clickhouse:
   #     memory: 4Gi
 
   # clickhouse.securityContext -- Security context for the ClickHouse node.
-  # @section -- ClickHouse Security
+  # @section -- ClickHouse Settings
   # @default -- See values
   securityContext:
     enabled: true
@@ -292,7 +298,7 @@ clickhouse:
   # Refs:
   # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
   # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
-  # @section -- ClickHouse Networking
+  # @section -- ClickHouse Settings
   # @default -- See values
   allowedNetworkIps:
     - "10.0.0.0/8"
@@ -378,7 +384,7 @@ clickhouse:
           done
   # clickhouse.layout -- ClickHouse cluster layout. (Experimental, use at own risk)
   # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
-  # @section -- ClickHouse Layout
+  # @section -- ClickHouse Settings
   # @default -- { shardsCount: 1, replicasCount: 1 }
   layout:
     shardsCount: 1
@@ -411,7 +417,7 @@ clickhouse:
     signoz.io/path: /metrics
   # clickhouse.podDistribution -- Topologies for distributing the ClickHouse pods.
   # Possible values can be found here: https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-  # @section -- ClickHouse Scheduling
+  # @section -- ClickHouse Settings
   # @default -- []
   podDistribution: []
   # - type: ShardAntiAffinity
@@ -714,7 +720,7 @@ signoz:
   # @default -- 1
   replicaCount: 1
   # signoz.image -- Image configuration for SigNoz.
-  # @section -- SigNoz Image
+  # @section -- SigNoz
   image:
     # signoz.image.registry -- The container image registry.
     # @default -- "docker.io"
@@ -730,12 +736,12 @@ signoz:
     pullPolicy: IfNotPresent
   # signoz.imagePullSecrets -- Image pull secrets for SigNoz.
   # This has higher precedence than the root level or global value.
-  # @section -- SigNoz Image
+  # @section -- SigNoz
   # @default -- []
   imagePullSecrets: []
 
   # signoz.serviceAccount -- Service Account configuration for SigNoz.
-  # @section -- SigNoz Security
+  # @section -- SigNoz
   serviceAccount:
     # signoz.serviceAccount.create -- Specifies whether a service account should be created.
     # @default -- true
@@ -788,24 +794,47 @@ signoz:
   # @default -- []
   additionalArgs: []
 
+  # Environment variables for the SigNoz.
+  # You can specify variables in two ways:
+  # 1. Flexible structure for advanced configurations (recommended):
+  #    Example:
+  #      env:
+  #        MY_KEY:
+  #          value: my-value  # Direct value
+  #        SECRET_KEY:
+  #          valueFrom:       # Reference from a Secret or ConfigMap
+  #            secretKeyRef:
+  #              name: my-secret
+  #              key: my-key
+  # 2. Simple key-value pairs (backward-compatible):
+  #    Example:
+  #      env:
+  #        MY_KEY: my-value
+
   # signoz.env -- Environment variables for SigNoz.
   # Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
   # Note on Variable Naming: Environment variables are derived from the YAML configuration.
   # For example, a key `provider` under the `telemetry_store` section becomes
   # `signoz_telemetrystore_provider`.
   # @section -- SigNoz Environment
-  # @default -- "See values"
   env:
     signoz_telemetrystore_provider: clickhouse
-    signoz_alertmanager_provider: signoz
     dot_metrics_enabled: true
     # ClickHouse URL is set and applied internally. Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
     # Enable SMTP for user invitations. For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/
     signoz_emailing_enabled: false
+    signoz_instrumentation_logs_level: info
+    # To enable/disable the active query tracker.
+    signoz_prometheus_active_query_tracker_enabled: false
+
+    # signoz alertemanager configuration
+    signoz_alertmanager_provider: signoz
+    # The URL under which Alertmanager is externally reachable (for example, if Alertmanager is served via a reverse proxy). Used for generating relative and absolute links back to Alertmanager itself.
+    signoz_alertmanager_signoz_external_url: http://localhost:8080
 
   # signoz.initContainers -- Init containers for the SigNoz pod.
-  # @section -- SigNoz Init Containers
+  # @section -- SigNoz
   # @default -- "See values"
   initContainers:
     init:
@@ -851,7 +880,7 @@ signoz:
       resources: {}
 
   # signoz.podSecurityContext -- Pod-level security context.
-  # @section -- SigNoz Security
+  # @section -- SigNoz
   # @default -- {}
   podSecurityContext: {}
   # fsGroup: 2000
@@ -862,7 +891,7 @@ signoz:
   podAnnotations: {}
 
   # signoz.securityContext -- Container-level security context.
-  # @section -- SigNoz Security
+  # @section -- SigNoz
   # @default -- {}
   securityContext: {}
   # capabilities:
@@ -882,7 +911,7 @@ signoz:
   additionalVolumes: []
 
   # signoz.livenessProbe -- Liveness probe configuration.
-  # @section -- SigNoz Health Probes
+  # @section -- SigNoz
   # @default -- See values
   livenessProbe:
     enabled: true
@@ -895,7 +924,7 @@ signoz:
     successThreshold: 1
 
   # signoz.readinessProbe -- Readiness probe configuration.
-  # @section -- SigNoz Health Probes
+  # @section -- SigNoz
   # @default -- See values
   readinessProbe:
     enabled: true
@@ -908,15 +937,15 @@ signoz:
     successThreshold: 1
 
   # signoz.customLivenessProbe -- Custom liveness probe to override the default.
-  # @section -- SigNoz Health Probes
+  # @section -- SigNoz
   # @default -- {}
   customLivenessProbe: {}
   # signoz.customReadinessProbe -- Custom readiness probe to override the default.
-  # @section -- SigNoz Health Probes
+  # @section -- SigNoz
   # @default -- {}
   customReadinessProbe: {}
 
-  # signoz.ingress -- Ingress configuration for SigNoz.
+  # signoz.ingress -- (object) Ingress configuration for SigNoz.
   # @section -- SigNoz Networking
   ingress:
     # signoz.ingress.enabled -- Enable ingress controller resource.
@@ -1038,24 +1067,24 @@ schemaMigrator:
   enableReplication: false
 
   # schemaMigrator.nodeSelector -- Node selector for pod assignment.
-  # @section -- Schema Migrator Scheduling
+  # @section -- Schema Migrator
   # @default -- {}
   nodeSelector: {}
   # schemaMigrator.tolerations -- Tolerations for pod assignment.
-  # @section -- Schema Migrator Scheduling
+  # @section -- Schema Migrator
   # @default -- []
   tolerations: []
   # schemaMigrator.affinity -- Affinity settings for pod assignment.
-  # @section -- Schema Migrator Scheduling
+  # @section -- Schema Migrator
   # @default -- {}
   affinity: {}
   # schemaMigrator.topologySpreadConstraints -- Topology spread constraints for pod distribution.
-  # @section -- Schema Migrator Scheduling
+  # @section -- Schema Migrator
   # @default -- []
   topologySpreadConstraints: []
 
   # schemaMigrator.initContainers -- Init containers for the Schema Migrator pod.
-  # @section -- Schema Migrator Init Containers
+  # @section -- Schema Migrator
   # @default -- "See values"
   initContainers:
     init:
@@ -1109,7 +1138,7 @@ schemaMigrator:
       env: []
 
   # schemaMigrator.serviceAccount -- Service Account configuration for the Schema Migrator.
-  # @section -- Schema Migrator Security
+  # @section -- Schema Migrator
   serviceAccount:
     # schemaMigrator.serviceAccount.create -- Specifies whether a service account should be created.
     # @default -- true
@@ -1122,7 +1151,7 @@ schemaMigrator:
     name:
 
   # schemaMigrator.role -- RBAC configuration for the Schema Migrator.
-  # @section -- Schema Migrator Security
+  # @section -- Schema Migrator
   # @default -- See values
   role:
     # schemaMigrator.role.create -- Specifies whether a ClusterRole should be created.
