@@ -520,7 +520,7 @@ Create Env
 {{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
 {{- end }}
 
-{{- if .Values.signoz.configVars.clickHouseUrl }}
+{{- if and .Values.configVars .Values.signoz.configVars.clickHouseUrl }}
   {{- $legacyEnv = mergeOverwrite $legacyEnv (dict "signoz_telemetrystore_clickhouse_dsn" .Values.signoz.configVars.clickHouseUrl) -}}
 {{- end }}
 
