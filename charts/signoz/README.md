@@ -61,38 +61,36 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-### Breaking Changes
-
-#### Version 0.87.0
-
-**Configuration Migration Required:**
-- `signoz.configVars` has been deprecated
-- `signoz.smtpVars` has been deprecated
-
-Both configuration options must now be specified under `signoz.env` instead.
-
-**Before:**
-```yaml
-signoz:
-  configVars:
-    storage: clickhouse
-  smtpVars:
-    existingSecret:
-      name: my-secret-name
-      hostKey: my-smtp-host-key
-```
-
-**After:**
-```yaml
-signoz:
-  env:
-    storage: clickhouse
-    smtp_port:
-      valueFrom:
-        secretKeyRef:
-          name: my-secret-name
-          key: my-smtp-host-key
-```
+> [!WARNING] 
+> ### Breaking Changes
+> #### Version 0.87.0
+> **Configuration Migration Required:**
+> - `signoz.configVars` has been deprecated
+> - `signoz.smtpVars` has been deprecated
+> Both configuration options must now be specified under `signoz.env` instead.
+>
+> **Before:**
+> ```yaml
+> signoz:
+>  configVars:
+>    storage: clickhouse
+>  smtpVars:
+>    existingSecret:
+>      name: my-secret-name
+>      hostKey: my-smtp-host-key
+> ```
+>
+> **After:**
+> ```yaml
+> signoz:
+>  env:
+>    storage: clickhouse
+>    smtp_port:
+>      valueFrom:
+>        secretKeyRef:
+>          name: my-secret-name
+>          key: my-smtp-host-key
+> ```
 
 ## Configuration
 
