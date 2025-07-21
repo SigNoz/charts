@@ -754,6 +754,7 @@ signoz:
     name:
 
   # signoz.service -- Service configuration for SigNoz.
+  # This allows you to configure how SigNoz is exposed within the Kubernetes cluster.
   # @section -- SigNoz Networking
   # @default -- See values
   service:
@@ -820,13 +821,13 @@ signoz:
   env:
     signoz_telemetrystore_provider: clickhouse
     dot_metrics_enabled: true
-    
+
     # ClickHouse URL is set and applied internally. Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
-    
+
     # Enable SMTP for user invitations. For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/
     signoz_emailing_enabled: false
-   
+
     # To enable/disable the active query tracker.
     signoz_prometheus_active_query_tracker_enabled: false
 

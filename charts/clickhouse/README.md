@@ -1,215 +1,2678 @@
-# clickhouse
 
-![Version: 24.1.17](https://img.shields.io/badge/Version-24.1.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 24.1.2](https://img.shields.io/badge/AppVersion-24.1.2-informational?style=flat-square)
+# SigNoz
 
-A Helm chart for ClickHouse
+![Version: 0.87.1](https://img.shields.io/badge/Version-0.87.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.90.1](https://img.shields.io/badge/AppVersion-v0.90.1-informational?style=flat-square)
 
-## Maintainers
+SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
-| Name | Email | Url |
-| ---- | ------ | --- |
-| SigNoz | <hello@signoz.io> | <https://signoz.io> |
-| prashant-shahi | <prashant@signoz.io> | <https://prashantshahi.dev> |
+### TL;DR;
 
-## Source Code
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/signoz
+```
 
-* <https://github.com/SigNoz/charts>
-* <https://github.com/ClickHouse/ClickHouse>
+### Introduction
 
-## Requirements
+This chart bootstraps [SigNoz](https://signoz.io) cluster deployment on a
+Kubernetes cluster using [Helm](https://helm.sh) package manager.
 
-| Repository | Name | Version |
-|------------|------|---------|
-| oci://registry-1.docker.io/bitnamicharts | zookeeper | 11.4.2 |
+### Prerequisites
 
-## Values
+- Kubernetes 1.16+
+- Helm 3.0+
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| additionalVolumeMounts | list | `[]` | Additional volume mounts for ClickHouse pod |
-| additionalVolumes | list | `[]` | Additional volumes for ClickHouse pod |
-| affinity | object | `{}` | Affinity settings for clickhouse pod |
-| allowedNetworkIps | list | `["10.0.0.0/8","100.64.0.0/10","172.16.0.0/12","192.0.0.0/24","198.18.0.0/15","192.168.0.0/16"]` | An allowlist of IP addresses or network masks the ClickHouse user is allowed to access from. By default anything within a private network will be allowed. This should suffice for most use case although to expose to other networks you will need to update this setting.  Refs: - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4 |
-| annotations | object | `{}` | ClickHouse instance annotations. |
-| clickhouseOperator.affinity | object | `{}` | Affinity settings for Clickhouse Operator pod |
-| clickhouseOperator.annotations | object | `{}` | Clickhouse Operator deployment annotations |
-| clickhouseOperator.asynchronousInsertLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the asynchronous_insert_log table. |
-| clickhouseOperator.asynchronousInsertLog.ttl | int | `7` | The number of days to keep the data in the asynchronous_insert_log table. |
-| clickhouseOperator.asynchronousMetricLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the asynchronous_metric_log table. |
-| clickhouseOperator.asynchronousMetricLog.ttl | int | `30` | The number of days to keep the data in the asynchronous_metric_log table. |
-| clickhouseOperator.backupLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the backup_log table. |
-| clickhouseOperator.backupLog.ttl | int | `7` | The number of days to keep the data in the backup_log table. |
-| clickhouseOperator.blobStorageLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the blob_storage_log table. |
-| clickhouseOperator.blobStorageLog.ttl | int | `30` | The number of days to keep the data in the blob_storage_log table. |
-| clickhouseOperator.configs.confdFiles | string | `nil` | ClickHouse Operator confd files |
-| clickhouseOperator.crashLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the crash_log table. |
-| clickhouseOperator.crashLog.ttl | int | `30` | The number of days to keep the data in the crash_log table. |
-| clickhouseOperator.env | list | `[]` | Additional environment variables for Clickhouse Operator container. |
-| clickhouseOperator.image | object | `{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"altinity/clickhouse-operator","tag":"0.21.2"}` | Clickhouse Operator image |
-| clickhouseOperator.image.pullPolicy | string | `"IfNotPresent"` | Clickhouse Operator image pull policy. |
-| clickhouseOperator.image.registry | string | `"docker.io"` | Clickhouse Operator image registry to use. |
-| clickhouseOperator.image.repository | string | `"altinity/clickhouse-operator"` | Clickhouse Operator image repository to use. |
-| clickhouseOperator.image.tag | string | `"0.21.2"` | Clickhouse Operator image tag. |
-| clickhouseOperator.imagePullSecrets | list | `[]` | Image Registry Secret Names for Clickhouse Operator. If global.imagePullSecrets is set as well, it will merged. |
-| clickhouseOperator.labels | object | `{}` |  |
-| clickhouseOperator.logger | object | `{"console":true,"count":10,"level":"information","size":"1000M"}` | Clickhouse logging config |
-| clickhouseOperator.logger.console | bool | `true` | Whether to send log and errorlog to the console instead of file. To enable, set to 1 or true. |
-| clickhouseOperator.logger.count | int | `10` | The number of archived log files that ClickHouse stores. |
-| clickhouseOperator.logger.level | string | `"information"` | Logging level. Acceptable values: trace, debug, information, warning, error. |
-| clickhouseOperator.logger.size | string | `"1000M"` | Size of the file. Applies to log and errorlog. Once the file reaches size, ClickHouse archives and renames it, and creates a new log file in its place. |
-| clickhouseOperator.metricLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the metric_log table. |
-| clickhouseOperator.metricLog.ttl | int | `30` | The number of days to keep the data in the metric_log table. |
-| clickhouseOperator.metricsExporter | object | `{"env":[],"image":{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"altinity/metrics-exporter","tag":"0.21.2"},"name":"metrics-exporter","service":{"annotations":{},"port":8888,"type":"ClusterIP"}}` | Metrics Exporter config. |
-| clickhouseOperator.metricsExporter.env | list | `[]` | Additional environment variables for Metrics Exporter container. |
-| clickhouseOperator.metricsExporter.image | object | `{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"altinity/metrics-exporter","tag":"0.21.2"}` | Metrics Exporter image |
-| clickhouseOperator.metricsExporter.image.pullPolicy | string | `"IfNotPresent"` | Metrics Exporter image pull policy. |
-| clickhouseOperator.metricsExporter.image.registry | string | `"docker.io"` | Metrics Exporter image registry to use. |
-| clickhouseOperator.metricsExporter.image.repository | string | `"altinity/metrics-exporter"` | Metrics Exporter image repository to use. |
-| clickhouseOperator.metricsExporter.image.tag | string | `"0.21.2"` | Metrics Exporter image tag. |
-| clickhouseOperator.metricsExporter.name | string | `"metrics-exporter"` | name of the component |
-| clickhouseOperator.metricsExporter.service | object | `{"annotations":{},"port":8888,"type":"ClusterIP"}` | Metrics Exporter service |
-| clickhouseOperator.metricsExporter.service.annotations | object | `{}` | Annotations to use by service associated to Metrics Exporter |
-| clickhouseOperator.metricsExporter.service.port | int | `8888` | Metrics Exporter port |
-| clickhouseOperator.metricsExporter.service.type | string | `"ClusterIP"` | Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost) |
-| clickhouseOperator.name | string | `"operator"` | name of the component |
-| clickhouseOperator.nodeSelector | object | `{}` | Node selector for settings for Clickhouse Operator pod |
-| clickhouseOperator.partLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the part_log table. |
-| clickhouseOperator.partLog.ttl | int | `30` | The number of days to keep the data in the part_log table. |
-| clickhouseOperator.podAnnotations | object | `{}` | Clickhouse Operator pod(s) annotation. |
-| clickhouseOperator.podLabels | object | `{}` |  |
-| clickhouseOperator.podSecurityContext | object | `{}` | Clickhouse Operator pod-level security attributes and common container settings. |
-| clickhouseOperator.priorityClassName | string | `""` | Clickhouse Operator priority class name |
-| clickhouseOperator.processorsProfileLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the processors_profile_log table. |
-| clickhouseOperator.processorsProfileLog.ttl | int | `7` | The number of days to keep the data in the processors_profile_log table. |
-| clickhouseOperator.queryLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the query_log table. |
-| clickhouseOperator.queryLog.ttl | int | `30` | The number of days to keep the data in the query_log table. |
-| clickhouseOperator.queryThreadLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the query_thread_log table. |
-| clickhouseOperator.queryThreadLog.ttl | int | `7` | The number of days to keep the data in the query_thread_log table. |
-| clickhouseOperator.queryViewsLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the query_views_log table. |
-| clickhouseOperator.queryViewsLog.ttl | int | `15` | The number of days to keep the data in the query_views_log table. |
-| clickhouseOperator.secret.create | bool | `true` | Specifies whether a secret should be created |
-| clickhouseOperator.secret.password | string | `"clickhouse_operator_password"` | User password for Clickhouse Operator |
-| clickhouseOperator.secret.username | string | `"clickhouse_operator"` | User name for Clickhouse Operator |
-| clickhouseOperator.service.enabled | bool | `true` |  |
-| clickhouseOperator.serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
-| clickhouseOperator.serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| clickhouseOperator.serviceAccount.name | string | `nil` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
-| clickhouseOperator.serviceMonitor.additionalLabels | object | `{}` |  |
-| clickhouseOperator.serviceMonitor.enabled | bool | `false` |  |
-| clickhouseOperator.serviceMonitor.interval | string | `"30s"` |  |
-| clickhouseOperator.serviceMonitor.metricRelabelings | list | `[]` |  |
-| clickhouseOperator.serviceMonitor.relabelings | list | `[]` |  |
-| clickhouseOperator.serviceMonitor.scrapeTimeout | string | `""` |  |
-| clickhouseOperator.sessionLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the session_log table. |
-| clickhouseOperator.sessionLog.ttl | int | `30` | The number of days to keep the data in the session_log table. |
-| clickhouseOperator.tolerations | list | `[]` | Toleration labels for Clickhouse Operator pod assignment |
-| clickhouseOperator.topologySpreadConstraints | list | `[]` | TopologySpreadConstraints describes how Clickhouse Operator pods ought to spread |
-| clickhouseOperator.traceLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the trace_log table. |
-| clickhouseOperator.traceLog.ttl | int | `7` | The number of days to keep the data in the trace_log table. |
-| clickhouseOperator.version | string | `"0.21.2"` | Version of the operator |
-| clickhouseOperator.zookeeperLog.flushInterval | int | `7500` | Time interval in milliseconds between flushes of the zookeeper_log table. |
-| clickhouseOperator.zookeeperLog.ttl | int | `30` | The number of days to keep the data in the zookeeper_log table. |
-| cluster | string | `"cluster"` | Clickhouse cluster |
-| coldStorage.accessKey | string | `"<access_key_id>"` | Access Key for S3 or GCS |
-| coldStorage.defaultKeepFreeSpaceBytes | string | `"10485760"` | Reserve free space on default disk (in bytes) Default value set below is 10MiB |
-| coldStorage.enabled | bool | `false` | Whether to enable S3 or GCS cold storage |
-| coldStorage.endpoint | string | `"https://<bucket-name>.s3-<region>.amazonaws.com/data/"` | Endpoint for S3 or GCS For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/ |
-| coldStorage.role.annotations | object | `{"eks.amazonaws.com/role-arn":"arn:aws:iam::******:role/*****"}` | Annotations to use by service account associated to Clickhouse instance |
-| coldStorage.role.enabled | bool | `false` | Whether to enable AWS IAM ARN role |
-| coldStorage.secretAccess | string | `"<secret_access_key>"` | Secret Access Key for S3 or GCS |
-| coldStorage.type | string | `"s3"` | Type of cold storage: s3 or gcs |
-| customLivenessProbe | object | `{}` |  |
-| customReadinessProbe | object | `{}` |  |
-| customStartupProbe | object | `{}` |  |
-| database | string | `"signoz_metrics"` | Clickhouse database |
-| defaultProfiles | object | See `values.yaml` for defaults | Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!! |
-| defaultSettings | object | See `values.yaml` for defaults | Default settings configuration for ClickHouse. !!! Please DO NOT override this !!! |
-| enabled | bool | `true` | Whether to install clickhouse. If false, `clickhouse.host` must be set |
-| externalZookeeper | object | `{}` | URL for external zookeeper. |
-| extraContainers | list | `[]` | Extra containers for ClickHouse pod |
-| files | object | `{}` | Clickhouse configuration files.  Refs: - https://clickhouse.com/docs/en/operations/configuration-files/ - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml |
-| fullnameOverride | string | `""` | Fullname override for clickhouse |
-| global.cloud | string | `"other"` | Kubernetes cluster cloud provider along with distribution if any. example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other` Based on the cloud, storage class for the persistent volume is selected. When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created. |
-| global.clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain It is used only when components are installed in different namespace |
-| global.imagePullSecrets | list | `[]` | Global Image Pull Secrets |
-| global.imageRegistry | string | `nil` | Overrides the Docker registry globally for all images |
-| global.storageClass | string | `nil` | Overrides the storage class for all PVC with persistence enabled. If not set, the default storage class is used. If set to "-", storageClassName: "", which disables dynamic provisioning |
-| image | object | `{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"clickhouse/clickhouse-server","tag":"24.1.2-alpine"}` | Clickhouse image |
-| image.pullPolicy | string | `"IfNotPresent"` | Clickhouse image pull policy. |
-| image.registry | string | `"docker.io"` | Clickhouse image registry to use. |
-| image.repository | string | `"clickhouse/clickhouse-server"` | Clickhouse image repository to use. |
-| image.tag | string | `"24.1.2-alpine"` | Clickhouse image tag. Note: SigNoz does not support all versions of ClickHouse. Please override the default only if you know what you are doing. |
-| imagePullSecrets | list | `[]` | Image Registry Secret Names for ClickHouse. If global.imagePullSecrets is set as well, it will merged. |
-| initContainers | object | See `values.yaml` for defaults | Clickhouse init container to copy histogramQuantile UDF |
-| installCustomStorageClass | bool | `false` | When the `installCustomStorageClass` is enabled with `cloud` set as `gcp` or `aws`, it creates custom storage class with volume expansion permission.  |
-| labels | object | `{}` |  |
-| layout | object | `{"replicasCount":1,"shardsCount":1}` | Clickhouse cluster layout. (Experimental, use at own risk) For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md section on clusters and layouts. |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.failureThreshold | int | `10` |  |
-| livenessProbe.initialDelaySeconds | int | `60` |  |
-| livenessProbe.path | string | `"/ping"` |  |
-| livenessProbe.periodSeconds | int | `3` |  |
-| livenessProbe.port | string | `"http"` |  |
-| livenessProbe.successThreshold | int | `1` |  |
-| livenessProbe.timeoutSeconds | int | `1` |  |
-| logDatabase | string | `"signoz_logs"` | Clickhouse log database (SigNoz Logs) |
-| logs.system.config | object | `{"exporters":{"otlp":{"endpoint":"${env:K8S_HOST_IP}:4317","retry_on_failure":{"enabled":true,"initial_interval":"2s","max_elapsed_time":"15s","max_interval":"5s"},"sending_queue":{"enabled":false},"tls":{"insecure":true,"insecure_skip_verify":true}}},"extensions":{"health_check":{"endpoint":"0.0.0.0:13133"}},"processors":{"batch":{"send_batch_max_size":25000,"send_batch_size":20000,"timeout":"1s"},"resourcedetection":{"detectors":["env"]}},"receivers":{"clickhousesystemtablesreceiver":{"dsn":"tcp://localhost:9000","query_log_scrape_config":{"min_scrape_delay_seconds":10,"scrape_interval_seconds":30}}},"service":{"extensions":["health_check"],"pipelines":{"logs":{"exporters":["otlp"],"processors":["resourcedetection","batch"],"receivers":["clickhousesystemtablesreceiver"]}},"telemetry":{"logs":{"encoding":"json"},"metrics":{"address":"0.0.0.0:8888"}}}}` | Config of the opentelemetry collector |
-| logs.system.enabled | bool | `false` | Enable collection of system table entries as logs |
-| logs.system.image.pullPolicy | string | `"IfNotPresent"` |  |
-| logs.system.image.pullSecrets | list | `[]` |  |
-| logs.system.image.registry | string | `"docker.io"` |  |
-| logs.system.image.repository | string | `"signoz/signoz-otel-collector"` |  |
-| logs.system.image.tag | string | `"0.111.16"` |  |
-| name | string | `"clickhouse"` | Name of the clickhouse component |
-| nameOverride | string | `""` | Name override for clickhouse |
-| namespace | string | `""` | Which namespace to install clickhouse and `clickhouse-operator` to (defaults to namespace chart is installed to) |
-| nodeSelector | object | `{}` | Node selector for settings for clickhouse pod |
-| password | string | `"27ff0399-0d3a-4bd8-919d-17c2181e6fb9"` | Clickhouse password |
-| persistence.accessModes | list | `["ReadWriteOnce"]` | Access Modes for persistent volume |
-| persistence.enabled | bool | `true` | Enable data persistence using PVC. |
-| persistence.existingClaim | string | `""` | Use a manually managed Persistent Volume and Claim. If defined, PVC must be created manually before volume will be bound.  |
-| persistence.size | string | `"20Gi"` | Persistent Volume size |
-| persistence.storageClass | string | `nil` | Persistent Volume Storage Class to use. If defined, `storageClassName: <storageClass>`. If set to "-", `storageClassName: ""`, which disables dynamic provisioning If undefined (the default) or set to `null`, no storageClassName spec is set, choosing the default provisioner.  |
-| podAnnotations | object | `{}` | ClickHouse pod(s) annotation. |
-| podDistribution | list | `[]` | Topologies on how to distribute the ClickHouse pod. Possible values can be found here: https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481 |
-| podLabels | object | `{}` |  |
-| priorityClassName | string | `""` | Clickhouse priority class name |
-| profiles | object | `{}` | Clickhouse user profile configuration. You can use this to override profile settings, for example `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`  For the full list of settings, see: - https://clickhouse.com/docs/en/operations/settings/settings-profiles/ - https://clickhouse.com/docs/en/operations/settings/settings/  |
-| readinessProbe.enabled | bool | `true` |  |
-| readinessProbe.failureThreshold | int | `3` |  |
-| readinessProbe.initialDelaySeconds | int | `10` |  |
-| readinessProbe.path | string | `"/ping"` |  |
-| readinessProbe.periodSeconds | int | `3` |  |
-| readinessProbe.port | string | `"http"` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| readinessProbe.timeoutSeconds | int | `1` |  |
-| replicasCount | int | `1` | Clickhouse cluster replicas |
-| resources | object | See `values.yaml` for defaults | Configure resource requests and limits. Update according to your own use case as these values might not be suitable for your workload. Ref: http://kubernetes.io/docs/user-guide/compute-resources/  |
-| secure | bool | `false` | Whether to use TLS connection connecting to ClickHouse |
-| securityContext | object | `{"enabled":true,"fsGroup":101,"fsGroupChangePolicy":"OnRootMismatch","runAsGroup":101,"runAsUser":101}` | Security context for Clickhouse node |
-| service.annotations | object | `{}` | Annotations to use by service associated to Clickhouse instance |
-| service.httpPort | int | `8123` | Clickhouse HTTP port |
-| service.tcpPort | int | `9000` | Clickhouse TCP port |
-| service.type | string | `"ClusterIP"` | Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost) |
-| serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
-| serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| serviceAccount.name | string | `nil` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
-| settings | object | `{}` | ClickHouse settings configuration. You can use this to override settings, for example `prometheus/port: 9363` For the full list of settings, see: - https://clickhouse.com/docs/en/operations/settings/settings/ |
-| shardsCount | int | `1` | Clickhouse cluster shards |
-| startupProbe.enabled | bool | `true` |  |
-| startupProbe.failureThreshold | int | `30` |  |
-| startupProbe.initialDelaySeconds | int | `30` |  |
-| startupProbe.path | string | `"/ping"` |  |
-| startupProbe.periodSeconds | int | `10` |  |
-| startupProbe.port | string | `"http"` |  |
-| startupProbe.successThreshold | int | `1` |  |
-| startupProbe.timeoutSeconds | int | `5` |  |
-| templates | object | `{"volumeClaimTemplates":[]}` | Custom volume claim templates for ClickHouse pod This is only used when persistence.enabled is false |
-| tolerations | list | `[]` | Toleration labels for clickhouse pod assignment |
-| topologySpreadConstraints | list | `[]` | TopologySpreadConstraints describes how clickhouse pods ought to spread |
-| traceDatabase | string | `"signoz_traces"` | Clickhouse trace database (SigNoz Traces) |
-| user | string | `"admin"` | Clickhouse user |
-| verify | bool | `false` | Whether to verify TLS certificate on connection to ClickHouse |
+### Installing the Chart
 
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/signoz
+```
+
+These commands deploy SigNoz on the Kubernetes cluster in the default configuration.
+The [Configuration](#configuration) section lists the parameters that can be configured during installation:
+
+> **Tip**: List all releases using `helm list`
+
+### Uninstalling the chart
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+The command above removes all the Kubernetes components associated
+with the chart and deletes the release.
+
+Deletion of the StatefulSet doesn't cascade to deleting associated PVCs. To delete them:
+
+```bash
+kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
+```
+
+Sometimes everything doesn't get properly removed. If that happens try deleting the namespace:
+
+```bash
+kubectl delete namespace platform
+```
+
+### Breaking Changes
+
+#### Version 0.87.0
+
+**Configuration Migration Required:**
+- `signoz.configVars` has been deprecated
+- `signoz.smtpVars` has been deprecated
+
+Both configuration options must now be specified under `signoz.env` instead.
+
+**Before:**
+```yaml
+signoz:
+  configVars:
+    storage: clickhouse
+  smtpVars:
+    existingSecret:
+      name: my-secret-name
+      hostKey: my-smtp-host-key
+```
+
+**After:**
+```yaml
+signoz:
+  env:
+    storage: clickhouse
+    smtp_port:
+      valueFrom:
+        secretKeyRef:
+          name: my-secret-name
+          key: my-smtp-host-key
+```
+
+## Configuration
+
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td id="global--imageRegistry"><a href="./values.yaml#L4">global.imageRegistry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Overrides the Image registry globally</td>
+		</tr>
+		<tr>
+			<td id="global--imagePullSecrets"><a href="./values.yaml#L6">global.imagePullSecrets</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Global Image Pull Secrets</td>
+		</tr>
+		<tr>
+			<td id="global--storageClass"><a href="./values.yaml#L10">global.storageClass</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Overrides the storage class for all PVC with persistence enabled. If not set, the default storage class is used. If set to "-", storageClassName: "", which disables dynamic provisioning</td>
+		</tr>
+		<tr>
+			<td id="global--clusterDomain"><a href="./values.yaml#L13">global.clusterDomain</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"cluster.local"</code>
+</div>
+			</td>
+			<td>Kubernetes cluster domain It is used only when components are installed in different namespace</td>
+		</tr>
+		<tr>
+			<td id="global--clusterName"><a href="./values.yaml#L16">global.clusterName</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Kubernetes cluster name It is used to attached to telemetry data via resource detection processor</td>
+		</tr>
+		<tr>
+			<td id="global--cloud"><a href="./values.yaml#L21">global.cloud</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"other"</code>
+</div>
+			</td>
+			<td>Kubernetes cluster cloud provider along with distribution if any. example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other` Based on the cloud, storage class for the persistent volume is selected. When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.</td>
+		</tr>
+		<tr>
+			<td id="nameOverride"><a href="./values.yaml#L23">nameOverride</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>SigNoz chart name override</td>
+		</tr>
+		<tr>
+			<td id="fullnameOverride"><a href="./values.yaml#L25">fullnameOverride</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>SigNoz chart full name override</td>
+		</tr>
+		<tr>
+			<td id="clusterName"><a href="./values.yaml#L27">clusterName</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Name of the K8s cluster. Used by SigNoz OtelCollectors to attach in telemetry data.</td>
+		</tr>
+		<tr>
+			<td id="imagePullSecrets"><a href="./values.yaml#L31">imagePullSecrets</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Image Registry Secret Names for all SigNoz components. If global.imagePullSecrets is set as well, it will merged. However, this has lower precedence than the imagePullSecrets at inner component level.</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--host"><a href="./values.yaml#L532">externalClickhouse.host</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Host of the external cluster.</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--cluster"><a href="./values.yaml#L534">externalClickhouse.cluster</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"cluster"</code>
+</div>
+			</td>
+			<td>Name of the external cluster to run DDL queries on.</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--database"><a href="./values.yaml#L536">externalClickhouse.database</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz_metrics"</code>
+</div>
+			</td>
+			<td>Database name for the external cluster</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--traceDatabase"><a href="./values.yaml#L538">externalClickhouse.traceDatabase</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz_traces"</code>
+</div>
+			</td>
+			<td>Clickhouse trace database (SigNoz Traces)</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--logDatabase"><a href="./values.yaml#L540">externalClickhouse.logDatabase</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz_logs"</code>
+</div>
+			</td>
+			<td>Clickhouse log database (SigNoz Logs)</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--user"><a href="./values.yaml#L542">externalClickhouse.user</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>User name for the external cluster to connect to the external cluster as</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--password"><a href="./values.yaml#L544">externalClickhouse.password</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Password for the cluster. Ignored if externalClickhouse.existingSecret is set</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--existingSecret"><a href="./values.yaml#L546">externalClickhouse.existingSecret</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Name of an existing Kubernetes secret object containing the password</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--existingSecretPasswordKey"><a href="./values.yaml#L548">externalClickhouse.existingSecretPasswordKey</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Name of the key pointing to the password in your Kubernetes secret</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--secure"><a href="./values.yaml#L550">externalClickhouse.secure</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to use TLS connection connecting to ClickHouse</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--verify"><a href="./values.yaml#L552">externalClickhouse.verify</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to verify TLS connection connecting to ClickHouse</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--httpPort"><a href="./values.yaml#L554">externalClickhouse.httpPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8123</code>
+</div>
+			</td>
+			<td>HTTP port of Clickhouse</td>
+		</tr>
+		<tr>
+			<td id="externalClickhouse--tcpPort"><a href="./values.yaml#L556">externalClickhouse.tcpPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>9000</code>
+</div>
+			</td>
+			<td>TCP port of Clickhouse</td>
+		</tr>
+		<tr>
+			<td id="signoz--name"><a href="./values.yaml#L559">signoz.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--replicaCount"><a href="./values.yaml#L560">signoz.replicaCount</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--image--registry"><a href="./values.yaml#L562">signoz.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--image--repository"><a href="./values.yaml#L563">signoz.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz/signoz"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--image--tag"><a href="./values.yaml#L564">signoz.image.tag</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"v0.90.1"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--image--pullPolicy"><a href="./values.yaml#L565">signoz.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--imagePullSecrets"><a href="./values.yaml#L568">signoz.imagePullSecrets</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Image Registry Secret Names for signoz If set, this has higher precedence than the root level or global value of imagePullSecrets.</td>
+		</tr>
+		<tr>
+			<td id="signoz--serviceAccount--create"><a href="./values.yaml#L572">signoz.serviceAccount.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--serviceAccount--annotations"><a href="./values.yaml#L574">signoz.serviceAccount.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--serviceAccount--name"><a href="./values.yaml#L577">signoz.serviceAccount.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--service--annotations"><a href="./values.yaml#L581">signoz.service.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to use by service associated to signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--labels"><a href="./values.yaml#L583">signoz.service.labels</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Labels to use by service associated to signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--type"><a href="./values.yaml#L585">signoz.service.type</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"ClusterIP"</code>
+</div>
+			</td>
+			<td>Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--port"><a href="./values.yaml#L587">signoz.service.port</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8080</code>
+</div>
+			</td>
+			<td>signoz HTTP port</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--internalPort"><a href="./values.yaml#L589">signoz.service.internalPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8085</code>
+</div>
+			</td>
+			<td>signoz Internal port</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--opampPort"><a href="./values.yaml#L591">signoz.service.opampPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>4320</code>
+</div>
+			</td>
+			<td>signoz OpAMP Internal port</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--nodePort"><a href="./values.yaml#L594">signoz.service.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Set this if you want to force a specific nodePort for http. Must be use with service.type=NodePort</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--internalNodePort"><a href="./values.yaml#L597">signoz.service.internalNodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Set this if you want to force a specific nodePort for internal. Must be use with service.type=NodePort</td>
+		</tr>
+		<tr>
+			<td id="signoz--service--opampInternalNodePort"><a href="./values.yaml#L600">signoz.service.opampInternalNodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Set this if you want to force a specific nodePort for OpAMP. Must be use with service.type=NodePort</td>
+		</tr>
+		<tr>
+			<td id="signoz--annotations"><a href="./values.yaml#L602">signoz.annotations</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>signoz annotations</td>
+		</tr>
+		<tr>
+			<td id="signoz--additionalArgs"><a href="./values.yaml#L604">signoz.additionalArgs</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>signoz additional arguments for command line</td>
+		</tr>
+		<tr>
+			<td id="signoz--env--storage"><a href="./values.yaml#L622">signoz.env.storage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"clickhouse"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--godebug"><a href="./values.yaml#L623">signoz.env.godebug</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"netdns=go"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--telemetry_enabled"><a href="./values.yaml#L624">signoz.env.telemetry_enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--deployment_type"><a href="./values.yaml#L625">signoz.env.deployment_type</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"kubernetes-helm"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--dot_metrics_enabled"><a href="./values.yaml#L626">signoz.env.dot_metrics_enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--signoz_alertmanager_provider"><a href="./values.yaml#L627">signoz.env.signoz_alertmanager_provider</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--env--smtp_enabled"><a href="./values.yaml#L634">signoz.env.smtp_enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Enable SMTP for user invitations. Sets `SMTP_ENABLED` to true when enabled.</td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--enabled"><a href="./values.yaml#L638">signoz.initContainers.init.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--image--registry"><a href="./values.yaml#L640">signoz.initContainers.init.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--image--repository"><a href="./values.yaml#L641">signoz.initContainers.init.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"busybox"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--image--tag"><a href="./values.yaml#L642">signoz.initContainers.init.image.tag</a></td>
+			<td>float</td>
+			<td>
+				<div style="max-width: 300px;"><code>1.35</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--image--pullPolicy"><a href="./values.yaml#L643">signoz.initContainers.init.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--command--delay"><a href="./values.yaml#L645">signoz.initContainers.init.command.delay</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--command--endpoint"><a href="./values.yaml#L646">signoz.initContainers.init.command.endpoint</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/ping"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--command--waitMessage"><a href="./values.yaml#L647">signoz.initContainers.init.command.waitMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"waiting for clickhouseDB"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--command--doneMessage"><a href="./values.yaml#L648">signoz.initContainers.init.command.doneMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"clickhouse ready, starting query service now"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--init--resources"><a href="./values.yaml#L649">signoz.initContainers.init.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--enabled"><a href="./values.yaml#L657">signoz.initContainers.migration.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--image--registry"><a href="./values.yaml#L659">signoz.initContainers.migration.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--image--repository"><a href="./values.yaml#L660">signoz.initContainers.migration.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"busybox"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--image--tag"><a href="./values.yaml#L661">signoz.initContainers.migration.image.tag</a></td>
+			<td>float</td>
+			<td>
+				<div style="max-width: 300px;"><code>1.35</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--image--pullPolicy"><a href="./values.yaml#L662">signoz.initContainers.migration.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--args"><a href="./values.yaml#L663">signoz.initContainers.migration.args</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--command"><a href="./values.yaml#L664">signoz.initContainers.migration.command</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--resources"><a href="./values.yaml#L671">signoz.initContainers.migration.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--additionalVolumeMounts"><a href="./values.yaml#L679">signoz.initContainers.migration.additionalVolumeMounts</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Additional volume mounts for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--initContainers--migration--additionalVolumes"><a href="./values.yaml#L681">signoz.initContainers.migration.additionalVolumes</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Additional volumes for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--podSecurityContext"><a href="./values.yaml#L684">signoz.podSecurityContext</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Pod security context for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--podAnnotations"><a href="./values.yaml#L687">signoz.podAnnotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Pod annotations for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--securityContext"><a href="./values.yaml#L689">signoz.securityContext</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Security context for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L698">signoz.additionalVolumeMounts</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Additional volume mounts for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--additionalVolumes"><a href="./values.yaml#L700">signoz.additionalVolumes</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Additional volumes for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--livenessProbe"><a href="./values.yaml#L703">signoz.livenessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{
+  "enabled": true,
+  "failureThreshold": 6,
+  "initialDelaySeconds": 5,
+  "path": "/api/v1/health",
+  "periodSeconds": 10,
+  "port": "http",
+  "successThreshold": 1,
+  "timeoutSeconds": 5
+}</code>
+</div>
+			</td>
+			<td>Configure liveness and readiness probes. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--enabled"><a href="./values.yaml#L713">signoz.readinessProbe.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--port"><a href="./values.yaml#L714">signoz.readinessProbe.port</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"http"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--path"><a href="./values.yaml#L715">signoz.readinessProbe.path</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/api/v1/health?live=1"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L716">signoz.readinessProbe.initialDelaySeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--periodSeconds"><a href="./values.yaml#L717">signoz.readinessProbe.periodSeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>10</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--timeoutSeconds"><a href="./values.yaml#L718">signoz.readinessProbe.timeoutSeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--failureThreshold"><a href="./values.yaml#L719">signoz.readinessProbe.failureThreshold</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>6</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--readinessProbe--successThreshold"><a href="./values.yaml#L720">signoz.readinessProbe.successThreshold</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="signoz--customLivenessProbe"><a href="./values.yaml#L722">signoz.customLivenessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Custom liveness probe</td>
+		</tr>
+		<tr>
+			<td id="signoz--customReadinessProbe"><a href="./values.yaml#L724">signoz.customReadinessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Custom readiness probe</td>
+		</tr>
+		<tr>
+			<td id="signoz--ingress--enabled"><a href="./values.yaml#L727">signoz.ingress.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Enable ingress for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--ingress--className"><a href="./values.yaml#L729">signoz.ingress.className</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Ingress Class Name to be used to identify ingress controllers</td>
+		</tr>
+		<tr>
+			<td id="signoz--ingress--annotations"><a href="./values.yaml#L731">signoz.ingress.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to signoz Ingress</td>
+		</tr>
+		<tr>
+			<td id="signoz--ingress--hosts"><a href="./values.yaml#L736">signoz.ingress.hosts</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[
+  {
+    "host": "signoz.domain.com",
+    "paths": [
+      {
+        "path": "/",
+        "pathType": "ImplementationSpecific",
+        "port": 8080
+      }
+    ]
+  }
+]</code>
+</div>
+			</td>
+			<td>signoz Ingress Host names with their path details</td>
+		</tr>
+		<tr>
+			<td id="signoz--ingress--tls"><a href="./values.yaml#L743">signoz.ingress.tls</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>signoz Ingress TLS</td>
+		</tr>
+		<tr>
+			<td id="signoz--resources"><a href="./values.yaml#L752">signoz.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Configure resource requests and limits. Update according to your own use case as these values might not be suitable for your workload. Ref: http://kubernetes.io/docs/user-guide/compute-resources/ </td>
+		</tr>
+		<tr>
+			<td id="signoz--priorityClassName"><a href="./values.yaml#L760">signoz.priorityClassName</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Priority class name for signoz</td>
+		</tr>
+		<tr>
+			<td id="signoz--nodeSelector"><a href="./values.yaml#L762">signoz.nodeSelector</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Node selector for settings for signoz pod</td>
+		</tr>
+		<tr>
+			<td id="signoz--tolerations"><a href="./values.yaml#L764">signoz.tolerations</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Toleration labels for signoz pod assignment</td>
+		</tr>
+		<tr>
+			<td id="signoz--affinity"><a href="./values.yaml#L766">signoz.affinity</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Affinity settings for signoz pod</td>
+		</tr>
+		<tr>
+			<td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L768">signoz.topologySpreadConstraints</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>TopologySpreadConstraints describes how g pods ought to spread</td>
+		</tr>
+		<tr>
+			<td id="signoz--persistence--enabled"><a href="./values.yaml#L771">signoz.persistence.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Enable data persistence using PVC for SQLiteDB data.</td>
+		</tr>
+		<tr>
+			<td id="signoz--persistence--existingClaim"><a href="./values.yaml#L773">signoz.persistence.existingClaim</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Name of an existing PVC to use (only when deploying a single replica)</td>
+		</tr>
+		<tr>
+			<td id="signoz--persistence--storageClass"><a href="./values.yaml#L780">signoz.persistence.storageClass</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Persistent Volume Storage Class to use. If defined, `storageClassName: <storageClass>`. If set to "-", `storageClassName: ""`, which disables dynamic provisioning If undefined (the default) or set to `null`, no storageClassName spec is set, choosing the default provisioner. </td>
+		</tr>
+		<tr>
+			<td id="signoz--persistence--accessModes"><a href="./values.yaml#L782">signoz.persistence.accessModes</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[
+  "ReadWriteOnce"
+]</code>
+</div>
+			</td>
+			<td>Access Modes for persistent volume</td>
+		</tr>
+		<tr>
+			<td id="signoz--persistence--size"><a href="./values.yaml#L785">signoz.persistence.size</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"1Gi"</code>
+</div>
+			</td>
+			<td>Persistent Volume size</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--enabled"><a href="./values.yaml#L788">schemaMigrator.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--name"><a href="./values.yaml#L789">schemaMigrator.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"schema-migrator"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--image--registry"><a href="./values.yaml#L791">schemaMigrator.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--image--repository"><a href="./values.yaml#L792">schemaMigrator.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz/signoz-schema-migrator"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--image--tag"><a href="./values.yaml#L793">schemaMigrator.image.tag</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"v0.128.2"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--image--pullPolicy"><a href="./values.yaml#L794">schemaMigrator.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--args[0]"><a href="./values.yaml#L796">schemaMigrator.args[0]</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"--up="</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--annotations"><a href="./values.yaml#L800">schemaMigrator.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--upgradeHelmHooks"><a href="./values.yaml#L803">schemaMigrator.upgradeHelmHooks</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--enableReplication"><a href="./values.yaml#L805">schemaMigrator.enableReplication</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable replication for schemaMigrator</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--nodeSelector"><a href="./values.yaml#L807">schemaMigrator.nodeSelector</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Node selector for settings for schemaMigrator</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--tolerations"><a href="./values.yaml#L809">schemaMigrator.tolerations</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Toleration labels for schemaMigrator assignment</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--affinity"><a href="./values.yaml#L811">schemaMigrator.affinity</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Affinity settings for schemaMigrator</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--topologySpreadConstraints"><a href="./values.yaml#L813">schemaMigrator.topologySpreadConstraints</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>TopologySpreadConstraints describes how schemaMigrator pods ought to spread</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--enabled"><a href="./values.yaml#L816">schemaMigrator.initContainers.init.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--image--registry"><a href="./values.yaml#L818">schemaMigrator.initContainers.init.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--image--repository"><a href="./values.yaml#L819">schemaMigrator.initContainers.init.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"busybox"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--image--tag"><a href="./values.yaml#L820">schemaMigrator.initContainers.init.image.tag</a></td>
+			<td>float</td>
+			<td>
+				<div style="max-width: 300px;"><code>1.35</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--image--pullPolicy"><a href="./values.yaml#L821">schemaMigrator.initContainers.init.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--command--delay"><a href="./values.yaml#L823">schemaMigrator.initContainers.init.command.delay</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--command--endpoint"><a href="./values.yaml#L824">schemaMigrator.initContainers.init.command.endpoint</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/ping"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--command--waitMessage"><a href="./values.yaml#L825">schemaMigrator.initContainers.init.command.waitMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"waiting for clickhouseDB"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--command--doneMessage"><a href="./values.yaml#L826">schemaMigrator.initContainers.init.command.doneMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"clickhouse ready, starting schema migrator now"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--init--resources"><a href="./values.yaml#L827">schemaMigrator.initContainers.init.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--enabled"><a href="./values.yaml#L899">schemaMigrator.initContainers.wait.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--image--registry"><a href="./values.yaml#L901">schemaMigrator.initContainers.wait.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--image--repository"><a href="./values.yaml#L902">schemaMigrator.initContainers.wait.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"groundnuty/k8s-wait-for"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--image--tag"><a href="./values.yaml#L903">schemaMigrator.initContainers.wait.image.tag</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"v2.0"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--image--pullPolicy"><a href="./values.yaml#L904">schemaMigrator.initContainers.wait.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--initContainers--wait--env"><a href="./values.yaml#L905">schemaMigrator.initContainers.wait.env</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--serviceAccount--create"><a href="./values.yaml#L909">schemaMigrator.serviceAccount.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--serviceAccount--annotations"><a href="./values.yaml#L911">schemaMigrator.serviceAccount.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--serviceAccount--name"><a href="./values.yaml#L914">schemaMigrator.serviceAccount.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--create"><a href="./values.yaml#L918">schemaMigrator.role.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Specifies whether a clusterRole should be created</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--annotations"><a href="./values.yaml#L920">schemaMigrator.role.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to add to the clusterRole</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--name"><a href="./values.yaml#L923">schemaMigrator.role.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>The name of the clusterRole to use. If not set and create is true, a name is generated using the fullname template</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--rules"><a href="./values.yaml#L927">schemaMigrator.role.rules</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>A set of rules as documented here. ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/</td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--roleBinding--annotations"><a href="./values.yaml#L934">schemaMigrator.role.roleBinding.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="schemaMigrator--role--roleBinding--name"><a href="./values.yaml#L937">schemaMigrator.role.roleBinding.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--name"><a href="./values.yaml#L940">otelCollector.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"otel-collector"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--image--registry"><a href="./values.yaml#L942">otelCollector.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--image--repository"><a href="./values.yaml#L943">otelCollector.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"signoz/signoz-otel-collector"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--image--tag"><a href="./values.yaml#L944">otelCollector.image.tag</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"v0.128.2"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--image--pullPolicy"><a href="./values.yaml#L945">otelCollector.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L948">otelCollector.imagePullSecrets</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Image Registry Secret Names for OtelCollector If set, this has higher precedence than the root level or global value of imagePullSecrets.</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--enabled"><a href="./values.yaml#L951">otelCollector.initContainers.init.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--image--registry"><a href="./values.yaml#L953">otelCollector.initContainers.init.image.registry</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"docker.io"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--image--repository"><a href="./values.yaml#L954">otelCollector.initContainers.init.image.repository</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"busybox"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--image--tag"><a href="./values.yaml#L955">otelCollector.initContainers.init.image.tag</a></td>
+			<td>float</td>
+			<td>
+				<div style="max-width: 300px;"><code>1.35</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--image--pullPolicy"><a href="./values.yaml#L956">otelCollector.initContainers.init.image.pullPolicy</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"IfNotPresent"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--command--delay"><a href="./values.yaml#L958">otelCollector.initContainers.init.command.delay</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--command--endpoint"><a href="./values.yaml#L959">otelCollector.initContainers.init.command.endpoint</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/ping"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--command--waitMessage"><a href="./values.yaml#L960">otelCollector.initContainers.init.command.waitMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"waiting for clickhouseDB"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--command--doneMessage"><a href="./values.yaml#L961">otelCollector.initContainers.init.command.doneMessage</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"clickhouse ready, starting otel collector now"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--initContainers--init--resources"><a href="./values.yaml#L962">otelCollector.initContainers.init.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--command--name"><a href="./values.yaml#L972">otelCollector.command.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/signoz-otel-collector"</code>
+</div>
+			</td>
+			<td>OtelCollector command name</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--command--extraArgs"><a href="./values.yaml#L974">otelCollector.command.extraArgs</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[
+  "--feature-gates=-pkg.translator.prometheus.NormalizeName"
+]</code>
+</div>
+			</td>
+			<td>OtelCollector command extra arguments</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--configMap--create"><a href="./values.yaml#L978">otelCollector.configMap.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Specifies whether a configMap should be created (true by default)</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--serviceAccount--create"><a href="./values.yaml#L982">otelCollector.serviceAccount.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--serviceAccount--annotations"><a href="./values.yaml#L984">otelCollector.serviceAccount.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--serviceAccount--name"><a href="./values.yaml#L987">otelCollector.serviceAccount.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--service--annotations"><a href="./values.yaml#L991">otelCollector.service.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to use by service associated to OtelCollector</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--service--labels"><a href="./values.yaml#L993">otelCollector.service.labels</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Labels to use by service associated to OtelCollector</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--service--type"><a href="./values.yaml#L995">otelCollector.service.type</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"ClusterIP"</code>
+</div>
+			</td>
+			<td>Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--service--loadBalancerSourceRanges"><a href="./values.yaml#L997">otelCollector.service.loadBalancerSourceRanges</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>LoadBalancer Source Ranges when service type is LoadBalancer</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--annotations"><a href="./values.yaml#L999">otelCollector.annotations</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>OtelCollector Deployment annotation.</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--podAnnotations"><a href="./values.yaml#L1001">otelCollector.podAnnotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{
+  "signoz.io/port": "8888",
+  "signoz.io/scrape": "true"
+}</code>
+</div>
+			</td>
+			<td>OtelCollector pod(s) annotation.</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--podLabels"><a href="./values.yaml#L1005">otelCollector.podLabels</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>OtelCollector pod(s) labels.</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--additionalEnvs"><a href="./values.yaml#L1007">otelCollector.additionalEnvs</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Additional environments to set for OtelCollector</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L1013">otelCollector.lowCardinalityExceptionGrouping</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable grouping of exceptions with same name and different stack trace. This is useful when you have a lot of exceptions with same name but different stack trace. This is a tradeoff between cardinality and accuracy of exception grouping.</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1014">otelCollector.minReadySeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1015">otelCollector.progressDeadlineSeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>600</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--replicaCount"><a href="./values.yaml#L1016">otelCollector.replicaCount</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--create"><a href="./values.yaml#L1020">otelCollector.clusterRole.create</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Specifies whether a clusterRole should be created</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--annotations"><a href="./values.yaml#L1022">otelCollector.clusterRole.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to add to the clusterRole</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--name"><a href="./values.yaml#L1025">otelCollector.clusterRole.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>The name of the clusterRole to use. If not set and create is true, a name is generated using the fullname template</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--rules"><a href="./values.yaml#L1029">otelCollector.clusterRole.rules</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>A set of rules as documented here. ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--clusterRoleBinding--annotations"><a href="./values.yaml#L1046">otelCollector.clusterRole.clusterRoleBinding.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--clusterRole--clusterRoleBinding--name"><a href="./values.yaml#L1049">otelCollector.clusterRole.clusterRoleBinding.name</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp--enabled"><a href="./values.yaml#L1054">otelCollector.ports.otlp.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for OTLP gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp--containerPort"><a href="./values.yaml#L1056">otelCollector.ports.otlp.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>4317</code>
+</div>
+			</td>
+			<td>Container port for OTLP gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp--servicePort"><a href="./values.yaml#L1058">otelCollector.ports.otlp.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>4317</code>
+</div>
+			</td>
+			<td>Service port for OTLP gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp--nodePort"><a href="./values.yaml#L1060">otelCollector.ports.otlp.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for OTLP gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp--protocol"><a href="./values.yaml#L1062">otelCollector.ports.otlp.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for OTLP gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp-http--enabled"><a href="./values.yaml#L1065">otelCollector.ports.otlp-http.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for OTLP HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp-http--containerPort"><a href="./values.yaml#L1067">otelCollector.ports.otlp-http.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>4318</code>
+</div>
+			</td>
+			<td>Container port for OTLP HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp-http--servicePort"><a href="./values.yaml#L1069">otelCollector.ports.otlp-http.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>4318</code>
+</div>
+			</td>
+			<td>Service port for OTLP HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp-http--nodePort"><a href="./values.yaml#L1071">otelCollector.ports.otlp-http.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for OTLP HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--otlp-http--protocol"><a href="./values.yaml#L1073">otelCollector.ports.otlp-http.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for OTLP HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-compact--enabled"><a href="./values.yaml#L1076">otelCollector.ports.jaeger-compact.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable service port for Jaeger Compact</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-compact--containerPort"><a href="./values.yaml#L1078">otelCollector.ports.jaeger-compact.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>6831</code>
+</div>
+			</td>
+			<td>Container port for Jaeger Compact</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-compact--servicePort"><a href="./values.yaml#L1080">otelCollector.ports.jaeger-compact.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>6831</code>
+</div>
+			</td>
+			<td>Service port for Jaeger Compact</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-compact--nodePort"><a href="./values.yaml#L1082">otelCollector.ports.jaeger-compact.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for Jaeger Compact</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-compact--protocol"><a href="./values.yaml#L1084">otelCollector.ports.jaeger-compact.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"UDP"</code>
+</div>
+			</td>
+			<td>Protocol to use for Jaeger Compact</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-thrift--enabled"><a href="./values.yaml#L1087">otelCollector.ports.jaeger-thrift.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for Jaeger Thrift HTTP</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-thrift--containerPort"><a href="./values.yaml#L1089">otelCollector.ports.jaeger-thrift.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>14268</code>
+</div>
+			</td>
+			<td>Container port for Jaeger Thrift</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-thrift--servicePort"><a href="./values.yaml#L1091">otelCollector.ports.jaeger-thrift.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>14268</code>
+</div>
+			</td>
+			<td>Service port for Jaeger Thrift</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-thrift--nodePort"><a href="./values.yaml#L1093">otelCollector.ports.jaeger-thrift.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for Jaeger Thrift</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-thrift--protocol"><a href="./values.yaml#L1095">otelCollector.ports.jaeger-thrift.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for Jaeger Thrift</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-grpc--enabled"><a href="./values.yaml#L1098">otelCollector.ports.jaeger-grpc.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for Jaeger gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-grpc--containerPort"><a href="./values.yaml#L1100">otelCollector.ports.jaeger-grpc.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>14250</code>
+</div>
+			</td>
+			<td>Container port for Jaeger gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-grpc--servicePort"><a href="./values.yaml#L1102">otelCollector.ports.jaeger-grpc.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>14250</code>
+</div>
+			</td>
+			<td>Service port for Jaeger gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-grpc--nodePort"><a href="./values.yaml#L1104">otelCollector.ports.jaeger-grpc.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for Jaeger gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--jaeger-grpc--protocol"><a href="./values.yaml#L1106">otelCollector.ports.jaeger-grpc.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for Jaeger gRPC</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zipkin--enabled"><a href="./values.yaml#L1109">otelCollector.ports.zipkin.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable service port for Zipkin</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zipkin--containerPort"><a href="./values.yaml#L1111">otelCollector.ports.zipkin.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>9411</code>
+</div>
+			</td>
+			<td>Container port for Zipkin</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zipkin--servicePort"><a href="./values.yaml#L1113">otelCollector.ports.zipkin.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>9411</code>
+</div>
+			</td>
+			<td>Service port for Zipkin</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zipkin--nodePort"><a href="./values.yaml#L1115">otelCollector.ports.zipkin.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for Zipkin</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zipkin--protocol"><a href="./values.yaml#L1117">otelCollector.ports.zipkin.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for Zipkin</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--metrics--enabled"><a href="./values.yaml#L1120">otelCollector.ports.metrics.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for internal metrics</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--metrics--containerPort"><a href="./values.yaml#L1122">otelCollector.ports.metrics.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8888</code>
+</div>
+			</td>
+			<td>Container port for internal metrics</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--metrics--servicePort"><a href="./values.yaml#L1124">otelCollector.ports.metrics.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8888</code>
+</div>
+			</td>
+			<td>Service port for internal metrics</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--metrics--nodePort"><a href="./values.yaml#L1126">otelCollector.ports.metrics.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for internal metrics</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--metrics--protocol"><a href="./values.yaml#L1128">otelCollector.ports.metrics.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for internal metrics</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zpages--enabled"><a href="./values.yaml#L1131">otelCollector.ports.zpages.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable service port for ZPages</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zpages--containerPort"><a href="./values.yaml#L1133">otelCollector.ports.zpages.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>55679</code>
+</div>
+			</td>
+			<td>Container port for Zpages</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zpages--servicePort"><a href="./values.yaml#L1135">otelCollector.ports.zpages.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>55679</code>
+</div>
+			</td>
+			<td>Service port for Zpages</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zpages--nodePort"><a href="./values.yaml#L1137">otelCollector.ports.zpages.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for Zpages</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--zpages--protocol"><a href="./values.yaml#L1139">otelCollector.ports.zpages.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for Zpages</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--pprof--enabled"><a href="./values.yaml#L1142">otelCollector.ports.pprof.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Whether to enable service port for pprof</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--pprof--containerPort"><a href="./values.yaml#L1144">otelCollector.ports.pprof.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1777</code>
+</div>
+			</td>
+			<td>Container port for pprof</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--pprof--servicePort"><a href="./values.yaml#L1146">otelCollector.ports.pprof.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1777</code>
+</div>
+			</td>
+			<td>Service port for pprof</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--pprof--nodePort"><a href="./values.yaml#L1148">otelCollector.ports.pprof.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for pprof</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--pprof--protocol"><a href="./values.yaml#L1150">otelCollector.ports.pprof.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for pprof</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsheroku--enabled"><a href="./values.yaml#L1153">otelCollector.ports.logsheroku.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for logsheroku</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsheroku--containerPort"><a href="./values.yaml#L1155">otelCollector.ports.logsheroku.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8081</code>
+</div>
+			</td>
+			<td>Container port for logsheroku</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsheroku--servicePort"><a href="./values.yaml#L1157">otelCollector.ports.logsheroku.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8081</code>
+</div>
+			</td>
+			<td>Service port for logsheroku</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsheroku--nodePort"><a href="./values.yaml#L1159">otelCollector.ports.logsheroku.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for logsheroku</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsheroku--protocol"><a href="./values.yaml#L1161">otelCollector.ports.logsheroku.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for logsheroku</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsjson--enabled"><a href="./values.yaml#L1164">otelCollector.ports.logsjson.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td>Whether to enable service port for logsjson</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsjson--containerPort"><a href="./values.yaml#L1166">otelCollector.ports.logsjson.containerPort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8082</code>
+</div>
+			</td>
+			<td>Container port for logsjson</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsjson--servicePort"><a href="./values.yaml#L1168">otelCollector.ports.logsjson.servicePort</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>8082</code>
+</div>
+			</td>
+			<td>Service port for logsjson</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsjson--nodePort"><a href="./values.yaml#L1170">otelCollector.ports.logsjson.nodePort</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Node port for logsjson</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ports--logsjson--protocol"><a href="./values.yaml#L1172">otelCollector.ports.logsjson.protocol</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"TCP"</code>
+</div>
+			</td>
+			<td>Protocol to use for logsjson</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--livenessProbe"><a href="./values.yaml#L1175">otelCollector.livenessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{
+  "enabled": true,
+  "failureThreshold": 6,
+  "initialDelaySeconds": 5,
+  "path": "/",
+  "periodSeconds": 10,
+  "port": 13133,
+  "successThreshold": 1,
+  "timeoutSeconds": 5
+}</code>
+</div>
+			</td>
+			<td>Configure liveness and readiness probes. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--enabled"><a href="./values.yaml#L1185">otelCollector.readinessProbe.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>true</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--port"><a href="./values.yaml#L1186">otelCollector.readinessProbe.port</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>13133</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--path"><a href="./values.yaml#L1187">otelCollector.readinessProbe.path</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"/"</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L1188">otelCollector.readinessProbe.initialDelaySeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--periodSeconds"><a href="./values.yaml#L1189">otelCollector.readinessProbe.periodSeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>10</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--timeoutSeconds"><a href="./values.yaml#L1190">otelCollector.readinessProbe.timeoutSeconds</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>5</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--failureThreshold"><a href="./values.yaml#L1191">otelCollector.readinessProbe.failureThreshold</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>6</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--readinessProbe--successThreshold"><a href="./values.yaml#L1192">otelCollector.readinessProbe.successThreshold</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L1194">otelCollector.customLivenessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Custom liveness probe</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L1196">otelCollector.customReadinessProbe</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Custom readiness probe</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L1198">otelCollector.extraVolumeMounts</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Extra volumes mount for OtelCollector pod</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--extraVolumes"><a href="./values.yaml#L1200">otelCollector.extraVolumes</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Extra volumes for OtelCollector pod</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ingress--enabled"><a href="./values.yaml#L1203">otelCollector.ingress.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td>Enable ingress for OtelCollector</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ingress--className"><a href="./values.yaml#L1205">otelCollector.ingress.className</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>Ingress Class Name to be used to identify ingress controllers</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ingress--annotations"><a href="./values.yaml#L1207">otelCollector.ingress.annotations</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Annotations to OtelCollector Ingress</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1214">otelCollector.ingress.hosts</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[
+  {
+    "host": "otelcollector.domain.com",
+    "paths": [
+      {
+        "path": "/",
+        "pathType": "ImplementationSpecific",
+        "port": 4318
+      }
+    ]
+  }
+]</code>
+</div>
+			</td>
+			<td>OtelCollector Ingress Host names with their path details</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--ingress--tls"><a href="./values.yaml#L1221">otelCollector.ingress.tls</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>OtelCollector Ingress TLS</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--resources"><a href="./values.yaml#L1230">otelCollector.resources</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Configure resource requests and limits. Update according to your own use case as these values might not be suitable for your workload. Ref: http://kubernetes.io/docs/user-guide/compute-resources/ </td>
+		</tr>
+		<tr>
+			<td id="otelCollector--priorityClassName"><a href="./values.yaml#L1238">otelCollector.priorityClassName</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>""</code>
+</div>
+			</td>
+			<td>OtelCollector priority class name</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--nodeSelector"><a href="./values.yaml#L1240">otelCollector.nodeSelector</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Node selector for settings for OtelCollector pod</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--tolerations"><a href="./values.yaml#L1242">otelCollector.tolerations</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td>Toleration labels for OtelCollector pod assignment</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--affinity"><a href="./values.yaml#L1244">otelCollector.affinity</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td>Affinity settings for OtelCollector pod</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L1246">otelCollector.topologySpreadConstraints</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[
+  {
+    "labelSelector": {
+      "matchLabels": {
+        "app.kubernetes.io/component": "otel-collector"
+      }
+    },
+    "maxSkew": 1,
+    "topologyKey": "kubernetes.io/hostname",
+    "whenUnsatisfiable": "ScheduleAnyway"
+  }
+]</code>
+</div>
+			</td>
+			<td>TopologySpreadConstraints describes how OtelCollector pods ought to spread</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--podSecurityContext"><a href="./values.yaml#L1253">otelCollector.podSecurityContext</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--securityContext"><a href="./values.yaml#L1256">otelCollector.securityContext</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--enabled"><a href="./values.yaml#L1265">otelCollector.autoscaling.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--minReplicas"><a href="./values.yaml#L1266">otelCollector.autoscaling.minReplicas</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>1</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--maxReplicas"><a href="./values.yaml#L1267">otelCollector.autoscaling.maxReplicas</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>11</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L1268">otelCollector.autoscaling.targetCPUUtilizationPercentage</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>50</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L1269">otelCollector.autoscaling.targetMemoryUtilizationPercentage</a></td>
+			<td>int</td>
+			<td>
+				<div style="max-width: 300px;"><code>50</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--behavior"><a href="./values.yaml#L1270">otelCollector.autoscaling.behavior</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>{}</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--autoscalingTemplate"><a href="./values.yaml#L1284">otelCollector.autoscaling.autoscalingTemplate</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--annotations"><a href="./values.yaml#L1286">otelCollector.autoscaling.keda.annotations</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--enabled"><a href="./values.yaml#L1287">otelCollector.autoscaling.keda.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--pollingInterval"><a href="./values.yaml#L1290">otelCollector.autoscaling.keda.pollingInterval</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"30"</code>
+</div>
+			</td>
+			<td>Polling interval for metrics data Checks 30sec periodically for metrics data</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--cooldownPeriod"><a href="./values.yaml#L1293">otelCollector.autoscaling.keda.cooldownPeriod</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"300"</code>
+</div>
+			</td>
+			<td>Cooldown period for metrics data Once the load decreased, it will wait for 5 min and downscale</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--minReplicaCount"><a href="./values.yaml#L1296">otelCollector.autoscaling.keda.minReplicaCount</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"1"</code>
+</div>
+			</td>
+			<td>Minimum replica count Should be >= replicaCount specified in values.yaml</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--maxReplicaCount"><a href="./values.yaml#L1298">otelCollector.autoscaling.keda.maxReplicaCount</a></td>
+			<td>string</td>
+			<td>
+				<div style="max-width: 300px;"><code>"5"</code>
+</div>
+			</td>
+			<td>Maximum replica count</td>
+		</tr>
+		<tr>
+			<td id="otelCollector--autoscaling--keda--triggers"><a href="./values.yaml#L1299">otelCollector.autoscaling.keda.triggers</a></td>
+			<td>list</td>
+			<td>
+				<div style="max-width: 300px;"><code>[]</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td id="otelCollector--config"><a href="./values.yaml#L1310">otelCollector.config</a></td>
+			<td>object</td>
+			<td>
+				<div style="max-width: 300px;"><code>null</code>
+</div>
+			</td>
+			<td>Configurations for OtelCollector</td>
+		</tr>
+		<tr>
+			<td id="signoz-otel-gateway--enabled"><a href="./values.yaml#L1402">signoz-otel-gateway.enabled</a></td>
+			<td>bool</td>
+			<td>
+				<div style="max-width: 300px;"><code>false</code>
+</div>
+			</td>
+			<td></td>
+		</tr>
+	</tbody>
+</table>
+
