@@ -513,10 +513,29 @@ Create Env
 {{- $userEnv := .Values.signoz.env | default dict -}}
 
 {{/*
+====== DEPRECATION & BACKWARD COMPATIBILITY ======
+*/}}
+{{- $legacyEnv := dict -}}
+{{- if .Values.signoz.additionalEnvs }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}
+
+{{- if .Values.signoz.configVars }}
+{{- range $key, $val := .Values.signoz.configVars }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}{{- end }}
+
+{{- if .Values.signoz.smtpVars }}
+{{- range $key, $val := .Values.signoz.smtpVars }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}{{- end }}
+
+
+{{/*
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $legacyEnv $userEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{- end -}}
 

@@ -119,12 +119,6 @@ spec:
               containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
               protocol: TCP
           env:
-            {{- if (hasKey $.Values.signoz "configVars") }}
-                {{- fail (printf "Error: signoz.configVars has been deprecated. Use signoz.env instead.") }}
-            {{- end}}
-              {{- if (hasKey $.Values.signoz "smtpVars") }}
-                {{- fail (printf "Error: signoz.smtpVars has been deprecated. Use signoz.env instead.") }}
-            {{- end}}
             {{- include "signoz.env" . | nindent 12 }}
           {{- if .Values.signoz.livenessProbe.enabled }}
           livenessProbe:

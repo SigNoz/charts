@@ -34,6 +34,30 @@
 
 {{- end }}
 
+{{/*
+Generates deprecation notices for NOTES.txt
+*/}}
+{{- define "signoz.deprecationNotices" -}}
+{{- $messages := list -}}
+{{- if .Values.signoz.additionalEnvs -}}
+  {{- $messages = append $messages "The '.Values.signoz.additionalEnvs' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
+{{- end -}}
+{{- if .Values.signoz.configVars -}}
+  {{- $messages = append $messages "The '.Values.signoz.configVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
+{{- end -}}
+{{- if .Values.signoz.smtpVars -}}
+  {{- $messages = append $messages "The '.Values.signoz.smtpVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
+{{- end -}}
+
+{{- if not (empty $messages) -}}
+DEPRECATION NOTICE:
+{{- range $messages }}
+- {{ . }}
+{{- end }}
+Please update your values.yaml file. These keys will be removed in a future release.
+{{- end -}}
+{{- end -}}
+
 {{- if .Release.IsUpgrade }}
 NOTES:
 - We no longer bundle K8s-Infra chart with the SigNoz chart installation. For any existing set up, please install k8s-infra chart separately with the relevant override values.
