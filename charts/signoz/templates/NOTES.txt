@@ -57,6 +57,7 @@ DEPRECATION NOTICE:
 Please update your values.yaml file. These keys will be removed in a future release.
 {{- end -}}
 {{- end -}}
+{{ include "signoz.deprecationNotices" . }}
 
 {{- if .Release.IsUpgrade }}
 NOTES:

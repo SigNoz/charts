@@ -521,14 +521,12 @@ Create Env
 {{- end }}
 
 {{- if .Values.signoz.configVars }}
-{{- range $key, $val := .Values.signoz.configVars }}
-{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
-{{- end }}{{- end }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.configVars -}}
+{{- end }}
 
 {{- if .Values.signoz.smtpVars }}
-{{- range $key, $val := .Values.signoz.smtpVars }}
-{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
-{{- end }}{{- end }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.smtpVars -}}
+{{- end }}
 
 
 {{/*
