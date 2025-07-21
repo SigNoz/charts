@@ -820,17 +820,20 @@ signoz:
   env:
     signoz_telemetrystore_provider: clickhouse
     dot_metrics_enabled: true
+    
     # ClickHouse URL is set and applied internally. Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
+    
     # Enable SMTP for user invitations. For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/
     signoz_emailing_enabled: false
-    signoz_instrumentation_logs_level: info
+   
     # To enable/disable the active query tracker.
     signoz_prometheus_active_query_tracker_enabled: false
 
     # signoz alertemanager configuration
+    # For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/alertmanager/
     signoz_alertmanager_provider: signoz
-    # The URL under which Alertmanager is externally reachable (for example, if Alertmanager is served via a reverse proxy). Used for generating relative and absolute links back to Alertmanager itself.
+    # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external_url: http://localhost:8080
 
   # signoz.initContainers -- Init containers for the SigNoz pod.
