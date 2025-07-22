@@ -63,9 +63,14 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-{{/*
-This is the updated template. It now loops through sections.
-*/}}
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="tpl/array">{{ $defaultValue }}</pre>
+{{ end }}
+
 {{ define "chart.valuesTableHtml" }}
 
 {{/* Handle explicitly defined sections */}}
@@ -120,9 +125,6 @@ This is the updated template. It now loops through sections.
 
 {{ end }}
 
-{{/*
-This defines the missing template to tie everything together.
-*/}}
 {{ define "chart.valuesSectionHtml" }}
 {{ if .Sections }}
 {{ template "chart.valuesHeader" . }}
@@ -130,7 +132,4 @@ This defines the missing template to tie everything together.
 {{ end }}
 {{ end }}
 
-{{/*
-This final call remains the same.
-*/}}
 {{ template "chart.valuesSectionHtml" . }}

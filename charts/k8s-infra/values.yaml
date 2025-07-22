@@ -918,6 +918,7 @@ otelAgent:
 
   # otelAgent.config -- Base configuration for the OtelAgent Collector.
   # @section -- OpenTelemetry Agent (DaemonSet)
+  # @default -- "Please Checkout the values.yml for default values"
   config:
     # @section -- OpenTelemetry Agent (DaemonSet)
     receivers:
@@ -1263,6 +1264,7 @@ otelDeployment:
 
   # otelDeployment.clusterRole -- ClusterRole configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
+  # @default -- "Please Checkout the values.yml for default values"
   clusterRole:
     # otelDeployment.clusterRole.create -- Specifies whether a ClusterRole should be created.
     # @section -- OpenTelemetry Deployment
@@ -1316,6 +1318,7 @@ otelDeployment:
 
   # otelDeployment.config -- Base configuration for the OtelDeployment Collector.
   # @section -- OpenTelemetry Deployment
+  # @default -- "Please Checkout the values.yml for default values"
   config:
     # @section -- OpenTelemetry Deployment
     receivers: {}
