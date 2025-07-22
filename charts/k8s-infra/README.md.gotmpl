@@ -1,9 +1,9 @@
 
-# SigNoz
+# K8s-Infra
 
 {{ template "chart.badgesSection" . }}
 
-SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
+Monitoring your Kubernetes cluster is essential for ensuring performance, stability, and reliability. The SigNoz k8s-infra Helm chart provides a comprehensive solution for collecting and analyzing metrics, logs, and events from your entire Kubernetes environment.
 
 ### TL;DR;
 
@@ -18,6 +18,7 @@ The `k8s-infra` chart provides Kubernetes infrastructure observability by deploy
 
 It enables collection of metrics, logs, and events from your Kubernetes cluster, making it easier to monitor and troubleshoot your infrastructure with SigNoz.
 
+Refer to the documentation for a more detailed explanation of [k8s-infra](https://signoz.io/docs/infrastructure-monitoring/k8s-infra-architecture).
 ### Prerequisites
 
 - Kubernetes 1.16+
@@ -62,20 +63,44 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-
 {{ define "chart.valueDefaultColumnRender" }}
 {{- $defaultValue := (default .Default .AutoDefault) -}}
 {{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
-{{- $defaultValue = (toPrettyJson (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-<code>{{ $defaultValue }}</code>
+<pre lang="tpl/array">{{ $defaultValue }}</pre>
 {{ end }}
 
-{{define "chart.valuesHeader"}}
-## Configuration
-{{end}}
-
 {{ define "chart.valuesTableHtml" }}
+
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+<h3>{{- .SectionName }}</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
 <table>
 	<thead>
 		<th>Key</th>
@@ -84,19 +109,27 @@ kubectl delete namespace platform
 		<th>Description</th>
 	</thead>
 	<tbody>
-	{{- range .Values }}
-		<tr>
-			<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
-			<td>{{.Type}}</td>
-			<td>
-				<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
-			</td>
-			<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
-		</tr>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
 	{{- end }}
 	</tbody>
 </table>
 {{ end }}
 
-{{ template "chart.valuesSectionHtml" . }}
+{{ end }}
 
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}
