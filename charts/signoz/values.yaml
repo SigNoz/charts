@@ -1921,6 +1921,6 @@ otelCollector:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
           exporters: [clickhouselogsexporter, metadataexporter]
-#@ignored
+# @ignored
 signoz-otel-gateway:
   enabled: false

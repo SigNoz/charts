@@ -63,7 +63,7 @@ kubectl delete namespace platform
 
 > [!WARNING] 
 > ### Breaking Changes
-> #### Version 0.87.0
+> #### Version 0.88.0
 > **Configuration Migration Required:**
 > - `signoz.configVars` has been deprecated
 > - `signoz.smtpVars` has been deprecated
