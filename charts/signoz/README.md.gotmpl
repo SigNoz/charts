@@ -63,7 +63,7 @@ kubectl delete namespace platform
 
 > [!WARNING]  
 > ### Breaking Changes
-> #### Version 0.87.0
+> #### Version 0.88.0
 > **Configuration Migration Required:**
 > - `signoz.configVars` has been deprecated
 > - `signoz.smtpVars` has been deprecated
@@ -98,13 +98,39 @@ kubectl delete namespace platform
 {{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
 {{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-<pre lang="tpl/array">{{ $defaultValue }}</pre>
+<pre lang="yaml">{{ $defaultValue }}</pre>
 {{ end }}
 
-{{define "chart.valuesHeader"}}
-## Configuration
-{{end}}
 {{ define "chart.valuesTableHtml" }}
+
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+<h3>{{- .SectionName }}</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
 <table>
 	<thead>
 		<th>Key</th>
@@ -113,18 +139,27 @@ kubectl delete namespace platform
 		<th>Description</th>
 	</thead>
 	<tbody>
-	{{- range .Values }}
-		<tr>
-			<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
-			<td>{{.Type}}</td>
-			<td>
-				<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
-			</td>
-			<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
-		</tr>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 200px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
 	{{- end }}
 	</tbody>
 </table>
+{{ end }}
+
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
 {{ end }}
 
 {{ template "chart.valuesSectionHtml" . }}
