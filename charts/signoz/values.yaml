@@ -103,7 +103,7 @@ clickhouse:
       enabled: false
     # clickhouse.zookeeper.customLivenessProbe -- Custom liveness probe for Zookeeper.
     # @section -- Zookeeper Settings
-    # @default -- See values
+    # @default -- "Please checkout the default values in values.yml"
     customLivenessProbe:
       exec:
         command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep ruok']
@@ -114,7 +114,7 @@ clickhouse:
       failureThreshold: 6
     # clickhouse.zookeeper.customReadinessProbe -- Custom readiness probe for Zookeeper.
     # @section -- Zookeeper Settings
-    # @default -- See values
+    # @default -- "Please checkout the default values in values.yml"
     customReadinessProbe:
       exec:
         command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null']
@@ -286,7 +286,7 @@ clickhouse:
 
   # clickhouse.securityContext -- Security context for the ClickHouse node.
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   securityContext:
     enabled: true
     runAsUser: 101
@@ -299,7 +299,7 @@ clickhouse:
   # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
   # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   allowedNetworkIps:
     - "10.0.0.0/8"
     - "100.64.0.0/10"
@@ -336,13 +336,13 @@ clickhouse:
   profiles: {}
   # clickhouse.defaultProfiles -- Default user profile configuration for ClickHouse. !!! Please DO NOT override this !!!
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   defaultProfiles:
     default/allow_experimental_window_functions: "1"
     default/allow_nondeterministic_mutations: "1"
   # clickhouse.initContainers -- Init container to copy the histogramQuantile UDF.
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   initContainers:
     enabled: true
     udf:
@@ -393,7 +393,7 @@ clickhouse:
   # You can use this to override settings, e.g., `prometheus/port: 9363`.
   # For the full list of settings, see https://clickhouse.com/docs/en/operations/settings/settings/
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   settings:
     # Uncomment those lines to enable the built-in Prometheus HTTP endpoint in ClickHouse.
     prometheus/endpoint: /metrics
@@ -403,7 +403,7 @@ clickhouse:
     # prometheus/asynchronous_metrics: true
   # clickhouse.defaultSettings -- Default settings for ClickHouse. !!! Please DO NOT override this !!!
   # @section -- ClickHouse Settings
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
@@ -534,7 +534,7 @@ clickhouse:
       name:
     # clickhouse.clickhouseOperator.logger -- ClickHouse logging configuration.
     # @section -- ClickHouse Operator Logging
-    # @default -- See values
+    # @default -- "Please checkout the default values in values.yml"
     logger:
       level: information
       size: 1000M
@@ -711,27 +711,30 @@ externalClickhouse:
   tcpPort: 9000
 # signoz -- Default values for SigNoz.
 # @section -- SigNoz
-# @default -- "See values"
+# @default -- "Please checkout the default values in values.yml"
 signoz:
   # signoz.name -- The name of the SigNoz component.
   # @default -- "signoz"
+  # @section -- SigNoz
   name: "signoz"
   # signoz.replicaCount -- The number of pod replicas for SigNoz.
   # @default -- 1
+  # @section -- SigNoz
   replicaCount: 1
   # signoz.image -- Image configuration for SigNoz.
   # @section -- SigNoz
   image:
-    # signoz.image.registry -- The container image registry.
+    # signoz.image.registry - The container image registry.
     # @default -- "docker.io"
+    # @section -- SigNoz
     registry: docker.io
-    # signoz.image.repository -- The container image repository.
+    # signoz.image.repository - The container image repository.
     # @default -- "signoz/signoz"
     repository: signoz/signoz
-    # signoz.image.tag -- The container image tag.
+    # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
     tag: v0.90.1
-    # signoz.image.pullPolicy -- The image pull policy.
+    # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
   # signoz.imagePullSecrets -- Image pull secrets for SigNoz.
@@ -743,46 +746,45 @@ signoz:
   # signoz.serviceAccount -- Service Account configuration for SigNoz.
   # @section -- SigNoz
   serviceAccount:
-    # signoz.serviceAccount.create -- Specifies whether a service account should be created.
+    # signoz.serviceAccount.create - Specifies whether a service account should be created.
     # @default -- true
     create: true
-    # signoz.serviceAccount.annotations -- Annotations to add to the service account.
+    # signoz.serviceAccount.annotations - Annotations to add to the service account.
     # @default -- {}
     annotations: {}
-    # signoz.serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+    # signoz.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
 
   # signoz.service -- Service configuration for SigNoz.
   # This allows you to configure how SigNoz is exposed within the Kubernetes cluster.
   # @section -- SigNoz Networking
-  # @default -- See values
   service:
-    # signoz.service.annotations -- Annotations for the SigNoz service object.
+    # signoz.service.annotations - Annotations for the SigNoz service object.
     # @default -- {}
     annotations: {}
-    # signoz.service.labels -- Labels for the SigNoz service object.
+    # signoz.service.labels - Labels for the SigNoz service object.
     # @default -- {}
     labels: {}
-    # signoz.service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
+    # signoz.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
     # @default -- "ClusterIP"
     type: ClusterIP
-    # signoz.service.port -- The external HTTP port for SigNoz.
+    # signoz.service.port - The external HTTP port for SigNoz.
     # @default -- 8080
     port: 8080
-    # signoz.service.internalPort -- The internal gRPC port for SigNoz.
+    # signoz.service.internalPort - The internal gRPC port for SigNoz.
     # @default -- 8085
     internalPort: 8085
-    # signoz.service.opampPort -- The internal OpAMP port for SigNoz.
+    # signoz.service.opampPort - The internal OpAMP port for SigNoz.
     # @default -- 4320
     opampPort: 4320
-    # signoz.service.nodePort -- Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
+    # signoz.service.nodePort - Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
     # @default -- null
     nodePort: null
-    # signoz.service.internalNodePort -- Manually specify the nodePort for the internal port when `service.type` is `NodePort`.
+    # signoz.service.internalNodePort - Manually specify the nodePort for the internal port when `service.type` is `NodePort`.
     # @default -- null
     internalNodePort: null
-    # signoz.service.opampInternalNodePort -- Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
+    # signoz.service.opampInternalNodePort - Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
     # @default -- null
     opampInternalNodePort: null
 
@@ -817,7 +819,7 @@ signoz:
   # Note on Variable Naming: Environment variables are derived from the YAML configuration.
   # For example, a key `provider` under the `telemetry_store` section becomes
   # `signoz_telemetrystore_provider`.
-  # @section -- SigNoz Environment
+  # @section -- SigNoz
   env:
     signoz_telemetrystore_provider: clickhouse
     dot_metrics_enabled: true
@@ -839,47 +841,54 @@ signoz:
 
   # signoz.initContainers -- Init containers for the SigNoz pod.
   # @section -- SigNoz
-  # @default -- "See values"
+  # @default -- "Please checkout the default values in values.yml"
   initContainers:
+    # signoz.initContainers.init -- Signoz init container configuration.
+    # This container is used to wait for ClickHouse to be ready before starting the main SigNoz service.
+    # @section -- SigNoz
+    # @default -- "Please checkout the default values in values.yml"
     init:
-      # signoz.initContainers.init.enabled -- Enable the init container to wait for ClickHouse.
+      # signoz.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
       # @default -- true
       enabled: true
-      # signoz.initContainers.init.image -- Image for the init container.
-      # @default -- See values
+      # signoz.initContainers.init.image - Image for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       image:
         registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
-      # signoz.initContainers.init.command -- Command settings for the init container.
-      # @default -- See values
+      # signoz.initContainers.init.command - Command settings for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       command:
         delay: 5
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting query service now"
-      # signoz.initContainers.init.resources -- Resource requests and limits for the init container.
+      # signoz.initContainers.init.resources - Resource requests and limits for the init container.
       # @default -- {}
       resources: {}
+    # signoz.initContainers.migration -- Migration init container configuration.
+    # This container is used to run migrations before the main SigNoz service starts.
+    # @section -- SigNoz
     migration:
-      # signoz.initContainers.migration.enabled -- Enable a migration init container.
+      # signoz.initContainers.migration.enabled - Enable a migration init container.
       # @default -- false
       enabled: false
-      # signoz.initContainers.migration.image -- Image for the migration container.
-      # @default -- See values
+      # signoz.initContainers.migration.image - Image for the migration container.
+      # @default -- "Please checkout the default values in values.yml"
       image:
         registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
-      # signoz.initContainers.migration.args -- Arguments for the migration container's command.
+      # signoz.initContainers.migration.args - Arguments for the migration container's command.
       # @default -- []
       args: []
-      # signoz.initContainers.migration.command -- Command for the migration container.
+      # signoz.initContainers.migration.command - Command for the migration container.
       # @default -- []
       command: []
-      # signoz.initContainers.migration.resources -- Resource requests and limits for the migration container.
+      # signoz.initContainers.migration.resources - Resource requests and limits for the migration container.
       # @default -- {}
       resources: {}
 
@@ -906,17 +915,17 @@ signoz:
   # runAsUser: 1000
 
   # signoz.additionalVolumeMounts -- Additional volume mounts for the SigNoz container.
-  # @section -- SigNoz Storage
+  # @section -- SigNoz
   # @default -- []
   additionalVolumeMounts: []
   # signoz.additionalVolumes -- Additional volumes for the SigNoz pod.
-  # @section -- SigNoz Storage
+  # @section -- SigNoz
   # @default -- []
   additionalVolumes: []
 
   # signoz.livenessProbe -- Liveness probe configuration.
   # @section -- SigNoz
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   livenessProbe:
     enabled: true
     port: http
@@ -929,7 +938,7 @@ signoz:
 
   # signoz.readinessProbe -- Readiness probe configuration.
   # @section -- SigNoz
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   readinessProbe:
     enabled: true
     port: http
@@ -952,27 +961,29 @@ signoz:
   # signoz.ingress -- (object) Ingress configuration for SigNoz.
   # @section -- SigNoz Networking
   ingress:
-    # signoz.ingress.enabled -- Enable ingress controller resource.
+    # signoz.ingress.enabled - Enable ingress controller resource.
     # @default -- false
     enabled: false
-    # signoz.ingress.className -- Ingress class name.
+    # signoz.ingress.className - Ingress class name.
     # @default -- ""
     className: ""
-    # signoz.ingress.annotations -- Annotations for the ingress resource.
+    # signoz.ingress.annotations - Annotations for the ingress resource.
     # @default -- {}
     annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # signoz.ingress.hosts -- Hostname and path configurations for the ingress.
+    # signoz.ingress.hosts - Hostname and path configurations for the ingress.
+    # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # signoz.ingress.tls -- TLS configuration for the ingress.
+    # signoz.ingress.tls - TLS configuration for the ingress.
     # @default -- []
+    # @section -- SigNoz Networking
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
@@ -980,7 +991,7 @@ signoz:
 
   # signoz.resources -- Resource requests and limits.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # @section -- SigNoz Resources
+  # @section -- SigNoz
   # @default -- '{ requests: { cpu: "100m", memory: "100Mi" } }'
   resources:
     requests:
@@ -991,83 +1002,89 @@ signoz:
   #     memory: 1000Mi
 
   # signoz.priorityClassName -- Priority class for the SigNoz pods.
-  # @section -- SigNoz Scheduling
+  # @section -- SigNoz
   # @default -- ""
   priorityClassName: ""
   # signoz.nodeSelector -- Node selector for pod assignment.
-  # @section -- SigNoz Scheduling
+  # @section -- SigNoz
   # @default -- {}
   nodeSelector: {}
   # signoz.tolerations -- Tolerations for pod assignment.
-  # @section -- SigNoz Scheduling
+  # @section -- SigNoz
   # @default -- []
   tolerations: []
   # signoz.affinity -- Affinity settings for pod assignment.
-  # @section -- SigNoz Scheduling
+  # @section -- SigNoz
   # @default -- {}
   affinity: {}
   # signoz.topologySpreadConstraints -- Topology spread constraints for pod distribution.
-  # @section -- SigNoz Scheduling
+  # @section -- SigNoz
   # @default -- []
   topologySpreadConstraints: []
 
   # signoz.persistence -- Persistence configuration for the internal SQLite database.
-  # @section -- SigNoz Persistence
+  # @section -- SigNoz
   persistence:
-    # signoz.persistence.enabled -- Enable data persistence using a PVC.
+    # signoz.persistence.enabled - Enable data persistence using a PVC.
     # @default -- true
     enabled: true
-    # signoz.persistence.existingClaim -- Use a manually managed PVC.
+    # signoz.persistence.existingClaim - Use a manually managed PVC.
     # @default -- ""
     existingClaim: ""
-    # signoz.persistence.storageClass -- The storage class for the PVC. If "-", disables dynamic provisioning.
+    # signoz.persistence.storageClass - The storage class for the PVC. If "-", disables dynamic provisioning.
     # @default -- null
     storageClass: null
-    # signoz.persistence.accessModes -- Access modes for the persistent volume.
+    # signoz.persistence.accessModes - Access modes for the persistent volume.
     # @default -- ["ReadWriteOnce"]
     accessModes:
       - ReadWriteOnce
-    # signoz.persistence.size -- The size of the persistent volume.
+    # signoz.persistence.size - The size of the persistent volume.
     # @default -- "1Gi"
     size: 1Gi
 # schemaMigrator -- Default values for the Schema Migrator.
 # @section -- Schema Migrator
-# @default -- "See values"
+# @default -- "Please checkout the default values in values.yml"
 schemaMigrator:
   # schemaMigrator.enabled -- Enable the Schema Migrator component.
   # @default -- true
+  # @section -- Schema Migrator
   enabled: true
   # schemaMigrator.name -- The name of the Schema Migrator component.
   # @default -- "schema-migrator"
+  # @section -- Schema Migrator
   name: "schema-migrator"
   # schemaMigrator.image -- Image configuration for the Schema Migrator.
-  # @section -- Schema Migrator Image
+  # @section -- Schema Migrator
   image:
-    # schemaMigrator.image.registry -- The container image registry.
+    # schemaMigrator.image.registry - The container image registry.
     # @default -- "docker.io"
     registry: docker.io
-    # schemaMigrator.image.repository -- The container image repository.
+    # schemaMigrator.image.repository - The container image repository.
     # @default -- "signoz/signoz-schema-migrator"
     repository: signoz/signoz-schema-migrator
-    # schemaMigrator.image.tag -- The container image tag.
+    # schemaMigrator.image.tag - The container image tag.
     # @default -- "v0.128.2"
     tag: v0.128.2
-    # schemaMigrator.image.pullPolicy -- The image pull policy.
+    # schemaMigrator.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
   # schemaMigrator.args -- Arguments for the Schema Migrator.
   # @default -- ["--up="]
+  # @section -- Schema Migrator
   args:
     - "--up="
   # schemaMigrator.annotations -- Annotations for the Schema Migrator job.
   # Required for ArgoCD hooks if `upgradeHelmHooks` is enabled.
   # @default -- {}
+  # @section -- Schema Migrator
   annotations: {}
   # schemaMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks for Helm or Sync Waves for ArgoCD.
   # @default -- true
+  # @section -- Schema Migrator
   upgradeHelmHooks: true
   # schemaMigrator.enableReplication -- Whether to enable replication for the Schema Migrator.
   # @default -- false
+  # @section -- Schema Migrator
   enableReplication: false
 
   # schemaMigrator.nodeSelector -- Node selector for pod assignment.
@@ -1089,30 +1106,37 @@ schemaMigrator:
 
   # schemaMigrator.initContainers -- Init containers for the Schema Migrator pod.
   # @section -- Schema Migrator
-  # @default -- "See values"
+  # @default -- "Please checkout the default values in values.yml"
   initContainers:
+    # schemaMigrator.initContainers.init -- Schema Migrator init container configuration.
+    # This container is used to wait for ClickHouse to be ready before starting the main Schema Migrator service.
+    # @section -- Schema Migrator
+    # @default -- "Please checkout the default values in values.yml"
     init:
-      # schemaMigrator.initContainers.init.enabled -- Enable the init container to wait for ClickHouse.
+      # schemaMigrator.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
       # @default -- true
       enabled: true
-      # schemaMigrator.initContainers.init.image -- Image for the init container.
-      # @default -- See values
+      # schemaMigrator.initContainers.init.image - Image for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       image:
         registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
-      # schemaMigrator.initContainers.init.command -- Command settings for the init container.
-      # @default -- See values
+      # schemaMigrator.initContainers.init.command - Command settings for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       command:
         delay: 5
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting schema migrator now"
-      # schemaMigrator.initContainers.init.resources -- Resource requests and limits for the init container.
+      # schemaMigrator.initContainers.init.resources - Resource requests and limits for the init container.
       # @default -- {}
       resources: {}
-    # @ignored
+    # schemaMigrator.initContainers.chReady -- ClickHouse ready check container configuration.
+    # This container is used to ensure ClickHouse is ready with the correct version, shard count, and replica count before starting the Schema Migrator.
+    # @section -- Schema Migrator
+    # @default -- "Please checkout the default values in values.yml"
     chReady:
       enabled: true
       image:
@@ -1170,159 +1194,169 @@ schemaMigrator:
           done
           echo "clickhouse ready, starting schema migrator now"
       resources: {}
+    # schemaMigrator.initContainers.wait -- Wait container configuration.
+    # This container is used to wait for other resources before starting the Schema Migrator.
+    # @section -- Schema Migrator
+    # @default -- "Please checkout the default values in values.yml"
     wait:
-      # schemaMigrator.initContainers.wait.enabled -- Enable the init container to wait for other resources.
+      # schemaMigrator.initContainers.wait.enabled - Enable the init container to wait for other resources.
       # @default -- true
       enabled: true
-      # schemaMigrator.initContainers.wait.image -- Image for the wait container.
-      # @default -- See values
+      # schemaMigrator.initContainers.wait.image - Image for the wait container.
+      # @default -- "Please checkout the default values in values.yml"
       image:
         registry: docker.io
         repository: groundnuty/k8s-wait-for
         tag: v2.0
         pullPolicy: IfNotPresent
-      # schemaMigrator.initContainers.wait.env -- Environment variables for the wait container.
+      # schemaMigrator.initContainers.wait.env - Environment variables for the wait container.
       # @default -- []
       env: []
 
   # schemaMigrator.serviceAccount -- Service Account configuration for the Schema Migrator.
   # @section -- Schema Migrator
   serviceAccount:
-    # schemaMigrator.serviceAccount.create -- Specifies whether a service account should be created.
+    # schemaMigrator.serviceAccount.create - Specifies whether a service account should be created.
     # @default -- true
     create: true
-    # schemaMigrator.serviceAccount.annotations -- Annotations to add to the service account.
+    # schemaMigrator.serviceAccount.annotations - Annotations to add to the service account.
     # @default -- {}
     annotations: {}
-    # schemaMigrator.serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+    # schemaMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
 
   # schemaMigrator.role -- RBAC configuration for the Schema Migrator.
   # @section -- Schema Migrator
-  # @default -- See values
+  # @default -- "Please checkout the default values in values.yml"
   role:
-    # schemaMigrator.role.create -- Specifies whether a ClusterRole should be created.
+    # schemaMigrator.role.create - Specifies whether a ClusterRole should be created.
     # @default -- true
     create: true
-    # schemaMigrator.role.annotations -- Annotations to add to the ClusterRole.
+    # schemaMigrator.role.annotations - Annotations to add to the ClusterRole.
     # @default -- {}
     annotations: {}
-    # schemaMigrator.role.name -- The name of the ClusterRole to use. If not set and `create` is true, a name is generated.
+    # schemaMigrator.role.name - The name of the ClusterRole to use. If not set and `create` is true, a name is generated.
     # @default -- ""
     name: ""
-    # schemaMigrator.role.rules -- A set of RBAC rules.
+    # schemaMigrator.role.rules - A set of RBAC rules.
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- See values
+    # @default -- "Please checkout the default values in values.yml"
     rules:
       - apiGroups: ["batch"]
         resources: ["jobs"]
         verbs: ["get", "list", "watch"]
-    # schemaMigrator.role.roleBinding -- ClusterRoleBinding configuration.
+    # schemaMigrator.role.roleBinding - ClusterRoleBinding configuration.
     roleBinding:
-      # schemaMigrator.role.roleBinding.annotations -- Annotations to add to the ClusterRoleBinding.
+      # schemaMigrator.role.roleBinding.annotations - Annotations to add to the ClusterRoleBinding.
       # @default -- {}
       annotations: {}
-      # schemaMigrator.role.roleBinding.name -- The name of the ClusterRoleBinding to use. If not set, a name is generated.
+      # schemaMigrator.role.roleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
       # @default -- ""
       name: ""
 # Default values for OtelCollector
 # otelCollector -- Default values for the OpenTelemetry Collector.
 # @section -- Otel Collector
-# @default -- "See values"
+# @default -- "Please checkout the default values in values.yml"
 otelCollector:
   # otelCollector.name -- The name of the Otel Collector component.
   # @default -- "otel-collector"
+  # @section -- Otel Collector
   name: "otel-collector"
   # otelCollector.image -- Image configuration for the Otel Collector.
-  # @section -- Otel Collector Image
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   image:
-    # otelCollector.image.registry -- The container image registry.
+    # otelCollector.image.registry - The container image registry.
     # @default -- "docker.io"
     registry: docker.io
-    # otelCollector.image.repository -- The container image repository.
+    # otelCollector.image.repository - The container image repository.
     # @default -- "signoz/signoz-otel-collector"
     repository: signoz/signoz-otel-collector
-    # otelCollector.image.tag -- The container image tag.
+    # otelCollector.image.tag - The container image tag.
     # @default -- "v0.128.2"
     tag: v0.128.2
-    # otelCollector.image.pullPolicy -- The image pull policy.
+    # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
   # otelCollector.imagePullSecrets -- Image pull secrets for the Otel Collector.
   # This has higher precedence than the root level or global value.
-  # @section -- Otel Collector Image
+  # @section -- Otel Collector
   # @default -- []
   imagePullSecrets: []
   # otelCollector.initContainers -- Init containers for the Otel Collector pod.
-  # @section -- Otel Collector Init Containers
-  # @default -- "See values"
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   initContainers:
+    # otelCollector.initContainers.init -- Otel Collector init container configuration.
+    # This container is used to wait for ClickHouse to be ready before starting the main Otel Collector service.
+    # @section -- Otel Collector
+    # @default -- "Please checkout the default values in values.yml"
     init:
-      # otelCollector.initContainers.init.enabled -- Enable the init container to wait for ClickHouse.
+      # otelCollector.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
       # @default -- false
       enabled: false
-      # otelCollector.initContainers.init.image -- Image for the init container.
-      # @default -- See values
+      # otelCollector.initContainers.init.image - Image for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       image:
         registry: docker.io
         repository: busybox
         tag: 1.35
         pullPolicy: IfNotPresent
-      # otelCollector.initContainers.init.command -- Command settings for the init container.
-      # @default -- See values
+      # otelCollector.initContainers.init.command - Command settings for the init container.
+      # @default -- "Please checkout the default values in values.yml"
       command:
         delay: 5
         endpoint: /ping
         waitMessage: "waiting for clickhouseDB"
         doneMessage: "clickhouse ready, starting otel collector now"
-      # otelCollector.initContainers.init.resources -- Resource requests and limits for the init container.
+      # otelCollector.initContainers.init.resources - Resource requests and limits for the init container.
       # @default -- {}
       resources: {}
 
   # otelCollector.command -- Configuration for the Otel Collector executable.
   # @section -- Otel Collector
   command:
-    # otelCollector.command.name -- Otel Collector command name.
+    # otelCollector.command.name - Otel Collector command name.
     # @default -- "/signoz-otel-collector"
     name: /signoz-otel-collector
-    # otelCollector.command.extraArgs -- Extra command-line arguments for the Otel Collector.
+    # otelCollector.command.extraArgs - Extra command-line arguments for the Otel Collector.
     # @default -- ["--feature-gates=-pkg.translator.prometheus.NormalizeName"]
     extraArgs:
       - --feature-gates=-pkg.translator.prometheus.NormalizeName
   # otelCollector.configMap -- ConfigMap settings.
   # @section -- Otel Collector
   configMap:
-    # otelCollector.configMap.create -- Specifies whether a ConfigMap should be created.
+    # otelCollector.configMap.create - Specifies whether a ConfigMap should be created.
     # @default -- true
     create: true
 
   # otelCollector.serviceAccount -- Service Account configuration for the Otel Collector.
-  # @section -- Otel Collector Security
+  # @section -- Otel Collector
   serviceAccount:
-    # otelCollector.serviceAccount.create -- Specifies whether a service account should be created.
+    # otelCollector.serviceAccount.create - Specifies whether a service account should be created.
     # @default -- true
     create: true
-    # otelCollector.serviceAccount.annotations -- Annotations to add to the service account.
+    # otelCollector.serviceAccount.annotations - Annotations to add to the service account.
     # @default -- {}
     annotations: {}
-    # otelCollector.serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+    # otelCollector.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
 
   # otelCollector.service -- Service configuration for the Otel Collector.
   # @section -- Otel Collector Networking
   service:
-    # otelCollector.service.annotations -- Annotations for the Otel Collector service object.
+    # otelCollector.service.annotations - Annotations for the Otel Collector service object.
     # @default -- {}
     annotations: {}
-    # otelCollector.service.labels -- Labels for the Otel Collector service object.
+    # otelCollector.service.labels - Labels for the Otel Collector service object.
     # @default -- {}
     labels: {}
-    # otelCollector.service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
+    # otelCollector.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
     # @default -- "ClusterIP"
     type: ClusterIP
-    # otelCollector.service.loadBalancerSourceRanges -- Allowed source ranges when service type is `LoadBalancer`.
+    # otelCollector.service.loadBalancerSourceRanges - Allowed source ranges when service type is `LoadBalancer`.
     # @default -- []
     loadBalancerSourceRanges: []
 
@@ -1341,7 +1375,7 @@ otelCollector:
   # @default -- {}
   podLabels: {}
   # otelCollector.additionalEnvs -- Additional environment variables for the Otel Collector.
-  # @section -- Otel Collector Environment
+  # @section -- Otel Collector
   # @default -- {}
   additionalEnvs: {}
   # env_key: env_value
@@ -1364,21 +1398,24 @@ otelCollector:
   replicaCount: 1
 
   # otelCollector.clusterRole -- RBAC ClusterRole configuration for the Otel Collector.
-  # @section -- Otel Collector Security
-  # @default -- "See values"
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   clusterRole:
-    # otelCollector.clusterRole.create -- Specifies whether a ClusterRole should be created.
+    # otelCollector.clusterRole.create - Specifies whether a ClusterRole should be created.
     # @default -- true
+    # @section -- Otel Collector
     create: true
-    # otelCollector.clusterRole.annotations -- Annotations to add to the ClusterRole.
+    # otelCollector.clusterRole.annotations - Annotations to add to the ClusterRole.
     # @default -- {}
     annotations: {}
-    # otelCollector.clusterRole.name -- The name of the ClusterRole to use. If not set, a name is generated.
+    # @section -- Otel Collector
+    # otelCollector.clusterRole.name - The name of the ClusterRole to use. If not set, a name is generated.
     # @default -- ""
     name: ""
-    # otelCollector.clusterRole.rules -- A set of RBAC rules. Required for the k8sattributes processor.
+    # otelCollector.clusterRole.rules - A set of RBAC rules. Required for the k8sattributes processor.
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- "See values"
+    # @default -- "Please checkout the default values in values.yml"
+    # @section -- Otel Collector
     rules:
       - apiGroups: [""]
         resources: ["pods", "namespaces", "nodes"]
@@ -1392,200 +1429,222 @@ otelCollector:
       - apiGroups: ["batch"]
         resources: ["jobs"]
         verbs: ["get", "list", "watch"]
-    # otelCollector.clusterRole.clusterRoleBinding -- ClusterRoleBinding configuration.
+    # otelCollector.clusterRole.clusterRoleBinding - ClusterRoleBinding configuration.
     clusterRoleBinding:
-      # otelCollector.clusterRole.clusterRoleBinding.annotations -- Annotations to add to the ClusterRoleBinding.
+      # otelCollector.clusterRole.clusterRoleBinding.annotations - Annotations to add to the ClusterRoleBinding.
       # @default -- {}
       annotations: {}
-      # otelCollector.clusterRole.clusterRoleBinding.name -- The name of the ClusterRoleBinding to use. If not set, a name is generated.
+      # otelCollector.clusterRole.clusterRoleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
       # @default -- ""
       name: ""
 
   # otelCollector.ports -- Port configurations for the Otel Collector.
-  # @section -- Otel Collector Networking
-  # @default -- "See values"
+  # @section -- Otel Collector Ports
+  # @default -- "Please checkout the default values in values.yml"
   ports:
+    # otelCollector.ports.otlp -- OTLP gRPC port configuration.
+    # @section -- Otel Collector Ports
     otlp:
-      # otelCollector.ports.otlp.enabled -- Whether to enable the service port for OTLP gRPC.
+      # otelCollector.ports.otlp.enabled - Whether to enable the service port for OTLP gRPC.
       # @default -- true
       enabled: true
-      # otelCollector.ports.otlp.containerPort -- Container port for OTLP gRPC.
+      # otelCollector.ports.otlp.containerPort - Container port for OTLP gRPC.
       # @default -- 4317
       containerPort: 4317
-      # otelCollector.ports.otlp.servicePort -- Service port for OTLP gRPC.
+      # otelCollector.ports.otlp.servicePort - Service port for OTLP gRPC.
       # @default -- 4317
       servicePort: 4317
-      # otelCollector.ports.otlp.nodePort -- Node port for OTLP gRPC.
+      # otelCollector.ports.otlp.nodePort - Node port for OTLP gRPC.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.otlp.protocol -- Protocol for OTLP gRPC.
+      # otelCollector.ports.otlp.protocol - Protocol for OTLP gRPC.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.otlp-http -- OTLP HTTP port configuration.
+    # @section -- Otel Collector Ports
     otlp-http:
-      # otelCollector.ports.otlp-http.enabled -- Whether to enable the service port for OTLP HTTP.
+      # otelCollector.ports.otlp-http.enabled - Whether to enable the service port for OTLP HTTP.
       # @default -- true
       enabled: true
-      # otelCollector.ports.otlp-http.containerPort -- Container port for OTLP HTTP.
+      # otelCollector.ports.otlp-http.containerPort - Container port for OTLP HTTP.
       # @default -- 4318
       containerPort: 4318
-      # otelCollector.ports.otlp-http.servicePort -- Service port for OTLP HTTP.
+      # otelCollector.ports.otlp-http.servicePort - Service port for OTLP HTTP.
       # @default -- 4318
       servicePort: 4318
-      # otelCollector.ports.otlp-http.nodePort -- Node port for OTLP HTTP.
+      # otelCollector.ports.otlp-http.nodePort - Node port for OTLP HTTP.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.otlp-http.protocol -- Protocol for OTLP HTTP.
+      # otelCollector.ports.otlp-http.protocol - Protocol for OTLP HTTP.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.jaeger-compact -- Jaeger Compact port configuration.
+    # @section -- Otel Collector Ports
     jaeger-compact:
-      # otelCollector.ports.jaeger-compact.enabled -- Whether to enable the service port for Jaeger Compact.
+      # otelCollector.ports.jaeger-compact.enabled - Whether to enable the service port for Jaeger Compact.
       # @default -- false
       enabled: false
-      # otelCollector.ports.jaeger-compact.containerPort -- Container port for Jaeger Compact.
+      # otelCollector.ports.jaeger-compact.containerPort - Container port for Jaeger Compact.
       # @default -- 6831
       containerPort: 6831
-      # otelCollector.ports.jaeger-compact.servicePort -- Service port for Jaeger Compact.
+      # otelCollector.ports.jaeger-compact.servicePort - Service port for Jaeger Compact.
       # @default -- 6831
       servicePort: 6831
-      # otelCollector.ports.jaeger-compact.nodePort -- Node port for Jaeger Compact.
+      # otelCollector.ports.jaeger-compact.nodePort - Node port for Jaeger Compact.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.jaeger-compact.protocol -- Protocol for Jaeger Compact.
+      # otelCollector.ports.jaeger-compact.protocol - Protocol for Jaeger Compact.
       # @default -- "UDP"
       protocol: UDP
+    # otelCollector.ports.jaeger-thrift -- Jaeger Thrift port configuration.
+    # @section -- Otel Collector Ports
     jaeger-thrift:
-      # otelCollector.ports.jaeger-thrift.enabled -- Whether to enable the service port for Jaeger Thrift HTTP.
+      # otelCollector.ports.jaeger-thrift.enabled - Whether to enable the service port for Jaeger Thrift HTTP.
       # @default -- true
       enabled: true
-      # otelCollector.ports.jaeger-thrift.containerPort -- Container port for Jaeger Thrift.
+      # otelCollector.ports.jaeger-thrift.containerPort - Container port for Jaeger Thrift.
       # @default -- 14268
       containerPort: 14268
-      # otelCollector.ports.jaeger-thrift.servicePort -- Service port for Jaeger Thrift.
+      # otelCollector.ports.jaeger-thrift.servicePort - Service port for Jaeger Thrift.
       # @default -- 14268
       servicePort: 14268
-      # otelCollector.ports.jaeger-thrift.nodePort -- Node port for Jaeger Thrift.
+      # otelCollector.ports.jaeger-thrift.nodePort - Node port for Jaeger Thrift.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.jaeger-thrift.protocol -- Protocol for Jaeger Thrift.
+      # otelCollector.ports.jaeger-thrift.protocol - Protocol for Jaeger Thrift.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.jaeger-grpc -- Jaeger gRPC port configuration.
+    # @section -- Otel Collector Ports
     jaeger-grpc:
-      # otelCollector.ports.jaeger-grpc.enabled -- Whether to enable the service port for Jaeger gRPC.
+      # otelCollector.ports.jaeger-grpc.enabled - Whether to enable the service port for Jaeger gRPC.
       # @default -- true
       enabled: true
-      # otelCollector.ports.jaeger-grpc.containerPort -- Container port for Jaeger gRPC.
+      # otelCollector.ports.jaeger-grpc.containerPort - Container port for Jaeger gRPC.
       # @default -- 14250
       containerPort: 14250
-      # otelCollector.ports.jaeger-grpc.servicePort -- Service port for Jaeger gRPC.
+      # otelCollector.ports.jaeger-grpc.servicePort - Service port for Jaeger gRPC.
       # @default -- 14250
       servicePort: 14250
-      # otelCollector.ports.jaeger-grpc.nodePort -- Node port for Jaeger gRPC.
+      # otelCollector.ports.jaeger-grpc.nodePort - Node port for Jaeger gRPC.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.jaeger-grpc.protocol -- Protocol for Jaeger gRPC.
+      # otelCollector.ports.jaeger-grpc.protocol - Protocol for Jaeger gRPC.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.zipkin -- Zipkin port configuration.
+    # @section -- Otel Collector Ports
     zipkin:
-      # otelCollector.ports.zipkin.enabled -- Whether to enable the service port for Zipkin.
+      # otelCollector.ports.zipkin.enabled - Whether to enable the service port for Zipkin.
       # @default -- false
       enabled: false
-      # otelCollector.ports.zipkin.containerPort -- Container port for Zipkin.
+      # otelCollector.ports.zipkin.containerPort - Container port for Zipkin.
       # @default -- 9411
       containerPort: 9411
-      # otelCollector.ports.zipkin.servicePort -- Service port for Zipkin.
+      # otelCollector.ports.zipkin.servicePort - Service port for Zipkin.
       # @default -- 9411
       servicePort: 9411
-      # otelCollector.ports.zipkin.nodePort -- Node port for Zipkin.
+      # otelCollector.ports.zipkin.nodePort - Node port for Zipkin.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.zipkin.protocol -- Protocol for Zipkin.
+      # otelCollector.ports.zipkin.protocol - Protocol for Zipkin.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.metrics -- Internal metrics port configuration.
+    # @section -- Otel Collector Ports
     metrics:
-      # otelCollector.ports.metrics.enabled -- Whether to enable the service port for internal metrics.
+      # otelCollector.ports.metrics.enabled - Whether to enable the service port for internal metrics.
       # @default -- true
       enabled: true
-      # otelCollector.ports.metrics.containerPort -- Container port for internal metrics.
+      # otelCollector.ports.metrics.containerPort - Container port for internal metrics.
       # @default -- 8888
       containerPort: 8888
-      # otelCollector.ports.metrics.servicePort -- Service port for internal metrics.
+      # otelCollector.ports.metrics.servicePort - Service port for internal metrics.
       # @default -- 8888
       servicePort: 8888
-      # otelCollector.ports.metrics.nodePort -- Node port for internal metrics.
+      # otelCollector.ports.metrics.nodePort - Node port for internal metrics.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.metrics.protocol -- Protocol for internal metrics.
+      # otelCollector.ports.metrics.protocol - Protocol for internal metrics.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.zpages -- ZPages port configuration.
+    # @section -- Otel Collector Ports
     zpages:
-      # otelCollector.ports.zpages.enabled -- Whether to enable the service port for ZPages.
+      # otelCollector.ports.zpages.enabled - Whether to enable the service port for ZPages.
       # @default -- false
       enabled: false
-      # otelCollector.ports.zpages.containerPort -- Container port for ZPages.
+      # otelCollector.ports.zpages.containerPort - Container port for ZPages.
       # @default -- 55679
       containerPort: 55679
-      # otelCollector.ports.zpages.servicePort -- Service port for ZPages.
+      # otelCollector.ports.zpages.servicePort - Service port for ZPages.
       # @default -- 55679
       servicePort: 55679
-      # otelCollector.ports.zpages.nodePort -- Node port for ZPages.
+      # otelCollector.ports.zpages.nodePort - Node port for ZPages.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.zpages.protocol -- Protocol for ZPages.
+      # otelCollector.ports.zpages.protocol - Protocol for ZPages.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.pprof -- pprof port configuration.
+    # @section -- Otel Collector Ports
     pprof:
-      # otelCollector.ports.pprof.enabled -- Whether to enable the service port for pprof.
+      # otelCollector.ports.pprof.enabled - Whether to enable the service port for pprof.
       # @default -- false
       enabled: false
-      # otelCollector.ports.pprof.containerPort -- Container port for pprof.
+      # otelCollector.ports.pprof.containerPort - Container port for pprof.
       # @default -- 1777
       containerPort: 1777
-      # otelCollector.ports.pprof.servicePort -- Service port for pprof.
+      # otelCollector.ports.pprof.servicePort - Service port for pprof.
       # @default -- 1777
       servicePort: 1777
-      # otelCollector.ports.pprof.nodePort -- Node port for pprof.
+      # otelCollector.ports.pprof.nodePort - Node port for pprof.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.pprof.protocol -- Protocol for pprof.
+      # otelCollector.ports.pprof.protocol - Protocol for pprof.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.logsheroku -- Heroku logs port configuration.
+    # @section -- Otel Collector Ports
     logsheroku:
-      # otelCollector.ports.logsheroku.enabled -- Whether to enable the service port for Heroku logs.
+      # otelCollector.ports.logsheroku.enabled - Whether to enable the service port for Heroku logs.
       # @default -- true
       enabled: true
-      # otelCollector.ports.logsheroku.containerPort -- Container port for Heroku logs.
+      # otelCollector.ports.logsheroku.containerPort - Container port for Heroku logs.
       # @default -- 8081
       containerPort: 8081
-      # otelCollector.ports.logsheroku.servicePort -- Service port for Heroku logs.
+      # otelCollector.ports.logsheroku.servicePort - Service port for Heroku logs.
       # @default -- 8081
       servicePort: 8081
-      # otelCollector.ports.logsheroku.nodePort -- Node port for Heroku logs.
+      # otelCollector.ports.logsheroku.nodePort - Node port for Heroku logs.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.logsheroku.protocol -- Protocol for Heroku logs.
+      # otelCollector.ports.logsheroku.protocol - Protocol for Heroku logs.
       # @default -- "TCP"
       protocol: TCP
+    # otelCollector.ports.logsjson -- JSON logs port configuration.
+    # @section -- Otel Collector Ports
     logsjson:
-      # otelCollector.ports.logsjson.enabled -- Whether to enable the service port for JSON logs.
+      # otelCollector.ports.logsjson.enabled - Whether to enable the service port for JSON logs.
       # @default -- true
       enabled: true
-      # otelCollector.ports.logsjson.containerPort -- Container port for JSON logs.
+      # otelCollector.ports.logsjson.containerPort - Container port for JSON logs.
       # @default -- 8082
       containerPort: 8082
-      # otelCollector.ports.logsjson.servicePort -- Service port for JSON logs.
+      # otelCollector.ports.logsjson.servicePort - Service port for JSON logs.
       # @default -- 8082
       servicePort: 8082
-      # otelCollector.ports.logsjson.nodePort -- Node port for JSON logs.
+      # otelCollector.ports.logsjson.nodePort - Node port for JSON logs.
       # @default -- ""
       nodePort: ""
-      # otelCollector.ports.logsjson.protocol -- Protocol for JSON logs.
+      # otelCollector.ports.logsjson.protocol - Protocol for JSON logs.
       # @default -- "TCP"
       protocol: TCP
 
   # otelCollector.livenessProbe -- Liveness probe configuration.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
-  # @section -- Otel Collector Health Probes
-  # @default -- See values
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   livenessProbe:
     enabled: true
     port: 13133
@@ -1596,8 +1655,8 @@ otelCollector:
     failureThreshold: 6
     successThreshold: 1
   # otelCollector.readinessProbe -- Readiness probe configuration.
-  # @section -- Otel Collector Health Probes
-  # @default -- "See values"
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   readinessProbe:
     enabled: true
     port: 13133
@@ -1608,33 +1667,33 @@ otelCollector:
     failureThreshold: 6
     successThreshold: 1
   # otelCollector.customLivenessProbe -- Custom liveness probe to override the default.
-  # @section -- Otel Collector Health Probes
+  # @section -- Otel Collector
   # @default -- {}
   customLivenessProbe: {}
   # otelCollector.customReadinessProbe -- Custom readiness probe to override the default.
-  # @section -- Otel Collector Health Probes
+  # @section -- Otel Collector
   # @default -- {}
   customReadinessProbe: {}
 
   # otelCollector.extraVolumeMounts -- Extra volume mounts for the Otel Collector pod.
-  # @section -- Otel Collector Storage
+  # @section -- Otel Collector
   # @default -- []
   extraVolumeMounts: []
   # otelCollector.extraVolumes -- Extra volumes for the Otel Collector pod.
-  # @section -- Otel Collector Storage
+  # @section -- Otel Collector
   # @default -- []
   extraVolumes: []
 
   # otelCollector.ingress -- Ingress configuration for the Otel Collector.
   # @section -- Otel Collector Networking
   ingress:
-    # otelCollector.ingress.enabled -- Enable ingress controller resource.
+    # otelCollector.ingress.enabled - Enable ingress controller resource.
     # @default -- false
     enabled: false
-    # otelCollector.ingress.className -- Ingress class name.
+    # otelCollector.ingress.className - Ingress class name.
     # @default -- ""
     className: ""
-    # otelCollector.ingress.annotations -- Annotations for the ingress resource.
+    # otelCollector.ingress.annotations - Annotations for the ingress resource.
     # @default -- {}
     annotations: {}
     # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -1643,14 +1702,15 @@ otelCollector:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # otelCollector.ingress.hosts -- Hostname and path configurations for the ingress.
-    # @default -- See values
+    # @default -- "Please checkout the default values in values.yml"
+    # @section -- Otel Collector Networking
     hosts:
       - host: otelcollector.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 4318
-    # otelCollector.ingress.tls -- TLS configuration for the ingress.
+    # otelCollector.ingress.tls - TLS configuration for the ingress.
     # @default -- []
     tls: []
     #  - secretName: chart-example-tls
@@ -1659,7 +1719,7 @@ otelCollector:
 
   # otelCollector.resources -- Resource requests and limits.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # @section -- Otel Collector Resources
+  # @section -- Otel Collector
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
   resources:
     requests:
@@ -1670,24 +1730,24 @@ otelCollector:
   #     memory: 2Gi
 
   # otelCollector.priorityClassName -- Priority class for the Otel Collector pods.
-  # @section -- Otel Collector Scheduling
+  # @section -- Otel Collector
   # @default -- ""
   priorityClassName: ""
   # otelCollector.nodeSelector -- Node selector for pod assignment.
-  # @section -- Otel Collector Scheduling
+  # @section -- Otel Collector
   # @default -- {}
   nodeSelector: {}
   # otelCollector.tolerations -- Tolerations for pod assignment.
-  # @section -- Otel Collector Scheduling
+  # @section -- Otel Collector
   # @default -- []
   tolerations: []
   # otelCollector.affinity -- Affinity settings for pod assignment.
-  # @section -- Otel Collector Scheduling
+  # @section -- Otel Collector
   # @default -- {}
   affinity: {}
   # otelCollector.topologySpreadConstraints -- Topology spread constraints for pod distribution.
-  # @section -- Otel Collector Scheduling
-  # @default -- See values
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
@@ -1697,13 +1757,13 @@ otelCollector:
           app.kubernetes.io/component: otel-collector
 
   # otelCollector.podSecurityContext -- Pod-level security context.
-  # @section -- Otel Collector Security
+  # @section -- Otel Collector
   # @default -- {}
   podSecurityContext: {}
   # fsGroup: 2000
 
   # otelCollector.securityContext -- Container-level security context.
-  # @section -- Otel Collector Security
+  # @section -- Otel Collector
   # @default -- {}
   securityContext: {}
   # capabilities:
@@ -1714,25 +1774,25 @@ otelCollector:
   # runAsUser: 1000
 
   # otelCollector.autoscaling -- Autoscaling configuration (HPA).
-  # @section -- Otel Collector Autoscaling
-  # @default -- "See values"
+  # @section -- Otel Collector
+  # @default -- "Please checkout the default values in values.yml"
   autoscaling:
-    # otelCollector.autoscaling.enabled -- Enable Horizontal Pod Autoscaler.
+    # otelCollector.autoscaling.enabled - Enable Horizontal Pod Autoscaler.
     # @default -- false
     enabled: false
-    # otelCollector.autoscaling.minReplicas -- Minimum number of replicas.
+    # otelCollector.autoscaling.minReplicas - Minimum number of replicas.
     # @default -- 1
     minReplicas: 1
-    # otelCollector.autoscaling.maxReplicas -- Maximum number of replicas.
+    # otelCollector.autoscaling.maxReplicas - Maximum number of replicas.
     # @default -- 11
     maxReplicas: 11
-    # otelCollector.autoscaling.targetCPUUtilizationPercentage -- Target CPU utilization percentage.
+    # otelCollector.autoscaling.targetCPUUtilizationPercentage - Target CPU utilization percentage.
     # @default -- 50
     targetCPUUtilizationPercentage: 50
-    # otelCollector.autoscaling.targetMemoryUtilizationPercentage -- Target memory utilization percentage.
+    # otelCollector.autoscaling.targetMemoryUtilizationPercentage - Target memory utilization percentage.
     # @default -- 50
     targetMemoryUtilizationPercentage: 50
-    # otelCollector.autoscaling.behavior -- Scaling behavior policies.
+    # otelCollector.autoscaling.behavior - Scaling behavior policies.
     # @default -- {}
     behavior: {}
     # scaleDown:
@@ -1748,37 +1808,37 @@ otelCollector:
     #     value: 2
     #     periodSeconds: 60
 
-    # otelCollector.autoscaling.autoscalingTemplate -- Template for autoscaling.
+    # otelCollector.autoscaling.autoscalingTemplate - Template for autoscaling.
     # @default -- []
     autoscalingTemplate: []
     # otelCollector.autoscaling.keda -- KEDA-based autoscaling configuration.
-    # @section -- Otel Collector Autoscaling
+    # @section -- Otel Collector
     keda:
-      # otelCollector.autoscaling.keda.annotations -- Annotations for the KEDA ScaledObject.
+      # otelCollector.autoscaling.keda.annotations - Annotations for the KEDA ScaledObject.
       # @default -- null
       annotations:
-      # otelCollector.autoscaling.keda.enabled -- Enable KEDA autoscaling.
+      # otelCollector.autoscaling.keda.enabled - Enable KEDA autoscaling.
       # @default -- false
       enabled: false
-      # otelCollector.autoscaling.keda.pollingInterval -- Polling interval for metrics data (in seconds).
+      # otelCollector.autoscaling.keda.pollingInterval - Polling interval for metrics data (in seconds).
       # @default -- "30"
       pollingInterval: "30"
-      # otelCollector.autoscaling.keda.cooldownPeriod -- Cooldown period before downscaling (in seconds).
+      # otelCollector.autoscaling.keda.cooldownPeriod - Cooldown period before downscaling (in seconds).
       # @default -- "300"
       cooldownPeriod: "300"
-      # otelCollector.autoscaling.keda.minReplicaCount -- Minimum replica count for KEDA.
+      # otelCollector.autoscaling.keda.minReplicaCount - Minimum replica count for KEDA.
       # @default -- "1"
       minReplicaCount: "1"
-      # otelCollector.autoscaling.keda.maxReplicaCount -- Maximum replica count for KEDA.
+      # otelCollector.autoscaling.keda.maxReplicaCount - Maximum replica count for KEDA.
       # @default -- "5"
       maxReplicaCount: "5"
-      # otelCollector.autoscaling.keda.triggers -- KEDA trigger configuration.
+      # otelCollector.autoscaling.keda.triggers - KEDA trigger configuration.
       # @default -- []
       triggers: []
 
   # otelCollector.config -- Main configuration for the OpenTelemetry Collector pipelines.
   # @section -- Otel Collector Configuration
-  # @default -- "See values"
+  # @default -- "Please checkout the default values in values.yml"
   config:
     receivers:
       otlp:
@@ -1861,5 +1921,6 @@ otelCollector:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
           exporters: [clickhouselogsexporter, metadataexporter]
+#@ignored
 signoz-otel-gateway:
   enabled: false
