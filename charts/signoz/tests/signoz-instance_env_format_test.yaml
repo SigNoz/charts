@@ -1,5 +1,3 @@
-# tests/signoz_env_format_test.yaml
-
 suite: Test SigNoz Environment Variable Formats
 
 templates:
