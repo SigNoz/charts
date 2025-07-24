@@ -26,8 +26,8 @@ tests:
       signoz:
         env:
           signoz_emailing_enabled: true
-          signoz_emailing_smtp_address: 
-            valueFrom: 
+          signoz_emailing_smtp_address:
+            valueFrom:
               secretKeyRef:
                 name: my-smtp-secret
                 key: smtp-address
@@ -115,8 +115,8 @@ tests:
         # ALSO define the address using the new 'env' convention
         env:
           signoz_emailing_enabled: true
-          signoz_emailing_smtp_address: 
-            valueFrom: 
+          signoz_emailing_smtp_address:
+            valueFrom:
               secretKeyRef:
                 name: my-smtp-secret
                 key: a-different-address # This value should WIN
