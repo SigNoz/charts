@@ -525,10 +525,7 @@ Create Env
 {{- end }}
 
 {{- $smtpSecretEnv := dict -}}
-{{- if and .Values.signoz.smtpVars (hasKey .Values.signoz.smtpVars "enabled") }}
-  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_enabled" .Values.signoz.smtpVars.enabled) -}}
-{{- end }}
-{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret.name }}
+{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret (not .Values.signoz.env.signoz_emailing_enabled) }}  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_enabled" .Values.signoz.smtpVars.enabled) -}}
   {{- with .Values.signoz.smtpVars.existingSecret }}
     {{- $secretName := .name -}}
     {{- if .fromKey }}

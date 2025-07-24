@@ -81,26 +81,28 @@ tests:
             value: "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)"
 
   # --- Test Case 4: Test precedence for the 'enabled' flag ---
-  - it: should prioritize 'smtpVars.enabled' over 'env.signoz_emailing_enabled'
+  - it: should prioritize 'env.smtp_emailing_enabled' over 'smtpVars.enabled'
     set:
       signoz:
-        # This value from the new convention should be IGNORED.
+        # This value from the new convention should WIN.
         env:
-          signoz_emailing_enabled: "true"
-        # This value from the old convention should WIN.
+          signoz_emailing_enabled: true
+        # This value from the old convention should be IGNORED.
         smtpVars:
           enabled: false
+          existingSecret:
+            name: my-smtp-secret
     asserts:
-      # Assert that the final rendered value is "false", proving that 'smtpVars.enabled'
-      # took precedence over the value from the 'env' block.
+      # Assert that the final rendered value is "true", proving that 'env.smtp_emailing_enabled'
+      # took precedence over the value from the 'smtpVars' block.
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_EMAILING_ENABLED
-            value: "false"
+            value: "true"
 
   # --- Test Case 5: Test precedence for the SMTP address value ---
-  - it: should prioritize the address from 'smtpVars' over 'env.signoz_emailing_smtp_address'
+  - it: should prioritize the address from 'env.signoz_emailing_smtp_address' over 'smtpVars'
     set:
       signoz:
         # Define the SMTP address using the old 'smtpVars' convention
@@ -117,17 +119,17 @@ tests:
             valueFrom: 
               secretKeyRef:
                 name: my-smtp-secret
-                key: a-different-address # This value should be IGNORED
+                key: a-different-address # This value should WIN
     asserts:
-      # Assert that the address is constructed from 'smtpVars' (host:port),
-      # proving that the old convention for the address takes priority.
-      - contains:
+      # Assert that the address is constructed from 'env' (signoz_emailing_smtp_address),
+      # make ensure the old convention for the address NOT takes priority.
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_EMAILING_SMTP_ADDRESS
             value: "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)"
-      # As a sanity check, ensure the new convention's address is NOT rendered.
-      - notContains:
+      # proving the new convention's address is rendered.
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_EMAILING_SMTP_ADDRESS
