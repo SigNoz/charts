@@ -36,17 +36,14 @@ global:
 # @section -- General Settings
 # @default -- ""
 nameOverride: ""
-
 # -- Override the default full chart name.
 # @section -- General Settings
 # @default -- ""
 fullnameOverride: ""
-
 # -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach to telemetry data.
 # @section -- General Settings
 # @default -- ""
 clusterName: ""
-
 # -- Image Registry Secret Names for all SigNoz components.
 # If `global.imagePullSecrets` is set, it will be merged with this list.
 # This has lower precedence than `imagePullSecrets` at the individual component level.
@@ -152,7 +149,6 @@ clickhouse:
       requests:
         memory: 256Mi
         cpu: 100m
-
   # clickhouse.namespace -- The namespace to install ClickHouse and `clickhouse-operator` into (defaults to the chart's installation namespace).
   # @section -- ClickHouse Settings
   # @default -- ""
@@ -165,7 +161,6 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- ""
   fullnameOverride: ""
-
   # clickhouse.cluster -- ClickHouse cluster name.
   # @section -- ClickHouse Settings
   # @default -- "cluster"
@@ -190,7 +185,6 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
-
   # clickhouse.image -- ClickHouse image configuration.
   # @section -- ClickHouse Image
   image:
@@ -489,7 +483,6 @@ clickhouse:
   # @section -- ClickHouse Persistence
   # @default -- false
   installCustomStorageClass: false
-
   # clickhouse.clickhouseOperator -- ClickHouse Operator settings.
   # @section -- ClickHouse Operator
   clickhouseOperator:
@@ -733,7 +726,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
-    tag: v0.90.1
+    tag: v0.91.0
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -742,7 +735,6 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   imagePullSecrets: []
-
   # signoz.serviceAccount -- Service Account configuration for SigNoz.
   # @section -- SigNoz
   serviceAccount:
@@ -755,7 +747,6 @@ signoz:
     # signoz.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
-
   # signoz.service -- Service configuration for SigNoz.
   # This allows you to configure how SigNoz is exposed within the Kubernetes cluster.
   # @section -- SigNoz Networking
@@ -787,7 +778,6 @@ signoz:
     # signoz.service.opampInternalNodePort - Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
     # @default -- null
     opampInternalNodePort: null
-
   # signoz.annotations -- Annotations for the SigNoz pod.
   # @section -- SigNoz
   # @default -- null
@@ -796,7 +786,6 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   additionalArgs: []
-
   # Environment variables for the SigNoz.
   # You can specify variables in two ways:
   # 1. Flexible structure for advanced configurations (recommended):
@@ -823,22 +812,18 @@ signoz:
   env:
     signoz_telemetrystore_provider: clickhouse
     dot_metrics_enabled: true
-
     # ClickHouse URL is set and applied internally. Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
 
     # Enable SMTP for user invitations. For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/
     signoz_emailing_enabled: false
-
     # To enable/disable the active query tracker.
     signoz_prometheus_active_query_tracker_enabled: false
-
     # signoz alertemanager configuration
     # For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/alertmanager/
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external_url: http://localhost:8080
-
   # signoz.initContainers -- Init containers for the SigNoz pod.
   # @section -- SigNoz
   # @default -- "Please checkout the default values in values.yml"
@@ -891,7 +876,6 @@ signoz:
       # signoz.initContainers.migration.resources - Resource requests and limits for the migration container.
       # @default -- {}
       resources: {}
-
   # signoz.podSecurityContext -- Pod-level security context.
   # @section -- SigNoz
   # @default -- {}
@@ -902,7 +886,6 @@ signoz:
   # @section -- SigNoz
   # @default -- {}
   podAnnotations: {}
-
   # signoz.securityContext -- Container-level security context.
   # @section -- SigNoz
   # @default -- {}
@@ -922,7 +905,6 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   additionalVolumes: []
-
   # signoz.livenessProbe -- Liveness probe configuration.
   # @section -- SigNoz
   # @default -- "Please checkout the default values in values.yml"
@@ -935,7 +917,6 @@ signoz:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-
   # signoz.readinessProbe -- Readiness probe configuration.
   # @section -- SigNoz
   # @default -- "Please checkout the default values in values.yml"
@@ -948,7 +929,6 @@ signoz:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-
   # signoz.customLivenessProbe -- Custom liveness probe to override the default.
   # @section -- SigNoz
   # @default -- {}
@@ -957,7 +937,6 @@ signoz:
   # @section -- SigNoz
   # @default -- {}
   customReadinessProbe: {}
-
   # signoz.ingress -- (object) Ingress configuration for SigNoz.
   # @section -- SigNoz Networking
   ingress:
@@ -988,7 +967,6 @@ signoz:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - signoz.domain.com
-
   # signoz.resources -- Resource requests and limits.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @section -- SigNoz
@@ -1021,7 +999,6 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   topologySpreadConstraints: []
-
   # signoz.persistence -- Persistence configuration for the internal SQLite database.
   # @section -- SigNoz
   persistence:
@@ -1086,7 +1063,6 @@ schemaMigrator:
   # @default -- false
   # @section -- Schema Migrator
   enableReplication: false
-
   # schemaMigrator.nodeSelector -- Node selector for pod assignment.
   # @section -- Schema Migrator
   # @default -- {}
@@ -1103,7 +1079,6 @@ schemaMigrator:
   # @section -- Schema Migrator
   # @default -- []
   topologySpreadConstraints: []
-
   # schemaMigrator.initContainers -- Init containers for the Schema Migrator pod.
   # @section -- Schema Migrator
   # @default -- "Please checkout the default values in values.yml"
@@ -1212,7 +1187,6 @@ schemaMigrator:
       # schemaMigrator.initContainers.wait.env - Environment variables for the wait container.
       # @default -- []
       env: []
-
   # schemaMigrator.serviceAccount -- Service Account configuration for the Schema Migrator.
   # @section -- Schema Migrator
   serviceAccount:
@@ -1225,7 +1199,6 @@ schemaMigrator:
     # schemaMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
-
   # schemaMigrator.role -- RBAC configuration for the Schema Migrator.
   # @section -- Schema Migrator
   # @default -- "Please checkout the default values in values.yml"
@@ -1313,7 +1286,6 @@ otelCollector:
       # otelCollector.initContainers.init.resources - Resource requests and limits for the init container.
       # @default -- {}
       resources: {}
-
   # otelCollector.command -- Configuration for the Otel Collector executable.
   # @section -- Otel Collector
   command:
@@ -1330,7 +1302,6 @@ otelCollector:
     # otelCollector.configMap.create - Specifies whether a ConfigMap should be created.
     # @default -- true
     create: true
-
   # otelCollector.serviceAccount -- Service Account configuration for the Otel Collector.
   # @section -- Otel Collector
   serviceAccount:
@@ -1343,7 +1314,6 @@ otelCollector:
     # otelCollector.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
-
   # otelCollector.service -- Service configuration for the Otel Collector.
   # @section -- Otel Collector Networking
   service:
@@ -1359,7 +1329,6 @@ otelCollector:
     # otelCollector.service.loadBalancerSourceRanges - Allowed source ranges when service type is `LoadBalancer`.
     # @default -- []
     loadBalancerSourceRanges: []
-
   # otelCollector.annotations -- Annotations for the Otel Collector Deployment.
   # @section -- Otel Collector
   # @default -- null
@@ -1396,7 +1365,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- 1
   replicaCount: 1
-
   # otelCollector.clusterRole -- RBAC ClusterRole configuration for the Otel Collector.
   # @section -- Otel Collector
   # @default -- "Please checkout the default values in values.yml"
@@ -1437,7 +1405,6 @@ otelCollector:
       # otelCollector.clusterRole.clusterRoleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
       # @default -- ""
       name: ""
-
   # otelCollector.ports -- Port configurations for the Otel Collector.
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
@@ -1640,7 +1607,6 @@ otelCollector:
       # otelCollector.ports.logsjson.protocol - Protocol for JSON logs.
       # @default -- "TCP"
       protocol: TCP
-
   # otelCollector.livenessProbe -- Liveness probe configuration.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   # @section -- Otel Collector
@@ -1674,7 +1640,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- {}
   customReadinessProbe: {}
-
   # otelCollector.extraVolumeMounts -- Extra volume mounts for the Otel Collector pod.
   # @section -- Otel Collector
   # @default -- []
@@ -1683,7 +1648,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- []
   extraVolumes: []
-
   # otelCollector.ingress -- Ingress configuration for the Otel Collector.
   # @section -- Otel Collector Networking
   ingress:
@@ -1716,7 +1680,6 @@ otelCollector:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otelcollector.domain.com
-
   # otelCollector.resources -- Resource requests and limits.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @section -- Otel Collector
@@ -1755,7 +1718,6 @@ otelCollector:
       labelSelector:
         matchLabels:
           app.kubernetes.io/component: otel-collector
-
   # otelCollector.podSecurityContext -- Pod-level security context.
   # @section -- Otel Collector
   # @default -- {}
@@ -1835,7 +1797,6 @@ otelCollector:
       # otelCollector.autoscaling.keda.triggers - KEDA trigger configuration.
       # @default -- []
       triggers: []
-
   # otelCollector.config -- Main configuration for the OpenTelemetry Collector pipelines.
   # @section -- Otel Collector Configuration
   # @default -- "Please checkout the default values in values.yml"
