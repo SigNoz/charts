@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.88.0](https://img.shields.io/badge/Version-0.88.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.91.0](https://img.shields.io/badge/AppVersion-v0.91.0-informational?style=flat-square)
+![Version: 0.88.1](https://img.shields.io/badge/Version-0.88.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.91.0](https://img.shields.io/badge/AppVersion-v0.91.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
