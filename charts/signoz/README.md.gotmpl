@@ -67,7 +67,12 @@ kubectl delete namespace platform
 > **Configuration Migration Required:**
 > - `signoz.configVars` has been deprecated
 > - `signoz.smtpVars` has been deprecated
+> 
 > Both configuration options must now be specified under `signoz.env` instead.
+>
+> Refer to the official [documentation](https://github.com/SigNoz/signoz/blob/main/conf/example.yaml) for a complete list of env variables.
+> <br/> Note on Variable Naming: Environment variables are derived from the YAML configuration.
+> <br/> For example, a key `address` for `smtp` under the `emailing` section becomes `signoz_emailing_smtp_address`.
 >
 > **Before:**
 > ```yaml
@@ -78,6 +83,7 @@ kubectl delete namespace platform
 >    existingSecret:
 >      name: my-secret-name
 >      hostKey: my-smtp-host-key
+>      portKey: my-smtp-port-key
 > ```
 >
 > **After:**
@@ -85,11 +91,11 @@ kubectl delete namespace platform
 > signoz:
 >  env:
 >    storage: clickhouse
->    smtp_port:
+>    signoz_emailing_smtp_address:
 >      valueFrom:
 >        secretKeyRef:
 >          name: my-secret-name
->          key: my-smtp-host-key
+>          key: my-smtp-address-key
 > ```
 
 
