@@ -119,6 +119,7 @@ spec:
               containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
               protocol: TCP
           env:
+            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
             {{- include "signoz.env" . | nindent 12 }}
           {{- if .Values.signoz.livenessProbe.enabled }}
           livenessProbe:
