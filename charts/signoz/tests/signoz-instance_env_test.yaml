@@ -137,3 +137,88 @@ tests:
               secretKeyRef:
                 key: a-different-address
                 name: my-smtp-secret
+
+# --- Test Case 6: ClickHouse environment variables ---
+  - it: should set the clickhouse creds and dsn environment variable
+    set:
+      clickhouse:
+        enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://RELEASE-NAME-clickhouse:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+      - exists:
+          path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_USER')]
+      - exists:
+          path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_PASSWORD')]
+
+# --- Test Case 7: External ClickHouse environment variables ---
+  - it: should set external clickhouse creds and dsn environment variable
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        cluster: "cluster"
+        user: "user"
+        password: "password"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: "sample.clickhouse.com"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_CLUSTER
+            value: "cluster"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_USER
+            value: "user"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            value: "password"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+
+# --- Test Case 8: External ClickHouse creds with secret and dsn environment variable ---
+  - it: should set external clickhouse creds with secret and dsn environment variable
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        cluster: "cluster"
+        user: "user"
+        password: 
+        existingSecret: "test-clickhouse-secret"
+        existingSecretPasswordKey: "password"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_USER
+            value: "user"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: test-clickhouse-secret
+                key: password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
