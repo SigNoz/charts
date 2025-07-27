@@ -223,9 +223,9 @@ Return the ClickHouse Traces URL
 
 {{- define "clickhouse.clickHouseUrl" -}}
 {{- if .Values.clickhouse.enabled -}}
-  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.clickhouse.user }}&password={{ .Values.clickhouse.password -}}
+  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
 {{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username={{ .Values.externalClickhouse.user }}&password=$(CLICKHOUSE_PASSWORD)
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
 {{- end -}}
 {{- end -}}
 
