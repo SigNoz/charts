@@ -67,8 +67,8 @@ kubectl delete namespace platform
 > **Configuration Migration Required:**
 > - `signoz.configVars` has been deprecated
 > - `signoz.smtpVars` has been deprecated
-> 
-> Both configuration options must now be specified under `signoz.env` instead.
+> - `signoz.additionalEnvs` has been deprecated
+> These configuration options must now be specified under `signoz.env` instead.
 >
 > Refer to the official [documentation](https://github.com/SigNoz/signoz/blob/main/conf/example.yaml) for a complete list of env variables.
 > <br/> Note on Variable Naming: Environment variables are derived from the YAML configuration.
