@@ -790,7 +790,9 @@ otelAgent:
       hostPort: 1777
       # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
-
+  # otelAgent.hostNetwork -- Host networking requested for this pod. Use the host's network namespace.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  hostNetwork: false
   # otelAgent.livenessProbe -- Configure liveness probe.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
