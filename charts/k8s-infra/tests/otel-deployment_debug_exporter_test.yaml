@@ -29,7 +29,7 @@ tests:
   - it: should have debug enabled when set to true with default settings
     set:
       presets:
-        debugExporter: 
+        debugExporter:
           enabled: true
     asserts:
       - equal:
@@ -142,7 +142,7 @@ tests:
   - it: should have debug enabled is enabled with custom settings
     set:
       presets:
-        debugExporter: 
+        debugExporter:
           enabled: true
           samplingInitial: 6
           samplingThereafter: 600
@@ -254,11 +254,11 @@ tests:
                 metrics:
                   address: 0.0.0.0:8888
 
-  # Test case 2: Verify debug exporter is enabled when set to true with custom settings
+  # Test case 3: Verify debug exporter is enabled when set to true with custom settings
   - it: should have logging exporter enabled is enabled with custom settings
     set:
       presets:
-        loggingExporter: 
+        loggingExporter:
           enabled: true
           samplingInitial: 5
           samplingThereafter: 600

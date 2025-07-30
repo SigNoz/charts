@@ -102,7 +102,7 @@ tests:
   - it: should enable otlp/http when otlphttpExporter set to true
     set:
       presets:
-        otlphttpExporter: 
+        otlphttpExporter:
           enabled: true
     asserts:
       - equal:
