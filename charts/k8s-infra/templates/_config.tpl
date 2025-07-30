@@ -168,7 +168,7 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 
 {{- define "opentelemetry-collector.loggingExporterConfig" -}}
 exporters:
-  logging:
+  debug:
     {{- with .Values.presets.loggingExporter }}
     verbosity: {{ .verbosity }}
     sampling_initial: {{ .samplingInitial }}

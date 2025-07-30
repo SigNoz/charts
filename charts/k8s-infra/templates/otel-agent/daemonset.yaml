@@ -83,7 +83,7 @@ spec:
             - name: {{ $key }}
               containerPort: {{ $port.containerPort }}
               protocol: {{ $port.protocol }}
-              {{- if and $port.hostPort (ne $.Values.global.cloud "gcp/autogke") }}
+              {{- if and $port.hostPort (ne $.Values.global.cloud "gcp/autogke") (not $.Values.otelAgent.hostNetwork) }}
               hostPort: {{ $port.hostPort }}
               {{- end }}
             {{- end }}

@@ -791,6 +791,7 @@ otelAgent:
       # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
   # otelAgent.hostNetwork -- Host networking requested for this pod. Use the host's network namespace.
+  # Please make sure while enabling hostNetwork that the host ports are available as it can lead to port conflicts.
   # @section -- OpenTelemetry Agent (DaemonSet)
   hostNetwork: false
   # otelAgent.livenessProbe -- Configure liveness probe.
