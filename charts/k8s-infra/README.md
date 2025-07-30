@@ -343,7 +343,7 @@ storageClass: null</pre>
     </tbody>
 </table><h3>Presets Configuration</h3>
   <p>Presets to easily set up OtelCollector configurations. For more details, see the <a href="https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/">documentation</a>.</p>
-<h4>Logging Exporter Presets</h4>
+<h4>Debug Exporter Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -353,7 +353,7 @@ storageClass: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="presets--loggingExporter"><a href="./values.yaml#L110">presets.loggingExporter</a></td>
+            <td id="presets--debugExporter"><a href="./values.yaml#L110">presets.debugExporter</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -362,7 +362,43 @@ samplingThereafter: 500
 verbosity: basic</pre>
 </div>
             </td>
-            <td>Configuration for the logging exporter, used for debugging telemetry data.</td>
+            <td>Configuration for the debug exporter, used for debugging telemetry data.</td>
+        </tr>
+        <tr>
+            <td id="presets--debugExporter--enabled"><a href="./values.yaml#L113">presets.debugExporter.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Enable the debug exporter.</td>
+        </tr>
+        <tr>
+            <td id="presets--debugExporter--verbosity"><a href="./values.yaml#L116">presets.debugExporter.verbosity</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">basic</pre>
+</div>
+            </td>
+            <td>Verbosity of the debug exporter: `basic`, `normal`, or `detailed`.</td>
+        </tr>
+        <tr>
+            <td id="presets--debugExporter--samplingInitial"><a href="./values.yaml#L119">presets.debugExporter.samplingInitial</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">2</pre>
+</div>
+            </td>
+            <td>Number of messages initially logged each second.</td>
+        </tr>
+        <tr>
+            <td id="presets--debugExporter--samplingThereafter"><a href="./values.yaml#L122">presets.debugExporter.samplingThereafter</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">500</pre>
+</div>
+            </td>
+            <td>Sampling rate after the initial messages are logged.</td>
         </tr>
     </tbody>
 </table>

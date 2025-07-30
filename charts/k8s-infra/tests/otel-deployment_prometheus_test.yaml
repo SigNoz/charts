@@ -11,7 +11,7 @@ set:
       enabled: true
       annotationsPrefix: "signoz.io"
       scrapeInterval: 60s
-    loggingExporter:
+    debugExporter:
       enabled: true
     otlpExporter:
       enabled: false
@@ -130,7 +130,7 @@ tests:
               pipelines:
                 metrics/scraper:
                   exporters:
-                  - logging
+                  - debug
                   processors:
                   - resourcedetection
                   - batch

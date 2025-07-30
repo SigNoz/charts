@@ -105,20 +105,20 @@ namespace: ""
 # @default -- "Please check out the values.yml for default values"
 # For more details, see the <a href="https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/">documentation</a>
 presets:
-  # presets.loggingExporter -- Configuration for the logging exporter, used for debugging telemetry data.
-  # @section -- Logging Exporter Presets
-  loggingExporter:
-    # presets.loggingExporter.enabled - Enable the logging exporter.
-    # @section -- Logging Exporter Presets
+  # presets.debugExporter -- Configuration for the debug exporter, used for debugging telemetry data.
+  # @section -- Debug Exporter Presets
+  debugExporter:
+    # presets.debugExporter.enabled -- Enable the debug exporter.
+    # @section -- Debug Exporter Presets
     enabled: false
-    # presets.loggingExporter.verbosity - Verbosity of the logging export: `basic`, `normal`, or `detailed`.
-    # @section -- Logging Exporter Presets
+    # presets.debugExporter.verbosity -- Verbosity of the debug exporter: `basic`, `normal`, or `detailed`.
+    # @section -- Debug Exporter Presets
     verbosity: basic
-    # presets.loggingExporter.samplingInitial - Number of messages initially logged each second.
-    # @section -- Logging Exporter Presets
+    # presets.debugExporter.samplingInitial -- Number of messages initially logged each second.
+    # @section -- Debug Exporter Presets
     samplingInitial: 2
-    # presets.loggingExporter.samplingThereafter - Sampling rate after the initial messages are logged.
-    # @section -- Logging Exporter Presets
+    # presets.debugExporter.samplingThereafter -- Sampling rate after the initial messages are logged.
+    # @section -- Debug Exporter Presets
     samplingThereafter: 500
   # presets.otlpExporter -- OTLP Exporter for the OTLP exporter.
   # @section -- OTLP Exporter Presets

@@ -1,0 +1,371 @@
+suite: Test debug exporter setting
+templates:
+  - otel-deployment/configmap.yaml
+set:
+  presets:
+    # Disable other presets to focus on debug exporter with prometheus enabled
+    prometheus:
+      enabled: true
+      annotationsPrefix: "signoz.io"
+      scrapeInterval: 60s
+    otlpExporter:
+      enabled: false
+    logsCollection:
+      enabled: false
+    hostMetrics:
+      enabled: false
+    kubeletMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: true
+    k8sEvents:
+      enabled: false
+# Test case 1: Verify when debug exporter is enabled it should be configured correctly with default settings
+tests:
+  - it: should have debug enabled when set to true with default settings
+    set:
+      presets:
+        debugExporter: 
+          enabled: true
+    asserts:
+      - equal:
+          path: data["otel-deployment-config.yaml"]
+          value: |-
+            exporters:
+              debug:
+                sampling_initial: 2
+                sampling_thereafter: 500
+                verbosity: basic
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 1s
+              resourcedetection:
+                detectors:
+                - env
+                override: false
+                timeout: 2s
+            receivers:
+              prometheus/scraper:
+                config:
+                  scrape_configs:
+                  - job_name: signoz-scraper
+                    kubernetes_sd_configs:
+                    - role: pod
+                    relabel_configs:
+                    - action: keep
+                      regex: true
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_scrape
+                    - action: replace
+                      regex: (.+)
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_path
+                      target_label: __metrics_path__
+                    - action: replace
+                      separator: ':'
+                      source_labels:
+                      - __meta_kubernetes_pod_ip
+                      - __meta_kubernetes_pod_annotation_signoz_io_port
+                      target_label: __address__
+                    - replacement: signoz-scraper
+                      target_label: job_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                      target_label: signoz_k8s_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_instance
+                      target_label: signoz_k8s_instance
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_component
+                      target_label: signoz_k8s_component
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_namespace
+                      target_label: k8s_namespace_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_name
+                      target_label: k8s_pod_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_uid
+                      target_label: k8s_pod_uid
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_node_name
+                      target_label: k8s_node_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_ready
+                      target_label: k8s_pod_ready
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_phase
+                      target_label: k8s_pod_phase
+                    scrape_interval: 60s
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                metrics/scraper:
+                  exporters:
+                  - debug
+                  processors:
+                  - resourcedetection
+                  - batch
+                  receivers:
+                  - prometheus/scraper
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+
+  # Test case 2: Verify debug exporter is enabled when set to true with custom settings
+  - it: should have debug enabled is enabled with custom settings
+    set:
+      presets:
+        debugExporter: 
+          enabled: true
+          samplingInitial: 6
+          samplingThereafter: 600
+          verbosity: normal
+    asserts:
+      - equal:
+          path: data["otel-deployment-config.yaml"]
+          value: |-
+            exporters:
+              debug:
+                sampling_initial: 6
+                sampling_thereafter: 600
+                verbosity: normal
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 1s
+              resourcedetection:
+                detectors:
+                - env
+                override: false
+                timeout: 2s
+            receivers:
+              prometheus/scraper:
+                config:
+                  scrape_configs:
+                  - job_name: signoz-scraper
+                    kubernetes_sd_configs:
+                    - role: pod
+                    relabel_configs:
+                    - action: keep
+                      regex: true
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_scrape
+                    - action: replace
+                      regex: (.+)
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_path
+                      target_label: __metrics_path__
+                    - action: replace
+                      separator: ':'
+                      source_labels:
+                      - __meta_kubernetes_pod_ip
+                      - __meta_kubernetes_pod_annotation_signoz_io_port
+                      target_label: __address__
+                    - replacement: signoz-scraper
+                      target_label: job_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                      target_label: signoz_k8s_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_instance
+                      target_label: signoz_k8s_instance
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_component
+                      target_label: signoz_k8s_component
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_namespace
+                      target_label: k8s_namespace_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_name
+                      target_label: k8s_pod_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_uid
+                      target_label: k8s_pod_uid
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_node_name
+                      target_label: k8s_node_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_ready
+                      target_label: k8s_pod_ready
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_phase
+                      target_label: k8s_pod_phase
+                    scrape_interval: 60s
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                metrics/scraper:
+                  exporters:
+                  - debug
+                  processors:
+                  - resourcedetection
+                  - batch
+                  receivers:
+                  - prometheus/scraper
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+
+  # Test case 2: Verify debug exporter is enabled when set to true with custom settings
+  - it: should have logging exporter enabled is enabled with custom settings
+    set:
+      presets:
+        loggingExporter: 
+          enabled: true
+          samplingInitial: 5
+          samplingThereafter: 600
+          verbosity: normal
+    asserts:
+      - equal:
+          path: data["otel-deployment-config.yaml"]
+          value: |-
+            exporters:
+              debug:
+                sampling_initial: 5
+                sampling_thereafter: 600
+                verbosity: normal
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 1s
+              resourcedetection:
+                detectors:
+                - env
+                override: false
+                timeout: 2s
+            receivers:
+              prometheus/scraper:
+                config:
+                  scrape_configs:
+                  - job_name: signoz-scraper
+                    kubernetes_sd_configs:
+                    - role: pod
+                    relabel_configs:
+                    - action: keep
+                      regex: true
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_scrape
+                    - action: replace
+                      regex: (.+)
+                      source_labels:
+                      - __meta_kubernetes_pod_annotation_signoz_io_path
+                      target_label: __metrics_path__
+                    - action: replace
+                      separator: ':'
+                      source_labels:
+                      - __meta_kubernetes_pod_ip
+                      - __meta_kubernetes_pod_annotation_signoz_io_port
+                      target_label: __address__
+                    - replacement: signoz-scraper
+                      target_label: job_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                      target_label: signoz_k8s_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_instance
+                      target_label: signoz_k8s_instance
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_label_app_kubernetes_io_component
+                      target_label: signoz_k8s_component
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_namespace
+                      target_label: k8s_namespace_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_name
+                      target_label: k8s_pod_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_uid
+                      target_label: k8s_pod_uid
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_node_name
+                      target_label: k8s_node_name
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_ready
+                      target_label: k8s_pod_ready
+                    - action: replace
+                      source_labels:
+                      - __meta_kubernetes_pod_phase
+                      target_label: k8s_pod_phase
+                    scrape_interval: 60s
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                metrics/scraper:
+                  exporters:
+                  - debug
+                  processors:
+                  - resourcedetection
+                  - batch
+                  receivers:
+                  - prometheus/scraper
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888

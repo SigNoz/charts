@@ -1,4 +1,4 @@
-suite: Test otlp exporter setting
+suite: Test debug exporter setting
 templates:
   - otel-agent/configmap.yaml
 set:
@@ -6,10 +6,10 @@ set:
     # Disable other presets to focus on otlp exporter
     prometheus:
       enabled: false
-    debugExporter:
-      enabled: false
     otlpExporter:
-      enabled: true
+      enabled: false
+    otlphttpExporter:
+      enabled: false
     logsCollection:
       enabled: false
     hostMetrics:
@@ -31,21 +31,22 @@ set:
         enabled: false
       logs:
         enabled: false
-# Test case 1: Verify otlp (grpc) is enabled by default and otlp (http) is disabled
+# Test case 1: Verify when debug exporter is enabled it should be configured correctly with default settings
 tests:
-  - it: should have otlp (grpc) enabled by default and otlp (http) disabled
+  - it: should have debug enabled is enabled with default settings
+    set:
+      presets:
+        debugExporter: 
+          enabled: true
     asserts:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
             exporters:
-              otlp:
-                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
-                headers:
-                  signoz-access-token: ${env:SIGNOZ_API_KEY}
-                tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+              debug:
+                sampling_initial: 2
+                sampling_thereafter: 500
+                verbosity: basic
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -73,21 +74,21 @@ tests:
               pipelines:
                 logs:
                   exporters:
-                  - otlp
+                  - debug
                   processors:
                   - batch
                   receivers:
                   - otlp
                 metrics:
                   exporters:
-                  - otlp
+                  - debug
                   processors:
                   - batch
                   receivers:
                   - otlp
                 traces:
                   exporters:
-                  - otlp
+                  - debug
                   processors:
                   - batch
                   receivers:
@@ -98,24 +99,24 @@ tests:
                 metrics:
                   address: 0.0.0.0:8888
 
-  # Test case 2: Verify otlp/http is enabled when the value is set to true
-  - it: should enable otlp/http when otlphttpExporter set to true
+  # Test case 2: Verify debug exporter is enabled when set to true with custom settings
+  - it: should have debug enabled is enabled with custom settings
     set:
       presets:
-        otlphttpExporter: 
+        debugExporter: 
           enabled: true
+          samplingInitial: 5
+          samplingThereafter: 600
+          verbosity: normal
     asserts:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
             exporters:
-              otlphttp:
-                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
-                headers:
-                  signoz-access-token: ${env:SIGNOZ_API_KEY}
-                tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+              debug:
+                sampling_initial: 5
+                sampling_thereafter: 600
+                verbosity: normal
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -143,21 +144,91 @@ tests:
               pipelines:
                 logs:
                   exporters:
-                  - otlphttp
+                  - debug
                   processors:
                   - batch
                   receivers:
                   - otlp
                 metrics:
                   exporters:
-                  - otlphttp
+                  - debug
                   processors:
                   - batch
                   receivers:
                   - otlp
                 traces:
                   exporters:
-                  - otlphttp
+                  - debug
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+
+  # Test case 2: Verify debug exporter is enabled when set to true with custom settings
+  - it: should have logging exporter enabled is enabled with custom settings
+    set:
+      presets:
+        loggingExporter: 
+          enabled: true
+          samplingInitial: 5
+          samplingThereafter: 600
+          verbosity: normal
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters:
+              debug:
+                sampling_initial: 5
+                sampling_thereafter: 600
+                verbosity: normal
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                logs:
+                  exporters:
+                  - debug
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                metrics:
+                  exporters:
+                  - debug
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                traces:
+                  exporters:
+                  - debug
                   processors:
                   - batch
                   receivers:
