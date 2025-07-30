@@ -126,6 +126,11 @@ presets:
     # presets.otlpExporter.enabled - Enable the OTLP exporter to send data to the backend.
     # @section -- Configuration Presets
     enabled: true
+  # presets.otlphttpExporter.endpoint -- The OTLP HTTP endpoint to which data will be sent.
+  # Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint. Ensure that the OTEL_EXPORTER_OTLP_ENDPOINT environment variable points to the correct endpoint.
+  # @section -- Configuration Presets
+  otlphttpExporter:
+    enabled: false
   # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
   # @section -- Configuration Presets
   selfTelemetry:
