@@ -343,7 +343,7 @@ storageClass: null</pre>
     </tbody>
 </table><h3>Presets Configuration</h3>
   <p>Presets to easily set up OtelCollector configurations. For more details, see the <a href="https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/">documentation</a>.</p>
-<h3>Logging Exporter Presets</h3>
+<h4>Logging Exporter Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -366,7 +366,7 @@ verbosity: basic</pre>
         </tr>
     </tbody>
 </table>
-<h3>OTLP Exporter Presets</h3>
+<h4>OTLP Exporter Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -395,7 +395,7 @@ verbosity: basic</pre>
         </tr>
     </tbody>
 </table>
-<h3>Self Telemetry Presets</h3>
+<h4>Self Telemetry Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -471,7 +471,7 @@ traces:
         </tr>
     </tbody>
 </table>
-<h3>Logs Collection Presets</h3>
+<h4>Logs Collection Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -577,7 +577,7 @@ signozLogs: true</pre>
         </tr>
     </tbody>
 </table>
-<h3>Host Metrics Presets</h3>
+<h4>Host Metrics Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -692,7 +692,7 @@ signozLogs: true</pre>
         </tr>
     </tbody>
 </table>
-<h3>Kubelet Metrics Presets</h3>
+<h4>Kubelet Metrics Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -815,7 +815,7 @@ k8s.pod.uptime:
         </tr>
     </tbody>
 </table>
-<h3>Kubernetes Attributes Processor Presets</h3>
+<h4>Kubernetes Attributes Processor Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -924,7 +924,7 @@ k8s.pod.uptime:
         </tr>
     </tbody>
 </table>
-<h3>Cluster Metrics Presets</h3>
+<h4>Cluster Metrics Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -1015,7 +1015,7 @@ k8s.pod.status_reason:
         </tr>
     </tbody>
 </table>
-<h3>Prometheus Metrics Presets</h3>
+<h4>Prometheus Metrics Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -1104,7 +1104,7 @@ scrapeInterval: 60s</pre>
         </tr>
     </tbody>
 </table>
-<h3>Resource Detection Processor Presets</h3>
+<h4>Resource Detection Processor Presets</h4>
 <table>
     <thead>
         <th>Key</th>
@@ -1163,7 +1163,7 @@ timeout: 2s</pre>
         </tr>
     </tbody>
 </table>
-<h3>Kubernetes Events Collection Presets</h3>
+<h4>Kubernetes Events Collection Presets</h4>
 <table>
     <thead>
         <th>Key</th>

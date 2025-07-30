@@ -80,7 +80,11 @@ kubectl delete namespace platform
   <h3>{{- .SectionName }}</h3>
   <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
 {{- else}}
+{{- if contains "Presets" .SectionName}}
+<h4>{{- .SectionName}}</h4>
+{{- else}}
 <h3>{{- .SectionName }}</h3>
+{{- end}}
 <table>
     <thead>
         <th>Key</th>
