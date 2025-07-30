@@ -68,7 +68,7 @@ kubectl delete namespace platform
 {{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
 {{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-<pre lang="tpl/array">{{ $defaultValue }}</pre>
+<pre lang="yaml">{{ $defaultValue }}</pre>
 {{ end }}
 
 {{ define "chart.valuesTableHtml" }}
