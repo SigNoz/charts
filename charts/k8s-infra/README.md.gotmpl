@@ -75,11 +75,11 @@ kubectl delete namespace platform
 
 {{/* Handle explicitly defined sections */}}
 {{- range .Sections.Sections }}
-{{- if and (eq .SectionName "Presets Configuration")}}
+{{- if (eq .SectionName "Presets Configuration")}}
   {{- $item := index .SectionItems 0 -}}
   <h3>{{- .SectionName }}</h3>
   <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
-{{- else }}
+{{- else}}
 <h3>{{- .SectionName }}</h3>
 <table>
     <thead>
