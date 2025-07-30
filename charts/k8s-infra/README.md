@@ -341,27 +341,8 @@ storageClass: null</pre>
             <td>TLS certificate authority (CA) certificate to be included in the secret.</td>
         </tr>
     </tbody>
-</table>
-<h3>Configuration Presets</h3>
-<table>
-    <thead>
-        <th>Key</th>
-        <th>Type</th>
-        <th>Default</th>
-        <th>Description</th>
-    </thead>
-    <tbody>
-        <tr>
-            <td id="presets"><a href="./values.yaml#L107">presets</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="tpl/array">Please check out the values.yml for default values</pre>
-</div>
-            </td>
-            <td>Presets to easily set up OtelCollector configurations. For more details, see the documentation: https://signoz.io/docs/metrics-management/k8s-infra-otel-config</td>
-        </tr>
-    </tbody>
-</table>
+</table><h3>Presets Configuration</h3>
+  <p>Presets to easily set up OtelCollector configurations. For more details, see the [documentation](https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/).</p>
 <h3>Logging Exporter Presets</h3>
 <table>
     <thead>

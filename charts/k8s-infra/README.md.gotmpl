@@ -75,6 +75,11 @@ kubectl delete namespace platform
 
 {{/* Handle explicitly defined sections */}}
 {{- range .Sections.Sections }}
+{{- if and (eq .SectionName "Presets Configuration")}}
+  {{- $item := index .SectionItems 0 -}}
+  <h3>{{- .SectionName }}</h3>
+  <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
+{{- else }}
 <h3>{{- .SectionName }}</h3>
 <table>
     <thead>
@@ -96,6 +101,7 @@ kubectl delete namespace platform
     {{- end }}
     </tbody>
 </table>
+{{- end}}
 {{- end }}
 
 {{/* Handle the default section for any un-annotated values */}}
@@ -122,7 +128,6 @@ kubectl delete namespace platform
 	</tbody>
 </table>
 {{ end }}
-
 {{ end }}
 
 {{ define "chart.valuesSectionHtml" }}

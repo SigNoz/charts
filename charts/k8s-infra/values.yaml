@@ -101,9 +101,9 @@ namespace: ""
 
 
 # presets -- Presets to easily set up OtelCollector configurations.
-# @section -- Configuration Presets
+# @section -- Presets Configuration
 # @default -- "Please check out the values.yml for default values"
-# For more details, see the documentation: https://signoz.io/docs/metrics-management/k8s-infra-otel-config
+# For more details, see the [documentation](https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/)
 presets:
   # presets.loggingExporter -- Configuration for the logging exporter, used for debugging telemetry data.
   # @section -- Logging Exporter Presets
