@@ -106,154 +106,167 @@ namespace: ""
 # For more details, see the documentation: https://signoz.io/docs/metrics-management/k8s-infra-otel-config
 presets:
   # presets.loggingExporter -- Configuration for the logging exporter, used for debugging telemetry data.
-  # @section -- Configuration Presets
+  # @section -- Logging Exporter Presets
   loggingExporter:
     # presets.loggingExporter.enabled - Enable the logging exporter.
-    # @section -- Configuration Presets
+    # @section -- Logging Exporter Presets
     enabled: false
     # presets.loggingExporter.verbosity - Verbosity of the logging export: `basic`, `normal`, or `detailed`.
-    # @section -- Configuration Presets
+    # @section -- Logging Exporter Presets
     verbosity: basic
     # presets.loggingExporter.samplingInitial - Number of messages initially logged each second.
-    # @section -- Configuration Presets
+    # @section -- Logging Exporter Presets
     samplingInitial: 2
     # presets.loggingExporter.samplingThereafter - Sampling rate after the initial messages are logged.
-    # @section -- Configuration Presets
+    # @section -- Logging Exporter Presets
     samplingThereafter: 500
-  # presets.otlpExporter -- Configuration for the OTLP exporter.
-  # @section -- Configuration Presets
+  # presets.otlpExporter -- OTLP Exporter for the OTLP exporter.
+  # @section -- OTLP Exporter Presets
   otlpExporter:
     # presets.otlpExporter.enabled - Enable the OTLP exporter to send data to the backend.
-    # @section -- Configuration Presets
+    # @section -- OTLP Exporter Presets
     enabled: true
-  # presets.otlphttpExporter.endpoint -- The OTLP HTTP endpoint to which data will be sent.
-  # Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint. Ensure that the OTEL_EXPORTER_OTLP_ENDPOINT environment variable points to the correct endpoint.
-  # @section -- Configuration Presets
+  # presets.otlphttpExporter --  OTLP HTTP Exporter to which data will be sent.
+  # Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint.
+  # @section -- OTLP Exporter Presets
   otlphttpExporter:
+    # presets.otlphttpExporter.enabled - Enable the OTLP HTTP exporter.
+    # @section -- OTLP Exporter Presets
     enabled: false
   # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
-  # @section -- Configuration Presets
+  # @section -- Self Telemetry Presets
   selfTelemetry:
     # presets.selfTelemetry.endpoint -- OTLP HTTP endpoint to send own telemetry data to.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     endpoint: ""
     # presets.selfTelemetry.insecure - Whether to use insecure mode for self-telemetry.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     insecure: true
     # presets.selfTelemetry.insecureSkipVerify - Whether to skip verifying the certificate for self-telemetry.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     insecureSkipVerify: true
     # presets.selfTelemetry.signozApiKey - API key for SigNoz Cloud for self-telemetry.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     signozApiKey: ""
     # presets.selfTelemetry.apiKeyExistingSecretName - Existing secret name for the self-telemetry API key.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     apiKeyExistingSecretName: ""
     # presets.selfTelemetry.apiKeyExistingSecretKey - Existing secret key for the self-telemetry API key.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     apiKeyExistingSecretKey: ""
     # presets.selfTelemetry.traces - Configuration for self-telemetry traces.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     traces:
       # presets.selfTelemetry.traces.enabled -- Enable self-telemetry for traces.
-      # @section -- Configuration Presets
+      # @section -- Self Telemetry Presets
       enabled: false
     # presets.selfTelemetry.metrics - Configuration for self-telemetry metrics.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     metrics:
       # presets.selfTelemetry.metrics.enabled -- Enable self-telemetry for metrics.
-      # @section -- Configuration Presets
+      # @section -- Self Telemetry Presets
       enabled: false
     # presets.selfTelemetry.logs -- Configuration for self-telemetry logs.
-    # @section -- Configuration Presets
+    # @section -- Self Telemetry Presets
     logs:
       # presets.selfTelemetry.logs.enabled -- Enable self-telemetry for logs.
-      # @section -- Configuration Presets
+      # @section -- Self Telemetry Presets
       enabled: false
   # presets.logsCollection -- Configuration for collecting logs from pods.
-  # @section -- Configuration Presets
+  # @section -- Logs Collection Presets
+  # @default -- "Please check out the values.yml for default values"
   logsCollection:
     # presets.logsCollection.enabled -- Enable log collection.
-    # @section -- Configuration Presets
+    # @section -- Logs Collection Presets
     enabled: true
     # presets.logsCollection.startAt -- Where to start reading logs from: `end` or `beginning`.
-    # @section -- Configuration Presets
+    # @section -- Logs Collection Presets
     startAt: end
-    # presets.logsCollection.includeFilePath - Include the log file path as an attribute.
-    # @section -- Configuration Presets
+    # presets.logsCollection.includeFilePath -- Include the log file path as an attribute.
+    # @section -- Logs Collection Presets
     includeFilePath: true
-    # presets.logsCollection.includeFileName - Include the log file name as an attribute.
-    # @section -- Configuration Presets
+    # presets.logsCollection.includeFileName -- Include the log file name as an attribute.
+    # @section -- Logs Collection Presets
     includeFileName: false
-    # presets.logsCollection.include - Include path patterns for log files to be collected. By default, all container logs are collected.
-    # @section -- Configuration Presets
+    # presets.logsCollection.include -- Include path patterns for log files to be collected. By default, all container logs are collected.
+    # @section -- Logs Collection Presets
     include:
       - /var/log/pods/*/*/*.log
-    # presets.logsCollection.blacklist - Exclude certain log files from being collected.
-    # @section -- Configuration Presets
+    # presets.logsCollection.blacklist -- Exclude certain log files from being collected.
+    # @section -- Logs Collection Presets
     blacklist:
       # presets.logsCollection.blacklist.enabled - Enable the blacklist.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       enabled: true
       # presets.logsCollection.blacklist.signozLogs - Exclude SigNoz's own logs.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       signozLogs: true
       # presets.logsCollection.blacklist.namespaces - List of namespaces to exclude from log collection.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       namespaces:
         - kube-system
       # presets.logsCollection.blacklist.pods - List of pod names to exclude.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       pods:
         - hotrod
         - locust
       # presets.logsCollection.blacklist.containers - List of container names to exclude.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       containers: []
       # presets.logsCollection.blacklist.additionalExclude - List of additional file path patterns to exclude.
-      # @section -- Configuration Presets
+      # @section -- Logs Collection Presets
       additionalExclude: []
     # presets.logsCollection.whitelist -- Whitelist certain log files to be collected. If enabled, `include` is ignored.
-    # @section -- Configuration Presets
+    # @section -- Logs Collection Presets
     whitelist:
-      # presets.logsCollection.whitelist.enabled -- Enable the whitelist.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.enabled - Enable the whitelist.
+      # @section -- Logs Collection Presets
       enabled: false
-      # presets.logsCollection.whitelist.signozLogs -- Include SigNoz's own logs.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.signozLogs - Include SigNoz's own logs.
+      # @section -- Logs Collection Presets
       signozLogs: true
-      # presets.logsCollection.whitelist.namespaces -- List of namespaces to include in log collection.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.namespaces - List of namespaces to include in log collection.
+      # @section -- Logs Collection Presets
       namespaces: []
-      # presets.logsCollection.whitelist.pods -- List of pod names to include.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.pods - List of pod names to include.
+      # @section -- Logs Collection Presets
       pods: []
-      # presets.logsCollection.whitelist.containers -- List of container names to include.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.containers - List of container names to include.
+      # @section -- Logs Collection Presets
       containers: []
-      # presets.logsCollection.whitelist.additionalInclude -- List of additional file path patterns to include.
-      # @section -- Configuration Presets
+      # presets.logsCollection.whitelist.additionalInclude - List of additional file path patterns to include.
+      # @section -- Logs Collection Presets
       additionalInclude: []
     # presets.logsCollection.operators -- A list of log processing operators.
-    # @section -- Configuration Presets
+    # @section -- Logs Collection Presets
     operators:
       - id: container-parser
         type: container
   # presets.hostMetrics -- Configuration for collecting host-level metrics from nodes.
-  # @section -- Configuration Presets
+  # @section -- Host Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   hostMetrics:
     # presets.hostMetrics.enabled -- Enable host metrics collection.
-    # @section -- Configuration Presets
+    # @section -- Host Metrics Presets
     enabled: true
-    # presets.hostMetrics.collectionInterval - Frequency at which to scrape host metrics.
-    # @section -- Configuration Presets
+    # presets.hostMetrics.collectionInterval -- Frequency at which to scrape host metrics.
+    # @section -- Host Metrics Presets
     collectionInterval: 30s
-    # presets.hostMetrics.scrapers - Fine-grained control over which host metric scrapers are enabled.
-    # @section -- Configuration Presets
+    # presets.hostMetrics.scrapers -- Fine-grained control over which host metric scrapers are enabled.
+    # @section -- Host Metrics Presets
+    # @default -- "Please check out the values.yml for default values"
     scrapers:
+      # presets.hostMetrics.scrapers.cpu -- Enable CPU metrics collection.
+      # @section -- Host Metrics Presets
       cpu: {}
+      # presets.hostMetrics.scrapers.load -- Enable load metrics collection.
+      # @section -- Host Metrics Presets
       load: {}
+      # presets.hostMetrics.scrapers.memory -- Enable memory metrics collection.
+      # @section -- Host Metrics Presets
       memory: {}
+      # presets.hostMetrics.scrapers.disk -- Enable disk metrics collection.
+      # @section -- Host Metrics Presets
       disk:
         exclude:
           devices:
@@ -267,6 +280,8 @@ presets:
             - ^xvd[a-z]\d+$
             - ^nvme\d+n\d+p\d+$
           match_type: regexp
+      # presets.hostmetrics.scrapers.filesystem -- Enable filesystem metrics collection.
+      # @section -- Host Metrics Presets
       filesystem:
         exclude_fs_types:
           fs_types:
@@ -306,6 +321,8 @@ presets:
             - /var/lib/kubelet/*
             - /snap/*
           match_type: regexp
+      # presets.hostMetrics.scrapers.network -- Enable network metrics collection.
+      # @section -- Host Metrics Presets
       network:
         exclude:
           interfaces:
@@ -321,37 +338,38 @@ presets:
             - ^lo$
           match_type: regexp
   # presets.kubeletMetrics -- Configuration for collecting metrics from Kubelet.
-  # @section -- Configuration Presets
+  # @section -- Kubelet Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   kubeletMetrics:
     # presets.kubeletMetrics.enabled -- Enable Kubelet metrics collection.
-    # @section -- Configuration Presets
+    # @section -- Kubelet Metrics Presets
     enabled: true
-    # presets.kubeletMetrics.collectionInterval - Frequency at which to scrape Kubelet metrics.
-    # @section -- Configuration Presets
+    # presets.kubeletMetrics.collectionInterval -- Frequency at which to scrape Kubelet metrics.
+    # @section -- Kubelet Metrics Presets
     collectionInterval: 30s
-    # presets.kubeletMetrics.authType - Authentication type to use with Kubelet: `serviceAccount` or `tls`.
-    # @section -- Configuration Presets
+    # presets.kubeletMetrics.authType -- Authentication type to use with Kubelet: `serviceAccount` or `tls`.
+    # @section -- Kubelet Metrics Presets
     authType: serviceAccount
     # presets.kubeletMetrics.endpoint -- Kubelet endpoint.
-    # @section -- Configuration Presets
+    # @section -- Kubelet Metrics Presets
     endpoint: ${env:K8S_HOST_IP}:10250
     # presets.kubeletMetrics.insecureSkipVerify -- Skip verifying Kubelet's certificate.
-    # @section -- Configuration Presets
+    # @section -- Kubelet Metrics Presets
     insecureSkipVerify: true
     # presets.kubeletMetrics.extraMetadataLabels -- List of extra metadata labels to collect.
-    # @section -- Configuration Presets
+    # @section -- Kubelet Metrics Presets
     extraMetadataLabels:
       - container.id
       - k8s.volume.type
     # presets.kubeletMetrics.metricGroups -- Groups of metrics to collect from Kubelet.
-    # @section -- Configuration Presets
+    # @section -- Kubelet Metrics Presets
     metricGroups:
       - container
       - pod
       - node
       - volume
-    # presets.kubeletMetrics.metrics - Fine-grained control over which Kubelet metrics are enabled.
-    # @section -- Configuration Presets
+    # presets.kubeletMetrics.metrics -- Fine-grained control over which Kubelet metrics are enabled.
+    # @section -- Kubelet Metrics Presets
     metrics:
       k8s.node.cpu.usage:
         enabled: true
@@ -382,22 +400,23 @@ presets:
       container.uptime:
         enabled: true
   # presets.kubernetesAttributes -- Processor for adding Kubernetes attributes to telemetry data.
-  # @section -- Configuration Presets
+  # @section -- Kubernetes Attributes Processor Presets
+  # @default -- "Please check out the values.yml for default values"
   kubernetesAttributes:
     # presets.kubernetesAttributes.enabled -- Enable the Kubernetes attributes processor.
-    # @section -- Configuration Presets
+    # @section -- Kubernetes Attributes Processor Presets
     enabled: true
-    # presets.kubernetesAttributes.passthrough - If true, agents will not make k8s API calls, do discovery, or extract metadata.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.passthrough -- If true, agents will not make k8s API calls, do discovery, or extract metadata.
+    # @section -- Kubernetes Attributes Processor Presets
     passthrough: false
-    # presets.kubernetesAttributes.filter - Limit agents to query pods based on specific selectors to reduce resource usage.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.filter -- Limit agents to query pods based on specific selectors to reduce resource usage.
+    # @section -- Kubernetes Attributes Processor Presets
     filter:
-      # presets.kubernetesAttributes.filter.node_from_env_var - Restrict each agent to query pods on the same node.
-      # @section -- Configuration Presets
+      # presets.kubernetesAttributes.filter.node_from_env_var -- Restrict each agent to query pods on the same node.
+      # @section -- Kubernetes Attributes Processor Presets
       node_from_env_var: K8S_NODE_NAME
-    # presets.kubernetesAttributes.podAssociation - Rules for tagging telemetry with pod metadata.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.podAssociation -- Rules for tagging telemetry with pod metadata.
+    # @section -- Kubernetes Attributes Processor Presets
     podAssociation:
       - sources:
         - from: resource_attribute
@@ -407,8 +426,8 @@ presets:
           name: k8s.pod.uid
       - sources:
         - from: connection
-    # presets.kubernetesAttributes.extractMetadatas - Pod/namespace metadata to extract from a list of default metadata fields.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.extractMetadatas -- Pod/namespace metadata to extract from a list of default metadata fields.
+    # @section -- Kubernetes Attributes Processor Presets
     extractMetadatas:
       - k8s.namespace.name
       - k8s.deployment.name
@@ -421,23 +440,24 @@ presets:
       - k8s.pod.name
       - k8s.pod.uid
       - k8s.pod.start_time
-    # presets.kubernetesAttributes.extractLabels - Pod labels to extract as attributes.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.extractLabels -- Pod labels to extract as attributes.
+    # @section -- Kubernetes Attributes Processor Presets
     extractLabels: []
-    # presets.kubernetesAttributes.extractAnnotations - Pod annotations to extract as attributes.
-    # @section -- Configuration Presets
+    # presets.kubernetesAttributes.extractAnnotations -- Pod annotations to extract as attributes.
+    # @section -- Kubernetes Attributes Processor Presets
     extractAnnotations: []
   # presets.clusterMetrics -- Configuration for collecting cluster-level metrics.
-  # @section -- Configuration Presets
+  # @section -- Cluster Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   clusterMetrics:
     # presets.clusterMetrics.enabled -- Enable cluster metrics collection.
-    # @section -- Configuration Presets
+    # @section -- Cluster Metrics Presets
     enabled: true
-    # presets.clusterMetrics.collectionInterval - Frequency at which to scrape cluster metrics.
-    # @section -- Configuration Presets
+    # presets.clusterMetrics.collectionInterval -- Frequency at which to scrape cluster metrics.
+    # @section -- Cluster Metrics Presets
     collectionInterval: 30s
     # presets.clusterMetrics.resourceAttributes -- Resource attributes to report.
-    # @section -- Configuration Presets
+    # @section -- Cluster Metrics Presets
     resourceAttributes:
       k8s.pod.qos_class:
         enabled: true
@@ -450,7 +470,7 @@ presets:
       k8s.container.status.last_terminated_reason:
         enabled: true
     # presets.clusterMetrics.nodeConditionsToReport -- Node conditions to report as metrics.
-    # @section -- Configuration Presets
+    # @section -- Cluster Metrics Presets
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
@@ -458,69 +478,69 @@ presets:
       - PIDPressure
       - NetworkUnavailable
     # presets.clusterMetrics.allocatableTypesToReport -- Allocatable resource types to report.
-    # @section -- Configuration Presets
+    # @section -- Cluster Metrics Presets
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
     # presets.clusterMetrics.metrics -- Fine-grained control over which cluster metrics are enabled.
-    # @section -- Configuration Presets
+    # @section -- Cluster Metrics Presets
     metrics:
       k8s.node.condition:
         enabled: true
       k8s.pod.status_reason:
         enabled: true
   # presets.prometheus -- Configuration for scraping Prometheus metrics from pod annotations.
-  # @section -- Configuration Presets
+  # @section -- Prometheus Metrics Presets
   prometheus:
     # presets.prometheus.enabled -- Enable Prometheus metrics scraping.
-    # @section -- Configuration Presets
+    # @section -- Prometheus Metrics Presets
     enabled: false
-    # presets.prometheus.annotationsPrefix - Prefix for the pod annotations used for metrics scraping (e.g., `signoz.io`).
-    # @section -- Configuration Presets
+    # presets.prometheus.annotationsPrefix -- Prefix for the pod annotations used for metrics scraping (e.g., `signoz.io`).
+    # @section -- Prometheus Metrics Presets
     annotationsPrefix: signoz.io
-    # presets.prometheus.scrapeInterval - How often to scrape metrics.
-    # @section -- Configuration Presets
+    # presets.prometheus.scrapeInterval -- How often to scrape metrics.
+    # @section -- Prometheus Metrics Presets
     scrapeInterval: 60s
-    # presets.prometheus.namespaceScoped - Only scrape metrics from pods in the same namespace.
-    # @section -- Configuration Presets
+    # presets.prometheus.namespaceScoped -- Only scrape metrics from pods in the same namespace.
+    # @section -- Prometheus Metrics Presets
     namespaceScoped: false
-    # presets.prometheus.namespaces - If set, only scrape metrics from pods in the specified namespaces.
-    # @section -- Configuration Presets
+    # presets.prometheus.namespaces -- If set, only scrape metrics from pods in the specified namespaces.
+    # @section -- Prometheus Metrics Presets
     namespaces: []
-    # presets.prometheus.includePodLabel - Include all pod labels in the metrics (can cause high cardinality).
-    # @section -- Configuration Presets
+    # presets.prometheus.includePodLabel -- Include all pod labels in the metrics (can cause high cardinality).
+    # @section -- Prometheus Metrics Presets
     includePodLabel: false
-    # presets.prometheus.includeContainerName - Include container name in metrics (not recommended for multi-container pods).
-    # @section -- Configuration Presets
+    # presets.prometheus.includeContainerName -- Include container name in metrics (not recommended for multi-container pods).
+    # @section -- Prometheus Metrics Presets
     includeContainerName: false
   # presets.resourceDetection -- Processor for detecting resource information from the environment (e.g., cloud provider, k8s).
-  # @section -- Configuration Presets
+  # @section -- Resource Detection Processor Presets
   resourceDetection:
-    # presets.resourceDetection.enabled - Enable the resource detection processor.
-    # @section -- Configuration Presets
+    # presets.resourceDetection.enabled -- Enable the resource detection processor.
+    # @section -- Resource Detection Processor Presets
     enabled: true
-    # presets.resourceDetection.timeout - Timeout for resource detection.
-    # @section -- Configuration Presets
+    # presets.resourceDetection.timeout -- Timeout for resource detection.
+    # @section -- Resource Detection Processor Presets
     timeout: 2s
-    # presets.resourceDetection.override - Whether to override existing resource attributes.
-    # @section -- Configuration Presets
+    # presets.resourceDetection.override -- Whether to override existing resource attributes.
+    # @section -- Resource Detection Processor Presets
     override: false
-    # presets.resourceDetection.envResourceAttributes - Additional resource attributes from environment variables.
-    # @section -- Configuration Presets
+    # presets.resourceDetection.envResourceAttributes -- Additional resource attributes from environment variables.
+    # @section -- Resource Detection Processor Presets
     envResourceAttributes: ""
   # presets.k8sEvents -- Configuration for collecting Kubernetes events as logs.
-  # @section -- Configuration Presets
+  # @section -- Kubernetes Events Collection Presets
   k8sEvents:
     # presets.k8sEvents.enabled -- Enable Kubernetes events collection.
-    # @section -- Configuration Presets
+    # @section -- Kubernetes Events Collection Presets
     enabled: true
     # presets.k8sEvents.authType -- Authentication type: `serviceAccount` or `kubeconfig`.
-    # @section -- Configuration Presets
+    # @section -- Kubernetes Events Collection Presets
     authType: serviceAccount
     # presets.k8sEvents.namespaces -- List of namespaces to watch for events. Empty list means all namespaces.
-    # @section -- Configuration Presets
+    # @section -- Kubernetes Events Collection Presets
     namespaces: []
 
 # @section -- OpenTelemetry Agent (DaemonSet)
