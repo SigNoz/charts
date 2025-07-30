@@ -72,6 +72,7 @@ spec:
         {{- with .Values.otelAgent.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      hostNetwork: {{ .Values.otelAgent.hostNetwork | default false }}
       containers:
         - name: {{ include "otelAgent.fullname" . }}
           image: {{ include "otelAgent.image" . }}
@@ -82,7 +83,7 @@ spec:
             - name: {{ $key }}
               containerPort: {{ $port.containerPort }}
               protocol: {{ $port.protocol }}
-              {{- if and $port.hostPort (ne $.Values.global.cloud "gcp/autogke") }}
+              {{- if and $port.hostPort (ne $.Values.global.cloud "gcp/autogke") (not $.Values.otelAgent.hostNetwork) }}
               hostPort: {{ $port.hostPort }}
               {{- end }}
             {{- end }}

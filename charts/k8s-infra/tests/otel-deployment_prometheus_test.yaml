@@ -11,7 +11,7 @@ set:
       enabled: true
       annotationsPrefix: "signoz.io"
       scrapeInterval: 60s
-    loggingExporter:
+    debugExporter:
       enabled: true
     otlpExporter:
       enabled: false
@@ -40,7 +40,7 @@ tests:
           path: data["otel-deployment-config.yaml"]
           value: |-
             exporters:
-              logging:
+              debug:
                 sampling_initial: 2
                 sampling_thereafter: 500
                 verbosity: basic
@@ -130,7 +130,7 @@ tests:
               pipelines:
                 metrics/scraper:
                   exporters:
-                  - logging
+                  - debug
                   processors:
                   - resourcedetection
                   - batch

@@ -18,7 +18,7 @@ The `k8s-infra` chart provides Kubernetes infrastructure observability by deploy
 
 It enables collection of metrics, logs, and events from your Kubernetes cluster, making it easier to monitor and troubleshoot your infrastructure with SigNoz.
 
-Refer to the documentation for a more detailed explanation of [k8s-infra](https://signoz.io/docs/infrastructure-monitoring/k8s-infra-architecture).
+Refer to the documentation for a more detailed explanation of [k8s-infra](https://signoz.io/docs/collection-agents/k8s/k8s-infra/overview/)
 ### Prerequisites
 
 - Kubernetes 1.16+
@@ -68,14 +68,23 @@ kubectl delete namespace platform
 {{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
 {{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
 {{- end -}}
-<pre lang="tpl/array">{{ $defaultValue }}</pre>
+<pre lang="yaml">{{ $defaultValue }}</pre>
 {{ end }}
 
 {{ define "chart.valuesTableHtml" }}
 
 {{/* Handle explicitly defined sections */}}
 {{- range .Sections.Sections }}
+{{- if (eq .SectionName "Presets Configuration")}}
+  {{- $item := index .SectionItems 0 -}}
+  <h3>{{- .SectionName }}</h3>
+  <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
+{{- else}}
+{{- if contains "Presets" .SectionName}}
+<h4>{{- .SectionName}}</h4>
+{{- else}}
 <h3>{{- .SectionName }}</h3>
+{{- end}}
 <table>
     <thead>
         <th>Key</th>
@@ -96,6 +105,7 @@ kubectl delete namespace platform
     {{- end }}
     </tbody>
 </table>
+{{- end}}
 {{- end }}
 
 {{/* Handle the default section for any un-annotated values */}}
@@ -122,7 +132,6 @@ kubectl delete namespace platform
 	</tbody>
 </table>
 {{ end }}
-
 {{ end }}
 
 {{ define "chart.valuesSectionHtml" }}

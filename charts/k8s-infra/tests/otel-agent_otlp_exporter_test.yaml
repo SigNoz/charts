@@ -1,0 +1,169 @@
+suite: Test otlp exporter setting
+templates:
+  - otel-agent/configmap.yaml
+set:
+  presets:
+    # Disable other presets to focus on otlp exporter
+    prometheus:
+      enabled: false
+    debugExporter:
+      enabled: false
+    otlpExporter:
+      enabled: true
+    logsCollection:
+      enabled: false
+    hostMetrics:
+      enabled: false
+    kubeletMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: false
+    k8sEvents:
+      enabled: false
+    selfTelemetry:
+      traces:
+        enabled: false
+      metrics:
+        enabled: false
+      logs:
+        enabled: false
+# Test case 1: Verify otlp (grpc) is enabled by default and otlp (http) is disabled
+tests:
+  - it: should have otlp (grpc) enabled by default and otlp (http) disabled
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters:
+              otlp:
+                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_API_KEY}
+                tls:
+                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                logs:
+                  exporters:
+                  - otlp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                metrics:
+                  exporters:
+                  - otlp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                traces:
+                  exporters:
+                  - otlp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+
+  # Test case 2: Verify otlp/http is enabled when the value is set to true
+  - it: should enable otlp/http when otlphttpExporter set to true
+    set:
+      presets:
+        otlphttpExporter:
+          enabled: true
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters:
+              otlphttp:
+                endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_API_KEY}
+                tls:
+                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines:
+                logs:
+                  exporters:
+                  - otlphttp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                metrics:
+                  exporters:
+                  - otlphttp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+                traces:
+                  exporters:
+                  - otlphttp
+                  processors:
+                  - batch
+                  receivers:
+                  - otlp
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888

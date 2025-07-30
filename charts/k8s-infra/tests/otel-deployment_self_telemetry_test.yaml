@@ -17,7 +17,7 @@ set:
     # Disable other presets to focus on selfTelemetry
     prometheus:
       enabled: false
-    loggingExporter:
+    debugExporter:
       enabled: false
     otlpExporter:
       enabled: false

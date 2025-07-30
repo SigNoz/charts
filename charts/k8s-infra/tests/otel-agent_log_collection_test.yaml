@@ -9,7 +9,7 @@ set:
   presets:
     prometheus:
       enabled: false
-    loggingExporter:
+    debugExporter:
       enabled: false
     otlpExporter:
       enabled: false
