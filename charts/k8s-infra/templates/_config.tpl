@@ -837,6 +837,9 @@ processors:
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resource/deployenv" | uniq) }}
 {{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resource/deployenv" | uniq) }}
+{{- end }}
 {{- $config | toYaml }}
 {{- end }}
 
