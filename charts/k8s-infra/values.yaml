@@ -252,7 +252,7 @@ presets:
     # presets.hostMetrics.rootPath -- Root path for host metrics collection (Linux only).
     # @section -- Host Metrics Presets
     # @default -- "/hostfs"
-    rootPath: 
+    rootPath: "/hostfs"
     # presets.hostMetrics.collectionInterval -- Frequency at which to scrape host metrics.
     # @section -- Host Metrics Presets
     collectionInterval: 30s
@@ -1045,6 +1045,7 @@ otelDeployment:
     # @section -- OpenTelemetry Deployment
     repository: otel/opentelemetry-collector-contrib
     # otelDeployment.image.tag -- Tag for the OtelDeployment image.
+    # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
     # @section -- OpenTelemetry Deployment
     tag: 0.109.0
     # otelDeployment.image.pullPolicy -- Image pull policy for the OtelDeployment.
