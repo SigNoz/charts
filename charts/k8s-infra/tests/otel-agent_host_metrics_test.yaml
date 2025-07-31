@@ -1,0 +1,555 @@
+suite: Test hostMetrics setting with rootPath
+templates:
+  - otel-agent/daemonset.yaml
+  - otel-agent/configmap.yaml
+set:
+  presets:
+    prometheus:
+      enabled: false
+    debugExporter:
+      enabled: false
+    otlpExporter:
+      enabled: false
+    logsCollection:
+      enabled: false
+    hostMetrics:
+      enabled: true
+    kubeletMetrics:
+      enabled: false
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: false
+    k8sEvents:
+      enabled: false
+    kubeletstats:
+      enabled: false
+
+# Test cases 1: for default hostMetrics with rootPath (for backward compatibility when rootPath key is not present)
+tests:
+  - it: should have hostMetrics present in configmap with default rootPath
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              hostmetrics:
+                collection_interval: 30s
+                root_path: /hostfs
+                scrapers:
+                  cpu: {}
+                  disk:
+                    exclude:
+                      devices:
+                      - ^ram\d+$
+                      - ^zram\d+$
+                      - ^loop\d+$
+                      - ^fd\d+$
+                      - ^hd[a-z]\d+$
+                      - ^sd[a-z]\d+$
+                      - ^vd[a-z]\d+$
+                      - ^xvd[a-z]\d+$
+                      - ^nvme\d+n\d+p\d+$
+                      match_type: regexp
+                  filesystem:
+                    exclude_fs_types:
+                      fs_types:
+                      - autofs
+                      - binfmt_misc
+                      - bpf
+                      - cgroup2?
+                      - configfs
+                      - debugfs
+                      - devpts
+                      - devtmpfs
+                      - fusectl
+                      - hugetlbfs
+                      - iso9660
+                      - mqueue
+                      - nsfs
+                      - overlay
+                      - proc
+                      - procfs
+                      - pstore
+                      - rpc_pipefs
+                      - securityfs
+                      - selinuxfs
+                      - squashfs
+                      - sysfs
+                      - tracefs
+                      match_type: strict
+                    exclude_mount_points:
+                      match_type: regexp
+                      mount_points:
+                      - /dev/*
+                      - /proc/*
+                      - /sys/*
+                      - /run/credentials/*
+                      - /run/k3s/containerd/*
+                      - /var/lib/docker/*
+                      - /var/lib/containers/storage/*
+                      - /var/lib/kubelet/*
+                      - /snap/*
+                  load: {}
+                  memory: {}
+                  network:
+                    exclude:
+                      interfaces:
+                      - ^veth.*$
+                      - ^docker.*$
+                      - ^br-.*$
+                      - ^flannel.*$
+                      - ^cali.*$
+                      - ^cbr.*$
+                      - ^cni.*$
+                      - ^dummy.*$
+                      - ^tailscale.*$
+                      - ^lo$
+                      match_type: regexp
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+        template: otel-agent/configmap.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          any: true
+          content:
+            name: hostfs
+            hostPath:
+              path: /
+        template: otel-agent/daemonset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          any: true
+          content:
+            name: hostfs
+            mountPath: /hostfs
+            readOnly: true
+            mountPropagation: HostToContainer
+        template: otel-agent/daemonset.yaml
+
+# Test cases 2: hostMetrics with custom rootPath
+  - it: should have hostMetrics present in configmap with custom rootPath
+    set:
+      presets:
+        hostMetrics:
+          rootPath: "/host"
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              hostmetrics:
+                collection_interval: 30s
+                root_path: /host
+                scrapers:
+                  cpu: {}
+                  disk:
+                    exclude:
+                      devices:
+                      - ^ram\d+$
+                      - ^zram\d+$
+                      - ^loop\d+$
+                      - ^fd\d+$
+                      - ^hd[a-z]\d+$
+                      - ^sd[a-z]\d+$
+                      - ^vd[a-z]\d+$
+                      - ^xvd[a-z]\d+$
+                      - ^nvme\d+n\d+p\d+$
+                      match_type: regexp
+                  filesystem:
+                    exclude_fs_types:
+                      fs_types:
+                      - autofs
+                      - binfmt_misc
+                      - bpf
+                      - cgroup2?
+                      - configfs
+                      - debugfs
+                      - devpts
+                      - devtmpfs
+                      - fusectl
+                      - hugetlbfs
+                      - iso9660
+                      - mqueue
+                      - nsfs
+                      - overlay
+                      - proc
+                      - procfs
+                      - pstore
+                      - rpc_pipefs
+                      - securityfs
+                      - selinuxfs
+                      - squashfs
+                      - sysfs
+                      - tracefs
+                      match_type: strict
+                    exclude_mount_points:
+                      match_type: regexp
+                      mount_points:
+                      - /dev/*
+                      - /proc/*
+                      - /sys/*
+                      - /run/credentials/*
+                      - /run/k3s/containerd/*
+                      - /var/lib/docker/*
+                      - /var/lib/containers/storage/*
+                      - /var/lib/kubelet/*
+                      - /snap/*
+                  load: {}
+                  memory: {}
+                  network:
+                    exclude:
+                      interfaces:
+                      - ^veth.*$
+                      - ^docker.*$
+                      - ^br-.*$
+                      - ^flannel.*$
+                      - ^cali.*$
+                      - ^cbr.*$
+                      - ^cni.*$
+                      - ^dummy.*$
+                      - ^tailscale.*$
+                      - ^lo$
+                      match_type: regexp
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+        template: otel-agent/configmap.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          any: true
+          content:
+            name: hostfs
+            hostPath:
+              path: /
+        template: otel-agent/daemonset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          any: true
+          content:
+            name: hostfs
+            mountPath: /host
+            readOnly: true
+        template: otel-agent/daemonset.yaml
+
+# Test cases 3: hostMetrics with empty rootPath (for windows compatibility)
+  - it: should have hostMetrics present in configmap with empty rootPath
+    set:
+      presets:
+        hostMetrics:
+          rootPath: ""
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              hostmetrics:
+                collection_interval: 30s
+                scrapers:
+                  cpu: {}
+                  disk:
+                    exclude:
+                      devices:
+                      - ^ram\d+$
+                      - ^zram\d+$
+                      - ^loop\d+$
+                      - ^fd\d+$
+                      - ^hd[a-z]\d+$
+                      - ^sd[a-z]\d+$
+                      - ^vd[a-z]\d+$
+                      - ^xvd[a-z]\d+$
+                      - ^nvme\d+n\d+p\d+$
+                      match_type: regexp
+                  filesystem:
+                    exclude_fs_types:
+                      fs_types:
+                      - autofs
+                      - binfmt_misc
+                      - bpf
+                      - cgroup2?
+                      - configfs
+                      - debugfs
+                      - devpts
+                      - devtmpfs
+                      - fusectl
+                      - hugetlbfs
+                      - iso9660
+                      - mqueue
+                      - nsfs
+                      - overlay
+                      - proc
+                      - procfs
+                      - pstore
+                      - rpc_pipefs
+                      - securityfs
+                      - selinuxfs
+                      - squashfs
+                      - sysfs
+                      - tracefs
+                      match_type: strict
+                    exclude_mount_points:
+                      match_type: regexp
+                      mount_points:
+                      - /dev/*
+                      - /proc/*
+                      - /sys/*
+                      - /run/credentials/*
+                      - /run/k3s/containerd/*
+                      - /var/lib/docker/*
+                      - /var/lib/containers/storage/*
+                      - /var/lib/kubelet/*
+                      - /snap/*
+                  load: {}
+                  memory: {}
+                  network:
+                    exclude:
+                      interfaces:
+                      - ^veth.*$
+                      - ^docker.*$
+                      - ^br-.*$
+                      - ^flannel.*$
+                      - ^cali.*$
+                      - ^cbr.*$
+                      - ^cni.*$
+                      - ^dummy.*$
+                      - ^tailscale.*$
+                      - ^lo$
+                      match_type: regexp
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+        template: otel-agent/configmap.yaml
+      - notContains:
+          path: spec.template.spec.volumes
+          any: true
+          content:
+            name: hostfs
+            hostPath:
+              path: /
+        template: otel-agent/daemonset.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          any: true
+          content:
+            name: hostfs
+            mountPath: /host
+            readOnly: true
+            mountPropagation: HostToContainer
+        template: otel-agent/daemonset.yaml
+
+# Test cases 4: for default hostMetrics with null rootPath (check whether rootPath still exists)
+  - it: should have hostMetrics present in configmap with null rootPath
+    set:
+      presets:
+        hostMetrics:
+          rootPath:
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              hostmetrics:
+                collection_interval: 30s
+                root_path: /hostfs
+                scrapers:
+                  cpu: {}
+                  disk:
+                    exclude:
+                      devices:
+                      - ^ram\d+$
+                      - ^zram\d+$
+                      - ^loop\d+$
+                      - ^fd\d+$
+                      - ^hd[a-z]\d+$
+                      - ^sd[a-z]\d+$
+                      - ^vd[a-z]\d+$
+                      - ^xvd[a-z]\d+$
+                      - ^nvme\d+n\d+p\d+$
+                      match_type: regexp
+                  filesystem:
+                    exclude_fs_types:
+                      fs_types:
+                      - autofs
+                      - binfmt_misc
+                      - bpf
+                      - cgroup2?
+                      - configfs
+                      - debugfs
+                      - devpts
+                      - devtmpfs
+                      - fusectl
+                      - hugetlbfs
+                      - iso9660
+                      - mqueue
+                      - nsfs
+                      - overlay
+                      - proc
+                      - procfs
+                      - pstore
+                      - rpc_pipefs
+                      - securityfs
+                      - selinuxfs
+                      - squashfs
+                      - sysfs
+                      - tracefs
+                      match_type: strict
+                    exclude_mount_points:
+                      match_type: regexp
+                      mount_points:
+                      - /dev/*
+                      - /proc/*
+                      - /sys/*
+                      - /run/credentials/*
+                      - /run/k3s/containerd/*
+                      - /var/lib/docker/*
+                      - /var/lib/containers/storage/*
+                      - /var/lib/kubelet/*
+                      - /snap/*
+                  load: {}
+                  memory: {}
+                  network:
+                    exclude:
+                      interfaces:
+                      - ^veth.*$
+                      - ^docker.*$
+                      - ^br-.*$
+                      - ^flannel.*$
+                      - ^cali.*$
+                      - ^cbr.*$
+                      - ^cni.*$
+                      - ^dummy.*$
+                      - ^tailscale.*$
+                      - ^lo$
+                      match_type: regexp
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888
+        template: otel-agent/configmap.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          any: true
+          content:
+            name: hostfs
+            hostPath:
+              path: /
+        template: otel-agent/daemonset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          any: true
+          content:
+            name: hostfs
+            mountPath: /hostfs
+            readOnly: true
+            mountPropagation: HostToContainer
+        template: otel-agent/daemonset.yaml

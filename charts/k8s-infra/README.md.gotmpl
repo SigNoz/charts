@@ -36,7 +36,37 @@ helm -n platform --create-namespace install "my-release" signoz/k8s-infra
 These commands deploy K8s-infra on the Kubernetes cluster in the default configuration.
 The [Configuration](#configuration) section lists the parameters that can be configured during installation:
 
-> **Tip**: List all releases using `helm list`
+>[!NOTE]
+> ### Installing K8s-Infra on Windows
+> Follow these steps to configure k8s-infra for Windows environments.
+>
+> #### Use OpenTelemetry Collector Contrib for Windows
+>
+> OpenTelemetry provides Windows-compatible [opentelemetry-collector-contrib](https://hub.docker.com/r/otel/opentelemetry-collector-contrib/tags?name=windows) container images which can be used for k8s-infra. You must specify the Windows image tags in your Helm values configuration.
+>
+> Add the following configuration to your Helm values file:
+>
+> ```yaml
+> otelAgent:
+>   image:
+>     tag: 0.123.0-windows-2022-amd64
+>
+> otelDeployment:
+>   image:
+>     tag: 0.123.0-windows-2022-amd64
+> ```
+>
+> #### Remove Root Path for Host Metrics
+>
+> The host metrics receiver requires configuring the `root_path` when using the host receiver for Linux in containers. However, Windows deployments do not require this configuration and the k8s-infra installation may fail if included. Remove the path from the `root_path` key under `presets.hostMetrics` in your Helm values:
+>
+> ```yaml
+> presets:
+>   hostMetrics:
+>     root_path: ""
+> ```
+>
+> After completing these steps, you can proceed with the [standard k8s-infra installation](https://github.com/SigNoz/charts/tree/main/charts/k8s-infra#installing-the-chart).
 
 ### Uninstalling the chart
 
@@ -62,6 +92,37 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 ```bash
 kubectl delete namespace platform
 ```
+> [!WARNING]  
+> ### Breaking Changes
+> 
+> #### Version 0.14.1
+> 
+> **Configuration Migration Required:** 
+> - `presets.loggingExporter` has been deprecated and must be migrated to `presets.debugExporter`.
+> 
+> This change aligns with OpenTelemetry's deprecation of the [logging exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.110.0/exporter/loggingexporter) in favor of the [debug exporter](https://github.com/open-telemetry/opentelemetry-collector/blob/v0.110.0/exporter/debugexporter/README.md).
+> 
+> **Migration Example:**
+> 
+> Replace this configuration:
+> ```yaml
+> presets:
+>   loggingExporter:  
+>     enabled: true
+>     verbosity: basic
+>     samplingInitial: 2
+>     samplingThereafter: 500
+> ```
+> 
+> With this configuration:
+> ```yaml
+> presets:
+>   debugExporter:  
+>     enabled: true
+>     verbosity: basic
+>     samplingInitial: 2
+>     samplingThereafter: 500
+> ```
 
 {{ define "chart.valueDefaultColumnRender" }}
 {{- $defaultValue := (default .Default .AutoDefault) -}}
@@ -72,7 +133,6 @@ kubectl delete namespace platform
 {{ end }}
 
 {{ define "chart.valuesTableHtml" }}
-
 {{/* Handle explicitly defined sections */}}
 {{- range .Sections.Sections }}
 {{- if (eq .SectionName "Presets Configuration")}}

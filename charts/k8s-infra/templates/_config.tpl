@@ -494,7 +494,9 @@ receivers:
 receivers:
   hostmetrics:
     collection_interval: {{ .Values.presets.hostMetrics.collectionInterval }}
-    root_path: /hostfs
+    {{- if and .Values.presets.hostMetrics.enabled (ne .Values.presets.hostMetrics.rootPath "") }}
+    root_path: {{.Values.presets.hostMetrics.rootPath | default "/hostfs"}}
+    {{- end}}
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
       {{ $key }}: {{- $val | toYaml | nindent 8 }}
