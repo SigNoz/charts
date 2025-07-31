@@ -249,6 +249,10 @@ presets:
     # presets.hostMetrics.enabled -- Enable host metrics collection.
     # @section -- Host Metrics Presets
     enabled: true
+    # presets.hostMetrics.rootPath -- Root path for host metrics collection (Linux only).
+    # @section -- Host Metrics Presets
+    # @default -- "/hostfs"
+    rootPath: 
     # presets.hostMetrics.collectionInterval -- Frequency at which to scrape host metrics.
     # @section -- Host Metrics Presets
     collectionInterval: 30s
@@ -562,6 +566,7 @@ otelAgent:
     # @section -- OpenTelemetry Agent (DaemonSet)
     repository: otel/opentelemetry-collector-contrib
     # otelAgent.image.tag -- Tag for the OtelAgent image.
+    # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
     # @section -- OpenTelemetry Agent (DaemonSet)
     tag: 0.109.0
     # otelAgent.image.pullPolicy -- Image pull policy for the OtelAgent.
