@@ -294,6 +294,10 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
+    {{- if .Values.presets.logsCollection.multiline }}
+    multiline:
+      {{- toYaml .Values.presets.logsCollection.multiline | nindent 6 }}
+    {{- end }}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
@@ -603,6 +607,10 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
+    {{- if .Values.presets.logsCollection.multiline }}
+    multiline:
+      {{- toYaml .Values.presets.logsCollection.multiline | nindent 6 }}
+    {{- end }}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
@@ -836,6 +844,9 @@ processors:
 {{- end }}
 {{- if index $config.service.pipelines "metrics/internal" }}
 {{- $_ := set (index $config.service.pipelines "metrics/internal") "processors" (prepend (index (index $config.service.pipelines "metrics/internal") "processors") "resource/deployenv" | uniq) }}
+{{- end }}
+{{- if index $config.service.pipelines "metrics/scraper" }}
+{{- $_ := set (index $config.service.pipelines "metrics/scraper") "processors" (prepend (index (index $config.service.pipelines "metrics/scraper") "processors") "resource/deployenv" | uniq) }}
 {{- end }}
 {{- $config | toYaml }}
 {{- end }}

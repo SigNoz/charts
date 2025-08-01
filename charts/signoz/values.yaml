@@ -1187,6 +1187,9 @@ schemaMigrator:
       # schemaMigrator.initContainers.wait.env - Environment variables for the wait container.
       # @default -- []
       env: []
+      # schemaMigrator.initContainers.wait.resources - Resource requests and limits for the init container.
+      # @default -- {}
+      resources: {}
   # schemaMigrator.serviceAccount -- Service Account configuration for the Schema Migrator.
   # @section -- Schema Migrator
   serviceAccount:
