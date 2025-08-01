@@ -294,22 +294,10 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
-    {{- if and .Values.presets.logsCollection.multiline  }}
-    {{- $start := .Values.presets.logsCollection.multiline.line_start_pattern }}
-    {{- $end   := .Values.presets.logsCollection.multiline.line_end_pattern }}
-    {{- if and $start $end }}
-    {{ fail "`line_start_pattern` and `line_end_pattern` are mutually exclusive – set only one" }}
-    {{- end}}
-    {{- if or $start $end}}
+    {{- if .Values.presets.logsCollection.multiline }}
     multiline:
-      {{- if $start }}
-      line_start_pattern: {{ $start }}
-      {{- end }}
-      {{- if $end }}
-      line_end_pattern: {{ $end }}
-      {{- end }}
+      {{- toYaml .Values.presets.logsCollection.multiline | nindent 6 }}
     {{- end }}
-    {{- end}}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
@@ -619,22 +607,10 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
-    {{- if and .Values.presets.logsCollection.multiline  }}
-    {{- $start := .Values.presets.logsCollection.multiline.line_start_pattern }}
-    {{- $end   := .Values.presets.logsCollection.multiline.line_end_pattern }}
-    {{- if and $start $end }}
-    {{ fail "`line_start_pattern` and `line_end_pattern` are mutually exclusive – set only one" }}
-    {{- end}}
-    {{- if or $start $end}}
+    {{- if .Values.presets.logsCollection.multiline }}
     multiline:
-      {{- if $start }}
-      line_start_pattern: {{ $start }}
-      {{- end }}
-      {{- if $end }}
-      line_end_pattern: {{ $end }}
-      {{- end }}
+      {{- toYaml .Values.presets.logsCollection.multiline | nindent 6 }}
     {{- end }}
-    {{- end}}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
