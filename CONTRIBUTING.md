@@ -8,26 +8,6 @@ Thank you for your interest in contributing to our project! We greatly value fee
 - Look for [good first issues](https://github.com/SigNoz/charts/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) to start with
 - Review [recently closed issues](https://github.com/SigNoz/charts/issues?q=is%3Aissue+is%3Aclosed) to avoid duplicates
 
-### Types of Contributions
-1. **Report Bugs**
-2. **Request Features**
-3. **Improve Documentation**: Create an issue with the `documentation` label
-4. **Report Security Issues**: Follow our [Security Policy](https://github.com/SigNoz/charts/security/policy)
-5. **Join Discussions**: Participate in [project discussions](https://github.com/SigNoz/charts/discussions)
-
-### Creating Helpful Issues
-When creating issues, include:
-- **For Feature Requests**:
-  - Clear use case and requirements
-  - Proposed solution or improvement
-  - Any open questions or considerations
-- **For Bug Reports**:
-  - Step-by-step reproduction steps
-  - Version information
-  - Relevant environment details
-  - Any modifications you've made
-  - Expected vs actual behavior
-
 ### Submitting Pull Requests
 1. **Development**:
    - Setup your [development environment](#where-do-i-go-from-here)
@@ -50,23 +30,19 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ## How can I contribute to the charts repository?
 There are primarily 3 charts in the SigNoz Helm Charts repository:
-- signoz: signoz and signoz collector
+- signoz: signoz, signoz otel collector and schema Migrator
 - clickhouse: clickhouse and zookeeper
 - k8s-infra: k8s-infra collection agent
 
-signoz chart and k8s-infra is where most of the developments are done.
-clickhouse chart is seldom updated to sync major enhancement
 
 ## Where do I go from here? 
-### To run helm chart for local development
+### To run the helm chart for local development
 - run `git clone https://github.com/SigNoz/charts.git` followed by `cd charts`
-- it is recommended to use lightweight kubernetes (k8s) cluster for local development:
+- It is recommended to use a lightweight Kubernetes (k8s) cluster for local development:
   - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
   - [k3d](https://k3d.io/#installation)
   - [minikube](https://minikube.sigs.k8s.io/docs/start/)
-- create a k8s cluster and make sure `kubectl` points to the locally created k8s cluster
-- run `make dev-install` to install SigNoz chart with `my-release` release name in `platform` namespace.
-- run `kubectl -n platform port-forward svc/my-release-signoz 8080:8080` to make SigNoz UI available at [localhost:8080](http://localhost:8080)
+- Create a k8s cluster and make sure `kubectl` points to the locally created k8s cluster
 
 ## How can I get help?
 Need assistance? Join our Slack community:
