@@ -295,16 +295,19 @@ receivers:
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
     {{- if and .Values.presets.logsCollection.multiline  }}
-    {{- with .Values.presets.logsCollection.multiline }}
-    {{- if or .line_start_pattern .line_end_pattern}}
+    {{- $start := .Values.presets.logsCollection.multiline.line_start_pattern }}
+    {{- $end   := .Values.presets.logsCollection.multiline.line_end_pattern }}
+    {{- if and $start $end }}
+    {{ fail "`line_start_pattern` and `line_end_pattern` are mutually exclusive – set only one" }}
+    {{- end}}
+    {{- if or $start $end}}
     multiline:
-      {{- if .line_start_pattern }}
-      line_start_pattern: {{ .line_start_pattern}}
+      {{- if $start }}
+      line_start_pattern: {{ $start }}
       {{- end }}
-      {{- if .line_end_pattern }}
-      line_end_pattern: {{ .line_end_pattern }}
+      {{- if $end }}
+      line_end_pattern: {{ $end }}
       {{- end }}
-    {{- end }}
     {{- end }}
     {{- end}}
     operators:
@@ -617,16 +620,19 @@ receivers:
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
     {{- if and .Values.presets.logsCollection.multiline  }}
-    {{- with .Values.presets.logsCollection.multiline }}
-    {{- if or .line_start_pattern .line_end_pattern}}
+    {{- $start := .Values.presets.logsCollection.multiline.line_start_pattern }}
+    {{- $end   := .Values.presets.logsCollection.multiline.line_end_pattern }}
+    {{- if and $start $end }}
+    {{ fail "`line_start_pattern` and `line_end_pattern` are mutually exclusive – set only one" }}
+    {{- end}}
+    {{- if or $start $end}}
     multiline:
-      {{- if .line_start_pattern }}
-      line_start_pattern: {{ .line_start_pattern | toYaml }}
+      {{- if $start }}
+      line_start_pattern: {{ $start }}
       {{- end }}
-      {{- if .line_end_pattern }}
-      line_end_pattern: {{ .line_end_pattern | toYaml}}
+      {{- if $end }}
+      line_end_pattern: {{ $end }}
       {{- end }}
-    {{- end }}
     {{- end }}
     {{- end}}
     operators:

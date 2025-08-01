@@ -192,7 +192,7 @@ presets:
     # @section -- Logs Collection Presets
     include:
       - /var/log/pods/*/*/*.log
-    # presets.logsCollection.multiline - Configuration to instructs the file_input operator to split log entries on a pattern other than newlines.
+    # presets.logsCollection.multiline -- Configuration that instructs the file_input operator to split log entries using a pattern other than newlines
     # Please refer to the https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/filelogreceiver/README.md#multiline-configuration for more details.
     # multiline configuration block must contain exactly one of line_start_pattern or line_end_pattern
     # @section -- Logs Collection Presets

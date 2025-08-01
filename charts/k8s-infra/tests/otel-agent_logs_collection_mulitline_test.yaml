@@ -29,6 +29,10 @@ set:
       enabled: false
     k8sEvents:
       enabled: false
+    selfTelemetry:
+      logs: 
+        enabled: true
+      endpoint: "test-endpoint:4317"
 
 tests:
   - it: should configure the log collection correctly without multiline support
@@ -36,7 +40,14 @@ tests:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
-            exporters: {}
+            exporters:
+              otlphttp/self_telemetry:
+                endpoint: http://test-endpoint:4317
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                tls:
+                  insecure: true
+                  insecure_skip_verify: true
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -48,6 +59,10 @@ tests:
               batch:
                 send_batch_size: 10000
                 timeout: 200ms
+              filter/non_error_logs:
+                logs:
+                  log_record:
+                  - not IsMatch(body, ".*error.*")
             receivers:
               filelog/k8s:
                 exclude:
@@ -58,6 +73,15 @@ tests:
                 - /var/log/pods/*_locust*_*/*/*.log
                 include:
                 - /var/log/pods/*/*/*.log
+                include_file_name: false
+                include_file_path: true
+                operators:
+                - id: container-parser
+                  type: container
+                start_at: end
+              filelog/self_logs:
+                include:
+                - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
                 include_file_name: false
                 include_file_path: true
                 operators:
@@ -76,13 +100,21 @@ tests:
               - health_check
               - zpages
               - pprof
-              pipelines: {}
+              pipelines:
+                logs/self_logs:
+                  exporters:
+                  - otlphttp/self_telemetry
+                  processors:
+                  - filter/non_error_logs
+                  receivers:
+                  - filelog/self_logs
               telemetry:
                 logs:
                   encoding: json
                 metrics:
                   address: 0.0.0.0:8888
-  - it: should configure the log collection correctly with multiline support
+  
+  - it: multiline (line_start_pattern) is rendered correctly
     set:
       presets:
         logsCollection:
@@ -92,7 +124,14 @@ tests:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
-            exporters: {}
+            exporters:
+              otlphttp/self_telemetry:
+                endpoint: http://test-endpoint:4317
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                tls:
+                  insecure: true
+                  insecure_skip_verify: true
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -104,6 +143,10 @@ tests:
               batch:
                 send_batch_size: 10000
                 timeout: 200ms
+              filter/non_error_logs:
+                logs:
+                  log_record:
+                  - not IsMatch(body, ".*error.*")
             receivers:
               filelog/k8s:
                 exclude:
@@ -114,6 +157,17 @@ tests:
                 - /var/log/pods/*_locust*_*/*/*.log
                 include:
                 - /var/log/pods/*/*/*.log
+                include_file_name: false
+                include_file_path: true
+                multiline:
+                  line_start_pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z
+                operators:
+                - id: container-parser
+                  type: container
+                start_at: end
+              filelog/self_logs:
+                include:
+                - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
                 include_file_name: false
                 include_file_path: true
                 multiline:
@@ -134,13 +188,20 @@ tests:
               - health_check
               - zpages
               - pprof
-              pipelines: {}
+              pipelines:
+                logs/self_logs:
+                  exporters:
+                  - otlphttp/self_telemetry
+                  processors:
+                  - filter/non_error_logs
+                  receivers:
+                  - filelog/self_logs
               telemetry:
                 logs:
                   encoding: json
                 metrics:
                   address: 0.0.0.0:8888
-  - it: should configure the log collection correctly with multiline support
+  - it: multiline (line_end_pattern) is rendered correctly
     set:
       presets:
         logsCollection:
@@ -150,7 +211,14 @@ tests:
       - equal:
           path: data["otel-agent-config.yaml"]
           value: |-
-            exporters: {}
+            exporters:
+              otlphttp/self_telemetry:
+                endpoint: http://test-endpoint:4317
+                headers:
+                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                tls:
+                  insecure: true
+                  insecure_skip_verify: true
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -162,6 +230,10 @@ tests:
               batch:
                 send_batch_size: 10000
                 timeout: 200ms
+              filter/non_error_logs:
+                logs:
+                  log_record:
+                  - not IsMatch(body, ".*error.*")
             receivers:
               filelog/k8s:
                 exclude:
@@ -172,6 +244,17 @@ tests:
                 - /var/log/pods/*_locust*_*/*/*.log
                 include:
                 - /var/log/pods/*/*/*.log
+                include_file_name: false
+                include_file_path: true
+                multiline:
+                  line_end_pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z
+                operators:
+                - id: container-parser
+                  type: container
+                start_at: end
+              filelog/self_logs:
+                include:
+                - /var/log/pods/signoz_k8s-infra*-k8s-infra-*/*/*.log
                 include_file_name: false
                 include_file_path: true
                 multiline:
@@ -192,7 +275,14 @@ tests:
               - health_check
               - zpages
               - pprof
-              pipelines: {}
+              pipelines:
+                logs/self_logs:
+                  exporters:
+                  - otlphttp/self_telemetry
+                  processors:
+                  - filter/non_error_logs
+                  receivers:
+                  - filelog/self_logs
               telemetry:
                 logs:
                   encoding: json

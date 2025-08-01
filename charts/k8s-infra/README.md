@@ -632,6 +632,16 @@ traces:
             <td>Include path patterns for log files to be collected. By default, all container logs are collected.</td>
         </tr>
         <tr>
+            <td id="presets--logsCollection--multiline"><a href="./values.yaml#L199">presets.logsCollection.multiline</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">line_end_pattern: null
+line_start_pattern: null</pre>
+</div>
+            </td>
+            <td>Configuration that instructs the file_input operator to split log entries using a pattern other than newlines Please refer to the https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/filelogreceiver/README.md#multiline-configuration for more details. multiline configuration block must contain exactly one of line_start_pattern or line_end_pattern</td>
+        </tr>
+        <tr>
             <td id="presets--logsCollection--multiline--line_start_pattern"><a href="./values.yaml#L202">presets.logsCollection.multiline.line_start_pattern</a></td>
             <td>string</td>
             <td>
