@@ -36,7 +36,7 @@ When creating issues, include:
 ### Submitting Pull Requests
 
 1. **Development**:
-   - Setup your [development environment](https://github.com/SigNoz/charts/edit/main/CONTRIBUTING.md#where-do-i-go-from-here)
+   - Setup your [development environment](https://github.com/SigNoz/charts/main/CONTRIBUTING.md#where-do-i-go-from-here)
    - Work against the latest `main` branch
    - Focus on specific changes
    - Ensure all tests pass locally
