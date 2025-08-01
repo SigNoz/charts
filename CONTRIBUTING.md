@@ -36,7 +36,7 @@ When creating issues, include:
 ### Submitting Pull Requests
 
 1. **Development**:
-   - Setup your [development environment](https://github.com/SigNoz/charts/main/CONTRIBUTING.md#where-do-i-go-from-here)
+   - Setup your [development environment](#where-do-i-go-from-here)
    - Work against the latest `main` branch
    - Focus on specific changes
    - Ensure all tests pass locally
@@ -83,35 +83,6 @@ clickhouse chart is seldom updated to to sync major enhancement
 - run `make dev-install` to install SigNoz chart with `my-release` release name in `platform` namespace.
 - run `kubectl -n platform port-forward svc/my-release-signoz 8080:8080` to make SigNoz UI available at [localhost:8080](http://localhost:8080)
 
-**To install HotROD sample app:**
-
-```bash
-curl -sL https://github.com/SigNoz/signoz/raw/main/sample-apps/hotrod/hotrod-install.sh \
-  | HELM_RELEASE=my-release SIGNOZ_NAMESPACE=platform bash
-```
-
-**To load data with HotROD sample app:**
-
-```bash
-kubectl -n sample-application run strzal --image=djbingham/curl \
-  --restart='OnFailure' -i --tty --rm --command -- curl -X POST -F \
-  'user_count=6' -F 'spawn_rate=2' http://locust-master:8089/swarm
-```
-
-**To stop the load generation:**
-
-```bash
-kubectl -n sample-application run strzal --image=djbingham/curl \
-  --restart='OnFailure' -i --tty --rm --command -- curl \
-  http://locust-master:8089/stop
-```
-
-**To delete HotROD sample app:**
-
-```bash
-curl -sL https://github.com/SigNoz/signoz/raw/main/sample-apps/hotrod/hotrod-delete.sh \
-  | HOTROD_NAMESPACE=sample-application bash
-```
 ## How can I get help?
 
 Need assistance? Join our Slack community:
