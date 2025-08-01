@@ -294,6 +294,19 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
+    {{- if and .Values.presets.logsCollection.multiline  }}
+    {{- with .Values.presets.logsCollection.multiline }}
+    {{- if or .line_start_pattern .line_end_pattern}}
+    multiline:
+      {{- if .line_start_pattern }}
+      line_start_pattern: {{ .line_start_pattern}}
+      {{- end }}
+      {{- if .line_end_pattern }}
+      line_end_pattern: {{ .line_end_pattern }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end}}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
@@ -603,6 +616,19 @@ receivers:
     start_at: {{ .Values.presets.logsCollection.startAt }}
     include_file_path: {{ .Values.presets.logsCollection.includeFilePath }}
     include_file_name: {{ .Values.presets.logsCollection.includeFileName }}
+    {{- if and .Values.presets.logsCollection.multiline  }}
+    {{- with .Values.presets.logsCollection.multiline }}
+    {{- if or .line_start_pattern .line_end_pattern}}
+    multiline:
+      {{- if .line_start_pattern }}
+      line_start_pattern: {{ .line_start_pattern | toYaml }}
+      {{- end }}
+      {{- if .line_end_pattern }}
+      line_end_pattern: {{ .line_end_pattern | toYaml}}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end}}
     operators:
     {{ range $operators := .Values.presets.logsCollection.operators }}
       - {{ toYaml $operators | nindent 8 }}
