@@ -704,6 +704,7 @@ metrics:
   ## Service configuration
   ##
   service:
+    enabled: true
     ## @param metrics.service.type ZooKeeper Prometheus Exporter service type
     ##
     type: ClusterIP

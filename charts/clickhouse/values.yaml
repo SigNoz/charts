@@ -67,6 +67,7 @@ zookeeper:
     enabled: false
 
     service:
+      enabled: true
       # -- ZooKeeper metrics service annotation
       annotations: {}
         # signoz.io/scrape: 'true'
