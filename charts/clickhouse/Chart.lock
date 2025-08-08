@@ -1,6 +1,6 @@
 dependencies:
 - name: zookeeper
   repository: file://../zookeeper
-  version: 11.4.2
-digest: sha256:8b7cd61c8edfedd917c2295b92ca5eb99fd757f4b3547c5724337e96959f266c
-generated: "2025-08-07T20:08:13.099474+05:30"
+  version: 11.4.3
+digest: sha256:bdc28f4cfaf250ad65a26991554ad3dd427888cbcdd6402d398ad043e736c612
+generated: "2025-08-08T18:13:52.59293+05:30"
