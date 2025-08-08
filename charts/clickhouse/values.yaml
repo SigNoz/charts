@@ -41,7 +41,7 @@ zookeeper:
     # -- Zookeeper image registry to use.
     registry: *GLOBAL_IMAGE_REGISTRY
     # -- Zookeeper image repository to use.
-    repository: bitnami/zookeeper
+    repository: signoz/zookeeper
     # -- Zookeeper image tag.
     # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
     # Please override the default only if you know what you are doing.
@@ -67,6 +67,7 @@ zookeeper:
     enabled: false
 
     service:
+      enabled: true
       # -- ZooKeeper metrics service annotation
       annotations: {}
         # signoz.io/scrape: 'true'

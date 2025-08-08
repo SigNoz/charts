@@ -128,7 +128,7 @@ clickhouse:
       registry: *GLOBAL_IMAGE_REGISTRY
       # clickhouse.zookeeper.image.repository -- Zookeeper image repository to use.
       # @default -- "bitnami/zookeeper"
-      repository: bitnami/zookeeper
+      repository: signoz/zookeeper
       # clickhouse.zookeeper.image.tag -- Zookeeper image tag. SigNoz ClickHouse does not support all versions of Zookeeper.
       # Please override the default only if you know what you are doing.
       # @default -- "3.7.1"
