@@ -46,6 +46,32 @@ entries:
   clickhouse:
   - apiVersion: v2
     appVersion: 24.1.2
+    created: "2025-08-11T13:01:14.806190654Z"
+    dependencies:
+    - condition: zookeeper.enabled
+      name: zookeeper
+      repository: file://../zookeeper
+      version: 0.0.1
+    description: A Helm chart for ClickHouse
+    digest: 64affcb10bbc31050c81c4015d6b5a066eafafd912d4b566f04672cf57c6c927
+    icon: https://github.com/ClickHouse/clickhouse-docs/raw/84f38d893eb7e561c7296279d7953b6a508ec413/static/img/clickhouse-logo.svg
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: clickhouse
+    sources:
+    - https://github.com/SigNoz/charts
+    - https://github.com/ClickHouse/ClickHouse
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/clickhouse-24.1.18/clickhouse-24.1.18.tgz
+    version: 24.1.18
+  - apiVersion: v2
+    appVersion: 24.1.2
     created: "2025-07-11T10:53:55.628678795Z"
     dependencies:
     - condition: zookeeper.enabled
@@ -14257,4 +14283,27 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/signoz-otel-gateway-0.0.1/signoz-otel-gateway-0.0.1.tgz
     version: 0.0.1
-generated: "2025-08-06T11:27:00.543275672Z"
+  zookeeper:
+  - apiVersion: v2
+    appVersion: 3.8.1
+    created: "2025-08-11T13:01:15.196946926Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 0.0.1
+    description: Bitnami Helm chart for Zookeeper
+    digest: c9d33fb13be2020e70bd39add25c8196349c1b25de0249a2df5649920e45a761
+    icon: https://bitnami.com/assets/stacks/zookeeper/img/zookeeper-stack-220x234.png
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: zookeeper
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/zookeeper
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-08-11T13:01:15.197514158Z"
