@@ -1,7 +1,7 @@
 apiVersion: v2
 name: zookeeper
 description: Bitnami Helm chart for Zookeeper
-version: 11.4.3
+version: 0.0.1
 appVersion: 3.8.1
 icon: https://bitnami.com/assets/stacks/zookeeper/img/zookeeper-stack-220x234.png
 sources:

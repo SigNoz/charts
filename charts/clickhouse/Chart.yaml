@@ -11,7 +11,7 @@ sources:
 dependencies:
   - name: zookeeper
     repository: "file://../zookeeper"
-    version: 11.4.3
+    version: 0.0.1
     condition: zookeeper.enabled
 maintainers:
   - name: SigNoz
