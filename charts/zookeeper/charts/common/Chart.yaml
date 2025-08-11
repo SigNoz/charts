@@ -2,7 +2,7 @@ apiVersion: v2
 name: common
 description: A Library Helm Chart for grouping common logic between bitnami charts.
   This chart is not deployable by itself.
-version: 2.4.0
+version: 0.0.1
 appVersion: 2.4.0
 icon: https://bitnami.com/downloads/logos/bitnami-mark.png
 sources:
