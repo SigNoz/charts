@@ -569,6 +569,9 @@ installCustomStorageClass: false
 ###
 ###
 clickhouseOperator:
+  # -- Whether to disable Clickhouse Operator. Negation used to not break backwards compatibility.
+  disabled: false
+
   service:
     enabled: true
   # -- name of the component

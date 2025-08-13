@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 {{- if .Values.clickhouseOperator.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -32,4 +33,5 @@ spec:
   metricRelabelings:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+{{- end }}
 {{- end }}

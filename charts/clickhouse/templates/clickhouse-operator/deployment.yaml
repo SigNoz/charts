@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -117,3 +118,4 @@ spec:
               name: metrics
           resources:
             {{- toYaml .Values.clickhouseOperator.metricsExporter.resources | nindent 12 }}
+{{- end }}
