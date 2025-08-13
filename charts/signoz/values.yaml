@@ -726,7 +726,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
-    tag: v0.91.0
+    tag: v0.92.1
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1041,7 +1041,7 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     # schemaMigrator.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.128.2
+    tag: v0.129.0
     # schemaMigrator.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1251,7 +1251,7 @@ otelCollector:
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.128.2
+    tag: v0.129.0
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
