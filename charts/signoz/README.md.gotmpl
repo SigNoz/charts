@@ -63,6 +63,13 @@ kubectl delete namespace platform
 
 > [!WARNING]  
 > ### Breaking Changes
+> #### Version 0.89.0
+> After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
+> 
+> To ensure continued stability, we have migrated the Zookeeper Images and Charts to our own repositories.
+> 
+> You must upgrade to SigNoz `v0.89.0` to avoid any service interruption.
+> More details are available in [Issue #731](https://github.com/SigNoz/charts/issues/731)
 > #### Version 0.88.0
 > **Configuration Migration Required:**
 > - `signoz.configVars` has been deprecated
