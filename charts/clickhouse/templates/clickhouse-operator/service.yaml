@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 {{- if .Values.clickhouseOperator.service.enabled }}
 kind: Service
 apiVersion: v1
@@ -18,5 +19,6 @@ spec:
       name: {{ include "clickhouseOperator.fullname" $ }}-metrics
   selector:
     {{- include "clickhouseOperator.selectorLabels" $ | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- end }}
