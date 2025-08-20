@@ -16,10 +16,10 @@ spec:
       scheme: http
       honorLabels: true
       {{- with .Values.clickhouseOperator.serviceMonitor.interval }}
-      interval: {{ . }}
+      interval: "{{ . }}"
       {{- end }}
       {{- with .Values.clickhouseOperator.serviceMonitor.scrapeTimeout }}
-      scrapeTimeout: {{ . }}
+      scrapeTimeout: "{{ . }}"
       {{- end }}
       {{- with .Values.clickhouseOperator.serviceMonitor.relabelings }}
       relabelings:
