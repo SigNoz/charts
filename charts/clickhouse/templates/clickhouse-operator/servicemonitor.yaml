@@ -15,12 +15,12 @@ spec:
       path: /metrics
       scheme: http
       honorLabels: true
+      {{- with .Values.clickhouseOperator.serviceMonitor.interval }}
+      interval: {{ . }}
+      {{- end }}
   selector:
     matchLabels:
       {{- include "clickhouseOperator.selectorLabels" $ | nindent 6 }}
-  {{- with .Values.clickhouseOperator.serviceMonitor.interval }}
-  interval: {{ . }}
-  {{- end }}
   {{- with .Values.clickhouseOperator.serviceMonitor.scrapeTimeout }}
   scrapeTimeout: {{ . }}
   {{- end }}
