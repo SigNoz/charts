@@ -1888,3 +1888,267 @@ otelCollector:
 # @ignored
 signoz-otel-gateway:
   enabled: false
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 2500m
+      memory: 2500Mi
+  config:
+    exporters:
+      signozkafka:
+        brokers:
+        - redpanda-0.redpanda.redpanda.svc.cluster.local:9093
+        - redpanda-1.redpanda.redpanda.svc.cluster.local:9093
+        - redpanda-2.redpanda.redpanda.svc.cluster.local:9093
+        producer:
+          compression: lz4
+          max_message_bytes: 209715200
+        protocol_version: 2.0.0
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+        path: /healthz
+      signozadminapi:
+        cache:
+          extension: signozcache
+        endpoint: 0.0.0.0:8001
+        limiter:
+          policy: postgres
+        storage:
+          extension: signozstorage
+      signozcache:
+        strategy: ${env:OTELGATEWAY_CACHE_STRATEGY}
+        uri:
+          database: ${env:OTELGATEWAY_REDIS_DATABASE}
+          host: ${env:OTELGATEWAY_REDIS_HOST}
+          port: ${env:OTELGATEWAY_REDIS_PORT}
+      signozkeyauth:
+        cache:
+          extension: signozcache
+        headers:
+          - signoz-access-token
+          - authorization
+          - signoz-ingestion-key
+          - x-amz-firehose-access-key
+        storage:
+          extension: signozstorage
+      signozstorage:
+        strategy: ${env:OTELGATEWAY_STORAGE_STRATEGY}
+        uri:
+          database: ${env:OTELGATEWAY_POSTGRES_DATABASE}
+          host: ${env:OTELGATEWAY_POSTGRES_HOST}
+          password: ${env:OTELGATEWAY_POSTGRES_PASSWORD}
+          port: ${env:OTELGATEWAY_POSTGRES_PORT}
+          user: ${env:OTELGATEWAY_POSTGRES_USER}
+      zpages:
+        endpoint: :55679
+    processors:
+      batch:
+        metadata_keys:
+        - signoz-workspace-name
+        send_batch_max_size: 25000
+        send_batch_size: 20000
+        timeout: 10s
+      signozlimiter/postgres:
+        cache:
+          extension: signozcache
+        policy: postgres
+        storage:
+          extension: signozstorage
+      filter/drop_logs:
+        logs:
+          log_record:
+            - 'IsMatch(body, ".*ELB-HealthChecker*")'
+            - 'IsMatch(body, ".*kube-probe*")'
+            - 'IsMatch(body, ".*\\\"Alive!\\\"*")'
+            - 'IsMatch(body, "(?i).*\\\"level\\\"\\s*:\\s*\\\"debug\\\".*")'
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            auth:
+              authenticator: signozkeyauth
+            endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 16
+          http:
+            auth:
+              authenticator: signozkeyauth
+            cors:
+              allowed_origins:
+              - '*'
+            endpoint: 0.0.0.0:4318
+      signozhttplog/heroku:
+        auth:
+          authenticator: signozkeyauth
+        endpoint: 0.0.0.0:8081
+        source: heroku
+      signozhttplog/json:
+        auth:
+          authenticator: signozkeyauth
+        endpoint: 0.0.0.0:8082
+        source: json
+      signozawsfirehose/cwmetrics:
+        auth:
+          authenticator: signozkeyauth
+        endpoint: 0.0.0.0:8084
+        record_type: cwmetrics
+      signozawsfirehose/cwlogs:
+        auth:
+          authenticator: signozkeyauth
+        endpoint: 0.0.0.0:8085
+        record_type: cwlogs
+      signozawsfirehose/otlp_v1:
+        auth:
+          authenticator: signozkeyauth
+        endpoint: 0.0.0.0:8086
+        record_type: otlp_v1
+    service:
+      extensions:
+      - signozstorage
+      - signozcache
+      - zpages
+      - signozkeyauth
+      - health_check
+      - signozadminapi
+      pipelines:
+        logs:
+          exporters:
+          - signozkafka
+          processors:
+          - signozlimiter/postgres
+          - filter/drop_logs
+          - batch
+          receivers:
+          - otlp
+          - signozhttplog/heroku
+          - signozhttplog/json
+          - signozawsfirehose/cwlogs
+        metrics:
+          exporters:
+          - signozkafka
+          processors:
+          - signozlimiter/postgres
+          - batch
+          receivers:
+          - otlp
+          - signozawsfirehose/cwmetrics
+          - signozawsfirehose/otlp_v1
+        traces:
+          exporters:
+          - signozkafka
+          processors:
+          - signozlimiter/postgres
+          - batch
+          receivers:
+          - otlp
+  env:
+    cache_strategy: "off"
+    postgres_database:
+      valueFrom:
+        secretKeyRef:
+          key: database
+          name: postgres-secret-otelgateway
+    postgres_host:
+      valueFrom:
+        secretKeyRef:
+          key: host
+          name: postgres-secret-otelgateway
+    postgres_password:
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: postgres-secret-otelgateway
+    postgres_port:
+      valueFrom:
+        secretKeyRef:
+          key: port
+          name: postgres-secret-otelgateway
+    postgres_user:
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: postgres-secret-otelgateway
+    storage_strategy: postgres
+  fullnameOverride: opentelemetry-gateway
+  ingress: []
+  nodeSelector:
+    signoz.io/workload: gateway
+  service:
+    annotations: {}
+    ports:
+      otlp:
+        containerPort: 4317
+        enabled: true
+        protocol: TCP
+        servicePort: 4317
+      otlp-grpc:
+        enabled: false
+      aws-cwmetrics:
+        enabled: true
+        containerPort: 8084
+        servicePort: 8084
+        protocol: TCP
+      aws-cwlogs:
+        enabled: true
+        containerPort: 8085
+        servicePort: 8085
+        protocol: TCP
+      aws-otlp:
+        enabled: true
+        containerPort: 8086
+        servicePort: 8086
+        protocol: TCP
+    type: NodePort
+  tolerations:
+  - effect: NoSchedule
+    key: signoz.io/workload
+    operator: Equal
+    value: gateway
+
+#@ignored
+redpanda:
+  enabled: false
+  config:
+    cluster:
+      auto_create_topics_enabled: true
+      default_topic_partitions: 3
+      delete_retention_ms: 21600000
+    tunable:
+      kafka_batch_max_bytes: 209715200
+      kafka_request_max_bytes: 209715200
+  console:
+    enabled: false
+  nodeSelector:
+    signoz.io/workload: redpanda
+  rbac:
+    enabled: false
+  resources:
+    cpu:
+      cores: 7
+    memory:
+      container:
+        max: 28Gi
+  serviceAccount:
+    create: false
+  statefulset:
+    podTemplate:
+      annotations:
+        signoz.io/path: /public_metrics
+        signoz.io/port: "9644"
+        signoz.io/scrape: "true"
+    replicas: 3
+    terminationGracePeriodSeconds: 180
+  storage:
+    persistentVolume:
+      size: 100Gi
+      storageClass: gp3-enc
+  tls:
+    certs:
+      external:
+        caEnabled: false
+    enabled: false
+  tolerations:
+  - effect: NoSchedule
+    key: signoz.io/workload
+    operator: Equal
+    value: redpanda
