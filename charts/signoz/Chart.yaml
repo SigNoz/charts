@@ -26,6 +26,10 @@ dependencies:
     repository: https://charts.signoz.io
     condition: signoz-otel-gateway.enabled
     version: 0.0.1
+  - name: redpanda
+    repository: https://charts.redpanda.com
+    condition: redpanda.enabled
+    version: 5.10.2
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
