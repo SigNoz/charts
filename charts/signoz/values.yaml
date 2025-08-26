@@ -2103,7 +2103,7 @@ signoz-otel-gateway:
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:
-  enabled: true
+  enabled: false
   # @ignored
   fullnameOverride: redpanda
   # @ignored
