@@ -2144,7 +2144,7 @@ redpanda:
   storage:
     persistentVolume:
       size: 100Gi
-      storageClass: gp3-enc
+      storageClass: null
   # @ignored
   tls:
     certs:
