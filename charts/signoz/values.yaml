@@ -1885,21 +1885,27 @@ otelCollector:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
           exporters: [clickhouselogsexporter, metadataexporter]
-# @ignored
+
+# -- This component is configurable with licensed version of SigNoz.
+# @section -- Otel Gateway Settings
 signoz-otel-gateway:
   enabled: false
+  # @ignored
   replicaCount: 1
+  # @ignored
   resources:
     requests:
       cpu: 2500m
       memory: 2500Mi
+  # @ignored
   config:
     exporters:
       signozkafka:
         brokers:
-        - redpanda-0.redpanda.redpanda.svc.cluster.local:9093
-        - redpanda-1.redpanda.redpanda.svc.cluster.local:9093
-        - redpanda-2.redpanda.redpanda.svc.cluster.local:9093
+        # replace with the correct address based on the release name
+        # - redpanda-0.redpanda.redpanda.svc.cluster.local:9093
+        # - redpanda-1.redpanda.redpanda.svc.cluster.local:9093
+        # - redpanda-2.redpanda.redpanda.svc.cluster.local:9093
         producer:
           compression: lz4
           max_message_bytes: 209715200
@@ -1955,13 +1961,6 @@ signoz-otel-gateway:
         policy: postgres
         storage:
           extension: signozstorage
-      filter/drop_logs:
-        logs:
-          log_record:
-            - 'IsMatch(body, ".*ELB-HealthChecker*")'
-            - 'IsMatch(body, ".*kube-probe*")'
-            - 'IsMatch(body, ".*\\\"Alive!\\\"*")'
-            - 'IsMatch(body, "(?i).*\\\"level\\\"\\s*:\\s*\\\"debug\\\".*")'
     receivers:
       otlp:
         protocols:
@@ -2015,8 +2014,7 @@ signoz-otel-gateway:
           exporters:
           - signozkafka
           processors:
-          - signozlimiter/postgres
-          - filter/drop_logs
+          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
           - batch
           receivers:
           - otlp
@@ -2027,7 +2025,7 @@ signoz-otel-gateway:
           exporters:
           - signozkafka
           processors:
-          - signozlimiter/postgres
+          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
           - batch
           receivers:
           - otlp
@@ -2037,10 +2035,11 @@ signoz-otel-gateway:
           exporters:
           - signozkafka
           processors:
-          - signozlimiter/postgres
+          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
           - batch
           receivers:
           - otlp
+  # @ignored
   env:
     cache_strategy: "off"
     postgres_database:
@@ -2069,10 +2068,11 @@ signoz-otel-gateway:
           key: username
           name: postgres-secret-otelgateway
     storage_strategy: postgres
+  # @ignored
   fullnameOverride: opentelemetry-gateway
+  # @ignored
   ingress: []
-  nodeSelector:
-    signoz.io/workload: gateway
+  # @ignored
   service:
     annotations: {}
     ports:
@@ -2099,15 +2099,14 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
-  tolerations:
-  - effect: NoSchedule
-    key: signoz.io/workload
-    operator: Equal
-    value: gateway
 
-#@ignored
+# -- This component is configurable with licensed version of SigNoz.
+# @section -- Redpanda Settings
 redpanda:
-  enabled: false
+  enabled: true
+  # @ignored
+  fullnameOverride: redpanda
+  # @ignored
   config:
     cluster:
       auto_create_topics_enabled: true
@@ -2116,20 +2115,23 @@ redpanda:
     tunable:
       kafka_batch_max_bytes: 209715200
       kafka_request_max_bytes: 209715200
+  # @ignored
   console:
     enabled: false
-  nodeSelector:
-    signoz.io/workload: redpanda
+  # @ignored
   rbac:
     enabled: false
+  # @ignored
   resources:
     cpu:
       cores: 7
     memory:
       container:
         max: 28Gi
+  # @ignored
   serviceAccount:
     create: false
+  # @ignored
   statefulset:
     podTemplate:
       annotations:
@@ -2138,17 +2140,14 @@ redpanda:
         signoz.io/scrape: "true"
     replicas: 3
     terminationGracePeriodSeconds: 180
+  # @ignored
   storage:
     persistentVolume:
       size: 100Gi
       storageClass: gp3-enc
+  # @ignored
   tls:
     certs:
       external:
         caEnabled: false
     enabled: false
-  tolerations:
-  - effect: NoSchedule
-    key: signoz.io/workload
-    operator: Equal
-    value: redpanda

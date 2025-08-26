@@ -1335,4 +1335,44 @@ servicePort: 8082</pre>
         </tr>
     </tbody>
 </table>
+<h3>Otel Gateway Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L1891">signoz-otel-gateway</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
+</div>
+            </td>
+            <td>This component is configurable with licensed version of SigNoz.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Redpanda Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="redpanda"><a href="./values.yaml#L2105">redpanda</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
+</div>
+            </td>
+            <td>This component is configurable with licensed version of SigNoz.</td>
+        </tr>
+    </tbody>
+</table>
 
