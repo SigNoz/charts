@@ -726,7 +726,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
-    tag: v0.92.1
+    tag: v0.93.0
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1041,7 +1041,7 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     # schemaMigrator.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.0
+    tag: v0.129.2
     # schemaMigrator.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1251,7 +1251,7 @@ otelCollector:
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.0
+    tag: v0.129.2
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1885,7 +1885,6 @@ otelCollector:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
           exporters: [clickhouselogsexporter, metadataexporter]
-
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
@@ -1951,7 +1950,7 @@ signoz-otel-gateway:
     processors:
       batch:
         metadata_keys:
-        - signoz-workspace-name
+          - signoz-workspace-name
         send_batch_max_size: 25000
         send_batch_size: 20000
         timeout: 10s
@@ -1974,7 +1973,7 @@ signoz-otel-gateway:
               authenticator: signozkeyauth
             cors:
               allowed_origins:
-              - '*'
+                - '*'
             endpoint: 0.0.0.0:4318
       signozhttplog/heroku:
         auth:
@@ -2003,42 +2002,42 @@ signoz-otel-gateway:
         record_type: otlp_v1
     service:
       extensions:
-      - signozstorage
-      - signozcache
-      - zpages
-      - signozkeyauth
-      - health_check
-      - signozadminapi
+        - signozstorage
+        - signozcache
+        - zpages
+        - signozkeyauth
+        - health_check
+        - signozadminapi
       pipelines:
         logs:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - batch
           receivers:
-          - otlp
-          - signozhttplog/heroku
-          - signozhttplog/json
-          - signozawsfirehose/cwlogs
+            - otlp
+            - signozhttplog/heroku
+            - signozhttplog/json
+            - signozawsfirehose/cwlogs
         metrics:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - batch
           receivers:
-          - otlp
-          - signozawsfirehose/cwmetrics
-          - signozawsfirehose/otlp_v1
+            - otlp
+            - signozawsfirehose/cwmetrics
+            - signozawsfirehose/otlp_v1
         traces:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - batch
           receivers:
-          - otlp
+            - otlp
   # @ignored
   env:
     cache_strategy: "off"
@@ -2099,7 +2098,6 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
-
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:
