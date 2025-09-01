@@ -2013,7 +2013,7 @@ signoz-otel-gateway:
           exporters:
             - signozkafka
           processors:
-            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
             - batch
           receivers:
             - otlp
@@ -2024,7 +2024,7 @@ signoz-otel-gateway:
           exporters:
             - signozkafka
           processors:
-            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
             - batch
           receivers:
             - otlp
@@ -2034,7 +2034,7 @@ signoz-otel-gateway:
           exporters:
             - signozkafka
           processors:
-            - signozlimiter/postgres # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
             - batch
           receivers:
             - otlp
