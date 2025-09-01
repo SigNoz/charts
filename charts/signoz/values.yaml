@@ -177,6 +177,10 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
+  # clickhouse.meterDatabase -- Clickhouse meter Database (SigNoz Meter)
+  # @section -- ClickHouse Settings
+  # @default -- "signoz_meter"
+  meterDatabase: signoz_meter
   # clickhouse.user -- ClickHouse user.
   # @section -- ClickHouse Settings
   # @default -- "admin"
@@ -678,6 +682,9 @@ externalClickhouse:
   # externalClickhouse.logDatabase - Database name for SigNoz Logs on the external cluster.
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
+  # externalClickhouse.meterDatabase - Database name for SigNoz Meter on the external cluster.
+  # @default -- "signoz_meter"
+  meterDatabase: signoz_meter
   # externalClickhouse.user - Username to connect to the external cluster.
   # @default -- ""
   user: ""
@@ -1804,6 +1811,13 @@ otelCollector:
   # @section -- Otel Collector Configuration
   # @default -- "Please checkout the default values in values.yml"
   config:
+    connectors:
+      signozmeter:
+        metrics_flush_interval: 1h
+        dimensions:
+          - name: service.name
+          - name: deployment.environment
+          - name: host.name
     receivers:
       otlp:
         protocols:
@@ -1827,6 +1841,10 @@ otelCollector:
     processors:
       batch:
         send_batch_size: 50000
+        timeout: 1s
+      batch/meter:
+        send_batch_max_size: 25000
+        send_batch_size: 20000
         timeout: 1s
       # Memory Limiter processor. If not set, it will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -1867,6 +1885,11 @@ otelCollector:
         tenant_id: ${env:TENANT_ID}
         cache:
           provider: in_memory
+      signozclickhousemeter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_METER_DATABASE}
+        timeout: 45s
+        sending_queue:
+          enabled: false
     service:
       telemetry:
         logs:
@@ -1876,15 +1899,20 @@ otelCollector:
         traces:
           receivers: [otlp, jaeger]
           processors: [signozspanmetrics/delta, batch]
-          exporters: [clickhousetraces, metadataexporter]
+          exporters: [clickhousetraces, metadataexporter, signozmeter]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [metadataexporter, signozclickhousemetrics]
+          exporters: [metadataexporter, signozclickhousemetrics, signozmeter]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
-          exporters: [clickhouselogsexporter, metadataexporter]
+          exporters: [clickhouselogsexporter, metadataexporter, signozmeter]
+        metrics/meter:
+          receivers: [signozmeter]
+          processors: [batch/meter]
+          exporters: [signozclickhousemeter]
+
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
