@@ -1365,7 +1365,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2103">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2106">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
