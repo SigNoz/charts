@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.89.1](https://img.shields.io/badge/Version-0.89.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.92.1](https://img.shields.io/badge/AppVersion-v0.92.1-informational?style=flat-square)
+![Version: 0.90.0](https://img.shields.io/badge/Version-0.90.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.93.0](https://img.shields.io/badge/AppVersion-v0.93.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -308,7 +308,7 @@ verify: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz
-tag: v0.92.1</pre>
+tag: v0.93.0</pre>
 </div>
             </td>
             <td>Image configuration for SigNoz.</td>
@@ -640,7 +640,7 @@ tls: []</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz-schema-migrator
-tag: v0.129.0</pre>
+tag: v0.129.2</pre>
 </div>
             </td>
             <td>Image configuration for the Schema Migrator.</td>
@@ -1345,7 +1345,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L1891">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L1890">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
@@ -1365,7 +1365,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2105">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2106">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

@@ -1,7 +1,7 @@
 apiVersion: v2
 name: signoz
-version: 0.89.1
-appVersion: "v0.92.1"
+version: 0.90.0
+appVersion: "v0.93.0"
 description: SigNoz Observability Platform Helm Chart
 type: application
 home: https://signoz.io/
