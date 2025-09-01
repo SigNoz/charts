@@ -346,7 +346,7 @@ spec:
                 - name: logs-system-config
                   mountPath: /conf
             {{- end }}
-            
+
             {{- if .Values.extraContainers }}
               {{- toYaml .Values.extraContainers | nindent 12 }}
             {{- end }}
@@ -395,7 +395,7 @@ spec:
 
   {{- if and (.Values.clickhouseInstance.templates.volumeClaimTemplates) (not .Values.clickhouseInstance.persistence.enabled) }}
     volumeClaimTemplates:
-    {{- range .Values.clickhouseInstance.clickhouseInstance.templates.volumeClaimTemplates }}
+    {{- range .Values.clickhouseInstance.templates.volumeClaimTemplates }}
       - name: {{ .name }}
         reclaimPolicy: Retain
         spec:
