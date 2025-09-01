@@ -1,9 +1,12 @@
 dependencies:
 - name: clickhouse
   repository: https://charts.signoz.io
-  version: 24.1.15
+  version: 24.1.18
 - name: signoz-otel-gateway
   repository: https://charts.signoz.io
   version: 0.0.1
-digest: sha256:6e9bc26aaa42990986a4564c9209f1d469e2d227f40eec8f153c3258753aea94
-generated: "2025-01-29T18:12:34.847081+05:30"
+- name: redpanda
+  repository: https://charts.redpanda.com
+  version: 5.10.2
+digest: sha256:22368473a210a8f0a2c43ce3bbf7f8cf57a785c948e7fbbdeec6e46c39dc423f
+generated: "2025-08-25T15:43:00.566597+05:30"

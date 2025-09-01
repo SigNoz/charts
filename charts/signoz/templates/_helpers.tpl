@@ -493,13 +493,78 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
-{{/*
-Function to render additional environment variables 
+
+{{/* 
+Create Env
 */}}
-{{- define "signoz.renderAdditionalEnv" -}}
+{{- define "signoz.env" -}}
+
+{{/*
+====== Default ENV ======
+*/}}
+{{- $defaultEnv := dict
+    "signoz_telemetrystore_clickhouse_dsn"     (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .))
+    "signoz_telemetrystore_clickhouse_cluster" (include "clickhouse.cluster" .)
+}}
+
+{{/*
+===== USER ENV VARIABLES =====
+*/}}
+{{- $userEnv := .Values.signoz.env | default dict -}}
+
+{{/*
+====== DEPRECATION & BACKWARD COMPATIBILITY ======
+*/}}
+{{- $legacyEnv := dict -}}
+{{- if .Values.signoz.additionalEnvs }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}
+
+{{- if and .Values.configVars .Values.signoz.configVars.clickHouseUrl }}
+  {{- $legacyEnv = mergeOverwrite $legacyEnv (dict "signoz_telemetrystore_clickhouse_dsn" .Values.signoz.configVars.clickHouseUrl) -}}
+{{- end }}
+
+{{- $smtpSecretEnv := dict -}}
+{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret (not .Values.signoz.env.signoz_emailing_enabled) }}  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_enabled" .Values.signoz.smtpVars.enabled) -}}
+  {{- with .Values.signoz.smtpVars.existingSecret }}
+    {{- $secretName := .name -}}
+    {{- if .fromKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_from" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .fromKey)))) -}}
+    {{- end }}
+    {{- if .hostKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_host" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .hostKey)))) -}}
+    {{- end }}
+    {{- if .portKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_port" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .portKey)))) -}}
+    {{- end }}
+    {{- if and .hostKey .portKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_address" "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)") -}}
+    {{- end }}
+    {{- if .usernameKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_username" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .usernameKey)))) -}}
+    {{- end }}
+    {{- if .passwordKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .passwordKey)))) -}}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+{{/*
+====== MERGE AND RENDER ENV BLOCK ======
+*/}}
+
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv  -}}
+{{- template "signoz.renderEnv" $completeEnv -}}
+{{- end -}}
+
+{{/*
+Function to render environment variables 
+*/}}
+{{- define "signoz.renderEnv" -}}
 {{- $dict := . -}}
 {{- $processedKeys := dict -}}
-{{- range keys . | sortAlpha }}
+{{- range keys . | sortAlpha | reverse }}
 {{- $val := pluck . $dict | first -}}
 {{- $key := upper . -}}
 {{- if not (hasKey $processedKeys $key) }}
@@ -513,7 +578,7 @@ Function to render additional environment variables
   value: {{ $val | quote }}
 {{- else }}
 - name: {{ $key }}
-  value: {{ $val | quote }}
+  value: {{ $val | quote}}
 {{- end }}
 {{- end -}}
 {{- end -}}

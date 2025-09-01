@@ -1,0 +1,88 @@
+suite: Test SigNoz Environment Variable Formats
+
+templates:
+  - templates/signoz/statefulset.yaml
+
+tests:
+  # --- Test Case 1: Simple Key-Value Format ---
+  - it: should correctly render simple key-value environment variables
+    set:
+      signoz:
+        env:
+          # Simple key-value pairs
+          VAR_A: "value_a"
+          VAR_B: "value_b"
+    asserts:
+      # Assert that 'VAR_A: "value_a"' is transformed into the standard k8s env format.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VAR_A
+            value: "value_a"
+      # Assert that 'VAR_B: "value_b"' is also transformed correctly.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VAR_B
+            value: "value_b"
+
+  # --- Test Case 2: Advanced Structured Format ---
+  - it: should correctly render advanced (structured) environment variables
+    set:
+      signoz:
+        env:
+          # Advanced format with a direct value
+          STRUCTURED_VAR_1:
+            value: "structured_value_1"
+          # Advanced format referencing a secret
+          STRUCTURED_VAR_2:
+            valueFrom:
+              secretKeyRef:
+                name: my-dummy-secret
+                key: dummy-key-1
+    asserts:
+      # Assert the structured variable with a direct value is rendered correctly.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: STRUCTURED_VAR_1
+            value: "structured_value_1"
+      # Assert the variable referencing a secret is passed through as-is.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: STRUCTURED_VAR_2
+            valueFrom:
+              secretKeyRef:
+                name: my-dummy-secret
+                key: dummy-key-1
+
+  # --- Test Case 3: Mixed Formats ---
+  - it: should correctly render a mix of simple and advanced environment variables
+    set:
+      signoz:
+        env:
+          # A simple key-value pair
+          MY_SIMPLE_VAR: "some_value"
+          # An advanced, structured variable
+          MY_ADVANCED_VAR:
+            valueFrom:
+              secretKeyRef:
+                name: another-dummy-secret
+                key: dummy-key-2
+    asserts:
+      # Assert the simple format variable is correct.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MY_SIMPLE_VAR
+            value: "some_value"
+      # Assert the advanced format variable is correct.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MY_ADVANCED_VAR
+            valueFrom:
+              secretKeyRef:
+                name: another-dummy-secret
+                key: dummy-key-2

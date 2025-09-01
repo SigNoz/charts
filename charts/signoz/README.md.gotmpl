@@ -1,0 +1,179 @@
+
+# SigNoz
+
+{{ template "chart.badgesSection" . }}
+
+SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
+
+### TL;DR;
+
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/signoz
+```
+
+### Introduction
+
+This chart bootstraps [SigNoz](https://signoz.io) cluster deployment on a
+Kubernetes cluster using [Helm](https://helm.sh) package manager.
+
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+
+### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/signoz
+```
+
+These commands deploy SigNoz on the Kubernetes cluster in the default configuration.
+The [Configuration](#configuration) section lists the parameters that can be configured during installation:
+
+> **Tip**: List all releases using `helm list`
+
+### Uninstalling the chart
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+The command above removes all the Kubernetes components associated
+with the chart and deletes the release.
+
+Deletion of the StatefulSet doesn't cascade to deleting associated PVCs. To delete them:
+
+```bash
+kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
+```
+
+Sometimes everything doesn't get properly removed. If that happens try deleting the namespace:
+
+```bash
+kubectl delete namespace platform
+```
+
+> [!WARNING]  
+> ### Breaking Changes
+> #### Version 0.89.0
+> After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
+> 
+> To ensure continued stability, we have migrated the Zookeeper Images and Charts to our own repositories.
+> 
+> You must upgrade to SigNoz `v0.89.0` to avoid any service interruption.
+> More details are available in [Issue #731](https://github.com/SigNoz/charts/issues/731)
+> #### Version 0.88.0
+> **Configuration Migration Required:**
+> - `signoz.configVars` has been deprecated
+> - `signoz.smtpVars` has been deprecated
+> - `signoz.additionalEnvs` has been deprecated
+> These configuration options must now be specified under `signoz.env` instead.
+>
+> Refer to the official [documentation](https://github.com/SigNoz/signoz/blob/main/conf/example.yaml) for a complete list of env variables.
+> <br/> Note on Variable Naming: Environment variables are derived from the YAML configuration.
+> <br/> For example, a key `address` for `smtp` under the `emailing` section becomes `signoz_emailing_smtp_address`.
+>
+> **Before:**
+> ```yaml
+> signoz:
+>  configVars:
+>    storage: clickhouse
+>  smtpVars:
+>    existingSecret:
+>      name: my-secret-name
+>      hostKey: my-smtp-host-key
+>      portKey: my-smtp-port-key
+> ```
+>
+> **After:**
+> ```yaml
+> signoz:
+>  env:
+>    storage: clickhouse
+>    signoz_emailing_smtp_address:
+>      valueFrom:
+>        secretKeyRef:
+>          name: my-secret-name
+>          key: my-smtp-address-key
+> ```
+
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="yaml">{{ $defaultValue }}</pre>
+{{ end }}
+
+{{ define "chart.valuesTableHtml" }}
+
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+<h3>{{- .SectionName }}</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 200px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}
+

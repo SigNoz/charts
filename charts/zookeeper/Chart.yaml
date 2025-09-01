@@ -1,0 +1,18 @@
+apiVersion: v2
+name: zookeeper
+description: Bitnami Helm chart for Zookeeper
+version: 0.0.1
+appVersion: 3.8.1
+icon: https://bitnami.com/assets/stacks/zookeeper/img/zookeeper-stack-220x234.png
+sources:
+- https://github.com/bitnami/charts/tree/main/bitnami/zookeeper
+dependencies:
+- name: common
+  repository: "file://charts/common"
+  tags:
+  - bitnami-common
+  version: 0.0.1
+maintainers:
+- name: SigNoz
+  email: hello@signoz.io
+  url: https://signoz.io

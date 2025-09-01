@@ -1,4 +1,4 @@
-{{- if .Values.clickhouseOperator.enabled }}
+{{- if .Values.clickhouseOperator.service.enabled }}
 kind: Service
 apiVersion: v1
 metadata:

@@ -1,0 +1,224 @@
+suite: Test SigNoz Environment Variables
+
+# We are testing the output of the StatefulSet template,
+# where the environment variables are defined.
+templates:
+  - templates/signoz/statefulset.yaml
+
+tests:
+  # --- Test Case 1: SMTP is explicitly disabled ---
+  - it: should not render SMTP-specific variables when emailing is disabled
+    set:
+      # Set values to disable the SMTP feature
+      signoz:
+        env:
+          signoz_emailing_enabled: false
+    asserts:
+      # Assert that SMTP host variable is not present in the environment list.
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_HOST
+
+  # --- Test Case 2: SMTP enabled with the new 'env' convention ---
+  - it: should render SMTP variables correctly using the new 'env' convention
+    set:
+      signoz:
+        env:
+          signoz_emailing_enabled: true
+          signoz_emailing_smtp_address:
+            valueFrom:
+              secretKeyRef:
+                name: my-smtp-secret
+                key: smtp-address
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                key: smtp-address
+                name: my-smtp-secret
+
+  # --- Test Case 3: SMTP enabled with the deprecated 'smtpVars' convention (Backward Compatibility) ---
+  - it: should render SMTP variables correctly using the deprecated 'smtpVars' convention
+    set:
+      signoz:
+        smtpVars:
+          enabled: true
+          existingSecret:
+            name: my-smtp-secret
+            hostKey: "smtp-host"
+            portKey: "smtp-port"
+            usernameKey: "smtp-user"
+    asserts:
+      # It should enable the master switch
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_ENABLED
+            value: "true"
+      # It should pull variables from the specified secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_HOST
+            valueFrom:
+              secretKeyRef:
+                key: smtp-host
+                name: my-smtp-secret
+      # It should construct the address from the host and port
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_ADDRESS
+            value: "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)"
+
+  # --- Test Case 4: Test precedence for the 'enabled' flag ---
+  - it: should prioritize 'env.smtp_emailing_enabled' over 'smtpVars.enabled'
+    set:
+      signoz:
+        # This value from the new convention should WIN.
+        env:
+          signoz_emailing_enabled: true
+        # This value from the old convention should be IGNORED.
+        smtpVars:
+          enabled: false
+          existingSecret:
+            name: my-smtp-secret
+    asserts:
+      # Assert that the final rendered value is "true", proving that 'env.smtp_emailing_enabled'
+      # took precedence over the value from the 'smtpVars' block.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_ENABLED
+            value: "true"
+
+  # --- Test Case 5: Test precedence for the SMTP address value ---
+  - it: should prioritize the address from 'env.signoz_emailing_smtp_address' over 'smtpVars'
+    set:
+      signoz:
+        # Define the SMTP address using the old 'smtpVars' convention
+        smtpVars:
+          enabled: true
+          existingSecret:
+            name: my-smtp-secret
+            hostKey: "smtp-host"
+            portKey: "smtp-port"
+        # ALSO define the address using the new 'env' convention
+        env:
+          signoz_emailing_enabled: true
+          signoz_emailing_smtp_address:
+            valueFrom:
+              secretKeyRef:
+                name: my-smtp-secret
+                key: a-different-address # This value should WIN
+    asserts:
+      # Assert that the address is constructed from 'env' (signoz_emailing_smtp_address),
+      # make ensure the old convention for the address NOT takes priority.
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_ADDRESS
+            value: "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)"
+      # proving the new convention's address is rendered.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                key: a-different-address
+                name: my-smtp-secret
+
+# --- Test Case 6: ClickHouse environment variables ---
+  - it: should set the clickhouse creds and dsn environment variable
+    set:
+      clickhouse:
+        enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://RELEASE-NAME-clickhouse:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+      - exists:
+          path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_USER')]
+      - exists:
+          path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_PASSWORD')]
+
+# --- Test Case 7: External ClickHouse environment variables ---
+  - it: should set external clickhouse creds and dsn environment variable
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        cluster: "cluster"
+        user: "user"
+        password: "password"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: "sample.clickhouse.com"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_CLUSTER
+            value: "cluster"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_USER
+            value: "user"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            value: "password"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+
+# --- Test Case 8: External ClickHouse creds with secret and dsn environment variable ---
+  - it: should set external clickhouse creds with secret and dsn environment variable
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        cluster: "cluster"
+        user: "user"
+        password: 
+        existingSecret: "test-clickhouse-secret"
+        existingSecretPasswordKey: "password"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_USER
+            value: "user"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: test-clickhouse-secret
+                key: password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)

@@ -1,0 +1,204 @@
+
+# K8s-Infra
+
+{{ template "chart.badgesSection" . }}
+
+Monitoring your Kubernetes cluster is essential for ensuring performance, stability, and reliability. The SigNoz k8s-infra Helm chart provides a comprehensive solution for collecting and analyzing metrics, logs, and events from your entire Kubernetes environment.
+
+### TL;DR;
+
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/{{ template "chart.name" .}}
+```
+
+### Introduction
+
+The `k8s-infra` chart provides Kubernetes infrastructure observability by deploying OpenTelemetry components and related resources using the [Helm](https://helm.sh) package manager. 
+
+It enables collection of metrics, logs, and events from your Kubernetes cluster, making it easier to monitor and troubleshoot your infrastructure with SigNoz.
+
+Refer to the documentation for a more detailed explanation of [k8s-infra](https://signoz.io/docs/collection-agents/k8s/k8s-infra/overview/)
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+
+### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/k8s-infra
+```
+
+These commands deploy K8s-infra on the Kubernetes cluster in the default configuration.
+The [Configuration](#configuration) section lists the parameters that can be configured during installation:
+
+>[!NOTE]
+> ### Installing K8s-Infra on Windows
+> Follow these steps to configure k8s-infra for Windows environments.
+>
+> #### Use OpenTelemetry Collector Contrib for Windows
+>
+> OpenTelemetry provides Windows-compatible [opentelemetry-collector-contrib](https://hub.docker.com/r/otel/opentelemetry-collector-contrib/tags?name=windows) container images which can be used for k8s-infra. You must specify the Windows image tags in your Helm values configuration.
+>
+> Add the following configuration to your Helm values file:
+>
+> ```yaml
+> otelAgent:
+>   image:
+>     tag: 0.123.0-windows-2022-amd64
+>
+> otelDeployment:
+>   image:
+>     tag: 0.123.0-windows-2022-amd64
+> ```
+>
+> #### Remove Root Path for Host Metrics
+>
+> The host metrics receiver requires configuring the `root_path` when using the host receiver for Linux in containers. However, Windows deployments do not require this configuration and the k8s-infra installation may fail if included. Remove the path from the `root_path` key under `presets.hostMetrics` in your Helm values:
+>
+> ```yaml
+> presets:
+>   hostMetrics:
+>     root_path: ""
+> ```
+>
+> After completing these steps, you can proceed with the [standard k8s-infra installation](https://github.com/SigNoz/charts/tree/main/charts/k8s-infra#installing-the-chart).
+
+### Uninstalling the chart
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+The command above removes all the Kubernetes components associated
+with the chart and deletes the release.
+
+Deletion of the StatefulSet doesn't cascade to deleting associated PVCs. To delete them:
+
+```bash
+kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
+```
+
+Sometimes everything doesn't get properly removed. If that happens try deleting the namespace:
+
+```bash
+kubectl delete namespace platform
+```
+> [!WARNING]  
+> ### Breaking Changes
+> 
+> #### Version 0.14.1
+> 
+> **Configuration Migration Required:** 
+> - `presets.loggingExporter` has been deprecated and must be migrated to `presets.debugExporter`.
+> 
+> This change aligns with OpenTelemetry's deprecation of the [logging exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.110.0/exporter/loggingexporter) in favor of the [debug exporter](https://github.com/open-telemetry/opentelemetry-collector/blob/v0.110.0/exporter/debugexporter/README.md).
+> 
+> **Migration Example:**
+> 
+> Replace this configuration:
+> ```yaml
+> presets:
+>   loggingExporter:  
+>     enabled: true
+>     verbosity: basic
+>     samplingInitial: 2
+>     samplingThereafter: 500
+> ```
+> 
+> With this configuration:
+> ```yaml
+> presets:
+>   debugExporter:  
+>     enabled: true
+>     verbosity: basic
+>     samplingInitial: 2
+>     samplingThereafter: 500
+> ```
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="yaml">{{ $defaultValue }}</pre>
+{{ end }}
+
+{{ define "chart.valuesTableHtml" }}
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+{{- if (eq .SectionName "Presets Configuration")}}
+  {{- $item := index .SectionItems 0 -}}
+  <h3>{{- .SectionName }}</h3>
+  <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
+{{- else}}
+{{- if contains "Presets" .SectionName}}
+<h4>{{- .SectionName}}</h4>
+{{- else}}
+<h3>{{- .SectionName }}</h3>
+{{- end}}
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end}}
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}

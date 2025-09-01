@@ -1,0 +1,24 @@
+suite: Test hostNetwork setting
+templates:
+  - otel-agent/daemonset.yaml
+  - otel-agent/configmap.yaml
+
+# Test case 1: Verify hostNetwork is present but disabled by default
+tests:
+  - it: should have hostNetwork present but disabled by default
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+        template: otel-agent/daemonset.yaml
+
+  # Test case 2: Verify hostNetwork is enabled when the value is set to true
+  - it: should enable hostNetwork when set to true
+    set:
+      otelAgent:
+        hostNetwork: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+        template: otel-agent/daemonset.yaml
