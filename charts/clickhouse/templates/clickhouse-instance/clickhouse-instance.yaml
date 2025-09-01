@@ -117,8 +117,8 @@ spec:
 
     zookeeper:
       nodes:
-      {{- if .Values.clickhouseInstance.externalZookeeper }}
-        {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
+      {{- if .Values.clickhouseInstance.externalZookeeper.servers }}
+        {{- toYaml .Values.clickhouseInstance.externalZookeeper.servers | nindent 8 }}
       {{- else }}
         {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
         {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
