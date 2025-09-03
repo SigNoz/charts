@@ -177,6 +177,10 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
+  # clickhouse.meterDatabase -- Clickhouse meter Database (SigNoz Meter)
+  # @section -- ClickHouse Settings
+  # @default -- "signoz_meter"
+  meterDatabase: signoz_meter
   # clickhouse.user -- ClickHouse user.
   # @section -- ClickHouse Settings
   # @default -- "admin"
@@ -678,6 +682,9 @@ externalClickhouse:
   # externalClickhouse.logDatabase - Database name for SigNoz Logs on the external cluster.
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
+  # externalClickhouse.meterDatabase - Database name for SigNoz Meter on the external cluster.
+  # @default -- "signoz_meter"
+  meterDatabase: signoz_meter
   # externalClickhouse.user - Username to connect to the external cluster.
   # @default -- ""
   user: ""
@@ -726,7 +733,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
-    tag: v0.92.1
+    tag: v0.93.0
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1041,7 +1048,7 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     # schemaMigrator.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.0
+    tag: v0.129.2
     # schemaMigrator.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1251,7 +1258,7 @@ otelCollector:
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.0
+    tag: v0.129.2
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1804,6 +1811,13 @@ otelCollector:
   # @section -- Otel Collector Configuration
   # @default -- "Please checkout the default values in values.yml"
   config:
+    connectors:
+      signozmeter:
+        metrics_flush_interval: 1h
+        dimensions:
+          - name: service.name
+          - name: deployment.environment
+          - name: host.name
     receivers:
       otlp:
         protocols:
@@ -1827,6 +1841,10 @@ otelCollector:
     processors:
       batch:
         send_batch_size: 50000
+        timeout: 1s
+      batch/meter:
+        send_batch_max_size: 25000
+        send_batch_size: 20000
         timeout: 1s
       # Memory Limiter processor. If not set, it will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
@@ -1867,6 +1885,11 @@ otelCollector:
         tenant_id: ${env:TENANT_ID}
         cache:
           provider: in_memory
+      signozclickhousemeter:
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_METER_DATABASE}
+        timeout: 45s
+        sending_queue:
+          enabled: false
     service:
       telemetry:
         logs:
@@ -1876,15 +1899,19 @@ otelCollector:
         traces:
           receivers: [otlp, jaeger]
           processors: [signozspanmetrics/delta, batch]
-          exporters: [clickhousetraces, metadataexporter]
+          exporters: [clickhousetraces, metadataexporter, signozmeter]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [metadataexporter, signozclickhousemetrics]
+          exporters: [metadataexporter, signozclickhousemetrics, signozmeter]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
           processors: [batch]
-          exporters: [clickhouselogsexporter, metadataexporter]
+          exporters: [clickhouselogsexporter, metadataexporter, signozmeter]
+        metrics/meter:
+          receivers: [signozmeter]
+          processors: [batch/meter]
+          exporters: [signozclickhousemeter]
 
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
@@ -1951,7 +1978,7 @@ signoz-otel-gateway:
     processors:
       batch:
         metadata_keys:
-        - signoz-workspace-name
+          - signoz-workspace-name
         send_batch_max_size: 25000
         send_batch_size: 20000
         timeout: 10s
@@ -1974,7 +2001,7 @@ signoz-otel-gateway:
               authenticator: signozkeyauth
             cors:
               allowed_origins:
-              - '*'
+                - '*'
             endpoint: 0.0.0.0:4318
       signozhttplog/heroku:
         auth:
@@ -2003,42 +2030,45 @@ signoz-otel-gateway:
         record_type: otlp_v1
     service:
       extensions:
-      - signozstorage
-      - signozcache
-      - zpages
-      - signozkeyauth
-      - health_check
-      - signozadminapi
+        - signozstorage
+        - signozcache
+        - zpages
+        - signozkeyauth
+        - health_check
+        - signozadminapi
       pipelines:
         logs:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres
+            - batch
           receivers:
-          - otlp
-          - signozhttplog/heroku
-          - signozhttplog/json
-          - signozawsfirehose/cwlogs
+            - otlp
+            - signozhttplog/heroku
+            - signozhttplog/json
+            - signozawsfirehose/cwlogs
         metrics:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres
+            - batch
           receivers:
-          - otlp
-          - signozawsfirehose/cwmetrics
-          - signozawsfirehose/otlp_v1
+            - otlp
+            - signozawsfirehose/cwmetrics
+            - signozawsfirehose/otlp_v1
         traces:
           exporters:
-          - signozkafka
+            - signozkafka
           processors:
-          - signozlimiter/postgres  # replace with signozlimiter/redis if redis is used as cache backend
-          - batch
+            # replace with signozlimiter/redis if redis is used as cache backend
+            - signozlimiter/postgres
+            - batch
           receivers:
-          - otlp
+            - otlp
   # @ignored
   env:
     cache_strategy: "off"
@@ -2099,7 +2129,6 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
-
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:
