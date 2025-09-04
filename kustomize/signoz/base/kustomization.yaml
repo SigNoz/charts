@@ -3,7 +3,6 @@ kind: Kustomization
 
 namespace: signoz
 
-# Phase 1: Core infrastructure
 resources:
   - namespace.yaml
   - signoz-serviceaccount.yaml
@@ -13,17 +12,11 @@ resources:
   - schema-migrator-serviceaccount.yaml
   - schema-migrator-role.yaml
   - schema-migrator-rolebinding.yaml
-
-# Phase 2: Services and ConfigMaps
   - signoz-service.yaml
   - otel-collector-service.yaml
   - otel-collector-configmap.yaml
-
-# Phase 3: Schema migrations (must complete before SigNoz starts)
   - schema-migrator-sync-job.yaml
   - schema-migrator-async-job.yaml
-
-# Phase 4: Main applications (after dependencies are ready)
   - signoz-statefulset.yaml
   - otel-collector-deployment.yaml
 

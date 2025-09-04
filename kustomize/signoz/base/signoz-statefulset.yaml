@@ -48,28 +48,28 @@ spec:
             - sh
             - -c
             - |
-              echo "🔍 Validating ClickHouse dependency..."
+              echo "Validating ClickHouse dependency..."
 
               # Check if ClickHouse service exists
               if ! wget --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping 2>/dev/null; then
-                echo "❌ ERROR: ClickHouse service '$(CLICKHOUSE_HOST)' not found or not responding!"
-                echo "💡 Please deploy ClickHouse first:"
+                echo "ERROR: ClickHouse service '$(CLICKHOUSE_HOST)' not found or not responding!"
+                echo "Please deploy ClickHouse first:"
                 echo "   helm repo add signoz https://charts.signoz.io"
                 echo "   helm install clickhouse signoz/clickhouse -n signoz --create-namespace"
                 exit 1
               fi
 
-              echo "✅ ClickHouse service found: $(CLICKHOUSE_HOST)"
+              echo "ClickHouse service found: $(CLICKHOUSE_HOST)"
 
               # Check if ClickHouse is responding
-              echo "🔍 Checking ClickHouse connectivity..."
+              echo "Checking ClickHouse connectivity..."
               until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping; do
-                echo "⏳ Waiting for ClickHouse to be ready...";
+                echo "Waiting for ClickHouse to be ready...";
                 sleep 5;
               done
 
-              echo "✅ ClickHouse is ready and responding!"
-              echo "🚀 Starting SigNoz..."
+              echo "ClickHouse is ready and responding!"
+              echo "Starting SigNoz..."
         - name: signoz-init
           image: docker.io/busybox:1.35
           imagePullPolicy: IfNotPresent
