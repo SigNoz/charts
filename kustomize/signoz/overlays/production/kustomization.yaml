@@ -1,0 +1,102 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: signoz-prod
+
+resources:
+  - ../../base
+
+# Production-specific patches
+patches:
+  - target:
+      kind: StatefulSet
+      name: signoz
+      namespace: signoz-prod
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SIGNOZ_ENVIRONMENT
+          value: "production"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SIGNOZ_LOG_LEVEL
+          value: "info"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SIGNOZ_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: signoz-secrets
+              key: jwt-secret
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                    - signoz
+                topologyKey: kubernetes.io/hostname
+
+  - target:
+      kind: Deployment
+      name: signoz-otel-collector
+      namespace: signoz-prod
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                    - signoz-otel-collector
+                topologyKey: kubernetes.io/hostname
+
+# Production-specific labels
+labels:
+  - pairs:
+      environment: production
+      tier: prod
+
+# Production-specific images
+images:
+  - name: docker.io/signoz/signoz
+    newTag: v0.93.0

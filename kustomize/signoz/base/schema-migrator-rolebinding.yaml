@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: signoz-schema-migrator-signoz-async
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: schema-migrator
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: signoz-schema-migrator-signoz-async
+subjects:
+  - name: signoz-schema-migrator-async
+    kind: ServiceAccount
+    namespace: signoz

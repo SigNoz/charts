@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: signoz
+
+# Phase 1: Core infrastructure
+resources:
+  - namespace.yaml
+  - signoz-serviceaccount.yaml
+  - otel-collector-serviceaccount.yaml
+  - otel-collector-clusterrole.yaml
+  - otel-collector-clusterrolebinding.yaml
+  - schema-migrator-serviceaccount.yaml
+  - schema-migrator-role.yaml
+  - schema-migrator-rolebinding.yaml
+
+# Phase 2: Services and ConfigMaps
+  - signoz-service.yaml
+  - otel-collector-service.yaml
+  - otel-collector-configmap.yaml
+
+# Phase 3: Schema migrations (must complete before SigNoz starts)
+  - schema-migrator-sync-job.yaml
+  - schema-migrator-async-job.yaml
+
+# Phase 4: Main applications (after dependencies are ready)
+  - signoz-statefulset.yaml
+  - otel-collector-deployment.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: signoz
+      app.kubernetes.io/instance: signoz
+      app.kubernetes.io/version: "v0.93.0"
+      app.kubernetes.io/managed-by: kustomize
+
+images:
+  - name: docker.io/signoz/signoz
+    newTag: v0.93.0
+  - name: docker.io/signoz/signoz-otel-collector
+    newTag: v0.129.2
+  - name: docker.io/signoz/signoz-schema-migrator
+    newTag: v0.129.2
+  - name: docker.io/busybox
+    newTag: "1.35"
+  - name: docker.io/clickhouse/clickhouse-server
+    newTag: 24.1.2-alpine
+  - name: groundnuty/k8s-wait-for
+    newTag: v2.0

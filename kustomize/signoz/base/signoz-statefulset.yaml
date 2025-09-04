@@ -1,0 +1,187 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: signoz
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: signoz
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  serviceName: signoz
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: signoz
+      app.kubernetes.io/instance: signoz
+      app.kubernetes.io/component: signoz
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: signoz
+        app.kubernetes.io/instance: signoz
+        app.kubernetes.io/component: signoz
+    spec:
+      serviceAccountName: signoz
+      initContainers:
+        - name: clickhouse-validation
+          image: docker.io/busybox:1.35
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+          command:
+            - sh
+            - -c
+            - |
+              echo "🔍 Validating ClickHouse dependency..."
+
+              # Check if ClickHouse service exists
+              if ! wget --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping 2>/dev/null; then
+                echo "❌ ERROR: ClickHouse service '$(CLICKHOUSE_HOST)' not found or not responding!"
+                echo "💡 Please deploy ClickHouse first:"
+                echo "   helm repo add signoz https://charts.signoz.io"
+                echo "   helm install clickhouse signoz/clickhouse -n signoz --create-namespace"
+                exit 1
+              fi
+
+              echo "✅ ClickHouse service found: $(CLICKHOUSE_HOST)"
+
+              # Check if ClickHouse is responding
+              echo "🔍 Checking ClickHouse connectivity..."
+              until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping; do
+                echo "⏳ Waiting for ClickHouse to be ready...";
+                sleep 5;
+              done
+
+              echo "✅ ClickHouse is ready and responding!"
+              echo "🚀 Starting SigNoz..."
+        - name: signoz-init
+          image: docker.io/busybox:1.35
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+          command:
+            - sh
+            - -c
+            - until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting query service now";
+          resources: {}
+      containers:
+        - name: signoz
+          image: docker.io/signoz/signoz:v0.93.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: http-internal
+              containerPort: 8085
+              protocol: TCP
+            - name: opamp-internal
+              containerPort: 4320
+              protocol: TCP
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_DATABASE
+              value: "signoz_metrics"
+            - name: CLICKHOUSE_TRACE_DATABASE
+              value: "signoz_traces"
+            - name: CLICKHOUSE_LOG_DATABASE
+              value: "signoz_logs"
+            - name: CLICKHOUSE_METER_DATABASE
+              value: "signoz_meter"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+            - name: CLICKHOUSE_VERIFY
+              value: "false"
+            - name: SIGNOZ_TELEMETRYSTORE_PROVIDER
+              value: "clickhouse"
+            - name: DOT_METRICS_ENABLED
+              value: "true"
+            - name: SIGNOZ_EMAILING_ENABLED
+              value: "false"
+            - name: SIGNOZ_PROMETHEUS_ACTIVE_QUERY_TRACKER_ENABLED
+              value: "false"
+            - name: SIGNOZ_ALERTMANAGER_PROVIDER
+              value: "signoz"
+            - name: SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL_URL
+              value: "http://localhost:8080"
+            - name: SIGNOZ_JWT_SECRET
+              value: "your-jwt-secret-key-change-this-in-production"
+            - name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+              value: "tcp://clickhouse:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)"
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /api/v1/health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /api/v1/health?live=1
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          volumeMounts:
+            - name: signoz-db
+              mountPath: /var/lib/signoz/
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+      volumes:
+        - name: dashboards
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: signoz-db
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

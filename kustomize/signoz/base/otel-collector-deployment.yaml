@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signoz-otel-collector
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: otel-collector
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: signoz
+      app.kubernetes.io/instance: signoz
+      app.kubernetes.io/component: otel-collector
+  minReadySeconds: 5
+  progressDeadlineSeconds: 600
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        signoz.io/scrape: 'true'
+        signoz.io/port: '8888'
+        checksum/config: "placeholder"
+      labels:
+        app.kubernetes.io/name: signoz
+        app.kubernetes.io/instance: signoz
+        app.kubernetes.io/component: otel-collector
+    spec:
+      serviceAccountName: signoz-otel-collector
+      initContainers:
+        - name: "signoz-otel-collector-migrate-init"
+          image: groundnuty/k8s-wait-for:v2.0
+          imagePullPolicy: IfNotPresent
+          args:
+          - "job"
+          - "signoz-schema-migrator-sync"
+          resources: {}
+      containers:
+        - name: collector
+          image: docker.io/signoz/signoz-otel-collector:v0.129.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: otlp
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: jaeger-thrift
+              containerPort: 14268
+              protocol: TCP
+            - name: jaeger-grpc
+              containerPort: 14250
+              protocol: TCP
+            - name: metrics
+              containerPort: 8888
+              protocol: TCP
+            - name: logsheroku
+              containerPort: 8081
+              protocol: TCP
+            - name: logsjson
+              containerPort: 8082
+              protocol: TCP
+          command:
+            - "/signoz-otel-collector"
+          args:
+            - "--config=/conf/otel-collector-config.yaml"
+            - "--manager-config=/conf/otel-collector-opamp-config.yaml"
+            - "--copy-path=/var/tmp/collector-config.yaml"
+            - "--feature-gates=-pkg.translator.prometheus.NormalizeName"
+          env:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: K8S_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: K8S_HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: K8S_POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_DATABASE
+              value: "signoz_metrics"
+            - name: CLICKHOUSE_TRACE_DATABASE
+              value: "signoz_traces"
+            - name: CLICKHOUSE_LOG_DATABASE
+              value: "signoz_logs"
+            - name: CLICKHOUSE_METER_DATABASE
+              value: "signoz_meter"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+            - name: CLICKHOUSE_VERIFY
+              value: "false"
+            - name: LOW_CARDINAL_EXCEPTION_GROUPING
+              value: "false"
+          volumeMounts:
+            - name: otel-collector-config-vol
+              mountPath: /conf
+          livenessProbe:
+            httpGet:
+              port: 13133
+              path: /
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              port: 13133
+              path: /
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+      volumes:
+        - name: otel-collector-config-vol
+          configMap:
+            name: signoz-otel-collector

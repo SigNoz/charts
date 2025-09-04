@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: signoz-dev
+
+resources:
+  - ../../base
+
+# Development-specific patches
+patches:
+  - target:
+      kind: StatefulSet
+      name: signoz
+      namespace: signoz-dev
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SIGNOZ_ENVIRONMENT
+          value: "development"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SIGNOZ_LOG_LEVEL
+          value: "debug"
+
+  - target:
+      kind: Deployment
+      name: signoz-otel-collector
+      namespace: signoz-dev
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+
+# Development-specific labels
+labels:
+  - pairs:
+      environment: development
+      tier: dev
+
+# Development-specific images
+images:
+  - name: docker.io/signoz/signoz
+    newTag: v0.93.0

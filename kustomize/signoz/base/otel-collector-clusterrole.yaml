@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: signoz-otel-collector-signoz
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: otel-collector
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]

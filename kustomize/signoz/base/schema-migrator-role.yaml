@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: signoz-schema-migrator-signoz-async
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: schema-migrator
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]

@@ -1,0 +1,153 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: signoz-schema-migrator-async
+  namespace: signoz
+  labels:
+    app.kubernetes.io/name: signoz
+    app.kubernetes.io/instance: signoz
+    app.kubernetes.io/component: schema-migrator
+    app.kubernetes.io/version: "v0.93.0"
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: signoz
+        app.kubernetes.io/instance: signoz
+        app.kubernetes.io/component: schema-migrator
+    spec:
+      serviceAccountName: signoz-schema-migrator-async
+      initContainers:
+        - name: schema-migrator-async-init
+          image: docker.io/busybox:1.35
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+          command:
+            - sh
+            - -c
+            - until wget --user "$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)" --spider -q http://$(CLICKHOUSE_HOST):$(CLICKHOUSE_HTTP_PORT)/ping; do echo -e "waiting for clickhouseDB"; sleep 5; done; echo -e "clickhouse ready, starting schema migrator now";
+          resources: {}
+        - name: schema-migrator-async-ch-ready
+          image: docker.io/clickhouse/clickhouse-server:24.1.2-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+            - name: CLICKHOUSE_VERSION
+              value: "24.1.2"
+            - name: CLICKHOUSE_SHARDS
+              value: "1"
+            - name: CLICKHOUSE_REPLICAS
+              value: "1"
+          command:
+            - "sh"
+            - "-c"
+            - |
+              echo "Running clickhouse ready check"
+              while true
+              do
+                version="$(CLICKHOUSE_VERSION)"
+                shards="$(CLICKHOUSE_SHARDS)"
+                replicas="$(CLICKHOUSE_REPLICAS)"
+                current_version="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT version()")"
+                if [ -z "$current_version" ]; then
+                  echo "waiting for clickhouse to be ready"
+                  sleep 5
+                  continue
+                fi
+                if [ -z "$(echo "$current_version" | grep "$version")" ]; then
+                  echo "expected version: $version, current version: $current_version"
+                  echo "waiting for clickhouse with correct version"
+                  sleep 5
+                  continue
+                fi
+                current_shards="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count(DISTINCT(shard_num)) FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
+                if [ -z "$current_shards" ]; then
+                  echo "waiting for clickhouse to be ready"
+                  sleep 5
+                  continue
+                fi
+                if [ "$current_shards" -ne "$shards" ]; then
+                  echo "expected shard count: $shards, current shard count: $current_shards"
+                  echo "waiting for clickhouse with correct shard count"
+                  sleep 5
+                  continue
+                fi
+                current_replicas="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count(DISTINCT(replica_num)) FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
+                if [ -z "$current_replicas" ]; then
+                  echo "waiting for clickhouse to be ready"
+                  sleep 5
+                  continue
+                fi
+                if [ "$current_replicas" -ne "$replicas" ]; then
+                  echo "expected replica count: $replicas, current replica count: $current_replicas"
+                  echo "waiting for clickhouse with correct replica count"
+                  sleep 5
+                  continue
+                fi
+                break
+              done
+              echo "clickhouse ready, starting schema migrator now"
+          resources: {}
+        - name: schema-migrator-async-wait-for-sync
+          image: groundnuty/k8s-wait-for:v2.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "job"
+            - "signoz-schema-migrator-sync"
+      containers:
+        - name: schema-migrator
+          image: docker.io/signoz/signoz-schema-migrator:v0.129.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_HOST
+              value: "clickhouse"
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_HTTP_PORT
+              value: "8123"
+            - name: CLICKHOUSE_CLUSTER
+              value: "cluster"
+            - name: CLICKHOUSE_USER
+              value: "admin"
+            - name: CLICKHOUSE_PASSWORD
+              value: "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+          args:
+            - async
+            - "--cluster-name"
+            - "$(CLICKHOUSE_CLUSTER)"
+            - "--dsn"
+            - "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse:9000"
+      restartPolicy: OnFailure

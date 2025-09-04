@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: PodSecurityPolicy
+metadata:
+  name: signoz-psp
+  namespace: signoz-security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: signoz-security-sa
+  namespace: signoz-security
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: signoz-security-role
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - signoz-psp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: signoz-security-binding
+roleRef:
+  kind: ClusterRole
+  name: signoz-security-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: signoz-security-sa
+  namespace: signoz-security
