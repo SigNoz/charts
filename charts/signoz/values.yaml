@@ -200,8 +200,8 @@ clickhouse:
     repository: clickhouse/clickhouse-server
     # clickhouse.image.tag -- ClickHouse image tag to use. SigNoz is not always tested with the latest version of ClickHouse.
     # Only override if you know what you are doing.
-    # @default -- "24.1.2-alpine"
-    tag: 24.1.2-alpine
+    # @default -- "25.5.6"
+    tag: 25.5.6
     # clickhouse.image.pullPolicy -- ClickHouse image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -338,6 +338,10 @@ clickhouse:
   defaultProfiles:
     default/allow_experimental_window_functions: "1"
     default/allow_nondeterministic_mutations: "1"
+    default/secondary_indices_enable_bulk_filtering: "0"
+    admin/secondary_indices_enable_bulk_filtering: "0"
+    default/query_plan_max_limit_for_lazy_materialization: "0"
+    admin/query_plan_max_limit_for_lazy_materialization: "0"
   # clickhouse.initContainers -- Init container to copy the histogramQuantile UDF.
   # @section -- ClickHouse Settings
   # @default -- "Please checkout the default values in values.yml"
@@ -466,22 +470,52 @@ clickhouse:
   # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
   # @section -- ClickHouse Settings
   # @default -- {}
-  files: {}
-  # config.d/log_rotation.xml: |
-  #   <clickhouse>
-  #     <logger>
-  #       <level>trace</level>
-  #       <console>true</console>
-  #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
-  #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
-  #       <size>100M</size>
-  #       <count>10</count>
-  #     </logger>
-  #   </clickhouse>
-  # test.xml: |
-  #   <clickhouse>
-  #     <some-setting>some-value</some-setting>
-  #   </clickhouse>
+  files:
+    config.d/formatting.xml: |
+      <clickhouse>
+        <logger>
+          <formatting replace="replace">
+            <type>json</type>
+            <names>
+              <date_time>date_time</date_time>
+              <thread_name>thread_name</thread_name>
+              <thread_id>thread_id</thread_id>
+              <level>level</level>
+              <query_id>query_id</query_id>
+              <logger_name>logger_name</logger_name>
+              <message>message</message>
+              <source_file>source_file</source_file>
+              <source_line>source_line</source_line>
+            </names>
+          </formatting>
+        </logger>
+      </clickhouse>
+    config.d/crash.xml: |
+      <clickhouse>
+        <send_crash_reports replace="replace">
+          <enabled>false</enabled>
+        </send_crash_reports>
+      </clickhouse>
+    config.d/load.xml: |
+      <clickhouse>
+        <async_load_databases replace="replace">false</async_load_databases>
+      </clickhouse>
+    config.d/system_log.xml: |
+      <clickhouse>
+        <text_log>
+          <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
+        </text_log>
+        <latency_log>
+          <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
+        </latency_log>
+        <error_log>
+          <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+        </error_log>
+        <query_metric_log>
+          <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
+        </query_metric_log>
+      </clickhouse>
+  
 
   # clickhouse.installCustomStorageClass -- When enabled with `cloud` as `gcp` or `aws`, creates a custom storage class with volume expansion permission.
   # @section -- ClickHouse Persistence
@@ -1124,7 +1158,7 @@ schemaMigrator:
       image:
         registry: docker.io
         repository: clickhouse/clickhouse-server
-        tag: 24.1.2-alpine
+        tag: 25.5.6
         pullPolicy: IfNotPresent
       command:
         - "sh"
