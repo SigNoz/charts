@@ -515,7 +515,6 @@ clickhouse:
           <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
         </query_metric_log>
       </clickhouse>
-
   # clickhouse.installCustomStorageClass -- When enabled with `cloud` as `gcp` or `aws`, creates a custom storage class with volume expansion permission.
   # @section -- ClickHouse Persistence
   # @default -- false
@@ -766,7 +765,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.90.1"
-    tag: v0.93.0
+    tag: v0.94.0
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1081,7 +1080,7 @@ schemaMigrator:
     repository: signoz/signoz-schema-migrator
     # schemaMigrator.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.2
+    tag: v0.129.4
     # schemaMigrator.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1291,7 +1290,7 @@ otelCollector:
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.128.2"
-    tag: v0.129.2
+    tag: v0.129.4
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1945,7 +1944,6 @@ otelCollector:
           receivers: [signozmeter]
           processors: [batch/meter]
           exporters: [signozclickhousemeter]
-
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
