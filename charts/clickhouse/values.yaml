@@ -171,7 +171,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 25.5.6
+  tag: 24.1.2-alpine
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 
@@ -340,10 +340,7 @@ profiles: {}
 defaultProfiles:
   default/allow_experimental_window_functions: "1"
   default/allow_nondeterministic_mutations: "1"
-  default/secondary_indices_enable_bulk_filtering: "0"
-  admin/secondary_indices_enable_bulk_filtering: "0"
-  default/query_plan_max_limit_for_lazy_materialization: "0"
-  admin/query_plan_max_limit_for_lazy_materialization: "0"
+
 # -- Clickhouse init container to copy histogramQuantile UDF
 # @default -- See `values.yaml` for defaults
 initContainers:
@@ -470,51 +467,22 @@ coldStorage:
 # Refs:
 # - https://clickhouse.com/docs/en/operations/configuration-files/
 # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
-files:
-  config.d/formatting.xml: |
-    <clickhouse>
-      <logger>
-        <formatting replace="replace">
-          <type>json</type>
-          <names>
-            <date_time>date_time</date_time>
-            <thread_name>thread_name</thread_name>
-            <thread_id>thread_id</thread_id>
-            <level>level</level>
-            <query_id>query_id</query_id>
-            <logger_name>logger_name</logger_name>
-            <message>message</message>
-            <source_file>source_file</source_file>
-            <source_line>source_line</source_line>
-          </names>
-        </formatting>
-      </logger>
-    </clickhouse>
-  config.d/crash.xml: |
-    <clickhouse>
-      <send_crash_reports replace="replace">
-        <enabled>false</enabled>
-      </send_crash_reports>
-    </clickhouse>
-  config.d/load.xml: |
-    <clickhouse>
-      <async_load_databases replace="replace">false</async_load_databases>
-    </clickhouse>
-  config.d/system_log.xml: |
-    <clickhouse>
-      <text_log>
-        <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
-      </text_log>
-      <latency_log>
-        <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
-      </latency_log>
-      <error_log>
-        <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
-      </error_log>
-      <query_metric_log>
-        <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
-      </query_metric_log>
-    </clickhouse>
+files: {}
+  # config.d/log_rotation.xml: |
+  #   <clickhouse>
+  #     <logger>
+  #       <level>trace</level>
+  #       <console>true</console>
+  #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+  #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+  #       <size>100M</size>
+  #       <count>10</count>
+  #     </logger>
+  #   </clickhouse>
+  # test.xml: |
+  #   <clickhouse>
+  #     <some-setting>some-value</some-setting>
+  #   </clickhouse>
 
 # -- Custom volume claim templates for ClickHouse pod
 # This is only used when persistence.enabled is false
