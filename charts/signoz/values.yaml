@@ -515,7 +515,6 @@ clickhouse:
           <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
         </query_metric_log>
       </clickhouse>
-  
 
   # clickhouse.installCustomStorageClass -- When enabled with `cloud` as `gcp` or `aws`, creates a custom storage class with volume expansion permission.
   # @section -- ClickHouse Persistence
