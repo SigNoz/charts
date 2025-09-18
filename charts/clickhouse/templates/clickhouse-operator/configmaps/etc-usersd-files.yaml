@@ -8,23 +8,23 @@ metadata:
 data:
   01-clickhouse-user.xml: |
     <yandex>
-        <users>
-            <clickhouse_operator>
-                <networks>
-                    <ip>127.0.0.1</ip>
-                </networks>
-                <password_sha256_hex>{{ .Values.clickhouseOperator.secret.password | sha256sum }}</password_sha256_hex>
-                <profile>{{ .Values.clickhouseOperator.secret.username }}</profile>
-                <quota>default</quota>
-            </clickhouse_operator>
-        </users>
-        <profiles>
-            <clickhouse_operator>
-                <log_queries>0</log_queries>
-                <skip_unavailable_shards>1</skip_unavailable_shards>
-                <http_connection_timeout>10</http_connection_timeout>
-            </clickhouse_operator>
-        </profiles>
+      <users>
+        <{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+          <networks>
+            <ip>127.0.0.1</ip>
+          </networks>
+          <password>{{ required "You must set .Values.clickhouseOperator.secret.password when using an existing secret" (or .Values.clickhouseOperator.secret.password nil) | required "You must set .Values.clickhouseOperator.secret.password when using an existing secret" }}</password>
+          <profile>default</profile>
+          <quota>default</quota>
+        </{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+      </users>
+      <profiles>
+        <{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+          <log_queries>0</log_queries>
+          <skip_unavailable_shards>1</skip_unavailable_shards>
+          <http_connection_timeout>10</http_connection_timeout>
+        </{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+      </profiles>
     </yandex>
   02-clickhouse-default-profile.xml: |
     <yandex>

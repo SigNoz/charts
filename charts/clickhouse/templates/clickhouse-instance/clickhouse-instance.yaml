@@ -23,13 +23,28 @@ spec:
 
   configuration:
     users:
-      {{ .Values.user }}/password: {{ .Values.password }}
-      {{ .Values.user }}/networks/ip:
-        {{- range $.Values.allowedNetworkIps }}
-        - {{ . | quote }}
-        {{- end }}
-      {{ .Values.user }}/profile: default
-      {{ .Values.user }}/quota: default
+      {{- if .Values.user }}
+      {{ .Values.user }}:
+        password: "${CLICKHOUSE_PASSWORD}"
+        networks:
+          ip:
+            {{- range $.Values.allowedNetworkIps }}
+            - {{ . | quote }}
+            {{- end }}
+        profile: default
+        quota: default
+      {{- else }}
+      {{- $username := .Values.clickhouseOperator.secret.usernameKey | default "username" }}
+      {{ $username }}:
+        password: "${CLICKHOUSE_PASSWORD}"
+        networks:
+          ip:
+            {{- range $.Values.allowedNetworkIps }}
+            - {{ . | quote }}
+            {{- end }}
+        profile: default
+        quota: default
+      {{- end }}
 
     profiles:
       {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
@@ -228,7 +243,19 @@ spec:
                   containerPort: 9000
                 - name: interserver
                   containerPort: 9009
-              
+
+              env:
+                - name: CLICKHOUSE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.clickhouseOperator.secret.name | quote }}
+                      key: {{ .Values.clickhouseOperator.secret.usernameKey | default "username" | quote }}
+                - name: CLICKHOUSE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.clickhouseOperator.secret.name | quote }}
+                      key: {{ .Values.clickhouseOperator.secret.passwordKey | default "password" | quote }}
+
               {{- if .Values.startupProbe.enabled }}
               startupProbe:
                 httpGet:
