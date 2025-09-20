@@ -127,6 +127,29 @@ Return the initContainers image name for UDF
 {{- end -}}
 
 {{/*
+Return the volume permissions image name
+*/}}
+{{- define "clickhouse.volumePermissions.image" -}}
+{{- $registryName := default .Values.volumePermissions.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.volumePermissions.image.repository -}}
+{{- $tag := .Values.volumePermissions.image.tag | toString -}}
+{{- $digest := .Values.volumePermissions.image.digest | toString -}}
+{{- if $registryName -}}
+    {{- if $digest -}}
+        {{- printf "%s/%s@%s" $registryName $repositoryName $digest -}}
+    {{- else -}}
+        {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+    {{- end -}}
+{{- else -}}
+    {{- if $digest -}}
+        {{- printf "%s@%s" $repositoryName $digest -}}
+    {{- else -}}
+        {{- printf "%s:%s" $repositoryName $tag -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}

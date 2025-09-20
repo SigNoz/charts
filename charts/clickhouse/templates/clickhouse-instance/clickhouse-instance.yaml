@@ -1,4 +1,4 @@
-apiVersion: clickhouse.altinity.com/v1
+0apiVersion: clickhouse.altinity.com/v1
 kind: ClickHouseInstallation
 metadata:
   name: {{ include "clickhouse.fullname" . }}
@@ -193,6 +193,42 @@ spec:
 
           {{- if .Values.initContainers.enabled }}
           initContainers:
+            {{- if and .Values.volumePermissions.enabled (or .Values.persistence.enabled .Values.templates.volumeClaimTemplates) }}
+            - name: volume-permissions
+              image: {{ include "clickhouse.volumePermissions.image" . }}
+              imagePullPolicy: {{ default "" .Values.volumePermissions.image.pullPolicy | quote }}
+              command:
+                - /bin/bash
+              args:
+                - -ec
+                - |
+                  mkdir -p /var/lib/clickhouse
+                  chown -R {{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.fsGroup }} /var/lib/clickhouse
+                  find /var/lib/clickhouse -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R {{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.fsGroup }}
+              {{- if .Values.volumePermissions.containerSecurityContext.enabled }}
+              securityContext: {{- omit .Values.volumePermissions.containerSecurityContext "enabled" | toYaml | nindent 16 }}
+              {{- end }}
+              {{- if .Values.volumePermissions.resources }}
+              resources: {{- toYaml .Values.volumePermissions.resources | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+              {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
+                - name: data-volume
+                  mountPath: /var/lib/clickhouse
+              {{- end }}
+              {{- if and (.Values.persistence.enabled) (.Values.persistence.existingClaim) }}
+                - name: existing-volumeclaim
+                  mountPath: /var/lib/clickhouse
+              {{- else if .Values.persistence.enabled }}
+                - name: data-volumeclaim-template
+                  mountPath: /var/lib/clickhouse
+              {{- else if .Values.templates.volumeClaimTemplates }}
+                {{- range .Values.templates.volumeClaimTemplates }}
+                - name: {{ .name }}
+                  mountPath: /var/lib/clickhouse
+                {{- end }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.initContainers.udf.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-udf-init
               image: {{ include "clickhouse.initContainers.udf.image" . }}

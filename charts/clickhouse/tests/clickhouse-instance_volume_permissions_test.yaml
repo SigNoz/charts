@@ -1,0 +1,323 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-instance_volume_permissions_test.yaml
+templates:
+  - templates/clickhouse-instance/clickhouse-instance.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should not have volume-permissions init container when disabled (default)
+    set:
+      initContainers:
+        enabled: true
+      persistence:
+        enabled: true
+    asserts:
+      - notContains:
+          path: spec.templates.podTemplates[0].spec.initContainers
+          content:
+            name: volume-permissions
+
+  - it: should not have volume-permissions init container when persistence is disabled
+    set:
+      initContainers:
+        enabled: true
+      persistence:
+        enabled: false
+      volumePermissions:
+        enabled: true
+    asserts:
+      - notContains:
+          path: spec.templates.podTemplates[0].spec.initContainers
+          content:
+            name: volume-permissions
+
+  - it: should not have volume-permissions init container when initContainers are disabled
+    set:
+      initContainers:
+        enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.initContainers
+
+  - it: should have volume-permissions init container when enabled with persistence
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers
+          count: 1
+          content:
+            name: volume-permissions
+            image: docker.io/bitnami/bitnami-shell:11-debian-11-r118
+            imagePullPolicy: "IfNotPresent"
+            command:
+              - /bin/bash
+            args:
+              - -ec
+              - |
+                mkdir -p /var/lib/clickhouse
+                chown -R 101:101 /var/lib/clickhouse
+                find /var/lib/clickhouse -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R 101:101
+            securityContext:
+              runAsUser: 0
+            resources:
+              limits: {}
+              requests: {}
+            volumeMounts:
+              - name: data-volumeclaim-template
+                mountPath: /var/lib/clickhouse
+
+  - it: should have volume-permissions init container with existing claim
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+        existingClaim: signoz-clickhouse
+      volumePermissions:
+        enabled: true
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts[0].name
+          value: existing-volumeclaim
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts[0].mountPath
+          value: /var/lib/clickhouse
+
+  - it: should have volume-permissions init container with custom volumeClaimTemplates
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: false
+      templates:
+        volumeClaimTemplates:
+          - name: custom-data
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+      volumePermissions:
+        enabled: true
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts[0].name
+          value: custom-data
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts[0].mountPath
+          value: /var/lib/clickhouse
+
+  - it: should use custom volume permissions image
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+        image:
+          registry: custom.registry.io
+          repository: custom/shell
+          tag: v1.0.0
+          pullPolicy: Always
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          value: custom.registry.io/custom/shell:v1.0.0
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].imagePullPolicy
+          value: Always
+
+  - it: should use image digest when specified
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+        image:
+          registry: docker.io
+          repository: bitnami/bitnami-shell
+          digest: sha256:abcd1234
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          value: docker.io/bitnami/bitnami-shell@sha256:abcd1234
+
+  - it: should apply custom resources when specified
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources.limits.cpu
+          value: 100m
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources.limits.memory
+          value: 128Mi
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources.requests.cpu
+          value: 50m
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources.requests.memory
+          value: 64Mi
+
+  - it: should use custom security context when containerSecurityContext is disabled
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+        containerSecurityContext:
+          enabled: false
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].securityContext
+
+  - it: should have correct order with other init containers
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: true
+        init:
+          enabled: true
+      persistence:
+        enabled: true
+      volumePermissions:
+        enabled: true
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[1].name
+          value: clickhouse-udf-init
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[2].name
+          value: clickhouse-init
+
+  - it: should work with issue #623 configuration (existing claims)
+    set:
+      initContainers:
+        enabled: true
+        udf:
+          enabled: false
+      persistence:
+        enabled: true
+        existingClaim: signoz-clickhouse
+      volumePermissions:
+        enabled: true
+      zookeeper:
+        persistence:
+          existingClaim: signoz-zookeeper
+        volumePermissions:
+          enabled: true
+      securityContext:
+        enabled: true
+        runAsUser: 101
+        fsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].name
+          value: volume-permissions
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          value: docker.io/bitnami/bitnami-shell:11-debian-11-r118
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].securityContext.runAsUser
+          value: 0
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts
+          content:
+            name: existing-volumeclaim
+            mountPath: /var/lib/clickhouse
