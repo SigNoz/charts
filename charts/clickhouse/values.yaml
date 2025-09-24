@@ -634,6 +634,9 @@ clickhouseOperator:
     username: "clickhouse_operator"
     # -- Password to store in the secret (only used when create: true)
     password: ""
+    # -- Whether the secret should be immutable (Kubernetes 1.21+). When set to true,
+    # the secret cannot be updated after creation to prevent accidental changes.
+    # immutable: true
 
   # -- Clickhouse Operator priority class name
   priorityClassName: ""
