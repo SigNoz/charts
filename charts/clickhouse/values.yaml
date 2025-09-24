@@ -632,7 +632,10 @@ clickhouseOperator:
     passwordKey: password
     # -- Username to store in the secret (only used when create: true)
     username: "clickhouse_operator"
-    # -- Password to store in the secret (only used when create: true)
+    # -- Password to store in the secret (only used when create: true).
+    # If empty, a random 24-character password will be generated and preserved across upgrades.
+    # For security, avoid setting passwords in values.yaml; prefer helm --set-file, 
+    # encrypted values (SOPS/helm-secrets), or use create: false with an existing secret.
     password: ""
     # -- Whether the secret should be immutable (Kubernetes 1.21+). When set to true,
     # the secret cannot be updated after creation to prevent accidental changes.

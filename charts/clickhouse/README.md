@@ -19,17 +19,22 @@ clickhouseOperator:
   secret:
     create: true
     username: clickhouse_operator  # Username to store in the secret
-    password: "<password>"         # Password to store in the secret
+    password: "<password>"         # Password to store in the secret (optional)
 ```
 
 **Field reference:**
 - `clickhouse.user`: The ClickHouse username that appears in configuration files
 - `clickhouseOperator.secret.username`: The username value to store in the generated secret
-- `clickhouseOperator.secret.password`: The password value to store in the generated secret. This field is required when `create: true`
+- `clickhouseOperator.secret.password`: The password value to store in the generated secret. If empty, a random 24-character password will be automatically generated and preserved across upgrades.
 - `clickhouseOperator.secret.usernameKey`: The key name for username in the secret (defaults to `username`)
 - `clickhouseOperator.secret.passwordKey`: The key name for password in the secret (defaults to `password`)
 
-If you do not set `password` when `create: true`, the chart will fail to install.
+**Security Best Practices:**
+- **Avoid committing credentials in values.yaml** - This exposes passwords in your Git repository
+- **Use auto-generated passwords** - Leave `password` empty to generate a secure random password
+- **Use encrypted values** - Consider SOPS, helm-secrets, or sealed-secrets for GitOps workflows
+- **Pass credentials at install time** - Use `helm install --set clickhouseOperator.secret.password=...` or `--set-file`
+- **Use existing secrets** - For production, prefer creating secrets outside Helm and using `create: false`
 
 ### Option 2: Use an existing secret
 
