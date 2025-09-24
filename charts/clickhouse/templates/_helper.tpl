@@ -190,12 +190,15 @@ nodePort: null
 Return the proper Image Registry Secret Names.
 */}}
 {{- define "clickhouse.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.volumePermissions.image.pullSecrets }}
 imagePullSecrets:
 {{- range .Values.global.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
 {{- range .Values.imagePullSecrets }}
+  - name: {{ . }}
+{{- end }}
+{{- range .Values.volumePermissions.image.pullSecrets }}
   - name: {{ . }}
 {{- end }}
 {{- end }}

@@ -1,4 +1,4 @@
-0apiVersion: clickhouse.altinity.com/v1
+apiVersion: clickhouse.altinity.com/v1
 kind: ClickHouseInstallation
 metadata:
   name: {{ include "clickhouse.fullname" . }}
