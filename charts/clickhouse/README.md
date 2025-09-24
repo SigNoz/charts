@@ -45,8 +45,6 @@ clickhouseOperator:
     name: my-clickhouse-secret
     usernameKey: my-username-key   # Key name in secret (defaults to 'username')
     passwordKey: my-password-key   # Key name in secret (defaults to 'password')
-    username: clickhouse_operator  # Username for operator config (should match secret content)
-    password: "<password>"         # Password for operator config (should match secret content)
 ```
 
 The secret should look like this:
