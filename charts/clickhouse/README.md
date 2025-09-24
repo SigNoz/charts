@@ -9,21 +9,25 @@ You can configure ClickHouse credentials to be sourced from a Kubernetes Secret.
 
 ### Option 1: Let the chart create the secret
 
-
 By default, the chart will create a secret with the username and password you specify in `values.yaml`:
 
 ```yaml
+clickhouse:
+  user: admin  # The ClickHouse username (used in configs)
+
 clickhouseOperator:
   secret:
     create: true
-    username: myuser
-    password: mypassword  # The password to set in the generated secret (used as the value for the password key)
+    username: clickhouse_operator  # Username to store in the secret
+    password: "<password>"         # Password to store in the secret
 ```
 
 **Field reference:**
-
-- `username`: The username to store in the generated secret (key: `username` by default).
-- `password`: The password to store in the generated secret (key: `password` by default). This field is required if `create: true`.
+- `clickhouse.user`: The ClickHouse username that appears in configuration files
+- `clickhouseOperator.secret.username`: The username value to store in the generated secret
+- `clickhouseOperator.secret.password`: The password value to store in the generated secret. This field is required when `create: true`
+- `usernameKey`: The key name for username in the secret (defaults to `username`)
+- `passwordKey`: The key name for password in the secret (defaults to `password`)
 
 If you do not set `password` when `create: true`, the chart will fail to install.
 
@@ -32,12 +36,17 @@ If you do not set `password` when `create: true`, the chart will fail to install
 If you already have a Kubernetes secret containing the credentials, set `create: false` and provide the secret name and key names:
 
 ```yaml
+clickhouse:
+  user: admin  # The ClickHouse username (used in configs)
+
 clickhouseOperator:
   secret:
     create: false
     name: my-clickhouse-secret
-    usernameKey: my-username-key   # defaults to 'username' if not set
-    passwordKey: my-password-key   # defaults to 'password' if not set
+    usernameKey: my-username-key   # Key name in secret (defaults to 'username')
+    passwordKey: my-password-key   # Key name in secret (defaults to 'password')
+    username: clickhouse_operator  # Username for operator config (should match secret content)
+    password: "<password>"         # Password for operator config (should match secret content)
 ```
 
 The secret should look like this:
@@ -52,6 +61,8 @@ data:
   my-username-key: <base64-encoded-username>
   my-password-key: <base64-encoded-password>
 ```
+
+**Important**: When using existing secrets, the `username` and `password` fields should contain the same values as those stored in your secret (unencoded). These are used in the operator configuration files.
 
 ---
 

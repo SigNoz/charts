@@ -9,21 +9,21 @@ data:
   01-clickhouse-user.xml: |
     <yandex>
       <users>
-        <{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+        <{{ .Values.user | default "admin" }}>
           <networks>
             <ip>127.0.0.1</ip>
           </networks>
-          <password>{{ required "You must set .Values.clickhouseOperator.secret.password when using an existing secret" (or .Values.clickhouseOperator.secret.password nil) | required "You must set .Values.clickhouseOperator.secret.password when using an existing secret" }}</password>
+          <password>${CLICKHOUSE_PASSWORD}</password>
           <profile>default</profile>
           <quota>default</quota>
-        </{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+        </{{ .Values.user | default "admin" }}>
       </users>
       <profiles>
-        <{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+        <{{ .Values.user | default "admin" }}>
           <log_queries>0</log_queries>
           <skip_unavailable_shards>1</skip_unavailable_shards>
           <http_connection_timeout>10</http_connection_timeout>
-        </{{ .Values.clickhouseOperator.secret.usernameKey | default "clickhouse_operator" }}>
+        </{{ .Values.user | default "admin" }}>
       </profiles>
     </yandex>
   02-clickhouse-default-profile.xml: |

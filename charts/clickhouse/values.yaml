@@ -152,10 +152,10 @@ database: signoz_metrics
 traceDatabase: signoz_traces
 # -- Clickhouse log database (SigNoz Logs)
 logDatabase: signoz_logs
-## -- Clickhouse user (commented out for secret-based auth)
-# user: admin
+# -- Clickhouse user
+user: admin
 ## -- Clickhouse password (commented out for secret-based auth)
-# password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+# password: "<password>"
 
 # -- Clickhouse cluster replicas
 replicasCount: 1
@@ -623,11 +623,17 @@ clickhouseOperator:
   secret:
     # -- Specifies whether a secret should be created. If false, an existing secret will be used.
     # If true, the chart will create a secret with the username and password below.
-    create: false
-    name: my-ch-creds
+    create: true
+    # -- Name of the secret (defaults to generated name if not specified)
+    name: ""
+    # -- Key name for username in the secret
     usernameKey: username
+    # -- Key name for password in the secret  
     passwordKey: password
-    password: custompass
+    # -- Username to store in the secret (only used when create: true)
+    username: "clickhouse_operator"
+    # -- Password to store in the secret (only used when create: true)
+    password: ""
 
   # -- Clickhouse Operator priority class name
   priorityClassName: ""
@@ -641,17 +647,7 @@ clickhouseOperator:
   topologySpreadConstraints: []
 
   # -- Additional environment variables for Clickhouse Operator container.
-  env:
-    - name: CLICKHOUSE_USERNAME
-      valueFrom:
-        secretKeyRef:
-          name: my-ch-creds
-          key: username
-    - name: CLICKHOUSE_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: my-ch-creds
-          key: password
+  env: []
 
   # -- Clickhouse logging config
   logger:
