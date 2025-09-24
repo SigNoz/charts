@@ -32,6 +32,7 @@ spec:
         {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-async
+      {{- include "signoz.imagePullSecrets" . | nindent 6 }}
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: schema-migrator-async-init

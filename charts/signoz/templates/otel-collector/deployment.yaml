@@ -30,12 +30,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.otelCollector.imagePullSecrets }}
-      imagePullSecrets:
-      {{- range . }}
-        - name: {{ . | quote }}
-      {{- end }}
-      {{- end }}
+      {{- include "signoz.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
       priorityClassName: {{ .Values.otelCollector.priorityClassName | quote }}
       {{- with .Values.otelCollector.nodeSelector }}

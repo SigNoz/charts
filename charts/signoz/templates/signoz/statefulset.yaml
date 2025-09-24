@@ -23,12 +23,7 @@ spec:
       labels:
         {{- include "signoz.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.signoz.imagePullSecrets }}
-      imagePullSecrets:
-      {{- range . }}
-        - name: {{ . | quote }}
-      {{- end }}
-      {{- end }}
+      {{- include "signoz.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "signoz.serviceAccountName" . }}
       priorityClassName: {{ .Values.signoz.priorityClassName | quote }}
       {{- with .Values.signoz.nodeSelector }}
