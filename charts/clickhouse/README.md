@@ -1,6 +1,6 @@
-# Clickhouse
+# ClickHouse
 
-This helmchart is being installed as subchart/dependecy for signoz helmchart with default values.
+This Helm chart is installed as a subchart/dependency for the SigNoz Helm chart with default values.
 
 
 ## Using Kubernetes Secrets for ClickHouse Credentials
@@ -26,8 +26,8 @@ clickhouseOperator:
 - `clickhouse.user`: The ClickHouse username that appears in configuration files
 - `clickhouseOperator.secret.username`: The username value to store in the generated secret
 - `clickhouseOperator.secret.password`: The password value to store in the generated secret. This field is required when `create: true`
-- `usernameKey`: The key name for username in the secret (defaults to `username`)
-- `passwordKey`: The key name for password in the secret (defaults to `password`)
+- `clickhouseOperator.secret.usernameKey`: The key name for username in the secret (defaults to `username`)
+- `clickhouseOperator.secret.passwordKey`: The key name for password in the secret (defaults to `password`)
 
 If you do not set `password` when `create: true`, the chart will fail to install.
 
@@ -60,13 +60,13 @@ data:
   my-password-key: <base64-encoded-password>
 ```
 
-**Important**: When using existing secrets, the `username` and `password` fields should contain the same values as those stored in your secret (unencoded). These are used in the operator configuration files.
+**Important**: When using existing secrets, do not set `username`/`password` in values. Credentials must come solely from the referenced Secret. Set `clickhouse.user` to the actual ClickHouse username used in configs.
 
 ---
 
 ### Usage recommendation
 
-In case you are not using a well-know reserved private IP address range that are whitelisted by default for your deployment environment (like for minikube environment), eg:
+If you are not using a well-known reserved private IP address range that is whitelisted by default for your deployment environment (like minikube), e.g.:
   - 10.0.0.0/8
   - 100.64.0.0/10
   - 172.16.0.0/12
@@ -74,7 +74,7 @@ In case you are not using a well-know reserved private IP address range that are
   - 198.18.0.0/15
   - 192.168.0.0/16
 
-You must whitelist IP address range used for your enviroment (eg. kubernetes nodes IPs) manually in Signoz values chart.
+You must whitelist the IP address range used for your environment (e.g., Kubernetes nodes' IPs) manually in the SigNoz values chart.
 
 ```yaml
 clickhouse:
