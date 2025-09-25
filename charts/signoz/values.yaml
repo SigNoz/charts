@@ -250,6 +250,10 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- false
   verify: false
+  # clickhouse.dsnParams -- Additional DSN parameters for ClickHouse connection.
+  # @section -- ClickHouse Settings
+  # @default -- ""
+  dsnParams: ""
   # clickhouse.externalZookeeper -- Configuration for an external Zookeeper.
   # @section -- Zookeeper Settings
   # @default -- {}
@@ -741,6 +745,10 @@ externalClickhouse:
   # externalClickhouse.tcpPort - TCP port of the external ClickHouse instance.
   # @default - 9000
   tcpPort: 9000
+  # externalClickhouse.dsnParams -- Additional DSN parameters for external ClickHouse connection.
+  # @section -- External ClickHouse
+  # @default -- ""
+  dsnParams: ""
 # signoz -- Default values for SigNoz.
 # @section -- SigNoz
 # @default -- "Please checkout the default values in values.yml"
@@ -1901,24 +1909,24 @@ otelCollector:
         endpoint: localhost:1777
     exporters:
       clickhousetraces:
-        datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
+        datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}?secure=${env:CLICKHOUSE_SECURE}&skip_verify=${env:CLICKHOUSE_SKIP_VERIFY}
         low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
         use_new_schema: true
       signozclickhousemetrics:
-        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_DATABASE}?secure=${env:CLICKHOUSE_SECURE}&skip_verify=${env:CLICKHOUSE_SKIP_VERIFY}
         timeout: 45s
       clickhouselogsexporter:
-        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}?secure=${env:CLICKHOUSE_SECURE}&skip_verify=${env:CLICKHOUSE_SKIP_VERIFY}
         timeout: 10s
         use_new_schema: true
       metadataexporter:
-        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata?secure=${env:CLICKHOUSE_SECURE}&skip_verify=${env:CLICKHOUSE_SKIP_VERIFY}
         timeout: 10s
         tenant_id: ${env:TENANT_ID}
         cache:
           provider: in_memory
       signozclickhousemeter:
-        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_METER_DATABASE}
+        dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_METER_DATABASE}?secure=${env:CLICKHOUSE_SECURE}&skip_verify=${env:CLICKHOUSE_SKIP_VERIFY}
         timeout: 45s
         sending_queue:
           enabled: false

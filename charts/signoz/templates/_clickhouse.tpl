@@ -4,9 +4,9 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 
 {{- define "schemamigrator.url" -}}
 {{- if .Values.clickhouse.enabled -}}
-{{- printf "%v:%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) -}}
+{{- printf "%v:%v?%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) ( include "clickhouse.clickHouseDsnParams" . ) -}}
 {{- else -}}
-{{- printf "%v:%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) -}}
+{{- printf "%v:%v?%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) ( include "clickhouse.clickHouseDsnParams" . ) -}}
 {{- end -}}
 {{- end -}}
 
@@ -36,6 +36,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ .Values.clickhouse.secure | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.clickhouse.verify | quote }}
+- name: CLICKHOUSE_SKIP_VERIFY
+  value: {{ not .Values.clickhouse.verify | quote }}
 {{- else -}}
 - name: CLICKHOUSE_HOST
   value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
@@ -67,6 +69,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ .Values.externalClickhouse.secure | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.externalClickhouse.verify | quote }}
+- name: CLICKHOUSE_SKIP_VERIFY
+  value: {{ not .Values.externalClickhouse.verify | quote }}
 {{- end }}
 {{- end }}
 
@@ -229,9 +233,17 @@ Return the ClickHouse Traces URL
 
 {{- define "clickhouse.clickHouseUrl" -}}
 {{- if .Values.clickhouse.enabled -}}
-  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&{{ include "clickhouse.clickHouseDsnParams" . }}
 {{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&{{ include "clickhouse.clickHouseDsnParams" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "clickhouse.clickHouseDsnParams" -}}
+{{- if .Values.clickhouse.enabled -}}
+{{- trimSuffix "&" (printf "secure=%v&skip_verify=%v&%v" ( default false .Values.clickhouse.secure ) ( not ( default false .Values.clickhouse.verify ) ) ( default "" .Values.clickhouse.dsnParams )) -}}
+{{- else -}}
+{{- trimSuffix "&" (printf "secure=%v&skip_verify=%v&%v" ( default false .Values.externalClickhouse.secure ) ( not ( default false .Values.externalClickhouse.verify ) ) ( default "" .Values.externalClickhouse.dsnParams )) -}}
 {{- end -}}
 {{- end -}}
 
