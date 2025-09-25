@@ -89,6 +89,8 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ .Values.clickhouse.password | quote }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.clickhouse.secure | quote }}
+- name: CLICKHOUSE_VERIFY
+  value: {{ .Values.clickhouse.verify | quote }}
 {{- else -}}
 - name: CLICKHOUSE_HOST
   value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
@@ -112,6 +114,8 @@ Minimized ClickHouse ENV variables for user credentials
 {{- end }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.externalClickhouse.secure | quote }}
+- name: CLICKHOUSE_VERIFY
+  value: {{ .Values.externalClickhouse.verify | quote }}
 {{- end }}
 {{- end }}
 
