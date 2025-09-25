@@ -374,7 +374,7 @@ clickhouse:
       image:
         registry: docker.io
         repository: busybox
-        tag: 1.35
+        tag: 1.37
         pullPolicy: IfNotPresent
       command:
         - /bin/sh
@@ -880,7 +880,7 @@ signoz:
       image:
         registry: docker.io
         repository: busybox
-        tag: 1.35
+        tag: 1.37
         pullPolicy: IfNotPresent
       # signoz.initContainers.init.command - Command settings for the init container.
       # @default -- "Please checkout the default values in values.yml"
@@ -904,7 +904,7 @@ signoz:
       image:
         registry: docker.io
         repository: busybox
-        tag: 1.35
+        tag: 1.37
         pullPolicy: IfNotPresent
       # signoz.initContainers.migration.args - Arguments for the migration container's command.
       # @default -- []
@@ -1135,7 +1135,7 @@ schemaMigrator:
       image:
         registry: docker.io
         repository: busybox
-        tag: 1.35
+        tag: 1.37
         pullPolicy: IfNotPresent
       # schemaMigrator.initContainers.init.command - Command settings for the init container.
       # @default -- "Please checkout the default values in values.yml"
@@ -1316,7 +1316,7 @@ otelCollector:
       image:
         registry: docker.io
         repository: busybox
-        tag: 1.35
+        tag: 1.37
         pullPolicy: IfNotPresent
       # otelCollector.initContainers.init.command - Command settings for the init container.
       # @default -- "Please checkout the default values in values.yml"

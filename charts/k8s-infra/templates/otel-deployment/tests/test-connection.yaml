@@ -12,7 +12,7 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.35
+      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.37
       command: ['wget']
       args: ['{{ include "otelDeployment.fullname" . }}:{{ $healthCheckPort.servicePort }}']
   restartPolicy: Never
