@@ -62,12 +62,16 @@ spec:
         {{- if .Values.otelTlsSecrets.enabled }}
         - name: {{ include "k8s-infra.fullname" . }}-agent-secrets-vol
           secret:
-           secretName: {{ include "k8s-infra.otelTlsSecretName" . }}
-           items:
-             - key: cert.pem
-               path: cert.pem
-             - key: key.pem
-               path: key.pem
+            secretName: {{ include "k8s-infra.otelTlsSecretName" . }}
+            items:
+              - key: cert.pem
+                path: cert.pem
+              - key: key.pem
+                path: key.pem
+              {{- if .Values.otelTlsSecrets.ca }}
+              - key: ca.pem
+                path: ca.pem
+              {{- end }}
         {{- end }}
         {{- with .Values.otelAgent.extraVolumes }}
         {{- toYaml . | nindent 8 }}
