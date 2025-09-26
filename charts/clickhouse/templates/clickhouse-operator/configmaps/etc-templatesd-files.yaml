@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -88,3 +89,4 @@ data:
                   storage: 2Gi
   readme: |-
     Templates in this folder are packaged with an operator and available via 'useTemplate'
+{{- end }}

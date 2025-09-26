@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,3 +7,4 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data: {{ tpl (toYaml .Values.clickhouseOperator.configs.confdFiles) . | nindent 2 }}
+{{- end }}

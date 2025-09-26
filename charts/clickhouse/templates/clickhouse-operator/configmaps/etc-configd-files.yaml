@@ -1,3 +1,4 @@
+{{- if not .Values.clickhouseOperator.disabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -159,3 +160,4 @@ data:
         </processors_profile_log>
     </yandex>
 
+{{- end }}
