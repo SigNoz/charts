@@ -862,7 +862,7 @@ signoz:
     # For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/alertmanager/
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
-    signoz_alertmanager_signoz_external_url: http://localhost:8080
+    signoz_alertmanager_signoz_external__url: http://localhost:8080
   # signoz.initContainers -- Init containers for the SigNoz pod.
   # @section -- SigNoz
   # @default -- "Please checkout the default values in values.yml"
