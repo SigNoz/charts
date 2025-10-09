@@ -2162,9 +2162,9 @@ signoz-otel-gateway:
     type: NodePort
 # @section -- Postgres
 postgres:
-  # postgres.enabled -- Enable or disable the Postgres subchart.
+  # postgres.enabled -- Enable or disable the Postgres for signoz.
   # @default -- false
-  enabled: true
+  enabled: false
 
   # postgres.replicaCount -- Number of Postgres replicas.
   # @default -- 1
@@ -2205,17 +2205,17 @@ postgres:
     username: "signoz"
     # postgres.auth.password -- Password for the custom user to create. Ignored if `auth.existingSecret` is provided.
     # @default -- "signoz@123"
-    password: "signoz@123"
+    password: "signoz123"
     # postgres.auth.database -- Name for a custom database to create.
     # @default -- ""
     database: "signoz"
     # postgres.auth.existingSecret -- Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.
     # @default -- ""
     existingSecret: ""
-    secretKeys:
+    # secretKeys:
       # postgres.auth.secretKeys.userPasswordKey -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
       # @default -- "password"
-      userPasswordKey: password
+      # userPasswordKey: password
 
   # postgres.resources -- Resource requests and limits for Postgres pods.
   # @default -- {}

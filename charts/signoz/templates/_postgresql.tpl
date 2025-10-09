@@ -14,8 +14,11 @@ Standard labels for postgres resources
 */}}
 {{- define "postgres.labels" -}}
 app.kubernetes.io/name: {{ include "postgres.name" . }}
-helm.sh/chart: {{ include "postgres.chart" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+helm.sh/chart:  {{ include "signoz.chart" . }}
+{{ include "postgres.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
@@ -23,8 +26,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels (used for StatefulSet selector and Pod template)
 */}}
 {{- define "postgres.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "postgres.name" . }}
+app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ default "signoz-postgres" .Values.postgres.name }}
 {{- end }}
 
 {{/*
@@ -32,13 +36,6 @@ Base name for the chart
 */}}
 {{- define "postgres.name" -}}
 {{- default "postgres" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Chart name and version
-*/}}
-{{- define "postgres.chart" -}}
-{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- end }}
 
 {{/*
@@ -78,12 +75,15 @@ Auth secret name
 {{- end }}
 
 
+{{- define "postgres.Url" -}}
+{{- if .Values.postgres.enabled -}}
+    postgres://{{ .Values.postgres.auth.username}}:{{ .Values.postgres.auth.password }}@{{ include "postgres.fullname" .}}:{{ .Values.postgres.port}}{{ .Values.postgres.database }}?sslmode=disable
+{{- end }}
+{{- end }}
 {{/*
 Postgres ENV
 */}}
 {{- define "postgres.env" -}}
-
-
 {{- $env := dict -}}
 {{- $_ := set $env "POSTGRESQL_PORT_NUMBER" (.Values.postgres.service.port | toString) -}}
 {{- $_ := set $env "POSTGRESQL_VOLUME_DIR" .Values.postgres.persistence.mountPath -}}

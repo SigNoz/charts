@@ -61,7 +61,7 @@ spec:
           image: {{ template "postgres.image" . }}
           imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
           ports:
-            - name: postgres
+            - name: tcp-postgresql
               containerPort: {{ default 5432 .Values.postgres.service.port }}
               protocol: TCP
           env:
