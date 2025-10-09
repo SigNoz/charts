@@ -1,0 +1,30 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+{{- with .Values.postgres.service }}
+{{- if .labels }}
+    {{- toYaml .labels | nindent 4 }}
+{{- end }}
+{{- if .annotations }}
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+{{- end }}
+spec:
+  type: {{ .type }}
+  ports:
+    - name: tcp-postgresql
+      port: {{ .port }}
+      {{- include "postgres.service.ifClusterIP" .type | indent 6 }}
+      protocol: TCP
+      targetPort: tcp-postgresql
+      {{- if (and (eq .type "NodePort") .nodePort) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+{{- end }}
+  selector:
+    {{- include "postgres.selectorLabels" . | nindent 4 }}
+{{- end }}

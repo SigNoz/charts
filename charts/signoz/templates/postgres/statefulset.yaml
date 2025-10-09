@@ -1,0 +1,155 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+  {{- if .Values.postgres.annotations }}
+  annotations:
+    {{- toYaml .Values.postgres.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "postgres.fullname" . }}-headless
+  replicas: {{ .Values.postgres.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if .Values.postgres.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.postgres.podAnnotations | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.postgres.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      priorityClassName: {{ .Values.postgres.priorityClassName | quote }}
+      {{- with .Values.postgres.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.postgres.podSecurityContext | nindent 8 }}
+      {{- with .Values.postgres.initContainers }}
+      initContainers:
+      {{- end }}
+
+      containers:
+        - name: postgres
+          securityContext:
+            {{- toYaml .Values.postgres.securityContext | nindent 12 }}
+          image: {{ template "postgres.image" . }}
+          imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ default 5432 .Values.postgres.service.port }}
+              protocol: TCP
+          env:
+            {{- include "postgres.env" . | nindent 12 }}
+
+          {{- if .Values.postgres.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.postgres.service.port }}
+            initialDelaySeconds: {{ .Values.postgres.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgres.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.postgres.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.postgres.livenessProbe.failureThreshold }}
+          {{- else if .Values.postgres.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.postgres.customLivenessProbe | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.postgres.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d {{ .Values.postgres.auth.database | quote }} -h 127.0.0.1 -p {{ default 5432 .Values.postgres.service.port }}
+            initialDelaySeconds: {{ .Values.postgres.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgres.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.postgres.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.postgres.readinessProbe.failureThreshold }}
+          {{- else if .Values.postgres.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.postgres.customReadinessProbe | nindent 12 }}
+          {{- end }}
+
+          args:
+            {{- range .Values.postgres.additionalArgs }}
+            - {{ . | quote }}
+            {{- end }}
+
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+              subPath: app-tmp-dir
+            - name: pgdata
+              mountPath: {{ .Values.postgres.persistence.mountPath }}
+              {{- if .Values.postgres.persistence.subPath }}
+              subPath: {{ .Values.postgres.persistence.subPath }}
+              {{- end }}
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+  {{- if and .Values.postgres.persistence.enabled .Values.postgres.persistence.existingClaim }}
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: {{ tpl .Values.postgres.persistence.existingClaim $ }}
+  {{- else if not .Values.postgres.persistence.enabled }}
+        - name: pgdata
+          emptyDir: {}
+  {{- end }}
+{{- if and (.Values.postgres.persistence.enabled) (not .Values.postgres.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes:
+          {{- toYaml .Values.postgres.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.persistence.size }}
+      {{- $storageClass := default .Values.postgres.persistence.storageClass .Values.global.storageClass -}}
+      {{- if $storageClass -}}
+      {{- if (eq "-" $storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: {{ $storageClass }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
