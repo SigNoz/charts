@@ -99,8 +99,8 @@ Postgres ENV
 {{- else }}
   {{- $_ := set $env "POSTGRES_PASSWORD" .Values.postgres.auth.password -}}
 {{- end }}
-{{- if .Values.postgres.database }}
-  {{- $_ := set $env "POSTGRES_DATABASE" .Values.postgres.database -}}
+{{- if .Values.postgres.auth.database }}
+  {{- $_ := set $env "POSTGRES_DATABASE" .Values.postgres.auth.database -}}
 {{- end }}
 {{- if .Values.postgres.extraEnvVars }}
   {{- range .Values.postgres.postgres.extraEnvVars }}
