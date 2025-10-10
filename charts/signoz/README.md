@@ -1513,6 +1513,15 @@ servicePort: 8082</pre>
 		<td>Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.</td>
 	</tr>
 	<tr>
+		<td id="postgres--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2218">postgres.auth.secretKeys.userPasswordKey</a></td>
+		<td>string</td>
+		<td>
+			<div style="max-width: 200px;"><pre lang="yaml">password</pre>
+</div>
+		</td>
+		<td>Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.</td>
+	</tr>
+	<tr>
 		<td id="postgres--resources"><a href="./values.yaml#L2222">postgres.resources</a></td>
 		<td>object</td>
 		<td>
