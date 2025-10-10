@@ -10,7 +10,7 @@ metadata:
     {{- toYaml .Values.postgres.annotations | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ include "postgres.fullname" . }}-headless
+  serviceName: {{ include "postgres.fullname" . }}
   replicas: {{ .Values.postgres.replicaCount }}
   selector:
     matchLabels:

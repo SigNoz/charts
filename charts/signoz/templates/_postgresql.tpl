@@ -50,12 +50,12 @@ ServiceAccount name
 {{- end -}}
 
 {{- define "postgres.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+{{- if or .Values.global.imagePullSecrets .Values.postgres.imagePullSecrets }}
 imagePullSecrets:
 {{- range .Values.global.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
-{{- range .Values.imagePullSecrets }}
+{{- range .Values.postgres.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
 {{- end }}  
@@ -77,7 +77,7 @@ Auth secret name
 
 {{- define "postgres.Url" -}}
 {{- if .Values.postgres.enabled -}}
-    postgres://{{ .Values.postgres.auth.username}}:{{ .Values.postgres.auth.password }}@{{ include "postgres.fullname" .}}:{{ .Values.postgres.port}}{{ .Values.postgres.database }}?sslmode=disable
+    postgres://{{ .Values.postgres.auth.username}}:{{ .Values.postgres.auth.password }}@{{ include "postgres.fullname" .}}:{{ .Values.postgres.service.port}}/{{ .Values.postgres.auth.database }}?sslmode=disable
 {{- end }}
 {{- end }}
 {{/*
@@ -92,13 +92,18 @@ Postgres ENV
 {{- end }}
 
 {{- $_ := set $env "POSTGRES_USER" .Values.postgres.auth.username -}}
-{{- $_ := set $env "POSTGRES_PASSWORD" .Values.postgres.auth.password -}}
-
+{{- if .Values.postgres.auth.existingSecret }}
+  {{- $secretCfg := default dict .Values.postgres.auth.secretKeys -}}
+  {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") -}}
+  {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgres.auth.existingSecret "key" $secretKey ))) -}}
+{{- else }}
+  {{- $_ := set $env "POSTGRES_PASSWORD" .Values.postgres.auth.password -}}
+{{- end }}
 {{- if .Values.postgres.database }}
   {{- $_ := set $env "POSTGRES_DATABASE" .Values.postgres.database -}}
 {{- end }}
 {{- if .Values.postgres.extraEnvVars }}
-  {{- range .Values.postgres.primary.extraEnvVars }}
+  {{- range .Values.postgres.postgres.extraEnvVars }}
     {{- $_ := set $env .name .value -}}
   {{- end }}
 {{- end }}
