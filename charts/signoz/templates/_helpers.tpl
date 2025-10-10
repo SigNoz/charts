@@ -508,6 +508,14 @@ Create Env
 }}
 
 {{/*
+SQL STORE ENV
+*/}}
+{{- $sqlStoreEnv := dict -}}
+{{- if .Values.postgres.enabled }}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgres.Url" .))}}
+{{- end }}
+{{/*
 ===== USER ENV VARIABLES =====
 */}}
 {{- $userEnv := .Values.signoz.env | default dict -}}
@@ -554,7 +562,7 @@ Create Env
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv  -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStoreEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{- end -}}
 
