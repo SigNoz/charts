@@ -2160,6 +2160,207 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
+# @section -- Postgres
+postgresql:
+  # postgresql.enabled -- Enable or disable the Postgres for signoz.
+  # @default -- false
+  enabled: false
+
+  # postgresql.replicaCount -- Number of Postgres replicas.
+  # @default -- 1
+  replicaCount: 1
+
+  # name -- Name of the postgres component
+  # @default -- postgresql
+  name: postgresql
+
+  # namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
+  namespace: ""
+  # -- Name override for postgresql
+  nameOverride: ""
+  # -- Fullname override for postgreql
+  fullnameOverride: ""
+
+  image:
+    # postgresql.image.repository -- Postgres image repository.
+    # @default -- "postgres"
+    repository: postgres
+    # postgresql.image.tag -- Postgres image tag.
+    # @default -- "16-alpine"
+    tag: 15
+    # postgresql.image.pullPolicy -- Image pull policy.
+    # @default -- "IfNotPresent"
+    pullPolicy: IfNotPresent
+
+  # postgresql.imagePullSecrets -- Image pull secrets for postgresql.
+  # @default -- []
+  imagePullSecrets: []
+
+  service:
+    # postgresql.service.annotations -- Annotations for the Postgres service object.
+    # @default -- {}
+    annotations: {}
+    # postgresql.service.labels -- Labels for the Postgres service object.
+    # @default -- {}
+    labels: {}
+    # postgresql.service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
+    # @default -- "ClusterIP"
+    type: ClusterIP
+    # postgresql.service.port -- The external port for postgresql.
+    # @default -- 5432
+    port: 5432
+
+  auth:
+    # postgresql.auth.username -- Username for the custom user to create.
+    # @default -- "signoz"
+    username: "signoz"
+    # postgresql.auth.password -- Password for the custom user to create. Ignored if `auth.existingSecret` is provided.
+    # @default -- "signoz@123"
+    password: "signoz123"
+    # postgresql.auth.database -- Name for a custom database to create.
+    # @default -- ""
+    database: "signoz"
+    # postgresql.auth.existingSecret -- Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.
+    # @default -- ""
+    existingSecret: ""
+    secretKeys:
+      # postgresql.auth.secretKeys.userPasswordKey -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+      # @default -- "password"
+      userPasswordKey: ""
+
+  # postgresql.resources -- Resource requests and limits for Postgres pods.
+  # @default -- {}
+  resources: {}
+
+  # postgresql.priorityClassName -- Priority class name for Postgres pods.
+  # @default -- ""
+  priorityClassName: ""
+
+  # postgresql.podSecurityContext -- Security context for Postgres pods.
+  # @default -- {}
+  podSecurityContext: {}
+
+  # postgresql.securityContext -- Container security context for postgresql.
+  # @default -- {}
+  securityContext: {}
+
+  # postgresql.podAnnotations -- Annotations for Postgres pods.
+  # @default -- {}
+  podAnnotations: {}
+
+  # postgresql.annotations -- Additional annotations for Postgres resources.
+  # @default -- {}
+  annotations: {}
+
+  # postgresql.nodeSelector -- Node selector for Postgres pods.
+  # @default -- {}
+  nodeSelector: {}
+
+  # postgresql.tolerations -- Tolerations for Postgres pods.
+  # @default -- []
+  tolerations: []
+
+  # postgresql.affinity -- Affinity rules for Postgres pods.
+  # @default -- {}
+  affinity: {}
+
+  # postgresql.topologySpreadConstraints -- Topology spread constraints for Postgres pods.
+  # @default -- []
+  topologySpreadConstraints: []
+
+  livenessProbe:
+    # postgresql.livenessProbe.enabled -- Enable liveness probe.
+    # @default -- true
+    enabled: true
+    # postgresql.livenessProbe.initialDelaySeconds -- Initial delay seconds for liveness probe.
+    # @default -- 20
+    initialDelaySeconds: 20
+    # postgresql.livenessProbe.periodSeconds -- Period seconds for liveness probe.
+    # @default -- 10
+    periodSeconds: 10
+    # postgresql.livenessProbe.timeoutSeconds -- Timeout seconds for liveness probe.
+    # @default -- 5
+    timeoutSeconds: 5
+    # postgresql.livenessProbe.successThreshold -- Success threshold for liveness probe.
+    # @default -- 1
+    successThreshold: 1
+    # postgresql.livenessProbe.failureThreshold -- Failure threshold for liveness probe.
+    # @default -- 6
+    failureThreshold: 6
+
+  readinessProbe:
+    # postgresql.readinessProbe.enabled -- Enable readiness probe.
+    # @default -- true
+    enabled: true
+    # postgresql.readinessProbe.initialDelaySeconds -- Initial delay seconds for readiness probe.
+    # @default -- 5
+    initialDelaySeconds: 5
+    # postgresql.readinessProbe.periodSeconds -- Period seconds for readiness probe.
+    # @default -- 5
+    periodSeconds: 5
+    # postgresql.readinessProbe.timeoutSeconds -- Timeout seconds for readiness probe.
+    # @default -- 3
+    timeoutSeconds: 3
+    # postgresql.readinessProbe.successThreshold -- Success threshold for readiness probe.
+    # @default -- 1
+    successThreshold: 1
+    # postgresql.readinessProbe.failureThreshold -- Failure threshold for readiness probe.
+    # @default -- 6
+    failureThreshold: 6
+
+  persistence:
+    # postgresql.persistence.enabled -- Enable persistent storage for postgresql.
+    # @default -- true
+    enabled: true
+    # postgresql.persistence.existingClaim -- Use an existing PVC for Postgres data.
+    # @default -- ""
+    existingClaim: ""
+    # postgresql.persistence.size -- Size of the persistent volume claim.
+    # @default -- "10Gi"
+    size: 10Gi
+    # postgresql.persistence.storageClass -- Storage class for the persistent volume claim.
+    # @default -- null
+    storageClass: null
+    # postgresql.persistence.accessModes -- Access modes for the persistent volume claim.
+    # @default -- ["ReadWriteOnce"]
+    accessModes:
+      - ReadWriteOnce
+    # postgresql.persistence.mountPath -- Mount path for Postgres data.
+    # @default -- "/signoz/postgresql"
+    mountPath: /var/lib/postgresql
+    # postgresql.persistence.subPath -- Subpath within the volume for Postgres data.
+    # @default -- ""
+    subPath: ""
+    # postgresql.persistence.dataDir -- Data directory for postgresql.
+    # @default -- "/signoz/postgresql/data"
+    dataDir: /var/lib/postgresql/data
+
+  # postgresql.additionalArgs -- Additional command-line arguments for postgresql.
+  # @default -- []
+  additionalArgs: []
+
+  # postgresql.additionalVolumes -- Additional volumes for Postgres pods.
+  # @default -- []
+  additionalVolumes: []
+
+  # postgresql.additionalVolumeMounts -- Additional volume mounts for Postgres containers.
+  # @default -- []
+  additionalVolumeMounts: []
+
+  # postgresql.extraEnv -- Extra environment variables for Postgres containers.
+  # @default -- []
+  extraEnv: []
+
+  serviceAccount:
+    # postgresql.serviceAccount.create -- Specifies whether a service account should be created.
+    # @default -- true
+    create: true
+    # postgresql.serviceAccount.annotations -- Annotations to add to the service account.
+    # @default -- {}
+    annotations: {}
+    # postgresql.serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+    # @default -- null
+    name:
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:

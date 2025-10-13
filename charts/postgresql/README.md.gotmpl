@@ -1,0 +1,123 @@
+
+# K8s-Infra
+
+{{ template "chart.badgesSection" . }}
+
+This helmchart is being installed as subchart/dependecy for signoz helmchart with default values.
+
+### TL;DR;
+
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/{{ template "chart.name" .}}
+```
+
+### Introduction
+
+SigNoz uses a relational database like SQLite, Postgres exclusively for storing metadata and control-plane information, such as organizations, users, dashboards, and configurations.
+
+It does not replace ClickHouse, which remains necessary for storing and querying all observability telemetry data (traces, metrics, and logs).
+
+Refer to the documentation for a more detailed explanation of [Relational Database in Signoz](https://signoz.io/docs/manage/administrator-guide/configuration/relational-database/)
+
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+
+### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/k8s-infra
+```
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="yaml">{{ $defaultValue }}</pre>
+{{ end }}
+
+{{ define "chart.valuesTableHtml" }}
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+{{- if (eq .SectionName "Presets Configuration")}}
+  {{- $item := index .SectionItems 0 -}}
+  <h3>{{- .SectionName }}</h3>
+  <p>{{ if $item.Description }}{{ $item.Description }}{{ else }}{{ $item.AutoDescription }}{{ end }}.</p>
+{{- else}}
+{{- if contains "Presets" .SectionName}}
+<h4>{{- .SectionName}}</h4>
+{{- else}}
+<h3>{{- .SectionName }}</h3>
+{{- end}}
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end}}
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}

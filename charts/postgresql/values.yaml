@@ -1,0 +1,218 @@
+global:
+  # -- Overrides the Docker registry globally for all images
+  imageRegistry: &GLOBAL_IMAGE_REGISTRY null
+  # -- Global Image Pull Secrets
+  imagePullSecrets: []
+  # -- Overrides the storage class for all PVC with persistence enabled.
+  # If not set, the default storage class is used.
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
+  storageClass: &GLOBAL_SC null
+  # -- Kubernetes cluster domain
+  # It is used only when components are installed in different namespace
+  clusterDomain: cluster.local
+  # -- Kubernetes cluster cloud provider along with distribution if any.
+  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
+  # Based on the cloud, storage class for the persistent volume is selected.
+  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
+  cloud: other
+
+
+# enabled -- Enable or disable the Postgres for signoz.
+# @default -- false
+enabled: true
+
+#  name -- Name of the postgres component
+# @default -- postgresql
+name: postgresql
+
+# namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
+namespace: ""
+# -- Name override for postgresql
+nameOverride: ""
+# -- Fullname override for postgreql
+fullnameOverride: ""
+
+# replicaCount -- Number of Postgres replicas.
+# @default -- 1
+replicaCount: 1
+
+image:
+  # image.repository -- Postgres image repository.
+  # @default -- "postgres"
+  repository: postgres
+  # image.tag -- Postgres image tag.
+  # @default -- "15"
+  tag: 15
+  # image.pullPolicy -- Image pull policy.
+  # @default -- "IfNotPresent"
+  pullPolicy: IfNotPresent
+
+# imagePullSecrets -- Image pull secrets for 
+# @default -- []
+imagePullSecrets: []
+
+service:
+  # service.annotations -- Annotations for the Postgres service object.
+  # @default -- {}
+  annotations: {}
+  # service.labels -- Labels for the Postgres service object.
+  # @default -- {}
+  labels: {}
+  # service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
+  # @default -- "ClusterIP"
+  type: ClusterIP
+  # service.port -- The external port for 
+  # @default -- 5432
+  port: 5432
+
+auth:
+  # auth.username -- Username for the custom user to create.
+  # @default -- "signoz"
+  username: "signoz"
+  # auth.password -- Password for the custom user to create. Ignored if `auth.existingSecret` is provided.
+  # @default -- "signoz@123"
+  password: "signoz123"
+  # auth.database -- Name for a custom database to create.
+  # @default -- ""
+  database: "signoz"
+  # auth.existingSecret -- Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.
+  # @default -- ""
+  existingSecret: ""
+  secretKeys:
+    # auth.secretKeys.userPasswordKey -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+    # @default -- "password"
+    userPasswordKey: ""
+
+# resources -- Resource requests and limits for Postgres pods.
+# @default -- {}
+resources: {}
+
+# priorityClassName -- Priority class name for Postgres pods.
+# @default -- ""
+priorityClassName: ""
+
+# podSecurityContext -- Security context for Postgres pods.
+# @default -- {}
+podSecurityContext: {}
+
+# securityContext -- Container security context for 
+# @default -- {}
+securityContext: {}
+
+# podAnnotations -- Annotations for Postgres pods.
+# @default -- {}
+podAnnotations: {}
+
+# annotations -- Additional annotations for Postgres resources.
+# @default -- {}
+annotations: {}
+
+# nodeSelector -- Node selector for Postgres pods.
+# @default -- {}
+nodeSelector: {}
+
+# tolerations -- Tolerations for Postgres pods.
+# @default -- []
+tolerations: []
+
+# affinity -- Affinity rules for Postgres pods.
+# @default -- {}
+affinity: {}
+
+# topologySpreadConstraints -- Topology spread constraints for Postgres pods.
+# @default -- []
+topologySpreadConstraints: []
+
+livenessProbe:
+  # livenessProbe.enabled -- Enable liveness probe.
+  # @default -- true
+  enabled: true
+  # livenessProbe.initialDelaySeconds -- Initial delay seconds for liveness probe.
+  # @default -- 20
+  initialDelaySeconds: 20
+  # livenessProbe.periodSeconds -- Period seconds for liveness probe.
+  # @default -- 10
+  periodSeconds: 10
+  # livenessProbe.timeoutSeconds -- Timeout seconds for liveness probe.
+  # @default -- 5
+  timeoutSeconds: 5
+  # livenessProbe.successThreshold -- Success threshold for liveness probe.
+  # @default -- 1
+  successThreshold: 1
+  # livenessProbe.failureThreshold -- Failure threshold for liveness probe.
+  # @default -- 6
+  failureThreshold: 6
+
+readinessProbe:
+  # readinessProbe.enabled -- Enable readiness probe.
+  # @default -- true
+  enabled: true
+  # readinessProbe.initialDelaySeconds -- Initial delay seconds for readiness probe.
+  # @default -- 5
+  initialDelaySeconds: 5
+  # readinessProbe.periodSeconds -- Period seconds for readiness probe.
+  # @default -- 5
+  periodSeconds: 5
+  # readinessProbe.timeoutSeconds -- Timeout seconds for readiness probe.
+  # @default -- 3
+  timeoutSeconds: 3
+  # readinessProbe.successThreshold -- Success threshold for readiness probe.
+  # @default -- 1
+  successThreshold: 1
+  # readinessProbe.failureThreshold -- Failure threshold for readiness probe.
+  # @default -- 6
+  failureThreshold: 6
+
+persistence:
+  # persistence.enabled -- Enable persistent storage for 
+  # @default -- true
+  enabled: true
+  # persistence.existingClaim -- Use an existing PVC for Postgres data.
+  # @default -- ""
+  existingClaim: ""
+  # persistence.size -- Size of the persistent volume claim.
+  # @default -- "10Gi"
+  size: 10Gi
+  # persistence.storageClass -- Storage class for the persistent volume claim.
+  # @default -- null
+  storageClass: null
+  # persistence.accessModes -- Access modes for the persistent volume claim.
+  # @default -- ["ReadWriteOnce"]
+  accessModes:
+    - ReadWriteOnce
+  # persistence.mountPath -- Mount path for Postgres data.
+  # @default -- "/signoz/postgresql"
+  mountPath: /var/lib/postgresql
+  # persistence.subPath -- Subpath within the volume for Postgres data.
+  # @default -- ""
+  subPath: ""
+  # persistence.dataDir -- Data directory for 
+  # @default -- "/signoz/postgresql/data"
+  dataDir: /var/lib/postgresql/data
+
+# additionalArgs -- Additional command-line arguments for 
+# @default -- []
+additionalArgs: []
+
+# additionalVolumes -- Additional volumes for Postgres pods.
+# @default -- []
+additionalVolumes: []
+
+# additionalVolumeMounts -- Additional volume mounts for Postgres containers.
+# @default -- []
+additionalVolumeMounts: []
+
+# extraEnv -- Extra environment variables for Postgres containers.
+# @default -- []
+extraEnv: []
+
+serviceAccount:
+  # serviceAccount.create -- Specifies whether a service account should be created.
+  # @default -- true
+  create: true
+  # serviceAccount.annotations -- Annotations to add to the service account.
+  # @default -- {}
+  annotations: {}
+  # serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+  # @default -- null
+  name:
