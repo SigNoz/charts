@@ -376,6 +376,36 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
+Return the service fqdn of Postgresql
+*/}}
+{{- define "postgresql.service" -}}
+{{- if .Values.postgresql.enabled -}}
+{{- $username := .Values.postgresql.auth.username -}}
+{{- $password := .Values.postgresql.auth.password -}}
+{{- $database := .Values.postgresql.auth.database -}}
+{{- $port := .Values.postgresql.service.port | toString -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+{{- $name := .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "postgres" .Values.postgresql.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else }}
+{{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- $namespace := .Values.postgresql.namespace -}}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
+{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database}}
+{{- else -}}
+{{  printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
+{{- end -}}
+{{- end -}}
+{{- end }}
+{{- end -}}
+
+
+{{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
 {{- define "signoz.service.ifClusterIP" -}}
@@ -508,6 +538,14 @@ Create Env
 }}
 
 {{/*
+SQL STORE ENV
+*/}}
+{{- $sqlStoreEnv := dict -}}
+{{- if .Values.postgresql.enabled }}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgresql.service" .))}}
+{{- end }}
+{{/*
 ===== USER ENV VARIABLES =====
 */}}
 {{- $userEnv := .Values.signoz.env | default dict -}}
@@ -554,7 +592,7 @@ Create Env
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv  -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStoreEnv  -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{- end -}}
 
