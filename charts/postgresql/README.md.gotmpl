@@ -1,9 +1,8 @@
 
-# K8s-Infra
-
+# PostgreSQL
 {{ template "chart.badgesSection" . }}
 
-This helmchart is being installed as subchart/dependecy for signoz helmchart with default values.
+This Helm chart is installed as a subchart/dependency of the SigNoz Helm chart with default values.
 
 ### TL;DR;
 
@@ -31,7 +30,7 @@ To install the chart with the release name `my-release`:
 
 ```bash
 helm repo add signoz https://charts.signoz.io
-helm -n platform --create-namespace install "my-release" signoz/k8s-infra
+helm -n platform --create-namespace install "my-release" signoz/{{ template "chart.name" . }}
 ```
 
 To uninstall/delete the `my-release` resources:

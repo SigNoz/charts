@@ -2162,15 +2162,15 @@ signoz-otel-gateway:
     type: NodePort
 # @section -- Postgres
 postgresql:
-  # postgresql.enabled -- Enable or disable the Postgres for signoz.
+  # postgresql.enabled -- Enable or disable the PostgreSQL for signoz.
   # @default -- false
-  enabled: false
+  enabled: true
 
-  # postgresql.replicaCount -- Number of Postgres replicas.
+  # postgresql.replicaCount -- Number of PostgreSQL replicas.
   # @default -- 1
   replicaCount: 1
 
-  # name -- Name of the postgres component
+  # name -- Name of the postgresql component
   # @default -- postgresql
   name: postgresql
 
@@ -2178,7 +2178,7 @@ postgresql:
   namespace: ""
   # -- Name override for postgresql
   nameOverride: ""
-  # -- Fullname override for postgreql
+  # -- Fullname override for postgresql
   fullnameOverride: ""
 
   image:
@@ -2215,7 +2215,7 @@ postgresql:
     # @default -- "signoz"
     username: "signoz"
     # postgresql.auth.password -- Password for the custom user to create. Ignored if `auth.existingSecret` is provided.
-    # @default -- "signoz@123"
+    # @default -- "signoz123"
     password: "signoz123"
     # postgresql.auth.database -- Name for a custom database to create.
     # @default -- ""

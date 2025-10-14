@@ -47,7 +47,7 @@ image:
   # @default -- "IfNotPresent"
   pullPolicy: IfNotPresent
 
-# imagePullSecrets -- Image pull secrets for 
+# imagePullSecrets -- Image pull secrets for Postgres pods
 # @default -- []
 imagePullSecrets: []
 
@@ -61,7 +61,7 @@ service:
   # service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
   # @default -- "ClusterIP"
   type: ClusterIP
-  # service.port -- The external port for 
+  # service.port -- The external port for Postgres service
   # @default -- 5432
   port: 5432
 
@@ -95,7 +95,7 @@ priorityClassName: ""
 # @default -- {}
 podSecurityContext: {}
 
-# securityContext -- Container security context for 
+# securityContext -- Container security context for Postgres containers.
 # @default -- {}
 securityContext: {}
 
@@ -164,7 +164,7 @@ readinessProbe:
   failureThreshold: 6
 
 persistence:
-  # persistence.enabled -- Enable persistent storage for 
+  # persistence.enabled -- Enable persistent storage for Postgres.
   # @default -- true
   enabled: true
   # persistence.existingClaim -- Use an existing PVC for Postgres data.
@@ -186,11 +186,11 @@ persistence:
   # persistence.subPath -- Subpath within the volume for Postgres data.
   # @default -- ""
   subPath: ""
-  # persistence.dataDir -- Data directory for 
+  # persistence.dataDir -- Data directory for Postgres data.
   # @default -- "/signoz/postgresql/data"
   dataDir: /var/lib/postgresql/data
 
-# additionalArgs -- Additional command-line arguments for 
+# additionalArgs -- Additional command-line arguments for Postgres containers.
 # @default -- []
 additionalArgs: []
 
