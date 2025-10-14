@@ -10,7 +10,7 @@ Create a default fully qualified app name for SigNoz.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "postresql.fullname" -}}
+{{- define "postgresql.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -112,9 +112,7 @@ Postgres ENV
 {{- $env := dict -}}
 {{- $_ := set $env "POSTGRESQL_PORT_NUMBER" (.Values.service.port | toString) -}}
 {{- $_ := set $env "POSTGRESQL_VOLUME_DIR" .Values.persistence.mountPath -}}
-{{- if .Values.persistence.mountPath }}
-  {{- $_ := set $env "PGDATA" .Values.persistence.dataDir -}}
-{{- end }}
+{{- $_ := set $env "PGDATA" .Values.persistence.dataDir -}}
 
 {{- $_ := set $env "POSTGRES_USER" .Values.auth.username -}}
 {{- if .Values.auth.existingSecret }}
@@ -125,10 +123,10 @@ Postgres ENV
   {{- $_ := set $env "POSTGRES_PASSWORD" .Values.auth.password -}}
 {{- end }}
 {{- if .Values.auth.database }}
-  {{- $_ := set $env "POSTGRES_DATABASE" .Values.auth.database -}}
+  {{- $_ := set $env "POSTGRES_DB" .Values.auth.database -}}
 {{- end }}
-{{- if .Values.extraEnvVars }}
-  {{- range .Values.postgresql.extraEnvVars }}
+{{- if .Values.extraEnv }}
+  {{- range .Values.extraEnv }}
     {{- $_ := set $env .name .value -}}
   {{- end }}
 {{- end }}

@@ -1,9 +1,8 @@
 
-# K8s-Infra
-
+# PostgreSQL
 ![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 15.0.0](https://img.shields.io/badge/AppVersion-15.0.0-informational?style=flat-square)
 
-This helmchart is being installed as subchart/dependecy for signoz helmchart with default values.
+This Helm chart is installed as a subchart/dependency of the SigNoz Helm chart with default values.
 
 ### TL;DR;
 
@@ -31,7 +30,7 @@ To install the chart with the release name `my-release`:
 
 ```bash
 helm repo add signoz https://charts.signoz.io
-helm -n platform --create-namespace install "my-release" signoz/k8s-infra
+helm -n platform --create-namespace install "my-release" signoz/postgresql
 ```
 
 To uninstall/delete the `my-release` resources:
@@ -186,7 +185,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
 </div>
 		</td>
-		<td>Image pull secrets for </td>
+		<td>Image pull secrets for Postgres pods</td>
 	</tr>
 	<tr>
 		<td id="service--annotations"><a href="./values.yaml#L57">service.annotations</a></td>
@@ -222,7 +221,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">5432</pre>
 </div>
 		</td>
-		<td>The external port for </td>
+		<td>The external port for Postgres service</td>
 	</tr>
 	<tr>
 		<td id="auth--username"><a href="./values.yaml#L71">auth.username</a></td>
@@ -303,7 +302,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
 		</td>
-		<td>Container security context for </td>
+		<td>Container security context for Postgres containers.</td>
 	</tr>
 	<tr>
 		<td id="podAnnotations"><a href="./values.yaml#L104">podAnnotations</a></td>
@@ -474,7 +473,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">true</pre>
 </div>
 		</td>
-		<td>Enable persistent storage for </td>
+		<td>Enable persistent storage for Postgres.</td>
 	</tr>
 	<tr>
 		<td id="persistence--existingClaim"><a href="./values.yaml#L172">persistence.existingClaim</a></td>
@@ -537,7 +536,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">/signoz/postgresql/data</pre>
 </div>
 		</td>
-		<td>Data directory for </td>
+		<td>Data directory for Postgres data.</td>
 	</tr>
 	<tr>
 		<td id="additionalArgs"><a href="./values.yaml#L195">additionalArgs</a></td>
@@ -546,7 +545,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
 </div>
 		</td>
-		<td>Additional command-line arguments for </td>
+		<td>Additional command-line arguments for Postgres containers.</td>
 	</tr>
 	<tr>
 		<td id="additionalVolumes"><a href="./values.yaml#L199">additionalVolumes</a></td>

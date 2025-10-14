@@ -51,6 +51,7 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- with .Values.initContainers }}
       initContainers:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
 
       containers:
@@ -142,7 +143,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
-      {{- $storageClass := default .Values.persistence.storageClass .Values.global.storageClass -}}
+      {{- $storageClass := default .Values.global.storageClass .Values.persistence.storageClass -}}
       {{- if $storageClass -}}
       {{- if (eq "-" $storageClass) }}
         storageClassName: ""

@@ -1393,7 +1393,7 @@ servicePort: 8082</pre>
 			<div style="max-width: 200px;"><pre lang="yaml">false</pre>
 </div>
 		</td>
-		<td>Enable or disable the Postgres for signoz.</td>
+		<td>Enable or disable the PostgreSQL for signoz.</td>
 	</tr>
 	<tr>
 		<td id="postgresql--replicaCount"><a href="./values.yaml#L2171">postgresql.replicaCount</a></td>
@@ -1402,7 +1402,7 @@ servicePort: 8082</pre>
 			<div style="max-width: 200px;"><pre lang="yaml">1</pre>
 </div>
 		</td>
-		<td>Number of Postgres replicas.</td>
+		<td>Number of PostgreSQL replicas.</td>
 	</tr>
 	<tr>
 		<td id="postgresql--name"><a href="./values.yaml#L2175">postgresql.name</a></td>
@@ -1438,7 +1438,7 @@ servicePort: 8082</pre>
 			<div style="max-width: 200px;"><pre lang="yaml">""</pre>
 </div>
 		</td>
-		<td>Fullname override for postgreql</td>
+		<td>Fullname override for postgresql</td>
 	</tr>
 	<tr>
 		<td id="postgresql--image--repository"><a href="./values.yaml#L2187">postgresql.image.repository</a></td>
@@ -1525,7 +1525,7 @@ servicePort: 8082</pre>
 		<td id="postgresql--auth--password"><a href="./values.yaml#L2219">postgresql.auth.password</a></td>
 		<td>string</td>
 		<td>
-			<div style="max-width: 200px;"><pre lang="yaml">signoz@123</pre>
+			<div style="max-width: 200px;"><pre lang="yaml">signoz123</pre>
 </div>
 		</td>
 		<td>Password for the custom user to create. Ignored if `auth.existingSecret` is provided.</td>
