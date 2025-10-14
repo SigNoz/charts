@@ -2164,7 +2164,7 @@ signoz-otel-gateway:
 postgresql:
   # postgresql.enabled -- Enable or disable the PostgreSQL for signoz.
   # @default -- false
-  enabled: true
+  enabled: false
 
   # postgresql.replicaCount -- Number of PostgreSQL replicas.
   # @default -- 1
