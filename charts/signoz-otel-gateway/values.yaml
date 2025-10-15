@@ -177,6 +177,11 @@ config:
   #       receivers:
   #         - otlp
 
+store:
+  # Create the in memory store
+  create: false
+
+
 externalSecrets:
   # Add integration with external secrets
   create: false

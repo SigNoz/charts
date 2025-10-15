@@ -2,7 +2,7 @@ apiVersion: v2
 name: signoz-otel-gateway
 description: A Helm chart for deploying SigNoz Opentelemetry Gateway
 type: application
-version: 0.0.1
+version: 0.0.2
 appVersion: "v0.0.16"
 home: https://signoz.io/
 icon: https://signoz.io/img/SigNozLogo-orange.svg
@@ -15,6 +15,4 @@ maintainers:
   - name: SigNoz
     email: devops@signoz.io
     url: https://signoz.io
-  - name: prashant-shahi
-    email: prashant@signoz.io
-    url: https://prashantshahi.dev
+
