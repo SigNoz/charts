@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "opentelemetry-gateway.fullname" . }}-store
+  name: {{ include "signoz-otel-gateway.fullname" . }}-store
   labels:
-    {{- include "opentelemetry-gateway.labels" . | nindent 4 }}
+    {{- include "signoz-otel-gateway.labels" . | nindent 4 }}
 data:
   config.yaml: |-
     {{- omit .Values.store "create" | toYaml | nindent 4 }}
