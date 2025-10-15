@@ -1956,7 +1956,7 @@ signoz-otel-gateway:
       cpu: 2500m
       memory: 2500Mi
   # @ignored
-  config:
+  # config:
     # exporters:
     #   signozkafka:
     #     brokers:
