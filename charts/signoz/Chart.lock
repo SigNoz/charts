@@ -4,9 +4,9 @@ dependencies:
   version: 24.1.18
 - name: signoz-otel-gateway
   repository: https://charts.signoz.io
-  version: 0.0.1
+  version: 0.0.3
 - name: redpanda
   repository: https://charts.redpanda.com
   version: 5.10.2
-digest: sha256:22368473a210a8f0a2c43ce3bbf7f8cf57a785c948e7fbbdeec6e46c39dc423f
-generated: "2025-08-25T15:43:00.566597+05:30"
+digest: sha256:b3cf268ce9a8e90201db753eff36ace8fbf872981b136bfbd2e645466e11cd38
+generated: "2025-10-15T21:23:09.711726+05:30"
