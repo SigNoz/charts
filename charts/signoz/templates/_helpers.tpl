@@ -493,6 +493,13 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
+{{/*
+Generate --no-check-certificate flag based on CLICKHOUSE_VERIFY environment variable
+*/}}
+{{- define "wget.clickhouse.noVerifyFlag" -}}
+$(if [ "${CLICKHOUSE_VERIFY}" = "false" ]; then echo "--no-check-certificate"; fi)
+{{- end -}}
+
 
 {{/* 
 Create Env
