@@ -14898,6 +14898,22 @@ entries:
   signoz-otel-gateway:
   - apiVersion: v2
     appVersion: v0.0.16
+    created: "2025-10-15T17:03:34.709357635Z"
+    description: A Helm chart for deploying SigNoz Opentelemetry Gateway
+    digest: 7989830ad13820aa3096f4035f967195713aca63735ea4084197450f1c276e92
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    maintainers:
+    - email: devops@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: signoz-otel-gateway
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-otel-gateway-0.0.4/signoz-otel-gateway-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
+    appVersion: v0.0.16
     created: "2025-10-15T15:50:30.114465413Z"
     description: A Helm chart for deploying SigNoz Opentelemetry Gateway
     digest: 3e5e9993fdbb15aca4daaadbed4c41168d234ca38acd2899670869fb82462149
@@ -14959,4 +14975,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2025-10-15T16:14:13.277236237Z"
+generated: "2025-10-15T17:03:34.709985615Z"
