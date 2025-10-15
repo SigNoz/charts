@@ -1,6 +1,6 @@
 apiVersion: v2
 name: signoz
-version: 0.95.1
+version: 0.96.0
 appVersion: "v0.97.1"
 description: SigNoz Observability Platform Helm Chart
 type: application
@@ -25,7 +25,7 @@ dependencies:
   - name: signoz-otel-gateway
     repository: https://charts.signoz.io
     condition: signoz-otel-gateway.enabled
-    version: 0.0.3
+    version: 0.0.4
   - name: redpanda
     repository: https://charts.redpanda.com
     condition: redpanda.enabled
