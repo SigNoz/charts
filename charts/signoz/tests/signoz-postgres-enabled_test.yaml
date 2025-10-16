@@ -2,7 +2,7 @@ suite: Test SigNoz Environment Variables and Volumes if PostgreSQL chart enabled
 
 templates:
   - templates/signoz/statefulset.yaml
-  - charts/postgresql/templates/statefulset.yaml
+
 release:
   name: signoz
   namespace: signoz
@@ -22,8 +22,34 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content: 
+              name: SIGNOZ_SQLSTORE_PROVIDER
+              value: postgres
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            value: "signoz"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            value: "signoz123"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_DB
+            value: "signoz"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
               name: SIGNOZ_SQLSTORE_POSTGRES_DSN
-              value: postgres://signoz:signoz123@signoz-postgres:5432/signoz?sslmode=disable
+              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@signoz-postgresql:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
         template: templates/signoz/statefulset.yaml
 
   - it: SigNoz StatefulSet should NOT render volumeMounts when postgresql.enabled=true
@@ -54,7 +80,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content: 
               name: SIGNOZ_SQLSTORE_POSTGRES_DSN
-              value: postgres://signoz:signoz123@does-not-matter:5432/signoz?sslmode=disable
+              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@does-not-matter:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
         template: templates/signoz/statefulset.yaml
   
   - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true and postgresql.nameOverride
@@ -73,5 +99,5 @@ tests:
           path: spec.template.spec.containers[0].env
           content: 
               name: SIGNOZ_SQLSTORE_POSTGRES_DSN
-              value: postgres://signoz:signoz123@signoz-does-not-matter:5432/signoz?sslmode=disable
+              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@signoz-does-not-matter:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
         template: templates/signoz/statefulset.yaml
