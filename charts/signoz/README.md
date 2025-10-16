@@ -1408,10 +1408,10 @@ servicePort: 8082</pre>
 		<td id="postgresql--name"><a href="./values.yaml#L2175">postgresql.name</a></td>
 		<td>string</td>
 		<td>
-			<div style="max-width: 200px;"><pre lang="yaml">postgresql</pre>
+			<div style="max-width: 200px;"><pre lang="yaml">null</pre>
 </div>
 		</td>
-		<td></td>
+		<td>Name of the postgresql component</td>
 	</tr>
 	<tr>
 		<td id="postgresql--namespace"><a href="./values.yaml#L2178">postgresql.namespace</a></td>
@@ -1420,7 +1420,7 @@ servicePort: 8082</pre>
 			<div style="max-width: 200px;"><pre lang="yaml">""</pre>
 </div>
 		</td>
-		<td></td>
+		<td>Which namespace to install postgresql to (defaults to namespace chart is installed to)</td>
 	</tr>
 	<tr>
 		<td id="postgresql--nameOverride"><a href="./values.yaml#L2180">postgresql.nameOverride</a></td>

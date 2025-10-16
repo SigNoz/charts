@@ -143,14 +143,13 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: pgdata
-      reclaimPolicy: Retain
       spec:
         accessModes:
           {{- toYaml .Values.persistence.accessModes | nindent 10 }}
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
-      {{- $storageClass := default .Values.global.storageClass .Values.persistence.storageClass -}}
+      {{- $storageClass := default .Values.persistence.storageClass .Values.global.storageClass -}}
       {{- if $storageClass -}}
       {{- if (eq "-" $storageClass) }}
         storageClassName: ""

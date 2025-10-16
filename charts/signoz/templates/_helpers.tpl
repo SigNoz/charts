@@ -384,25 +384,29 @@ Return the service fqdn of Postgresql
 {{- $password := .Values.postgresql.auth.password -}}
 {{- $database := .Values.postgresql.auth.database -}}
 {{- $port := .Values.postgresql.service.port | toString -}}
+{{- $name := "" -}}
 {{- if .Values.postgresql.fullnameOverride -}}
-{{- $name := .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+  {{- $name = .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default "postgres" .Values.postgresql.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else }}
-{{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+  {{- $name = default "postgres" .Values.postgresql.nameOverride -}}
+  {{- if contains $name .Release.Name -}}
+    {{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+  {{- end -}}
 {{- end -}}
 {{- $namespace := .Values.postgresql.namespace -}}
 {{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- $userEsc := urlquery $username -}}
+{{- $passEsc := urlquery $password -}}
 {{- if and $namespace (ne $namespace .Release.Namespace) -}}
-{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database}}
+{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $userEsc $passEsc $name $namespace $clusterDomain $port $database }}
 {{- else -}}
-{{  printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
-{{- end -}}
+{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $userEsc $passEsc $name $port $database }}
 {{- end -}}
 {{- end }}
 {{- end -}}
+
 
 
 {{/*
