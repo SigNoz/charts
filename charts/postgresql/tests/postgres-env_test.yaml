@@ -1,0 +1,73 @@
+suite: Test PostgreSQL Environment Variable
+
+templates: 
+  - templates/statefulset.yaml
+
+tests:
+
+  - it: should correctly render the default key-value environment variables for postgres.
+    set:
+      enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            value: "signoz"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            value: "signoz123"
+      - contains: 
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: POSTGRES_DB
+            value: "signoz"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGDATA
+            value: "/var/lib/postgresql/data" 
+  - it: should render custom auth env Variables
+    set:
+      enabled: true
+      auth:
+        username: "abc"
+        password: "123"
+        database: "xyz"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            value: "abc"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            value: "123"
+      - contains: 
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: POSTGRES_DB
+            value: "xyz"
+  - it: should render secret keys for auth env Variables
+    set:
+      enabled: true
+      auth:
+        existingSecret: "postgres-secret"
+        secretKeys:
+          userPasswordKey: "password"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "postgres-secret"
+                key: "password"
+
+
+      
