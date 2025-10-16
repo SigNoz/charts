@@ -2170,15 +2170,15 @@ postgresql:
   # @default -- 1
   replicaCount: 1
 
-  # name -- Name of the postgresql component
+  # postgresql.name -- Name of the postgresql component
   # @default -- postgresql
   name: postgresql
 
-  # namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
+  # postgresql.namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
   namespace: ""
-  # -- Name override for postgresql
+  #  postgresql.nameOverride -- Name override for postgresql
   nameOverride: ""
-  # -- Fullname override for postgresql
+  #  postgresql.fullnameOverride -- Fullname override for postgresql
   fullnameOverride: ""
 
   image:

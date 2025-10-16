@@ -59,7 +59,6 @@ tests:
           content:
             metadata:
               name: pgdata
-            reclaimPolicy: Retain
             spec:
               accessModes:
                 - ReadWriteOnce
@@ -90,7 +89,6 @@ tests:
           content:
             metadata:
               name: pgdata
-            reclaimPolicy: Retain
             spec:
               accessModes:
                 - ReadWriteOnce

@@ -1,0 +1,77 @@
+suite: Test SigNoz Environment Variables and Volumes if PostgreSQL chart enabled
+
+templates:
+  - templates/signoz/statefulset.yaml
+  - charts/postgresql/templates/statefulset.yaml
+release:
+  name: signoz
+  namespace: signoz
+
+tests:
+  - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true
+    set:
+      postgresql:
+        enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_PROVIDER
+              value: postgres
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+              value: postgres://signoz:signoz123@signoz-postgres:5432/signoz?sslmode=disable
+        template: templates/signoz/statefulset.yaml
+
+  - it: SigNoz StatefulSet should NOT render volumeMounts when postgresql.enabled=true
+    set:
+      postgresql:
+        enabled: true
+      signoz:
+        additionalVolumeMounts: []
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 0
+        template: templates/signoz/statefulset.yaml
+
+  - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true and postgres.fullNameOver
+    set:
+      postgresql:
+        enabled: true
+        fullnameOverride: "does-not-matter"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_PROVIDER
+              value: postgres
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+              value: postgres://signoz:signoz123@does-not-matter:5432/signoz?sslmode=disable
+        template: templates/signoz/statefulset.yaml
+  
+  - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true and postgresql.nameOverride
+    set:
+      postgresql:
+        enabled: true
+        nameOverride: "does-not-matter"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_PROVIDER
+              value: postgres
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+              name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+              value: postgres://signoz:signoz123@signoz-does-not-matter:5432/signoz?sslmode=disable
+        template: templates/signoz/statefulset.yaml

@@ -23,14 +23,6 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 
-
-{{/*
-Return namespace of the signoz release
-*/}}
-{{- define "signoz.namespace" -}}
-{{- .Release.Namespace -}}
-{{- end -}}
-
 {{/*
 Standard labels for postgres resources
 */}}
