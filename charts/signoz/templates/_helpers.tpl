@@ -380,15 +380,15 @@ Return the service fqdn of Postgresql
 */}}
 {{- define "postgresql.service" -}}
 {{- if .Values.postgresql.enabled -}}
-{{- $username := .Values.postgresql.auth.username -}}
-{{- $password := .Values.postgresql.auth.password -}}
-{{- $database := .Values.postgresql.auth.database -}}
-{{- $port := .Values.postgresql.service.port | toString -}}
+{{- $username := "$(POSTGRES_USER)" -}}
+{{- $password := "$(POSTGRES_PASSWORD)" -}}
+{{- $database := "$(POSTGRES_DB)" -}}
+{{- $port := "$(POSTGRES_PORT)" -}}
 {{- $name := "" -}}
 {{- if .Values.postgresql.fullnameOverride -}}
   {{- $name = .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-  {{- $name = default "postgres" .Values.postgresql.nameOverride -}}
+  {{- $name = default .Values.postgresql.name .Values.postgresql.nameOverride -}}
   {{- if contains $name .Release.Name -}}
     {{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
   {{- else -}}
@@ -397,12 +397,10 @@ Return the service fqdn of Postgresql
 {{- end -}}
 {{- $namespace := .Values.postgresql.namespace -}}
 {{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
-{{- $userEsc := urlquery $username -}}
-{{- $passEsc := urlquery $password -}}
 {{- if and $namespace (ne $namespace .Release.Namespace) -}}
-{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $userEsc $passEsc $name $namespace $clusterDomain $port $database }}
+{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database }}
 {{- else -}}
-{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $userEsc $passEsc $name $port $database }}
+{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
 {{- end -}}
 {{- end }}
 {{- end -}}
@@ -542,13 +540,35 @@ Create Env
 }}
 
 {{/*
-SQL STORE ENV
+SQL STORE POSTGRES ENV
 */}}
-{{- $sqlStoreEnv := dict -}}
+{{- $sqlStorePostgresEnv := dict -}}
 {{- if .Values.postgresql.enabled }}
+{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_port" .Values.postgresql.service.port ) }}
+{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_user" .Values.postgresql.auth.username ) }}
+{{- if .Values.postgresql.auth.existingSecret }}
+  {{- $secretCfg := default dict .Values.auth.secretKeys }}
+  {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv (dict "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey )))) }}
+{{- else }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_password" .Values.postgresql.auth.password ) }}
+{{- end }}
+{{- if .Values.postgresql.auth.database }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_db" .Values.postgresql.auth.database ) }}
+{{- end }}
+{{- end }}
+
+{{/*
+SQL STORE ENV
+Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
+*/}}
+
+{{- $sqlStoreEnv := dict -}}
+{{- if .Values.postgresql.enabled -}}
 {{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
 {{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgresql.service" .))}}
 {{- end }}
+
 {{/*
 ===== USER ENV VARIABLES =====
 */}}
@@ -596,8 +616,10 @@ SQL STORE ENV
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStoreEnv  -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
+{{/* Render the sqlstoreEnv (provider, dsn) seprately to maintain the order of the env variables */}}
+{{- template "signoz.renderEnv" $sqlStoreEnv -}}
 {{- end -}}
 
 {{/*
