@@ -35,7 +35,6 @@ Return namespace of the signoz release
 Standard labels for postgres resources
 */}}
 {{- define "postgresql.labels" -}}
-app.kubernetes.io/name: {{ include "postgresql.name" . }}
 helm.sh/chart:  {{ include "postgresql.chart" . }}
 {{ include "postgresql.selectorLabels" . }}
 {{- if .Chart.AppVersion }}

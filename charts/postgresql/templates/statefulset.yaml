@@ -119,6 +119,9 @@ spec:
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
+            {{- if .Values.additionalVolumeMounts }}
+              {{- toYaml .Values.additionalVolumeMounts | nindent 12 }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
@@ -133,10 +136,14 @@ spec:
         - name: pgdata
           emptyDir: {}
   {{- end }}
+  {{- if .Values.additionalVolumes }}
+        {{- toYaml .Values.additionalVolumes | nindent 8 }}
+  {{- end }}
 {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: pgdata
+      reclaimPolicy: Retain
       spec:
         accessModes:
           {{- toYaml .Values.persistence.accessModes | nindent 10 }}
