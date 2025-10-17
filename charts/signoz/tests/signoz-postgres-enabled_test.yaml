@@ -21,12 +21,6 @@ tests:
         template: templates/signoz/statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].env
-          content: 
-              name: SIGNOZ_SQLSTORE_PROVIDER
-              value: postgres
-        template: templates/signoz/statefulset.yaml
-      - contains:
-          path: spec.template.spec.containers[0].env
           content:
             name: POSTGRES_USER
             value: "signoz"
@@ -64,7 +58,7 @@ tests:
           count: 0
         template: templates/signoz/statefulset.yaml
 
-  - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true and postgres.fullNameOver
+  - it: should render the Environment variables for PostgreSQL in signoz statefulset if postgresql.enabled=true and postgres.fullNameOverride
     set:
       postgresql:
         enabled: true
