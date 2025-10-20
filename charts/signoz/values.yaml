@@ -2103,32 +2103,32 @@ signoz-otel-gateway:
   # @ignored
   env:
     cache_strategy: "off"
-    postgres_database:
-      valueFrom:
-        secretKeyRef:
-          key: database
-          name: postgres-secret-otelgateway
-    postgres_host:
-      valueFrom:
-        secretKeyRef:
-          key: host
-          name: postgres-secret-otelgateway
-    postgres_password:
-      valueFrom:
-        secretKeyRef:
-          key: password
-          name: postgres-secret-otelgateway
-    postgres_port:
-      valueFrom:
-        secretKeyRef:
-          key: port
-          name: postgres-secret-otelgateway
-    postgres_user:
-      valueFrom:
-        secretKeyRef:
-          key: username
-          name: postgres-secret-otelgateway
     storage_strategy: postgres
+    # postgres_database:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       key: database
+    #       name: postgres-secret-otelgateway
+    # postgres_host:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       key: host
+    #       name: postgres-secret-otelgateway
+    # postgres_password:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       key: password
+    #       name: postgres-secret-otelgateway
+    # postgres_port:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       key: port
+    #       name: postgres-secret-otelgateway
+    # postgres_user:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       key: username
+    #       name: postgres-secret-otelgateway
   # @ignored
   fullnameOverride: opentelemetry-gateway
   # @ignored
