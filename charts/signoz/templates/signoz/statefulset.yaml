@@ -148,7 +148,6 @@ spec:
           readinessProbe: {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
           {{- end }}
           volumeMounts:
-          {{- if not .Values.postgresql.enabled }}
           {{- if .Values.signoz.persistence.enabled }}
           {{- if .Values.signoz.persistence.existingClaim }}
             - name: signoz-db-existing-claim
@@ -159,7 +158,6 @@ spec:
             - name: signoz-db-volume
           {{- end }}
               mountPath: /var/lib/signoz/
-          {{- end }}
           {{- if .Values.signoz.additionalVolumeMounts }}
             {{- toYaml .Values.signoz.additionalVolumeMounts | nindent 12 }}
           {{- end }}
@@ -168,10 +166,10 @@ spec:
       volumes:
         - name: dashboards
           emptyDir: {}
-        {{- if and (not .Values.signoz.persistence.enabled) (not .Values.postgresql.enabled )}}
+        {{- if (not .Values.signoz.persistence.enabled) }}
         - name: signoz-db-volume
           emptyDir: {}
-        {{- else if and .Values.signoz.persistence.existingClaim (not .Values.postgresql.enabled )}}
+        {{- else if .Values.signoz.persistence.existingClaim }}
         - name: signoz-db-existing-claim
           persistentVolumeClaim:
             claimName: {{ .Values.signoz.persistence.existingClaim }}
@@ -183,7 +181,7 @@ spec:
           {{- toYaml .Values.signoz.initContainers.migration.additionalVolumes | nindent 8 }}
         {{- end }}
 
-{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) ( not .Values.postgresql.enabled ) }}
+{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: signoz-db
