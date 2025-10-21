@@ -41,7 +41,6 @@ Selector labels (used for StatefulSet selector and Pod template)
 {{- define "postgresql.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "postgresql.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "signoz-postgres" .Values.name }}
 {{- end }}
 
 {{/*

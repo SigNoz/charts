@@ -1,30 +1,3 @@
-global:
-  # -- Overrides the Docker registry globally for all images
-  imageRegistry: &GLOBAL_IMAGE_REGISTRY null
-  # -- Global Image Pull Secrets
-  imagePullSecrets: []
-  # -- Overrides the storage class for all PVC with persistence enabled.
-  # If not set, the default storage class is used.
-  # If set to "-", storageClassName: "", which disables dynamic provisioning
-  storageClass: &GLOBAL_SC null
-  # -- Kubernetes cluster domain
-  # It is used only when components are installed in different namespace
-  clusterDomain: cluster.local
-  # -- Kubernetes cluster cloud provider along with distribution if any.
-  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
-  # Based on the cloud, storage class for the persistent volume is selected.
-  # When set to 'aws' or 'gcp' along with `installCustomStorageClass` enabled, then new expandible storage class is created.
-  cloud: other
-
-
-# enabled -- Enable or disable the Postgres for signoz.
-# @default -- false
-enabled: true
-
-#  name -- Name of the postgres component
-# @default -- postgresql
-name: postgresql
-
 # namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
 namespace: ""
 # -- Name override for postgresql
