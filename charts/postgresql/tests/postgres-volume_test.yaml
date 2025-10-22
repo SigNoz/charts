@@ -1,0 +1,109 @@
+suite: Test PostgreSQL Persistence Variables
+
+templates: 
+  - templates/statefulset.yaml
+release:
+  name: postgresql
+  namespace: signoz
+
+tests:
+  - it: should render 4 volumes mounts and 1 volume when persistence.enabled=true
+    set:
+      persistence:
+        enabled: true
+        size: 10Gi
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: pgdata
+            mountPath: /var/lib/postgresql
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: empty-dir
+            mountPath: /tmp
+            subPath: tmp-dir
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: empty-dir
+            mountPath: /opt/bitnami/postgresql/conf
+            subPath: app-conf-dir
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: empty-dir
+            mountPath: /opt/bitnami/postgresql/tmp
+            subPath: app-tmp-dir
+      - contains:
+          path: spec.template.spec.volumes
+          count: 1
+          content:
+            name: empty-dir
+            emptyDir: {}
+  - it: should have pgdata-volumeclaim-template when persistence.enabled=true
+    set:
+      enabled: true
+      persistence:
+        enabled: true
+        size: 10Gi
+    asserts:
+      - contains: 
+          path: spec.volumeClaimTemplates
+          count: 1
+          content:
+            metadata:
+              name: pgdata
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: pgdata
+            mountPath: /var/lib/postgresql
+  - it: should render additional volumes and additional volume mounts
+    set:
+      enabled: true
+      persistence:
+        enabled: true
+      additionalVolumeMounts:
+        - mountPath: /does-not-matter
+          name: does-not-matter
+      additionalVolumes:
+        - name: does-not-matter
+          emptyDir: {}
+    asserts:
+      - contains: 
+          path: spec.volumeClaimTemplates
+          count: 1
+          content:
+            metadata:
+              name: pgdata
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+          content:
+            name: does-not-matter
+            mountPath: /does-not-matter
+      - contains:
+          path: spec.template.spec.volumes
+          count: 1
+          content:
+            name: does-not-matter
+            emptyDir: {}
