@@ -376,6 +376,37 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
+Return the service fqdn of Postgresql
+*/}}
+{{- define "postgresql.service" -}}
+{{- if .Values.postgresql.enabled -}}
+{{- $username := "$(POSTGRES_USER)" -}}
+{{- $password := "$(POSTGRES_PASSWORD)" -}}
+{{- $database := "$(POSTGRES_DB)" -}}
+{{- $port := "$(POSTGRES_PORT)" -}}
+{{- $name := "" -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+  {{- $name = .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+  {{- $name = default .Values.postgresql.name .Values.postgresql.nameOverride -}}
+  {{- if contains $name .Release.Name -}}
+    {{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+  {{- end -}}
+{{- end -}}
+{{- $namespace := .Values.postgresql.namespace -}}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
+{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database }}
+{{- else -}}
+{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
+{{- end -}}
+{{- end }}
+{{- end -}}
+
+
+{{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
 {{- define "signoz.service.ifClusterIP" -}}
@@ -508,6 +539,35 @@ Create Env
 }}
 
 {{/*
+SQL STORE POSTGRES ENV
+*/}}
+{{- $sqlStorePostgresEnv := dict -}}
+{{- if .Values.postgresql.enabled }}
+{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_port" .Values.postgresql.service.port ) }}
+{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_user" .Values.postgresql.auth.username ) }}
+{{- if .Values.postgresql.auth.existingSecret }}
+  {{- $secretCfg := default dict .Values.auth.secretKeys }}
+  {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv (dict "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey )))) }}
+{{- else }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_password" .Values.postgresql.auth.password ) }}
+{{- end }}
+{{- if .Values.postgresql.auth.database }}
+  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_db" .Values.postgresql.auth.database ) }}
+{{- end }}
+{{- end }}
+{{/*
+SQL STORE ENV
+Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
+*/}}
+{{- $sqlStoreEnv := dict -}}
+{{- if .Values.postgresql.enabled -}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgresql.service" .))}}
+{{- end }}
+
+
+{{/*
 ===== USER ENV VARIABLES =====
 */}}
 {{- $userEnv := .Values.signoz.env | default dict -}}
@@ -554,8 +614,10 @@ Create Env
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv  -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
+{{/* Render the sqlstoreEnv (provider, dsn) seprately to maintain the order of the env variables */}}
+{{- template "signoz.renderEnv" $sqlStoreEnv -}}
 {{- end -}}
 
 {{/*

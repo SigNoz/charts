@@ -8,5 +8,8 @@ dependencies:
 - name: redpanda
   repository: https://charts.redpanda.com
   version: 5.10.2
-digest: sha256:047bfc76304a78883b86177cbb99ee9394248fd201fa8d40d0243032ea796eca
-generated: "2025-10-15T22:35:15.703573+05:30"
+- name: postgresql
+  repository: https://charts.signoz.io
+  version: 0.0.1
+digest: sha256:c2113dcc221538372002906110c449a6e74d6ee0fb8eddd5d77a462ff424ac04
+generated: "2025-10-22T15:46:51.488036+05:30"

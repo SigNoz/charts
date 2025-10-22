@@ -30,6 +30,10 @@ dependencies:
     repository: https://charts.redpanda.com
     condition: redpanda.enabled
     version: 5.10.2
+  - name: postgresql
+    repository: https://charts.signoz.io
+    condition: postgresql.enabled
+    version: 0.0.1
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
