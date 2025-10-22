@@ -543,18 +543,18 @@ SQL STORE POSTGRES ENV
 */}}
 {{- $sqlStorePostgresEnv := dict -}}
 {{- if .Values.postgresql.enabled }}
-{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_port" .Values.postgresql.service.port ) }}
-{{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_user" .Values.postgresql.auth.username ) }}
-{{- if .Values.postgresql.auth.existingSecret }}
-  {{- $secretCfg := default dict .Values.auth.secretKeys }}
-  {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") }}
-  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv (dict "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey )))) }}
-{{- else }}
-  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_password" .Values.postgresql.auth.password ) }}
-{{- end }}
-{{- if .Values.postgresql.auth.database }}
-  {{- $sqlStorePostgresEnv := merge $sqlStorePostgresEnv ( dict "postgres_db" .Values.postgresql.auth.database ) }}
-{{- end }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_port" .Values.postgresql.service.port }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_user" .Values.postgresql.auth.username }}
+  {{- if .Values.postgresql.auth.existingSecret }}
+    {{- $secretCfg := default dict .Values.postgresql.auth.secretKeys }}
+    {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey ))) }}
+  {{- else }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_password" .Values.postgresql.auth.password }}
+  {{- end }}
+  {{- if .Values.postgresql.auth.database }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_db" .Values.postgresql.auth.database }}
+  {{- end }}
 {{- end }}
 {{/*
 SQL STORE ENV
