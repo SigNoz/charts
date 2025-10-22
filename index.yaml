@@ -3290,6 +3290,26 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.1.0/k8s-infra-0.1.0.tgz
     version: 0.1.0
+  postgresql:
+  - apiVersion: v2
+    appVersion: 15.0.0
+    created: "2025-10-22T10:02:48.542482Z"
+    description: A Helm Chart for PostgreSQL
+    digest: 8aa0db19981d192bfa3f19cf4c7450ba573070c7fcb77c498f4b59080f222f2e
+    home: https://signoz.io/
+    icon: https://wiki.postgresql.org/wiki/File:PostgreSQL_logo.3colors.svg
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: postgresql
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/postgres/postgres
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/postgresql-0.0.1/postgresql-0.0.1.tgz
+    version: 0.0.1
   signoz:
   - apiVersion: v2
     appVersion: v0.97.1
@@ -15061,4 +15081,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2025-10-20T20:35:42.989553501Z"
+generated: "2025-10-22T10:02:48.543205536Z"
