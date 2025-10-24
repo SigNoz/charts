@@ -62,7 +62,7 @@ ServiceAccount name
 {{- end -}}
 
 {{- define "postgresql.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+{{- if .Values.imagePullSecrets }}
 imagePullSecrets:
 {{- range .Values.global.imagePullSecrets }}
   - name: {{ . }}
@@ -77,7 +77,7 @@ imagePullSecrets:
 Return the proper signoz image name
 */}}
 {{- define "postgresql.image" -}}
-{{- $registryName := default .Values.image.registry .Values.global.imageRegistry -}}
+{{- $registryName := .Values.image.registry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
 {{- if $registryName -}}
