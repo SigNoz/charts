@@ -1,6 +1,6 @@
 apiVersion: v2
 name: signoz
-version: 0.98.0
+version: 0.98.1
 appVersion: "v0.98.0"
 description: SigNoz Observability Platform Helm Chart
 type: application
@@ -30,6 +30,10 @@ dependencies:
     repository: https://charts.redpanda.com
     condition: redpanda.enabled
     version: 5.10.2
+  - name: postgresql
+    repository: https://charts.signoz.io
+    condition: postgresql.enabled
+    version: 0.0.2
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

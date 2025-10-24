@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.98.0](https://img.shields.io/badge/Version-0.98.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.98.0](https://img.shields.io/badge/AppVersion-v0.98.0-informational?style=flat-square)
+![Version: 0.98.1](https://img.shields.io/badge/Version-0.98.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.98.0](https://img.shields.io/badge/AppVersion-v0.98.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -1336,6 +1336,26 @@ servicePort: 8082</pre>
         </tr>
     </tbody>
 </table>
+<h3>Postgres</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="postgresql--enabled"><a href="./values.yaml#L1953">postgresql.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Enable or disable the PostgreSQL for signoz. For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql</td>
+        </tr>
+    </tbody>
+</table>
 <h3>Otel Gateway Settings</h3>
 <table>
     <thead>
@@ -1346,7 +1366,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L1949">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L1956">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
@@ -1366,7 +1386,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2165">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2172">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

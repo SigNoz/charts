@@ -1944,6 +1944,13 @@ otelCollector:
           receivers: [signozmeter]
           processors: [batch/meter]
           exporters: [signozclickhousemeter]
+# @section -- Postgres
+postgresql:
+  # postgresql.enabled -- Enable or disable the PostgreSQL for signoz.
+  # For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql
+  # @default -- false
+  # @section -- Postgres
+  enabled: false
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
