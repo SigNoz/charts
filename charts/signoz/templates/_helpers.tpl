@@ -388,7 +388,7 @@ Return the service fqdn of Postgresql
 {{- if .Values.postgresql.fullnameOverride -}}
   {{- $name = .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-  {{- $name = default .Values.postgresql.name .Values.postgresql.nameOverride -}}
+  {{- $name = default "postgresql" .Values.postgresql.nameOverride -}}
   {{- if contains $name .Release.Name -}}
     {{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
   {{- else -}}
