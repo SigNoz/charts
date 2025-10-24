@@ -3293,6 +3293,25 @@ entries:
   postgresql:
   - apiVersion: v2
     appVersion: 15.0.0
+    created: "2025-10-24T08:42:03.605336226Z"
+    description: A Helm Chart for PostgreSQL
+    digest: dfa82c121aa94fa56cf6d7d9186acee868e0070f1d049c14d5317828a120897a
+    home: https://signoz.io/
+    icon: https://wiki.postgresql.org/wiki/File:PostgreSQL_logo.3colors.svg
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: postgresql
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/postgres/postgres
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/postgresql-0.0.2/postgresql-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v2
+    appVersion: 15.0.0
     created: "2025-10-22T10:02:48.542482Z"
     description: A Helm Chart for PostgreSQL
     digest: 8aa0db19981d192bfa3f19cf4c7450ba573070c7fcb77c498f4b59080f222f2e
@@ -15124,4 +15143,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2025-10-22T10:40:53.035578876Z"
+generated: "2025-10-24T08:42:03.605932891Z"
