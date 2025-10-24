@@ -149,7 +149,7 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
-      {{- $storageClass := default .Values.persistence.storageClass -}}
+      {{- $storageClass := default "" .Values.persistence.storageClass -}}
       {{- if $storageClass -}}
       {{- if (eq "-" $storageClass) }}
         storageClassName: ""
