@@ -33,7 +33,7 @@ dependencies:
   - name: postgresql
     repository: https://charts.signoz.io
     condition: postgresql.enabled
-    version: 0.0.1
+    version: 0.0.2
 maintainers:
   - name: SigNoz
     email: hello@signoz.io

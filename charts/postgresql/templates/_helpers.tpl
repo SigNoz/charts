@@ -77,7 +77,7 @@ imagePullSecrets:
 Return the proper signoz image name
 */}}
 {{- define "postgresql.image" -}}
-{{- $registryName := default "" .Values.image.registry -}}
+{{- $registryName := .Values.image.registry -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
 {{- if $registryName -}}
