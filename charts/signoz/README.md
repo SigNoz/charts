@@ -395,7 +395,7 @@ image:
     pullPolicy: IfNotPresent
     registry: docker.io
     repository: busybox
-    tag: 1.35
+    tag: 1.37
 resources: {}</pre>
 </div>
             </td>
