@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.98.1](https://img.shields.io/badge/Version-0.98.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.98.0](https://img.shields.io/badge/AppVersion-v0.98.0-informational?style=flat-square)
+![Version: 0.99.0](https://img.shields.io/badge/Version-0.99.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.99.0](https://img.shields.io/badge/AppVersion-v0.99.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -309,7 +309,7 @@ verify: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz
-tag: v0.98.0</pre>
+tag: v0.99.0</pre>
 </div>
             </td>
             <td>Image configuration for SigNoz.</td>
@@ -641,7 +641,7 @@ tls: []</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz-schema-migrator
-tag: v0.129.7</pre>
+tag: v0.129.8</pre>
 </div>
             </td>
             <td>Image configuration for the Schema Migrator.</td>
