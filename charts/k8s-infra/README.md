@@ -70,7 +70,7 @@ The [Configuration](#configuration) section lists the parameters that can be con
 
 > [!NOTE]
 > The `kubeletstats` receiver connects to the kubelet API to collect node and container metrics. 
-> By default, it uses the node’s **`K8S_HOST_IP`** to ensure reliable connectivity in most IPv4 environments, as this avoids DNS resolution issues seen in providers
+> By default, it uses the node's **`K8S_HOST_IP`** to ensure reliable connectivity in most IPv4 environments, as this avoids DNS resolution issues seen in some providers.
 > In clusters running **IPv6** or **dual-stack**, the host IP might resolve to an unreachable address, causing connection errors. 
 > In such cases, you can update the endpoint to use **`K8S_NODE_NAME`** instead, which often works better in IPv6 setups. 
 > Example configuration: 
