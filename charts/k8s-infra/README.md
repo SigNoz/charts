@@ -223,7 +223,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">other</pre>
 </div>
             </td>
-            <td>Kubernetes cluster cloud provider, along with distribution if any (e.g., `aws`, `azure`, `gcp`, `gcp/autogke`, `other`). </td>
+            <td>Kubernetes cluster cloud provider, along with distribution if any (e.g., `aws`, `azure`, `gcp`, `gcp/autogke`, `other`).</td>
         </tr>
     </tbody>
 </table>
@@ -871,7 +871,7 @@ signozLogs: true</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">${env:K8S_HOST_IP}:10250</pre>
 </div>
             </td>
-            <td>Kubelet endpoint. The `kubeletstats` receiver uses `K8S_HOST_IP` by default for IPv4 clusters to avoid DNS resolution issues.   On IPv6 or dual-stack clusters, if kubelet scraping fails, switch the endpoint to use `K8S_NODE_NAME` instead.</td>
+            <td>Kubelet endpoint. The `kubeletstats` receiver uses `K8S_HOST_IP` by default for IPv4 clusters to avoid DNS resolution issues. On IPv6 or dual-stack clusters, if kubelet scraping fails, switch the endpoint to use `K8S_NODE_NAME` instead.</td>
         </tr>
         <tr>
             <td id="presets--kubeletMetrics--insecureSkipVerify"><a href="./values.yaml#L371">presets.kubeletMetrics.insecureSkipVerify</a></td>
@@ -890,7 +890,7 @@ signozLogs: true</pre>
 - k8s.volume.type</pre>
 </div>
             </td>
-            <td>List of extra metadata labels to collect. For GCP/GKE clusters, extraMetadataLabels may not be available due to kubelet configuration.  See documentation for details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/</td>
+            <td>List of extra metadata labels to collect. For GCP/GKE clusters, extraMetadataLabels may not be available due to kubelet configuration. See documentation for details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/</td>
         </tr>
         <tr>
             <td id="presets--kubeletMetrics--metricGroups"><a href="./values.yaml#L381">presets.kubeletMetrics.metricGroups</a></td>
