@@ -498,9 +498,9 @@ receivers:
 receivers:
   hostmetrics:
     collection_interval: {{ .Values.presets.hostMetrics.collectionInterval }}
-    {{- if and .Values.presets.hostMetrics.enabled (ne .Values.presets.hostMetrics.rootPath "") }}
+{{- if and (ne .Values.global.cloud "gcp/autogke") (ne .Values.presets.hostMetrics.rootPath "") }}
     root_path: {{.Values.presets.hostMetrics.rootPath | default "/hostfs"}}
-    {{- end}}
+{{- end }}
     scrapers:
     {{ range $key, $val := .Values.presets.hostMetrics.scrapers }}
       {{ $key }}: {{- $val | toYaml | nindent 8 }}
@@ -523,11 +523,26 @@ receivers:
     endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
     insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
     extra_metadata_labels:
+    {{- if ne .Values.global.cloud "gcp/autogke"}}
       {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
+    {{- end}}
     metric_groups:
       {{ toYaml .Values.presets.kubeletMetrics.metricGroups | nindent 6 }}
     metrics:
-      {{ toYaml .Values.presets.kubeletMetrics.metrics | nindent 6 }}
+{{- if eq .Values.global.cloud "gcp/autogke" }}
+  # Disable request/limit utilization metrics on gcp/autogke
+  {{- $patched := dict }}
+  {{- range $k, $v := .Values.presets.kubeletMetrics.metrics }}
+    {{- $new := deepCopy $v }}
+    {{- if regexMatch `_(request|limit)_utilization$` $k }}
+      {{- $_ := set $new "enabled" false }}
+    {{- end }}
+    {{- $_ := set $patched $k $new }}
+  {{- end }}
+{{ toYaml $patched | nindent 6 }}
+{{- else }}
+{{ toYaml .Values.presets.kubeletMetrics.metrics | nindent 6 }}
+{{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyLogsCollectionConfig" -}}

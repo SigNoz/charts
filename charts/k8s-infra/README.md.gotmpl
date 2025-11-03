@@ -68,6 +68,19 @@ The [Configuration](#configuration) section lists the parameters that can be con
 >
 > After completing these steps, you can proceed with the [standard k8s-infra installation](https://github.com/SigNoz/charts/tree/main/charts/k8s-infra#installing-the-chart).
 
+> [!NOTE]
+> The `kubeletstats` receiver connects to the kubelet API to collect node and container metrics.  
+> By default, it uses the node’s **`K8S_HOST_IP`** to ensure reliable connectivity in most IPv4 environments, as this avoids DNS resolution issues seen in providers 
+> In clusters running **IPv6** or **dual-stack**, the host IP might resolve to an unreachable address, causing connection errors.  
+> In such cases, you can update the endpoint to use **`K8S_NODE_NAME`** instead, which often works better in IPv6 setups.  
+> Example configuration:  
+> ```yaml
+> presets:
+>   kubeletMetrics:
+>     endpoint: "${env:K8S_NODE_NAME}:10250"
+> ```
+
+
 ### Uninstalling the chart
 
 To uninstall/delete the `my-release` resources:
