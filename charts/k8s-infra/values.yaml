@@ -362,12 +362,16 @@ presets:
     # @section -- Kubelet Metrics Presets
     authType: serviceAccount
     # presets.kubeletMetrics.endpoint -- Kubelet endpoint.
+    # The `kubeletstats` receiver uses `K8S_HOST_IP` by default for IPv4 clusters to avoid DNS resolution issues.
+    # On IPv6 or dual-stack clusters, if kubelet scraping fails, switch the endpoint to use `K8S_NODE_NAME` instead.
     # @section -- Kubelet Metrics Presets
     endpoint: ${env:K8S_HOST_IP}:10250
     # presets.kubeletMetrics.insecureSkipVerify -- Skip verifying Kubelet's certificate.
     # @section -- Kubelet Metrics Presets
     insecureSkipVerify: true
     # presets.kubeletMetrics.extraMetadataLabels -- List of extra metadata labels to collect.
+    # For GCP/GKE clusters, extraMetadataLabels may not be available due to kubelet configuration.
+    # See documentation for details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/
     # @section -- Kubelet Metrics Presets
     extraMetadataLabels:
       - container.id
@@ -380,6 +384,8 @@ presets:
       - node
       - volume
     # presets.kubeletMetrics.metrics -- Fine-grained control over which Kubelet metrics are enabled.
+    # Note: In GKE Autopilot clusters ("gcp/autogke"), request and limit metrics are not available to scrape due to Kubelet configuration.
+    # Check out the documentation for more details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/
     # @section -- Kubelet Metrics Presets
     metrics:
       k8s.node.cpu.usage:
