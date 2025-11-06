@@ -484,6 +484,9 @@ receivers:
               action: replace
               target_label: k8s_pod_phase
         {{- end }}
+      {{- if .Values.presets.prometheus.scrapeConfigs }}
+        {{- toYaml .Values.presets.prometheus.scrapeConfigs | nindent 8 }}
+      {{- end }}
 {{- end }}
 
 {{- define "opentelemetry-collector.applyHostMetricsConfig" -}}

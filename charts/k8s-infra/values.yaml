@@ -532,6 +532,10 @@ presets:
     # presets.prometheus.includeContainerName -- Include container name in metrics (not recommended for multi-container pods).
     # @section -- Prometheus Metrics Presets
     includeContainerName: false
+    # presets.prometheus.scrapeConfigs - Custom scraper configs used for metrics scraping
+    # @section -- Prometheus Metrics Prests
+    scrapeConfigs: []
+        
   # presets.resourceDetection -- Processor for detecting resource information from the environment (e.g., cloud provider, k8s).
   # @section -- Resource Detection Processor Presets
   resourceDetection:
