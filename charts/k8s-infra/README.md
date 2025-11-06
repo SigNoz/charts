@@ -1230,6 +1230,15 @@ scrapeInterval: 60s</pre>
             </td>
             <td>Include container name in metrics (not recommended for multi-container pods).</td>
         </tr>
+        <tr>
+            <td id="presets--prometheus--scrapeConfigs"><a href="./values.yaml#L537">presets.prometheus.scrapeConfigs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Custom scraper configs used for metrics scraping</td>
+        </tr>
     </tbody>
 </table>
 <h4>Resource Detection Processor Presets</h4>
