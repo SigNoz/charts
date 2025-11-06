@@ -535,7 +535,6 @@ presets:
     # presets.prometheus.scrapeConfigs - Custom scraper configs used for metrics scraping
     # @section -- Prometheus Metrics Prests
     scrapeConfigs: []
-        
   # presets.resourceDetection -- Processor for detecting resource information from the environment (e.g., cloud provider, k8s).
   # @section -- Resource Detection Processor Presets
   resourceDetection:
