@@ -134,6 +134,9 @@ presets:
     # @section -- OTLP Exporter Presets
     enabled: false
   # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
+  # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+  # exporter for scraping at http://<otel-collector>:8888/metrics
+  # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
   # @section -- Self Telemetry Presets
   selfTelemetry:
     # presets.selfTelemetry.endpoint -- OTLP HTTP endpoint to send own telemetry data to.
@@ -584,7 +587,7 @@ otelAgent:
     # otelAgent.image.tag -- Tag for the OtelAgent image.
     # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
     # @section -- OpenTelemetry Agent (DaemonSet)
-    tag: 0.109.0
+    tag: 0.139.0
     # otelAgent.image.pullPolicy -- Image pull policy for the OtelAgent.
     # @section -- OpenTelemetry Agent (DaemonSet)
     pullPolicy: IfNotPresent
@@ -1003,11 +1006,14 @@ otelAgent:
     exporters: {}
     # @section -- OpenTelemetry Agent (DaemonSet)
     service:
+      # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
+      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+      # exporter for scraping at http://<otel-collector>:8888/metrics
+      # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       telemetry:
         logs:
           encoding: json
-        metrics:
-          address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
         traces:
@@ -1063,7 +1069,7 @@ otelDeployment:
     # otelDeployment.image.tag -- Tag for the OtelDeployment image.
     # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
     # @section -- OpenTelemetry Deployment
-    tag: 0.109.0
+    tag: 0.139.0
     # otelDeployment.image.pullPolicy -- Image pull policy for the OtelDeployment.
     # @section -- OpenTelemetry Deployment
     pullPolicy: IfNotPresent
@@ -1394,11 +1400,14 @@ otelDeployment:
     exporters: {}
     # @section -- OpenTelemetry Deployment
     service:
+      # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
+      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+      # exporter for scraping at http://<otel-collector>:8888/metrics
+      # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       telemetry:
         logs:
           encoding: json
-        metrics:
-          address: 0.0.0.0:8888
       extensions: [health_check, zpages, pprof]
       pipelines:
         metrics/internal:

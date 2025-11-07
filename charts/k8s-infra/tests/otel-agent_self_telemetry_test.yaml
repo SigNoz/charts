@@ -46,9 +46,9 @@ tests:
           value: |-
             exporters:
               otlphttp/self_telemetry:
-                endpoint: http://myhost:443
+                endpoint: myhost:443
                 headers:
-                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                  signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                 tls:
                   insecure: true
                   insecure_skip_verify: true
@@ -101,16 +101,15 @@ tests:
                 logs:
                   encoding: json
                 metrics:
-                  address: 0.0.0.0:8888
                   level: detailed
                   readers:
                   - periodic:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://myhost:443
+                          endpoint: myhost:443
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                            signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: true
                           protocol: http/protobuf
                 resource:
@@ -125,9 +124,9 @@ tests:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://myhost:443
+                          endpoint: myhost:443
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                            signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                           insecure: true
                           protocol: http/protobuf
                   propagators:
