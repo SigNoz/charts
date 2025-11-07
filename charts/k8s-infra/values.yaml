@@ -134,7 +134,7 @@ presets:
     # @section -- OTLP Exporter Presets
     enabled: false
   # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
-  # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+  # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus
   # exporter for scraping at http://<otel-collector>:8888/metrics
   # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
   # @section -- Self Telemetry Presets
@@ -1007,7 +1007,7 @@ otelAgent:
     # @section -- OpenTelemetry Agent (DaemonSet)
     service:
       # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
-      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus
       # exporter for scraping at http://<otel-collector>:8888/metrics
       # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
       # @section -- OpenTelemetry Agent (DaemonSet)
@@ -1401,7 +1401,7 @@ otelDeployment:
     # @section -- OpenTelemetry Deployment
     service:
       # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
-      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus 
+      # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus
       # exporter for scraping at http://<otel-collector>:8888/metrics
       # Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics
       # @section -- OpenTelemetry Agent (DaemonSet)

@@ -531,7 +531,7 @@ traces:
     enabled: false</pre>
 </div>
             </td>
-            <td>Configuration for sending the collector's own telemetry data. By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus  exporter for scraping at http://<otel-collector>:8888/metrics Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics</td>
+            <td>Configuration for sending the collector's own telemetry data. By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus exporter for scraping at http://<otel-collector>:8888/metrics Check out docs for more information: https://opentelemetry.io/docs/collector/internal-telemetry/#otlp-exporter-for-internal-metrics</td>
         </tr>
         <tr>
             <td id="otelAgent--enabled"><a href="./values.yaml#L574">otelAgent.enabled</a></td>
