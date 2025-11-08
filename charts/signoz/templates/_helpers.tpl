@@ -143,87 +143,6 @@ Set signoz internal url
 
 
 {{/*
-Create a default fully qualified app name.
-*/}}
-{{- define "alertmanager.fullname" -}}
-{{- printf "%s-%s" (include "signoz.fullname" .) .Values.alertmanager.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Common labels
-*/}}
-{{- define "alertmanager.labels" -}}
-helm.sh/chart: {{ include "signoz.chart" . }}
-{{ include "alertmanager.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{/*
-Selector labels
-*/}}
-{{- define "alertmanager.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "signoz.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: {{ default "alertmanager" .Values.alertmanager.name }}
-{{- end -}}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "alertmanager.serviceAccountName" -}}
-{{- if .Values.alertmanager.serviceAccount.create -}}
-    {{ default (include "alertmanager.fullname" .) .Values.alertmanager.serviceAccount.name }}
-{{- else -}}
-    {{ default "default" .Values.alertmanager.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Set alertmanager port
-*/}}
-{{- define "alertmanager.port" -}}
-{{- default 9093 .Values.alertmanager.service.port  -}}
-{{- end -}}
-
-{{/*
-Return the initContainers image name
-*/}}
-{{- define "alertmanager.initContainers.init.image" -}}
-{{- $registryName := default .Values.alertmanager.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.alertmanager.initContainers.init.image.repository -}}
-{{- $tag := .Values.alertmanager.initContainers.init.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the proper otelCollector image name
-*/}}
-{{- define "alertmanager.image" -}}
-{{- $registryName := default .Values.alertmanager.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.alertmanager.image.repository -}}
-{{- $tag := .Values.alertmanager.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Set signoz url
-*/}}
-{{- define "alertmanager.url" -}}
-{{ include "alertmanager.fullname" . }}:{{ include "alertmanager.port" . }}
-{{- end -}}
-
-{{/*
 Create a default fully qualified app name for schema migrator.
 */}}
 {{- define "schemaMigrator.fullname" -}}
@@ -457,6 +376,37 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
+Return the service fqdn of Postgresql
+*/}}
+{{- define "postgresql.service" -}}
+{{- if .Values.postgresql.enabled -}}
+{{- $username := "$(POSTGRES_USER)" -}}
+{{- $password := "$(POSTGRES_PASSWORD)" -}}
+{{- $database := "$(POSTGRES_DB)" -}}
+{{- $port := "$(POSTGRES_PORT)" -}}
+{{- $name := "" -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+  {{- $name = .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+  {{- $name = default "postgresql" .Values.postgresql.nameOverride -}}
+  {{- if contains $name .Release.Name -}}
+    {{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+  {{- end -}}
+{{- end -}}
+{{- $namespace := .Values.postgresql.namespace -}}
+{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
+{{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database }}
+{{- else -}}
+{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
+{{- end -}}
+{{- end }}
+{{- end -}}
+
+
+{{/*
 Return `nodePort: null` if service type is ClusterIP
 */}}
 {{- define "signoz.service.ifClusterIP" -}}
@@ -574,13 +524,109 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
+
+{{/* 
+Create Env
+*/}}
+{{- define "signoz.env" -}}
+
+{{/*
+====== Default ENV ======
+*/}}
+{{- $defaultEnv := dict
+    "signoz_telemetrystore_clickhouse_dsn"     (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .))
+    "signoz_telemetrystore_clickhouse_cluster" (include "clickhouse.cluster" .)
+}}
+
+{{/*
+SQL STORE POSTGRES ENV
+*/}}
+{{- $sqlStorePostgresEnv := dict -}}
+{{- if .Values.postgresql.enabled }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_port" .Values.postgresql.service.port }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_user" .Values.postgresql.auth.username }}
+  {{- if .Values.postgresql.auth.existingSecret }}
+    {{- $secretCfg := default dict .Values.postgresql.auth.secretKeys }}
+    {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey ))) }}
+  {{- else }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_password" .Values.postgresql.auth.password }}
+  {{- end }}
+  {{- if .Values.postgresql.auth.database }}
+    {{- $_ := set $sqlStorePostgresEnv "postgres_db" .Values.postgresql.auth.database }}
+  {{- end }}
+{{- end }}
+{{/*
+SQL STORE ENV
+Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
+*/}}
+{{- $sqlStoreEnv := dict -}}
+{{- if .Values.postgresql.enabled -}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
+{{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgresql.service" .))}}
+{{- end }}
+
+
+{{/*
+===== USER ENV VARIABLES =====
+*/}}
+{{- $userEnv := .Values.signoz.env | default dict -}}
+
+{{/*
+====== DEPRECATION & BACKWARD COMPATIBILITY ======
+*/}}
+{{- $legacyEnv := dict -}}
+{{- if .Values.signoz.additionalEnvs }}
+{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
+{{- end }}
+
+{{- if and .Values.configVars .Values.signoz.configVars.clickHouseUrl }}
+  {{- $legacyEnv = mergeOverwrite $legacyEnv (dict "signoz_telemetrystore_clickhouse_dsn" .Values.signoz.configVars.clickHouseUrl) -}}
+{{- end }}
+
+{{- $smtpSecretEnv := dict -}}
+{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret (not .Values.signoz.env.signoz_emailing_enabled) }}  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_enabled" .Values.signoz.smtpVars.enabled) -}}
+  {{- with .Values.signoz.smtpVars.existingSecret }}
+    {{- $secretName := .name -}}
+    {{- if .fromKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_from" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .fromKey)))) -}}
+    {{- end }}
+    {{- if .hostKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_host" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .hostKey)))) -}}
+    {{- end }}
+    {{- if .portKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_port" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .portKey)))) -}}
+    {{- end }}
+    {{- if and .hostKey .portKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_address" "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)") -}}
+    {{- end }}
+    {{- if .usernameKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_username" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .usernameKey)))) -}}
+    {{- end }}
+    {{- if .passwordKey }}
+      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .passwordKey)))) -}}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+{{/*
+====== MERGE AND RENDER ENV BLOCK ======
+*/}}
+
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
+{{- template "signoz.renderEnv" $completeEnv -}}
+{{/* Render the sqlstoreEnv (provider, dsn) seprately to maintain the order of the env variables */}}
+{{- template "signoz.renderEnv" $sqlStoreEnv -}}
+{{- end -}}
+
 {{/*
 Function to render environment variables 
 */}}
-{{- define "signoz.renderAdditionalEnv" -}}
+{{- define "signoz.renderEnv" -}}
 {{- $dict := . -}}
 {{- $processedKeys := dict -}}
-{{- range keys . | sortAlpha }}
+{{- range keys . | sortAlpha | reverse }}
 {{- $val := pluck . $dict | first -}}
 {{- $key := upper . -}}
 {{- if not (hasKey $processedKeys $key) }}
@@ -594,9 +640,8 @@ Function to render environment variables
   value: {{ $val | quote }}
 {{- else }}
 - name: {{ $key }}
-  value: {{ $val | quote }}
+  value: {{ $val | quote}}
 {{- end }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
-

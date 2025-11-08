@@ -1,156 +1,283 @@
-# Global override values
+# global -- Global override values.
+# @section -- Global Configuration
 global:
-  # -- Overrides the Docker registry globally for all images
+  # global.imageRegistry -- Overrides the Docker registry globally for all images.
+  # @section -- Global Configuration
   imageRegistry: null
-  # -- Global Image Pull Secrets
+  # global.imagePullSecrets -- Global Image Pull Secrets.
+  # @section -- Global Configuration
   imagePullSecrets: []
-  # -- Overrides the storage class for all PVC with persistence enabled.
+  # global.storageClass -- Overrides the storage class for all PVCs with persistence enabled.
+  # @section -- Global Configuration
   storageClass: null
-  # -- Kubernetes cluster domain
-  # It is used only when components are installed in different namespace
+  # global.clusterDomain -- Kubernetes cluster domain. Used only when components are installed in different namespaces.
+  # @section -- Global Configuration
   clusterDomain: cluster.local
-  # -- Kubernetes cluster name
-  # It is used to attached to telemetry data via resource detection processor
+  # global.clusterName -- Kubernetes cluster name. Used to attach to telemetry data via the resource detection processor.
+  # @section -- Global Configuration
   clusterName: ""
-  # -- Deployment environment to be attached to telemetry data
+  # global.deploymentEnvironment -- Deployment environment to be attached to telemetry data.
+  # @section -- Global Configuration
   deploymentEnvironment: ""
-  # -- Kubernetes cluster cloud provider along with distribution if any.
-  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `azure`, and `other`
+  # global.cloud -- Kubernetes cluster cloud provider, along with distribution if any (e.g., `aws`, `azure`, `gcp`, `gcp/autogke`, `other`).
+  # @section -- Global Configuration
   cloud: other
 
-# -- K8s infra chart name override
+# nameOverride -- K8s infra chart name override.
+# @section -- General Configuration
 nameOverride: ""
 
-# -- K8s infra chart full name override
+# fullnameOverride -- K8s infra chart full name override.
+# @section -- General Configuration
 fullnameOverride: ""
 
-# -- Whether to enable K8s infra chart
+# enabled -- Whether to enable the K8s infra chart.
+# @section -- General Configuration
 enabled: true
 
-# -- Name of the K8s cluster. Used by OtelCollectors to attach in telemetry data.
+# clusterName -- Name of the K8s cluster. Used by OtelCollectors to attach in telemetry data.
+# @section -- General Configuration
 clusterName: ""
 
-# -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
-# Set it to `ingest.signoz.io:4317` for SigNoz SaaS.
-#
-# If set to null and the chart is installed as dependency, it will attempt
-# to autogenerate the endpoint of SigNoz OtelCollector.
+# otelCollectorEndpoint -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
+# @section -- General Configuration
+# Set it to `ingest.signoz.io:4317` for SigNoz Cloud.
+# If set to null and the chart is installed as a dependency, it will attempt
+# to autogenerate the endpoint of the SigNoz OtelCollector.
 otelCollectorEndpoint: null
 
-# -- Whether the OTLP endpoint is insecure.
-# Set this to false, in case of secure OTLP endpoint.
+# otelInsecure -- Whether the OTLP endpoint is insecure.
+# @section -- General Configuration
+# Set this to false in case of a secure OTLP endpoint.
 otelInsecure: true
 
-# -- Whether to skip verifying the certificate.
+# insecureSkipVerify -- Whether to skip verifying the OTLP endpoint's certificate.
+# @section -- General Configuration
 insecureSkipVerify: false
 
-# -- API key of SigNoz SaaS
+# signozApiKey -- API key for SigNoz Cloud.
+# @section -- API Key Configuration
 signozApiKey: ""
-# -- Existing secret name to be used for API key.
+# apiKeyExistingSecretName -- Existing secret name to be used for the API key.
+# @section -- API Key Configuration
 apiKeyExistingSecretName: ""
-# -- Existing secret key to be used for API key.
+# apiKeyExistingSecretKey -- Existing secret key to be used for the API key.
+# @section -- API Key Configuration
 apiKeyExistingSecretKey: ""
 
-# OTLP receivers TLS
+# @section -- OTLP Receiver TLS Configuration
 otelTlsSecrets:
-  # -- Whether to enable OpenTelemetry OTLP secrets
+  # otelTlsSecrets.enabled -- Whether to enable OpenTelemetry OTLP secrets for secure communication.
+  # @section -- OTLP Receiver TLS Configuration
   enabled: false
 
-  # -- Path for the secrets volume
+  # otelTlsSecrets.path -- Path for the secrets volume when mounted in the container.
+  # @section -- OTLP Receiver TLS Configuration
   path: /secrets
 
-  # -- Name of the existing secret with TLS certificate, key and CA to be used.
-  # Files in the secret must be named `cert.pem`, `key.pem` and `ca.pem`.
+  # otelTlsSecrets.existingSecretName -- Name of an existing secret with TLS certificate, key, and CA to be used.
+  # @section -- OTLP Receiver TLS Configuration
+  # Files in the secret must be named `cert.pem`, `key.pem`, and `ca.pem`.
   existingSecretName:
 
-  # -- TLS certificate to be included in the secret
+  # otelTlsSecrets.certificate -- TLS certificate to be included in the secret.
+  # @section -- OTLP Receiver TLS Configuration
   certificate: |
     <INCLUDE_CERTIFICATE_HERE>
 
-  # -- TLS private key to be included in the secret
+  # otelTlsSecrets.key -- TLS private key to be included in the secret.
+  # @section -- OTLP Receiver TLS Configuration
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
 
-  # -- TLS certificate authority (CA) certificate to be included in the secret
+  # otelTlsSecrets.ca -- TLS certificate authority (CA) certificate to be included in the secret.
+  # @section -- OTLP Receiver TLS Configuration
   ca: ""
 
-# -- Which namespace to install k8s-infra components.
-# By default installed to the namespace same as the chart.
+# namespace -- The namespace to install k8s-infra components into.
+# @section -- General Configuration
+# @default -- By default, components are installed in the same namespace as the chart.
 namespace: ""
 
-# -- Presets to easily set up OtelCollector configurations.
+
+# presets -- Presets to easily set up OtelCollector configurations.
+# @section -- Presets Configuration
+# @default -- "Please check out the values.yml for default values"
+# For more details, see the <a href="https://signoz.io/docs/collection-agents/k8s/k8s-infra/configure-k8s-infra/">documentation</a>
 presets:
-  loggingExporter:
+  # presets.debugExporter -- Configuration for the debug exporter, used for debugging telemetry data.
+  # @section -- Debug Exporter Presets
+  debugExporter:
+    # presets.debugExporter.enabled -- Enable the debug exporter.
+    # @section -- Debug Exporter Presets
     enabled: false
-    # Verbosity of the logging export: basic, normal, detailed
+    # presets.debugExporter.verbosity -- Verbosity of the debug exporter: `basic`, `normal`, or `detailed`.
+    # @section -- Debug Exporter Presets
     verbosity: basic
-    # Number of messages initially logged each second
+    # presets.debugExporter.samplingInitial -- Number of messages initially logged each second.
+    # @section -- Debug Exporter Presets
     samplingInitial: 2
-    # Sampling rate after the initial messages are logged
+    # presets.debugExporter.samplingThereafter -- Sampling rate after the initial messages are logged.
+    # @section -- Debug Exporter Presets
     samplingThereafter: 500
+  # presets.otlpExporter -- OTLP Exporter for the OTLP exporter.
+  # @section -- OTLP Exporter Presets
   otlpExporter:
+    # presets.otlpExporter.enabled - Enable the OTLP exporter to send data to the backend.
+    # @section -- OTLP Exporter Presets
     enabled: true
+  # presets.otlphttpExporter --  OTLP HTTP Exporter to which data will be sent.
+  # Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint.
+  # @section -- OTLP Exporter Presets
+  otlphttpExporter:
+    # presets.otlphttpExporter.enabled - Enable the OTLP HTTP exporter.
+    # @section -- OTLP Exporter Presets
+    enabled: false
+  # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
+  # @section -- Self Telemetry Presets
   selfTelemetry:
-    # OTLP HTTP endpoint to send own telemetry data to.
+    # presets.selfTelemetry.endpoint -- OTLP HTTP endpoint to send own telemetry data to.
+    # @section -- Self Telemetry Presets
     endpoint: ""
-    # Whether to use insecure mode.
+    # presets.selfTelemetry.insecure - Whether to use insecure mode for self-telemetry.
+    # @section -- Self Telemetry Presets
     insecure: true
-    # Whether to skip verifying the certificate.
+    # presets.selfTelemetry.insecureSkipVerify - Whether to skip verifying the certificate for self-telemetry.
+    # @section -- Self Telemetry Presets
     insecureSkipVerify: true
-    # -- API key of SigNoz SaaS
+    # presets.selfTelemetry.signozApiKey - API key for SigNoz Cloud for self-telemetry.
+    # @section -- Self Telemetry Presets
     signozApiKey: ""
-    # -- Existing secret name to be used for API key.
+    # presets.selfTelemetry.apiKeyExistingSecretName - Existing secret name for the self-telemetry API key.
+    # @section -- Self Telemetry Presets
     apiKeyExistingSecretName: ""
-    # -- Existing secret key to be used for API key.
+    # presets.selfTelemetry.apiKeyExistingSecretKey - Existing secret key for the self-telemetry API key.
+    # @section -- Self Telemetry Presets
     apiKeyExistingSecretKey: ""
+    # presets.selfTelemetry.traces - Configuration for self-telemetry traces.
+    # @section -- Self Telemetry Presets
     traces:
+      # presets.selfTelemetry.traces.enabled -- Enable self-telemetry for traces.
+      # @section -- Self Telemetry Presets
       enabled: false
+    # presets.selfTelemetry.metrics - Configuration for self-telemetry metrics.
+    # @section -- Self Telemetry Presets
     metrics:
+      # presets.selfTelemetry.metrics.enabled -- Enable self-telemetry for metrics.
+      # @section -- Self Telemetry Presets
       enabled: false
+    # presets.selfTelemetry.logs -- Configuration for self-telemetry logs.
+    # @section -- Self Telemetry Presets
     logs:
+      # presets.selfTelemetry.logs.enabled -- Enable self-telemetry for logs.
+      # @section -- Self Telemetry Presets
       enabled: false
+  # presets.logsCollection -- Configuration for collecting logs from pods.
+  # @section -- Logs Collection Presets
+  # @default -- "Please check out the values.yml for default values"
   logsCollection:
+    # presets.logsCollection.enabled -- Enable log collection.
+    # @section -- Logs Collection Presets
     enabled: true
+    # presets.logsCollection.startAt -- Where to start reading logs from: `end` or `beginning`.
+    # @section -- Logs Collection Presets
     startAt: end
+    # presets.logsCollection.includeFilePath -- Include the log file path as an attribute.
+    # @section -- Logs Collection Presets
     includeFilePath: true
+    # presets.logsCollection.includeFileName -- Include the log file name as an attribute.
+    # @section -- Logs Collection Presets
     includeFileName: false
-    # This include path patterns for log files to be collected.
-    # By default, all container logs are collected.
-    # If whitelist is set, this list is ignored.
+    # presets.logsCollection.include -- Include path patterns for log files to be collected. By default, all container logs are collected.
+    # @section -- Logs Collection Presets
     include:
       - /var/log/pods/*/*/*.log
-    # This can be used to exclude certain log files from being collected.
-    # By default, kube-system and hotrod, locust pods are excluded.
+    # presets.logsCollection.multiline -- Configuration that instructs the file_input operator to split log entries using a pattern other than newlines
+    # Please refer to the https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/9f1f674d7af62267f641c0b631d1326815ff80d1/receiver/filelogreceiver/README.md for more details.
+    # @section -- Logs Collection Presets
+    multiline: null
+      # multiline configuration block must contain exactly one of line_start_pattern or line_end_pattern
+      # line_start_pattern: ""
+
+    # presets.logsCollection.blacklist -- Exclude certain log files from being collected.
+    # @section -- Logs Collection Presets
     blacklist:
+      # presets.logsCollection.blacklist.enabled - Enable the blacklist.
+      # @section -- Logs Collection Presets
       enabled: true
+      # presets.logsCollection.blacklist.signozLogs - Exclude SigNoz's own logs.
+      # @section -- Logs Collection Presets
       signozLogs: true
+      # presets.logsCollection.blacklist.namespaces - List of namespaces to exclude from log collection.
+      # @section -- Logs Collection Presets
       namespaces:
         - kube-system
+      # presets.logsCollection.blacklist.pods - List of pod names to exclude.
+      # @section -- Logs Collection Presets
       pods:
         - hotrod
         - locust
+      # presets.logsCollection.blacklist.containers - List of container names to exclude.
+      # @section -- Logs Collection Presets
       containers: []
+      # presets.logsCollection.blacklist.additionalExclude - List of additional file path patterns to exclude.
+      # @section -- Logs Collection Presets
       additionalExclude: []
-    # This can be used to whitelist certain log files to be collected.
-    # By default this is disabled and all container logs are collected.
-    # If whitelist is enabled, `include` is ignored.
+    # presets.logsCollection.whitelist -- Whitelist certain log files to be collected. If enabled, `include` is ignored.
+    # @section -- Logs Collection Presets
     whitelist:
+      # presets.logsCollection.whitelist.enabled - Enable the whitelist.
+      # @section -- Logs Collection Presets
       enabled: false
+      # presets.logsCollection.whitelist.signozLogs - Include SigNoz's own logs.
+      # @section -- Logs Collection Presets
       signozLogs: true
+      # presets.logsCollection.whitelist.namespaces - List of namespaces to include in log collection.
+      # @section -- Logs Collection Presets
       namespaces: []
+      # presets.logsCollection.whitelist.pods - List of pod names to include.
+      # @section -- Logs Collection Presets
       pods: []
+      # presets.logsCollection.whitelist.containers - List of container names to include.
+      # @section -- Logs Collection Presets
       containers: []
+      # presets.logsCollection.whitelist.additionalInclude - List of additional file path patterns to include.
+      # @section -- Logs Collection Presets
       additionalInclude: []
+    # presets.logsCollection.operators -- A list of log processing operators.
+    # @section -- Logs Collection Presets
     operators:
       - id: container-parser
         type: container
+  # presets.hostMetrics -- Configuration for collecting host-level metrics from nodes.
+  # @section -- Host Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   hostMetrics:
+    # presets.hostMetrics.enabled -- Enable host metrics collection.
+    # @section -- Host Metrics Presets
     enabled: true
+    # presets.hostMetrics.rootPath -- Root path for host metrics collection (Linux only).
+    # @section -- Host Metrics Presets
+    # @default -- "/hostfs"
+    rootPath: "/hostfs"
+    # presets.hostMetrics.collectionInterval -- Frequency at which to scrape host metrics.
+    # @section -- Host Metrics Presets
     collectionInterval: 30s
+    # presets.hostMetrics.scrapers -- Fine-grained control over which host metric scrapers are enabled.
+    # @section -- Host Metrics Presets
+    # @default -- "Please check out the values.yml for default values"
     scrapers:
+      # presets.hostMetrics.scrapers.cpu -- Enable CPU metrics collection.
+      # @section -- Host Metrics Presets
       cpu: {}
+      # presets.hostMetrics.scrapers.load -- Enable load metrics collection.
+      # @section -- Host Metrics Presets
       load: {}
+      # presets.hostMetrics.scrapers.memory -- Enable memory metrics collection.
+      # @section -- Host Metrics Presets
       memory: {}
+      # presets.hostMetrics.scrapers.disk -- Enable disk metrics collection.
+      # @section -- Host Metrics Presets
       disk:
         exclude:
           devices:
@@ -164,6 +291,8 @@ presets:
             - ^xvd[a-z]\d+$
             - ^nvme\d+n\d+p\d+$
           match_type: regexp
+      # presets.hostmetrics.scrapers.filesystem -- Enable filesystem metrics collection.
+      # @section -- Host Metrics Presets
       filesystem:
         exclude_fs_types:
           fs_types:
@@ -203,6 +332,8 @@ presets:
             - /var/lib/kubelet/*
             - /snap/*
           match_type: regexp
+      # presets.hostMetrics.scrapers.network -- Enable network metrics collection.
+      # @section -- Host Metrics Presets
       network:
         exclude:
           interfaces:
@@ -217,20 +348,45 @@ presets:
             - ^tailscale.*$
             - ^lo$
           match_type: regexp
+  # presets.kubeletMetrics -- Configuration for collecting metrics from Kubelet.
+  # @section -- Kubelet Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   kubeletMetrics:
+    # presets.kubeletMetrics.enabled -- Enable Kubelet metrics collection.
+    # @section -- Kubelet Metrics Presets
     enabled: true
+    # presets.kubeletMetrics.collectionInterval -- Frequency at which to scrape Kubelet metrics.
+    # @section -- Kubelet Metrics Presets
     collectionInterval: 30s
+    # presets.kubeletMetrics.authType -- Authentication type to use with Kubelet: `serviceAccount` or `tls`.
+    # @section -- Kubelet Metrics Presets
     authType: serviceAccount
+    # presets.kubeletMetrics.endpoint -- Kubelet endpoint.
+    # The `kubeletstats` receiver uses `K8S_HOST_IP` by default for IPv4 clusters to avoid DNS resolution issues.
+    # On IPv6 or dual-stack clusters, if kubelet scraping fails, switch the endpoint to use `K8S_NODE_NAME` instead.
+    # @section -- Kubelet Metrics Presets
     endpoint: ${env:K8S_HOST_IP}:10250
+    # presets.kubeletMetrics.insecureSkipVerify -- Skip verifying Kubelet's certificate.
+    # @section -- Kubelet Metrics Presets
     insecureSkipVerify: true
+    # presets.kubeletMetrics.extraMetadataLabels -- List of extra metadata labels to collect.
+    # For GCP/GKE clusters, extraMetadataLabels may not be available due to kubelet configuration.
+    # See documentation for details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/
+    # @section -- Kubelet Metrics Presets
     extraMetadataLabels:
       - container.id
       - k8s.volume.type
+    # presets.kubeletMetrics.metricGroups -- Groups of metrics to collect from Kubelet.
+    # @section -- Kubelet Metrics Presets
     metricGroups:
       - container
       - pod
       - node
       - volume
+    # presets.kubeletMetrics.metrics -- Fine-grained control over which Kubelet metrics are enabled.
+    # Note: In GKE Autopilot clusters ("gcp/autogke"), request and limit metrics are not available to scrape due to Kubelet configuration.
+    # Check out the documentation for more details: https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/k8s-infra-kubelet-autogke/
+    # @section -- Kubelet Metrics Presets
     metrics:
       k8s.node.cpu.usage:
         enabled: true
@@ -260,18 +416,24 @@ presets:
         enabled: true
       container.uptime:
         enabled: true
+  # presets.kubernetesAttributes -- Processor for adding Kubernetes attributes to telemetry data.
+  # @section -- Kubernetes Attributes Processor Presets
+  # @default -- "Please check out the values.yml for default values"
   kubernetesAttributes:
+    # presets.kubernetesAttributes.enabled -- Enable the Kubernetes attributes processor.
+    # @section -- Kubernetes Attributes Processor Presets
     enabled: true
-    # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
-    # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+    # presets.kubernetesAttributes.passthrough -- If true, agents will not make k8s API calls, do discovery, or extract metadata.
+    # @section -- Kubernetes Attributes Processor Presets
     passthrough: false
-    # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
-    # selector to only dramatically reducing resource requirements for very large clusters.
+    # presets.kubernetesAttributes.filter -- Limit agents to query pods based on specific selectors to reduce resource usage.
+    # @section -- Kubernetes Attributes Processor Presets
     filter:
-      # -- Restrict each OpenTelemetry agent to query pods running on the same node
+      # presets.kubernetesAttributes.filter.node_from_env_var -- Restrict each agent to query pods on the same node.
+      # @section -- Kubernetes Attributes Processor Presets
       node_from_env_var: K8S_NODE_NAME
-    # -- Pod Association section allows to define rules for tagging spans, metrics,
-    # and logs with Pod metadata.
+    # presets.kubernetesAttributes.podAssociation -- Rules for tagging telemetry with pod metadata.
+    # @section -- Kubernetes Attributes Processor Presets
     podAssociation:
       - sources:
         - from: resource_attribute
@@ -281,7 +443,8 @@ presets:
           name: k8s.pod.uid
       - sources:
         - from: connection
-    # -- Which pod/namespace metadata to extract from a list of default metadata fields.
+    # presets.kubernetesAttributes.extractMetadatas -- Pod/namespace metadata to extract from a list of default metadata fields.
+    # @section -- Kubernetes Attributes Processor Presets
     extractMetadatas:
       - k8s.namespace.name
       - k8s.deployment.name
@@ -294,13 +457,24 @@ presets:
       - k8s.pod.name
       - k8s.pod.uid
       - k8s.pod.start_time
-    # -- Which labels to extract from a list of metadata fields.
+    # presets.kubernetesAttributes.extractLabels -- Pod labels to extract as attributes.
+    # @section -- Kubernetes Attributes Processor Presets
     extractLabels: []
-    # -- Which annotations to extract from a list of metadata fields.
+    # presets.kubernetesAttributes.extractAnnotations -- Pod annotations to extract as attributes.
+    # @section -- Kubernetes Attributes Processor Presets
     extractAnnotations: []
+  # presets.clusterMetrics -- Configuration for collecting cluster-level metrics.
+  # @section -- Cluster Metrics Presets
+  # @default -- "Please check out the values.yml for default values"
   clusterMetrics:
+    # presets.clusterMetrics.enabled -- Enable cluster metrics collection.
+    # @section -- Cluster Metrics Presets
     enabled: true
+    # presets.clusterMetrics.collectionInterval -- Frequency at which to scrape cluster metrics.
+    # @section -- Cluster Metrics Presets
     collectionInterval: 30s
+    # presets.clusterMetrics.resourceAttributes -- Resource attributes to report.
+    # @section -- Cluster Metrics Presets
     resourceAttributes:
       k8s.pod.qos_class:
         enabled: true
@@ -312,125 +486,208 @@ presets:
         enabled: true
       k8s.container.status.last_terminated_reason:
         enabled: true
+    # presets.clusterMetrics.nodeConditionsToReport -- Node conditions to report as metrics.
+    # @section -- Cluster Metrics Presets
     nodeConditionsToReport:
       - Ready
       - MemoryPressure
       - DiskPressure
       - PIDPressure
       - NetworkUnavailable
+    # presets.clusterMetrics.allocatableTypesToReport -- Allocatable resource types to report.
+    # @section -- Cluster Metrics Presets
     allocatableTypesToReport:
       - cpu
       - memory
       # - ephemeral-storage
       # - storage
+    # presets.clusterMetrics.metrics -- Fine-grained control over which cluster metrics are enabled.
+    # @section -- Cluster Metrics Presets
     metrics:
       k8s.node.condition:
         enabled: true
       k8s.pod.status_reason:
         enabled: true
+  # presets.prometheus -- Configuration for scraping Prometheus metrics from pod annotations.
+  # @section -- Prometheus Metrics Presets
   prometheus:
-    # -- Whether to enable metrics scraping using pod annotation
+    # presets.prometheus.enabled -- Enable Prometheus metrics scraping.
+    # @section -- Prometheus Metrics Presets
     enabled: false
-    # -- Prefix for the pod annotations to be used for metrics scraping
+    # presets.prometheus.annotationsPrefix -- Prefix for the pod annotations used for metrics scraping (e.g., `signoz.io`).
+    # @section -- Prometheus Metrics Presets
     annotationsPrefix: signoz.io
-    # -- How often to scrape metrics
+    # presets.prometheus.scrapeInterval -- How often to scrape metrics.
+    # @section -- Prometheus Metrics Presets
     scrapeInterval: 60s
-    # -- Whether to only scrape metrics from pods in the same namespace
+    # presets.prometheus.namespaceScoped -- Only scrape metrics from pods in the same namespace.
+    # @section -- Prometheus Metrics Presets
     namespaceScoped: false
-    # -- If set, only scrape metrics from pods in the specified namespaces
+    # presets.prometheus.namespaces -- If set, only scrape metrics from pods in the specified namespaces.
+    # @section -- Prometheus Metrics Presets
     namespaces: []
-    # -- This will include all pod labels in the metrics, could potentially cause
-    # performance issues with large number of pods with many labels
+    # presets.prometheus.includePodLabel -- Include all pod labels in the metrics (can cause high cardinality).
+    # @section -- Prometheus Metrics Presets
     includePodLabel: false
-    # -- This is not recommended in case of multiple containers or init containers in a pod
-    # Since it will create multiple timeseries for the same pod metrics with different container names
-    # containers with `-init` suffix in the name will be ignored
+    # presets.prometheus.includeContainerName -- Include container name in metrics (not recommended for multi-container pods).
+    # @section -- Prometheus Metrics Presets
     includeContainerName: false
+    # presets.prometheus.scrapeConfigs -- Custom scraper configs used for metrics scraping
+    # @section -- Prometheus Metrics Presets
+    scrapeConfigs: []
+  # presets.resourceDetection -- Processor for detecting resource information from the environment (e.g., cloud provider, k8s).
+  # @section -- Resource Detection Processor Presets
   resourceDetection:
+    # presets.resourceDetection.enabled -- Enable the resource detection processor.
+    # @section -- Resource Detection Processor Presets
     enabled: true
+    # presets.resourceDetection.timeout -- Timeout for resource detection.
+    # @section -- Resource Detection Processor Presets
     timeout: 2s
+    # presets.resourceDetection.override -- Whether to override existing resource attributes.
+    # @section -- Resource Detection Processor Presets
     override: false
+    # presets.resourceDetection.envResourceAttributes -- Additional resource attributes from environment variables.
+    # @section -- Resource Detection Processor Presets
     envResourceAttributes: ""
+  # presets.k8sEvents -- Configuration for collecting Kubernetes events as logs.
+  # @section -- Kubernetes Events Collection Presets
   k8sEvents:
+    # presets.k8sEvents.enabled -- Enable Kubernetes events collection.
+    # @section -- Kubernetes Events Collection Presets
     enabled: true
+    # presets.k8sEvents.authType -- Authentication type: `serviceAccount` or `kubeconfig`.
+    # @section -- Kubernetes Events Collection Presets
     authType: serviceAccount
-    # -- List of namespaces to watch for events.
-    # all namespaces by default
+    # presets.k8sEvents.namespaces -- List of namespaces to watch for events. Empty list means all namespaces.
+    # @section -- Kubernetes Events Collection Presets
     namespaces: []
 
-# Default values for OtelAgent
+# @section -- OpenTelemetry Agent (DaemonSet)
+# otelAgent -- Configuration for the OpenTelemetry Collector Agent, deployed as a DaemonSet.
 otelAgent:
+  # otelAgent.enabled -- Enable the OtelAgent DaemonSet.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   enabled: true
+  # otelAgent.name -- Name of the OtelAgent DaemonSet.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   name: "otel-agent"
+  # otelAgent.image -- Image configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   image:
+    # otelAgent.image.registry -- Docker registry for the OtelAgent image.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     registry: docker.io
+    # otelAgent.image.repository -- Repository for the OtelAgent image.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     repository: otel/opentelemetry-collector-contrib
+    # otelAgent.image.tag -- Tag for the OtelAgent image.
+    # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     tag: 0.109.0
+    # otelAgent.image.pullPolicy -- Image pull policy for the OtelAgent.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     pullPolicy: IfNotPresent
 
-  # -- Image Registry Secret Names for OtelAgent.
-  # If global.imagePullSecrets is set as well, it will merged.
+  # otelAgent.imagePullSecrets -- Image Pull Secrets for the OtelAgent. Merged with `global.imagePullSecrets`.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   imagePullSecrets: []
     # - "otelAgent-pull-secret"
 
-  # OpenTelemetry Collector executable
+  # otelAgent.command -- Command and arguments for the OtelAgent container.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   command:
-    # -- OtelAgent command name
+    # otelAgent.command.name -- OtelAgent command name.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     name: /otelcol-contrib
-    # -- OtelAgent command extra arguments
+    # otelAgent.command.extraArgs -- Extra arguments for the OtelAgent command.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     extraArgs: []
 
+  # otelAgent.configMap -- ConfigMap configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   configMap:
-    # -- Specifies whether a configMap should be created (true by default)
+    # otelAgent.configMap.create -- Specifies whether a ConfigMap should be created.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     create: true
 
-  # OtelAgent service
+  # otelAgent.service -- Service configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   service:
-    # -- Annotations to use by service associated to OtelAgent
+    # otelAgent.service.annotations -- Annotations for the OtelAgent service.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    # otelAgent.service.type -- Service type: `ClusterIP`, `NodePort`, or `LoadBalancer`.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     type: ClusterIP
-    #  -- Traffic Policy: Local (route requests to pod on same host) or Cluster (route to all)
-    # https://kubernetes.io/docs/reference/networking/virtual-ips/#internal-traffic-policy
+    # otelAgent.service.internalTrafficPolicy -- Internal traffic policy: `Local` or `Cluster`.
+    # @section -- OpenTelemetry Agent (DaemonSet)
+    # ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#internal-traffic-policy
     internalTrafficPolicy: Local
 
+  # otelAgent.serviceAccount -- ServiceAccount configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   serviceAccount:
-    # Specifies whether a service account should be created
+    # otelAgent.serviceAccount.create -- Specifies whether a ServiceAccount should be created.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     create: true
-    # Annotations to add to the service account
+    # otelAgent.serviceAccount.annotations -- Annotations for the ServiceAccount.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
+    # otelAgent.serviceAccount.name -- The name of the ServiceAccount to use. A name is generated if not set.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     name:
 
-  # -- OtelAgent daemonset annotation.
+  # otelAgent.annotations -- Annotations for the OtelAgent DaemonSet.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   annotations: {}
-  # -- OtelAgent pod(s) annotation.
+  # otelAgent.podAnnotations -- Annotations for the OtelAgent pods.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   podAnnotations: {}
     # signoz.io/scrape: 'true'
     # signoz.io/port: '8888'
     # signoz.io/path: /metrics
 
-  # -- Additional environments to set for OtelAgent
+  # otelAgent.additionalEnvs -- Additional environment variables for the OtelAgent container.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  # You can specify variables in two ways:
+  # 1. Flexible structure for advanced configurations (recommended):
+  #    Example:
+  #      additionalEnvs:
+  #        MY_KEY:
+  #          value: my-value
+  #        SECRET_KEY:
+  #          valueFrom:
+  #            secretKeyRef:
+  #              name: my-secret
+  #              key: my-key
+  # 2. Simple key-value pairs (backward-compatible):
+  #    Example:
+  #      additionalEnvs:
+  #        MY_KEY: my-value
   additionalEnvs: {}
-    # env_key: env_value
 
-  # -- Minimum number of seconds for which a newly created Pod should be ready
-  # without any of its containers crashing, for it to be considered available.
+  # otelAgent.minReadySeconds -- Minimum number of seconds for which a newly created Pod should be ready.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   minReadySeconds: 5
 
-  # OtelAgent RBAC config
+  # otelAgent.clusterRole -- ClusterRole configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  # @default -- "Please checkout the values.yml for default values"
   clusterRole:
-    # -- Specifies whether a clusterRole should be created
+    # otelAgent.clusterRole.create -- Specifies whether a ClusterRole should be created.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     create: true
-    # -- Annotations to add to the clusterRole
+    # otelAgent.clusterRole.annotations -- Annotations for the ClusterRole.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     annotations: {}
-    # -- The name of the clusterRole to use.
-    # If not set and create is true, a name is generated using the fullname template
+    # otelAgent.clusterRole.name -- The name of the ClusterRole to use. A name is generated if not set.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     name: ""
-    # -- A set of rules as documented here.
+    # otelAgent.clusterRole.rules -- RBAC rules for the OtelAgent.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- See `values.yaml` for defaults
+    # @default -- "Please checkout the values.yml for default values"
     rules:
       # k8sattributes processor requires these permissions
       - apiGroups: [""]
@@ -460,167 +717,215 @@ otelAgent:
         resourceNames: ["otel-container-insight-clusterleader"]
         verbs: ["get", "update"]
 
-    # OtelAgent clusterRoleBinding
+    # otelAgent.clusterRole.clusterRoleBinding -- ClusterRoleBinding configuration for the OtelAgent.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     clusterRoleBinding:
-      # Annotations to add to the clusterRoleBinding
+      # otelAgent.clusterRoleBinding.annotations -- Annotations for the ClusterRoleBinding.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       annotations: {}
-      # The name of the clusterRoleBinding to use.
-      # If not set and create is true, a name is generated using the fullname template
+      # otelAgent.clusterRoleBinding.name -- The name of the ClusterRoleBinding to use. A name is generated if not set.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       name: ""
 
-  # Configuration for ports
+  # otelAgent.ports -- Port configurations for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  # @default -- "Please checkout the values.yml for default values"
   ports:
+    # @section -- OpenTelemetry Agent (DaemonSet)
     otlp:
-      # -- Whether to enable service port for OTLP gRPC
+      # otelAgent.ports.otlp.enabled -- Enable service port for OTLP gRPC.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: true
-      # -- Container port for OTLP gRPC
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 4317
-      # -- Service port for OTLP gRPC
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 4317
-      # -- Node port for OTLP gRPC
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for OTLP gRPC
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 4317
-      # -- Protocol to use for OTLP gRPC
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     otlp-http:
-      # -- Whether to enable service port for OTLP HTTP
+      # otelAgent.ports.otlp-http.enabled -- Enable service port for OTLP HTTP.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: true
-      # -- Container port for OTLP HTTP
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 4318
-      # -- Service port for OTLP HTTP
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 4318
-      # -- Node port for OTLP HTTP
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for OTLP HTTP
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 4318
-      # -- Protocol to use for OTLP HTTP
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     zipkin:
-      # -- Whether to enable service port for Zipkin
+      # otelAgent.ports.zipkin.enabled -- Enable service port for Zipkin.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: false
-      # -- Container port for Zipkin
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 9411
-      # -- Service port for Zipkin
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 9411
-      # -- Node port for Zipkin
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for Zipkin
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 9411
-      # -- Protocol to use for Zipkin
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     metrics:
-      # -- Whether to enable service port for internal metrics
+      # otelAgent.ports.metrics.enabled -- Enable service port for internal metrics.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: true
-      # -- Container port for internal metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 8888
-      # -- Service port for internal metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 8888
-      # -- Node port for internal metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for internal metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 8888
-      # -- Protocol to use for internal metrics
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     zpages:
-      # -- Whether to enable service port for ZPages
+      # otelAgent.ports.zpages.enabled -- Enable service port for ZPages.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: false
-      # -- Container port for Zpages
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 55679
-      # -- Service port for Zpages
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 55679
-      # -- Node port for Zpages
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for Zpages
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 55679
-      # -- Protocol to use for Zpages
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     health-check:
-      # -- Whether to enable service port for health check
+      # otelAgent.ports.health-check.enabled -- Enable service port for health checks.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: true
-      # -- Container port for health check
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 13133
-      # -- Service port for health check
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 13133
-      # -- Node port for health check
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for health check
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 13133
-      # -- Protocol to use for health check
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
+    # @section -- OpenTelemetry Agent (DaemonSet)
     pprof:
-      # -- Whether to enable service port for pprof
+      # otelAgent.ports.pprof.enabled -- Enable service port for pprof.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       enabled: false
-      # -- Container port for pprof
+      # @section -- OpenTelemetry Agent (DaemonSet)
       containerPort: 1777
-      # -- Service port for pprof
+      # @section -- OpenTelemetry Agent (DaemonSet)
       servicePort: 1777
-      # -- Node port for pprof
+      # @section -- OpenTelemetry Agent (DaemonSet)
       nodePort: ""
-      # -- Host port for pprof
+      # @section -- OpenTelemetry Agent (DaemonSet)
       hostPort: 1777
-      # -- Protocol to use for pprof
+      # @section -- OpenTelemetry Agent (DaemonSet)
       protocol: TCP
-
-  # -- Configure liveness probe.
+  # otelAgent.hostNetwork -- Host networking requested for this pod. Use the host's network namespace.
+  # Please make sure while enabling hostNetwork that the host ports are available as it can lead to port conflicts.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  hostNetwork: false
+  # otelAgent.livenessProbe -- Configure liveness probe.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
   livenessProbe:
+    # @section -- OpenTelemetry Agent (DaemonSet)
     enabled: true
+    # @section -- OpenTelemetry Agent (DaemonSet)
     port: 13133
+    # @section -- OpenTelemetry Agent (DaemonSet)
     path: /
+    # @section -- OpenTelemetry Agent (DaemonSet)
     initialDelaySeconds: 10
+    # @section -- OpenTelemetry Agent (DaemonSet)
     periodSeconds: 10
+    # @section -- OpenTelemetry Agent (DaemonSet)
     timeoutSeconds: 5
+    # @section -- OpenTelemetry Agent (DaemonSet)
     failureThreshold: 6
+    # @section -- OpenTelemetry Agent (DaemonSet)
     successThreshold: 1
 
-  # -- Configure readiness probe.
+  # otelAgent.readinessProbe -- Configure readiness probe.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
   readinessProbe:
+    # @section -- OpenTelemetry Agent (DaemonSet)
     enabled: true
+    # @section -- OpenTelemetry Agent (DaemonSet)
     port: 13133
+    # @section -- OpenTelemetry Agent (DaemonSet)
     path: /
+    # @section -- OpenTelemetry Agent (DaemonSet)
     initialDelaySeconds: 10
+    # @section -- OpenTelemetry Agent (DaemonSet)
     periodSeconds: 10
+    # @section -- OpenTelemetry Agent (DaemonSet)
     timeoutSeconds: 5
+    # @section -- OpenTelemetry Agent (DaemonSet)
     failureThreshold: 6
+    # @section -- OpenTelemetry Agent (DaemonSet)
     successThreshold: 1
 
-  # -- Custom liveness probe
+  # otelAgent.customLivenessProbe -- Custom liveness probe configuration.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   customLivenessProbe: {}
-  # -- Custom readiness probe
+  # otelAgent.customReadinessProbe -- Custom readiness probe configuration.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   customReadinessProbe: {}
 
+  # otelAgent.ingress -- Ingress configuration for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   ingress:
-    # -- Enable ingress for OtelAgent
+    # otelAgent.ingress.enabled -- Enable Ingress for the OtelAgent.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     enabled: false
-    # -- Ingress Class Name to be used to identify ingress controllers
+    # otelAgent.ingress.className -- Ingress Class Name to be used.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     className: ""
-    # -- Annotations to OtelAgent Ingress
+    # otelAgent.ingress.annotations -- Annotations for the OtelAgent Ingress.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     annotations: {}
       # cert-manager.io/cluster-issuer: letsencrypt-prod
       # nginx.ingress.kubernetes.io/ssl-redirect: "true"
       # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
-    # -- OtelAgent Ingress Host names with their path details
+    # otelAgent.ingress.hosts -- OtelAgent Ingress hostnames with their path details.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     hosts:
       - host: otel-agent.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 4317
-    # -- OtelAgent Ingress TLS
+    # otelAgent.ingress.tls -- OtelAgent Ingress TLS configuration.
+    # @section -- OpenTelemetry Agent (DaemonSet)
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otel-agent.domain.com
 
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might not be suitable for your workload.
+  # otelAgent.resources -- Configure resource requests and limits for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # @default -- See `values.yaml` for defaults
   resources:
+    # @section -- OpenTelemetry Agent (DaemonSet)
     requests:
       cpu: 100m
       memory: 100Mi
@@ -628,24 +933,30 @@ otelAgent:
     #   cpu: 1000m
     #   memory: 1Gi
 
-  # -- OtelAgent priority class name
+  # otelAgent.priorityClassName -- OtelAgent Priority Class name.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   priorityClassName: ""
 
-  # -- OtelAgent node selector
+  # otelAgent.nodeSelector -- Node selector for OtelAgent pod assignment.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   nodeSelector: {}
 
-  # -- Toleration labels for OtelAgent pod assignment
+  # otelAgent.tolerations -- Toleration labels for OtelAgent pod assignment.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   tolerations:
     - operator: Exists
 
-  # -- Affinity settings for OtelAgent pod
+  # otelAgent.affinity -- Affinity settings for the OtelAgent pod.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   affinity: {}
 
-  # -- Pod-level security configuration
+  # otelAgent.podSecurityContext -- Pod-level security configuration.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   podSecurityContext: {}
     # fsGroup: 2000
 
-  # -- Container security configuration
+  # otelAgent.securityContext -- Container-level security configuration.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   securityContext: {}
     # capabilities:
     #   drop:
@@ -654,9 +965,11 @@ otelAgent:
     # runAsNonRoot: true
     # runAsUser: 1000
 
-  # -- Configurations for OtelAgent
-  # @default -- See `values.yaml` for defaults
+  # otelAgent.config -- Base configuration for the OtelAgent Collector.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  # @default -- "Please Checkout the values.yml for default values"
   config:
+    # @section -- OpenTelemetry Agent (DaemonSet)
     receivers:
       otlp:
         protocols:
@@ -665,16 +978,20 @@ otelAgent:
             max_recv_msg_size_mib: 4
           http:
             endpoint: 0.0.0.0:4318
+    # @section -- OpenTelemetry Agent (DaemonSet)
     processors:
-      # Batch processor config.
+      # otelAgent.config.processors.batch -- Batch processor config.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
       batch:
         send_batch_size: 10000
         timeout: 200ms
-      # Memory Limiter processor.
+      # otelAgent.config.processors.memory_limiter -- Memory Limiter processor.
+      # @section -- OpenTelemetry Agent (DaemonSet)
       # If not set, will be overridden with values based on k8s resource limits.
       # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
       # memory_limiter: null
+    # @section -- OpenTelemetry Agent (DaemonSet)
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -682,7 +999,9 @@ otelAgent:
         endpoint: localhost:55679
       pprof:
         endpoint: localhost:1777
+    # @section -- OpenTelemetry Agent (DaemonSet)
     exporters: {}
+    # @section -- OpenTelemetry Agent (DaemonSet)
     service:
       telemetry:
         logs:
@@ -704,7 +1023,8 @@ otelAgent:
           processors: [batch]
           exporters: []
 
-  # -- Additional volumes for otelAgent
+  # otelAgent.extraVolumes -- Additional volumes for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   extraVolumes: []
   # - name: config-volume
   #   configMap:
@@ -713,7 +1033,8 @@ otelAgent:
   #   secret:
   #     secretName: special-secret
 
-  # -- Additional volume mounts for otelAgent
+  # otelAgent.extraVolumeMounts -- Additional volume mounts for the OtelAgent.
+  # @section -- OpenTelemetry Agent (DaemonSet)
   extraVolumeMounts: []
   # - name: config-volume
   #   mountPath: /etc/config
@@ -721,65 +1042,98 @@ otelAgent:
   #   mountPath: /etc/secret
   #   readOnly: true
 
-# Default values for OtelDeployment
+# @section -- OpenTelemetry Deployment
+# otelDeployment -- Configuration for the OpenTelemetry Collector, deployed as a Deployment for cluster-wide metrics.
 otelDeployment:
+  # otelDeployment.enabled -- Enable the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   enabled: true
+  # otelDeployment.name -- Name of the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   name: "otel-deployment"
+  # otelDeployment.image -- Image configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   image:
+    # otelDeployment.image.registry -- Docker registry for the OtelDeployment image.
+    # @section -- OpenTelemetry Deployment
     registry: docker.io
+    # otelDeployment.image.repository -- Repository for the OtelDeployment image.
+    # @section -- OpenTelemetry Deployment
     repository: otel/opentelemetry-collector-contrib
+    # otelDeployment.image.tag -- Tag for the OtelDeployment image.
+    # In case of your Host OS is windows, use the `0.123.0-windows-2022-amd64` tag.
+    # @section -- OpenTelemetry Deployment
     tag: 0.109.0
+    # otelDeployment.image.pullPolicy -- Image pull policy for the OtelDeployment.
+    # @section -- OpenTelemetry Deployment
     pullPolicy: IfNotPresent
 
-  # -- Image Registry Secret Names for OtelDeployment.
-  # If global.imagePullSecrets is set as well, it will merged.
+  # otelDeployment.imagePullSecrets -- Image Pull Secrets for the OtelDeployment. Merged with `global.imagePullSecrets`.
+  # @section -- OpenTelemetry Deployment
   imagePullSecrets: []
     # - "otelDeployment-pull-secret"
 
-  # OpenTelemetry Collector executable
+  # otelDeployment.command -- Command and arguments for the OtelDeployment container.
+  # @section -- OpenTelemetry Deployment
   command:
-    # -- OtelDeployment command name
+    # otelDeployment.command.name -- OtelDeployment command name.
+    # @section -- OpenTelemetry Deployment
     name: /otelcol-contrib
-    # -- OtelDeployment command extra arguments
+    # otelDeployment.command.extraArgs -- Extra arguments for the OtelDeployment command.
+    # @section -- OpenTelemetry Deployment
     extraArgs: []
 
+  # otelDeployment.configMap -- ConfigMap configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   configMap:
-    # -- Specifies whether a configMap should be created (true by default)
+    # otelDeployment.configMap.create -- Specifies whether a ConfigMap should be created.
+    # @section -- OpenTelemetry Deployment
     create: true
 
-  # OtelDeployment service
+  # otelDeployment.service -- Service configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   service:
-    # -- Annotations to use by service associated to OtelDeployment
+    # otelDeployment.service.annotations -- Annotations for the OtelDeployment service.
+    # @section -- OpenTelemetry Deployment
     annotations: {}
-    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    # otelDeployment.service.type -- Service type.
+    # @section -- OpenTelemetry Deployment
     type: ClusterIP
 
+  # otelDeployment.serviceAccount -- ServiceAccount configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   serviceAccount:
-    # Specifies whether a service account should be created
+    # otelDeployment.serviceAccount.create -- Specifies whether a ServiceAccount should be created.
+    # @section -- OpenTelemetry Deployment
     create: true
-    # Annotations to add to the service account
+    # otelDeployment.serviceAccount.annotations -- Annotations for the ServiceAccount.
+    # @section -- OpenTelemetry Deployment
     annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
+    # otelDeployment.serviceAccount.name -- The name of the ServiceAccount to use. A name is generated if not set.
+    # @section -- OpenTelemetry Deployment
     name:
 
-  # -- OtelDeployment deployment annotation.
+  # otelDeployment.annotations -- Annotations for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   annotations: {}
-  # -- OtelDeployment pod(s) annotation.
+  # otelDeployment.podAnnotations -- Annotations for the OtelDeployment pods.
+  # @section -- OpenTelemetry Deployment
   podAnnotations: {}
     # signoz.io/scrape: 'true'
     # signoz.io/port: '8888'
     # signoz.io/path: /metrics
 
-  # -- Additional environments to set for OtelDeployment
+  # otelDeployment.additionalEnvs -- Additional environment variables for the OtelDeployment container.
+  # @section -- OpenTelemetry Deployment
   additionalEnvs: {}
-    # env_key: env_value
 
-  # -- Pod-level security configuration
+  # otelDeployment.podSecurityContext -- Pod-level security configuration.
+  # @section -- OpenTelemetry Deployment
   podSecurityContext: {}
     # fsGroup: 2000
 
-  # -- Container security configuration
+  # otelDeployment.securityContext -- Container-level security configuration.
+  # @section -- OpenTelemetry Deployment
   securityContext: {}
     # capabilities:
     #   drop:
@@ -788,121 +1142,149 @@ otelDeployment:
     # runAsNonRoot: true
     # runAsUser: 1000
 
-  # -- Minimum number of seconds for which a newly created Pod should be ready
-  # without any of its containers crashing, for it to be considered available.
+  # otelDeployment.minReadySeconds -- Minimum number of seconds for which a newly created Pod should be ready.
+  # @section -- OpenTelemetry Deployment
   minReadySeconds: 5
 
-  # -- Number of seconds to wait for the OtelDeployment to progress before the
-  # system reports back that the OtelDeployment has failed.
+  # otelDeployment.progressDeadlineSeconds -- Seconds to wait for the Deployment to progress before it's considered failed.
+  # @section -- OpenTelemetry Deployment
   progressDeadlineSeconds: 120
 
-  # Configuration for ports
+  # otelDeployment.ports -- Port configurations for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   ports:
+    # @section -- OpenTelemetry Deployment
     metrics:
-      # -- Whether to enable service port for internal metrics
+      # otelDeployment.ports.metrics.enabled -- Enable service port for internal metrics.
+      # @section -- OpenTelemetry Deployment
       enabled: false
-      # -- Container port for internal metrics
+      # @section -- OpenTelemetry Deployment
       containerPort: 8888
-      # -- Service port for internal metrics
+      # @section -- OpenTelemetry Deployment
       servicePort: 8888
-      # -- Node port for internal metrics
+      # @section -- OpenTelemetry Deployment
       nodePort: ""
-      # -- Protocol to use for internal metrics
+      # @section -- OpenTelemetry Deployment
       protocol: TCP
+    # @section -- OpenTelemetry Deployment
     zpages:
-      # -- Whether to enable service port for ZPages
+      # otelDeployment.ports.zpages.enabled -- Enable service port for ZPages.
+      # @section -- OpenTelemetry Deployment
       enabled: false
-      # -- Container port for Zpages
+      # @section -- OpenTelemetry Deployment
       containerPort: 55679
-      # -- Service port for Zpages
+      # @section -- OpenTelemetry Deployment
       servicePort: 55679
-      # -- Node port for Zpages
+      # @section -- OpenTelemetry Deployment
       nodePort: ""
-      # -- Protocol to use for Zpages
+      # @section -- OpenTelemetry Deployment
       protocol: TCP
+    # @section -- OpenTelemetry Deployment
     health-check:
-      # -- Whether to enable service port for health check
+      # otelDeployment.ports.health-check.enabled -- Enable service port for health checks.
+      # @section -- OpenTelemetry Deployment
       enabled: true
-      # -- Container port for health check
+      # @section -- OpenTelemetry Deployment
       containerPort: 13133
-      # -- Service port for health check
+      # @section -- OpenTelemetry Deployment
       servicePort: 13133
-      # -- Node port for health check
+      # @section -- OpenTelemetry Deployment
       nodePort: ""
-      # -- Protocol to use for health check
+      # @section -- OpenTelemetry Deployment
       protocol: TCP
+    # @section -- OpenTelemetry Deployment
     pprof:
-      # -- Whether to enable service port for pprof
+      # otelDeployment.ports.pprof.enabled -- Enable service port for pprof.
+      # @section -- OpenTelemetry Deployment
       enabled: false
-      # -- Container port for pprof
+      # @section -- OpenTelemetry Deployment
       containerPort: 1777
-      # -- Service port for pprof
+      # @section -- OpenTelemetry Deployment
       servicePort: 1777
-      # -- Node port for pprof
+      # @section -- OpenTelemetry Deployment
       nodePort: ""
-      # -- Protocol to use for pprof
+      # @section -- OpenTelemetry Deployment
       protocol: TCP
 
-  # -- Configure liveness probe.
-  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+  # otelDeployment.livenessProbe -- Configure liveness probe.
+  # @section -- OpenTelemetry Deployment
   livenessProbe:
+    # @section -- OpenTelemetry Deployment
     enabled: true
+    # @section -- OpenTelemetry Deployment
     port: 13133
+    # @section -- OpenTelemetry Deployment
     path: /
+    # @section -- OpenTelemetry Deployment
     initialDelaySeconds: 10
+    # @section -- OpenTelemetry Deployment
     periodSeconds: 10
+    # @section -- OpenTelemetry Deployment
     timeoutSeconds: 5
+    # @section -- OpenTelemetry Deployment
     failureThreshold: 6
+    # @section -- OpenTelemetry Deployment
     successThreshold: 1
 
-  # -- Configure readiness probe.
-  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+  # otelDeployment.readinessProbe -- Configure readiness probe.
+  # @section -- OpenTelemetry Deployment
   readinessProbe:
+    # @section -- OpenTelemetry Deployment
     enabled: true
+    # @section -- OpenTelemetry Deployment
     port: 13133
+    # @section -- OpenTelemetry Deployment
     path: /
+    # @section -- OpenTelemetry Deployment
     initialDelaySeconds: 10
+    # @section -- OpenTelemetry Deployment
     periodSeconds: 10
+    # @section -- OpenTelemetry Deployment
     timeoutSeconds: 5
+    # @section -- OpenTelemetry Deployment
     failureThreshold: 6
+    # @section -- OpenTelemetry Deployment
     successThreshold: 1
 
-  # -- Custom liveness probe
+  # otelDeployment.customLivenessProbe -- Custom liveness probe configuration.
+  # @section -- OpenTelemetry Deployment
   customLivenessProbe: {}
 
-  # -- Custom readiness probe
+  # otelDeployment.customReadinessProbe -- Custom readiness probe configuration.
+  # @section -- OpenTelemetry Deployment
   customReadinessProbe: {}
 
+  # otelDeployment.ingress -- Ingress configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   ingress:
-    # -- Enable ingress for OtelDeployment
+    # otelDeployment.ingress.enabled -- Enable Ingress for the OtelDeployment.
+    # @section -- OpenTelemetry Deployment
     enabled: false
-    # -- Ingress Class Name to be used to identify ingress controllers
+    # otelDeployment.ingress.className -- Ingress Class Name to be used.
+    # @section -- OpenTelemetry Deployment
     className: ""
-    # -- Annotations to OtelDeployment Ingress
+    # otelDeployment.ingress.annotations -- Annotations for the OtelDeployment Ingress.
+    # @section -- OpenTelemetry Deployment
     annotations: {}
-      # cert-manager.io/cluster-issuer: letsencrypt-prod
-      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-    # -- OtelDeployment Ingress Host names with their path details
+    # otelDeployment.ingress.hosts -- OtelDeployment Ingress hostnames.
+    # @section -- OpenTelemetry Deployment
     hosts:
       - host: otel-deployment.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
             port: 13133
-    # -- OtelDeployment Ingress TLS
+    # otelDeployment.ingress.tls -- OtelDeployment Ingress TLS configuration.
+    # @section -- OpenTelemetry Deployment
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otel-deployment.domain.com
 
-  # -- Configure resource requests and limits. Update according to your own use
-  # case as these values might not be suitable for your workload.
-  # ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # @default -- See `values.yaml` for defaults
+  # otelDeployment.resources -- Configure resource requests and limits for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   resources:
+    # @section -- OpenTelemetry Deployment
     requests:
       cpu: 100m
       memory: 100Mi
@@ -910,33 +1292,42 @@ otelDeployment:
     #   cpu: 1000m
     #   memory: 1Gi
 
-  # -- OtelDeployment priority class name
+  # otelDeployment.priorityClassName -- OtelDeployment Priority Class name.
+  # @section -- OpenTelemetry Deployment
   priorityClassName: ""
 
-  # -- OtelDeployment node selector
+  # otelDeployment.nodeSelector -- Node selector for OtelDeployment pod assignment.
+  # @section -- OpenTelemetry Deployment
   nodeSelector: {}
 
-  # -- Toleration labels for OtelDeployment pod assignment
+  # otelDeployment.tolerations -- Toleration labels for OtelDeployment pod assignment.
+  # @section -- OpenTelemetry Deployment
   tolerations: []
 
-  # -- Affinity settings for OtelDeployment pod
+  # otelDeployment.affinity -- Affinity settings for the OtelDeployment pod.
+  # @section -- OpenTelemetry Deployment
   affinity: {}
 
-  # -- TopologySpreadConstraints describes how OtelDeployment pods ought to spread
+  # otelDeployment.topologySpreadConstraints -- Describes how OtelDeployment pods ought to spread.
+  # @section -- OpenTelemetry Deployment
   topologySpreadConstraints: []
 
-  # OtelDeployment RBAC config
+  # otelDeployment.clusterRole -- ClusterRole configuration for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
+  # @default -- "Please Checkout the values.yml for default values"
   clusterRole:
-    # -- Specifies whether a clusterRole should be created
+    # otelDeployment.clusterRole.create -- Specifies whether a ClusterRole should be created.
+    # @section -- OpenTelemetry Deployment
     create: true
-    # -- Annotations to add to the clusterRole
+    # otelDeployment.clusterRole.annotations -- Annotations for the ClusterRole.
+    # @section -- OpenTelemetry Deployment
     annotations: {}
-    # -- The name of the clusterRole to use.
-    # If not set and create is true, a name is generated using the fullname template
+    # otelDeployment.clusterRole.name -- The name of the ClusterRole to use. A name is generated if not set.
+    # @section -- OpenTelemetry Deployment
     name: ""
-    # -- A set of rules as documented here.
-    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- See `values.yaml` for defaults
+    # otelDeployment.clusterRole.rules -- RBAC rules for the OtelDeployment.
+    # @section -- OpenTelemetry Deployment
+    # @default -- "Please checkout the values.yml for default values"
     rules:
       - apiGroups: [""]
         resources:
@@ -965,28 +1356,33 @@ otelDeployment:
         resources: ["horizontalpodautoscalers"]
         verbs: ["get", "list", "watch"]
 
-    # OtelDeployment clusterRoleBinding
+    # otelDeployment.clusterRole.clusterRoleBinding -- ClusterRoleBinding configuration for the OtelDeployment.
+    # @section -- OpenTelemetry Deployment
     clusterRoleBinding:
-      # -- Annotations to add to the clusterRoleBinding
+      # otelDeployment.clusterRoleBinding.annotations -- Annotations for the ClusterRoleBinding.
+      # @section -- OpenTelemetry Deployment
       annotations: {}
-      # -- The name of the clusterRoleBinding to use.
-      # If not set and create is true, a name is generated using the fullname template
+      # otelDeployment.clusterRoleBinding.name -- The name of the ClusterRoleBinding to use. A name is generated if not set.
+      # @section -- OpenTelemetry Deployment
       name: ""
 
-  # -- Configurations for OtelDeployment
-  # @default -- See `values.yaml` for defaults
+  # otelDeployment.config -- Base configuration for the OtelDeployment Collector.
+  # @section -- OpenTelemetry Deployment
+  # @default -- "Please Checkout the values.yml for default values"
   config:
+    # @section -- OpenTelemetry Deployment
     receivers: {}
+    # @section -- OpenTelemetry Deployment
     processors:
-      # Batch processor config.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
+      # otelDeployment.config.processors.batch -- Batch processor config.
+      # @section -- OpenTelemetry Deployment
       batch:
         send_batch_size: 10000
         timeout: 1s
-      # Memory Limiter processor.
-      # If not set, will be overridden with values based on k8s resource limits.
-      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
+      # otelDeployment.config.processors.memory_limiter -- Memory Limiter processor.
+      # @section -- OpenTelemetry Deployment
       # memory_limiter: null
+    # @section -- OpenTelemetry Deployment
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -994,7 +1390,9 @@ otelDeployment:
         endpoint: localhost:55679
       pprof:
         endpoint: localhost:1777
+    # @section -- OpenTelemetry Deployment
     exporters: {}
+    # @section -- OpenTelemetry Deployment
     service:
       telemetry:
         logs:
@@ -1016,7 +1414,8 @@ otelDeployment:
           processors: [batch]
           exporters: []
 
-  # -- Additional volumes for otelDeployment
+  # otelDeployment.extraVolumes -- Additional volumes for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   extraVolumes: []
   # - name: config-volume
   #   configMap:
@@ -1025,7 +1424,8 @@ otelDeployment:
   #   secret:
   #     secretName: special-secret
 
-  # -- Additional volume mounts for otelDeployment
+  # otelDeployment.extraVolumeMounts -- Additional volume mounts for the OtelDeployment.
+  # @section -- OpenTelemetry Deployment
   extraVolumeMounts: []
   # - name: config-volume
   #   mountPath: /etc/config

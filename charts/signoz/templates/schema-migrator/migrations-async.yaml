@@ -24,6 +24,10 @@ metadata:
 spec:
   template:
     metadata:
+      {{- with .Values.schemaMigrator.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:

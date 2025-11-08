@@ -1,8 +1,9 @@
+
 # SigNoz
 
-SigNoz is an open-source APM. It helps developers monitor their applications & troubleshoot problems,
-an open-source alternative to DataDog, NewRelic, etc. Open source Application Performance Monitoring (APM)
-& Observability tool.
+![Version: 0.100.1](https://img.shields.io/badge/Version-0.100.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.100.1](https://img.shields.io/badge/AppVersion-v0.100.1-informational?style=flat-square)
+
+SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
 ### TL;DR;
 
@@ -60,150 +61,1339 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
+> [!WARNING] 
+> ### Breaking Changes
+> #### Version 0.89.0
+> After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
+>
+> To ensure continued stability, we have migrated the Zookeeper Images and Charts to our own repositories.
+>
+> You must upgrade to SigNoz `v0.89.0` to avoid any service interruption.
+> More details are available in [Issue #731](https://github.com/SigNoz/charts/issues/731)
+> #### Version 0.88.0
+> **Configuration Migration Required:**
+> - `signoz.configVars` has been deprecated
+> - `signoz.smtpVars` has been deprecated
+> - `signoz.additionalEnvs` has been deprecated
+> These configuration options must now be specified under `signoz.env` instead.
+>
+> Refer to the official [documentation](https://github.com/SigNoz/signoz/blob/main/conf/example.yaml) for a complete list of env variables.
+> <br/> Note on Variable Naming: Environment variables are derived from the YAML configuration.
+> <br/> For example, a key `address` for `smtp` under the `emailing` section becomes `signoz_emailing_smtp_address`.
+>
+> **Before:**
+> ```yaml
+> signoz:
+>  configVars:
+>    storage: clickhouse
+>  smtpVars:
+>    existingSecret:
+>      name: my-secret-name
+>      hostKey: my-smtp-host-key
+>      portKey: my-smtp-port-key
+> ```
+>
+> **After:**
+> ```yaml
+> signoz:
+>  env:
+>    storage: clickhouse
+>    signoz_emailing_smtp_address:
+>      valueFrom:
+>        secretKeyRef:
+>          name: my-secret-name
+>          key: my-smtp-address-key
+> ```
 
-## Configuration
+## Values
 
-The following table lists the configurable parameters of the `signoz` chart and their default values.
+<h3>Global Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="global"><a href="./values.yaml#L3">global</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">cloud: other
+clusterDomain: cluster.local
+clusterName: ""
+imagePullSecrets: []
+imageRegistry: null
+storageClass: null</pre>
+</div>
+            </td>
+            <td>Global override values for the chart.</td>
+        </tr>
+        <tr>
+            <td id="global--imageRegistry"><a href="./values.yaml#L7">global.imageRegistry</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Overrides the Image registry globally for all components.</td>
+        </tr>
+        <tr>
+            <td id="global--imagePullSecrets"><a href="./values.yaml#L11">global.imagePullSecrets</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Global Image Pull Secrets.</td>
+        </tr>
+        <tr>
+            <td id="global--storageClass"><a href="./values.yaml#L17">global.storageClass</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Overrides the storage class for all PVCs with persistence enabled. If not set, the default storage class is used. If set to "-", storageClassName will be an empty string, which disables dynamic provisioning.</td>
+        </tr>
+        <tr>
+            <td id="global--clusterDomain"><a href="./values.yaml#L22">global.clusterDomain</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">cluster.local</pre>
+</div>
+            </td>
+            <td>The Kubernetes cluster domain. It is used only when components are installed in different namespaces.</td>
+        </tr>
+        <tr>
+            <td id="global--clusterName"><a href="./values.yaml#L27">global.clusterName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>The Kubernetes cluster name. It is used to attach to telemetry data via the resource detection processor.</td>
+        </tr>
+        <tr>
+            <td id="global--cloud"><a href="./values.yaml#L34">global.cloud</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">other</pre>
+</div>
+            </td>
+            <td>The Kubernetes cluster cloud provider and distribution (if any). example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other` The storage class for persistent volumes is selected based on this value. When set to 'aws' or 'gcp' with `installCustomStorageClass` enabled, a new expandable storage class is created.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>General Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="nameOverride"><a href="./values.yaml#L38">nameOverride</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Override the default chart name.</td>
+        </tr>
+        <tr>
+            <td id="fullnameOverride"><a href="./values.yaml#L42">fullnameOverride</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Override the default full chart name.</td>
+        </tr>
+        <tr>
+            <td id="clusterName"><a href="./values.yaml#L46">clusterName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Name of the K8s cluster. Used by SigNoz OtelCollectors to attach to telemetry data.</td>
+        </tr>
+        <tr>
+            <td id="imagePullSecrets"><a href="./values.yaml#L52">imagePullSecrets</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Image Registry Secret Names for all SigNoz components. If `global.imagePullSecrets` is set, it will be merged with this list. This has lower precedence than `imagePullSecrets` at the individual component level.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>External ClickHouse</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="externalClickhouse"><a href="./values.yaml#L701">externalClickhouse</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">cluster: cluster
+database: signoz_metrics
+existingSecret: null
+existingSecretPasswordKey: null
+host: null
+httpPort: 8123
+logDatabase: signoz_logs
+meterDatabase: signoz_meter
+password: ""
+secure: false
+tcpPort: 9000
+traceDatabase: signoz_traces
+user: ""
+verify: false</pre>
+</div>
+            </td>
+            <td>External ClickHouse configuration. Required when `clickhouse.enabled` is false.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>SigNoz</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="signoz"><a href="./values.yaml#L747">signoz</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Default values for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--name"><a href="./values.yaml#L751">signoz.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
+</div>
+            </td>
+            <td>The name of the SigNoz component.</td>
+        </tr>
+        <tr>
+            <td id="signoz--replicaCount"><a href="./values.yaml#L755">signoz.replicaCount</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>The number of pod replicas for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--image"><a href="./values.yaml#L758">signoz.image</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
+registry: docker.io
+repository: signoz/signoz
+tag: v0.100.1</pre>
+</div>
+            </td>
+            <td>Image configuration for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--imagePullSecrets"><a href="./values.yaml#L776">signoz.imagePullSecrets</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Image pull secrets for SigNoz. This has higher precedence than the root level or global value.</td>
+        </tr>
+        <tr>
+            <td id="signoz--serviceAccount"><a href="./values.yaml#L779">signoz.serviceAccount</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+create: true
+name: null</pre>
+</div>
+            </td>
+            <td>Service Account configuration for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--annotations"><a href="./values.yaml#L823">signoz.annotations</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Annotations for the SigNoz pod.</td>
+        </tr>
+        <tr>
+            <td id="signoz--additionalArgs"><a href="./values.yaml#L827">signoz.additionalArgs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional command-line arguments for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--env"><a href="./values.yaml#L851">signoz.env</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">dot_metrics_enabled: true
+signoz_alertmanager_provider: signoz
+signoz_alertmanager_signoz_external__url: http://localhost:8080
+signoz_emailing_enabled: false
+signoz_prometheus_active_query_tracker_enabled: false
+signoz_telemetrystore_provider: clickhouse</pre>
+</div>
+            </td>
+            <td>Environment variables for SigNoz. Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml Note on Variable Naming: Environment variables are derived from the YAML configuration. For example, a key `provider` under the `telemetry_store` section becomes `signoz_telemetrystore_provider`.</td>
+        </tr>
+        <tr>
+            <td id="signoz--initContainers"><a href="./values.yaml#L869">signoz.initContainers</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Init containers for the SigNoz pod.</td>
+        </tr>
+        <tr>
+            <td id="signoz--initContainers--init"><a href="./values.yaml#L874">signoz.initContainers.init</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Signoz init container configuration. This container is used to wait for ClickHouse to be ready before starting the main SigNoz service.</td>
+        </tr>
+        <tr>
+            <td id="signoz--initContainers--migration"><a href="./values.yaml#L898">signoz.initContainers.migration</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">args: []
+command: []
+enabled: false
+image:
+    pullPolicy: IfNotPresent
+    registry: docker.io
+    repository: busybox
+    tag: 1.35
+resources: {}</pre>
+</div>
+            </td>
+            <td>Migration init container configuration. This container is used to run migrations before the main SigNoz service starts.</td>
+        </tr>
+        <tr>
+            <td id="signoz--podSecurityContext"><a href="./values.yaml#L921">signoz.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Pod-level security context.</td>
+        </tr>
+        <tr>
+            <td id="signoz--podAnnotations"><a href="./values.yaml#L927">signoz.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for the SigNoz pod.</td>
+        </tr>
+        <tr>
+            <td id="signoz--securityContext"><a href="./values.yaml#L931">signoz.securityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Container-level security context.</td>
+        </tr>
+        <tr>
+            <td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L942">signoz.additionalVolumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volume mounts for the SigNoz container.</td>
+        </tr>
+        <tr>
+            <td id="signoz--additionalVolumes"><a href="./values.yaml#L946">signoz.additionalVolumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volumes for the SigNoz pod.</td>
+        </tr>
+        <tr>
+            <td id="signoz--livenessProbe"><a href="./values.yaml#L950">signoz.livenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Liveness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="signoz--readinessProbe"><a href="./values.yaml#L962">signoz.readinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Readiness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="signoz--customLivenessProbe"><a href="./values.yaml#L974">signoz.customLivenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom liveness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="signoz--customReadinessProbe"><a href="./values.yaml#L978">signoz.customReadinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom readiness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="signoz--resources"><a href="./values.yaml#L1013">signoz.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
+        </tr>
+        <tr>
+            <td id="signoz--priorityClassName"><a href="./values.yaml#L1024">signoz.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Priority class for the SigNoz pods.</td>
+        </tr>
+        <tr>
+            <td id="signoz--nodeSelector"><a href="./values.yaml#L1028">signoz.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--tolerations"><a href="./values.yaml#L1032">signoz.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--affinity"><a href="./values.yaml#L1036">signoz.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1040">signoz.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="signoz--persistence"><a href="./values.yaml#L1043">signoz.persistence</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">accessModes:
+    - ReadWriteOnce
+enabled: true
+existingClaim: ""
+size: 1Gi
+storageClass: null</pre>
+</div>
+            </td>
+            <td>Persistence configuration for the internal SQLite database.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>SigNoz Networking</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="signoz--service"><a href="./values.yaml#L792">signoz.service</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+internalNodePort: null
+internalPort: 8085
+labels: {}
+nodePort: null
+opampInternalNodePort: null
+opampPort: 4320
+port: 8080
+type: ClusterIP</pre>
+</div>
+            </td>
+            <td>Service configuration for SigNoz. This allows you to configure how SigNoz is exposed within the Kubernetes cluster.</td>
+        </tr>
+        <tr>
+            <td id="signoz--ingress"><a href="./values.yaml#L981">signoz.ingress</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+className: ""
+enabled: false
+hosts:
+    - host: signoz.domain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 8080
+tls: []</pre>
+</div>
+            </td>
+            <td>Ingress configuration for SigNoz.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Schema Migrator</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="schemaMigrator"><a href="./values.yaml#L1063">schemaMigrator</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Default values for the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--enabled"><a href="./values.yaml#L1067">schemaMigrator.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable the Schema Migrator component.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--name"><a href="./values.yaml#L1071">schemaMigrator.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">schema-migrator</pre>
+</div>
+            </td>
+            <td>The name of the Schema Migrator component.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--image"><a href="./values.yaml#L1074">schemaMigrator.image</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
+registry: docker.io
+repository: signoz/signoz-schema-migrator
+tag: v0.129.8</pre>
+</div>
+            </td>
+            <td>Image configuration for the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--args"><a href="./values.yaml#L1090">schemaMigrator.args</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">- --up=</pre>
+</div>
+            </td>
+            <td>Arguments for the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--annotations"><a href="./values.yaml#L1096">schemaMigrator.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for the Schema Migrator job. Required for ArgoCD hooks if `upgradeHelmHooks` is enabled.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--upgradeHelmHooks"><a href="./values.yaml#L1100">schemaMigrator.upgradeHelmHooks</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable Helm pre-upgrade hooks for Helm or Sync Waves for ArgoCD.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--enableReplication"><a href="./values.yaml#L1104">schemaMigrator.enableReplication</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Whether to enable replication for the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--nodeSelector"><a href="./values.yaml#L1108">schemaMigrator.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--tolerations"><a href="./values.yaml#L1112">schemaMigrator.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--affinity"><a href="./values.yaml#L1116">schemaMigrator.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--topologySpreadConstraints"><a href="./values.yaml#L1120">schemaMigrator.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--initContainers"><a href="./values.yaml#L1124">schemaMigrator.initContainers</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Init containers for the Schema Migrator pod.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--initContainers--init"><a href="./values.yaml#L1129">schemaMigrator.initContainers.init</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Schema Migrator init container configuration. This container is used to wait for ClickHouse to be ready before starting the main Schema Migrator service.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--initContainers--chReady"><a href="./values.yaml#L1154">schemaMigrator.initContainers.chReady</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>ClickHouse ready check container configuration. This container is used to ensure ClickHouse is ready with the correct version, shard count, and replica count before starting the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--initContainers--wait"><a href="./values.yaml#L1215">schemaMigrator.initContainers.wait</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Wait container configuration. This container is used to wait for other resources before starting the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--serviceAccount"><a href="./values.yaml#L1234">schemaMigrator.serviceAccount</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+create: true
+name: null</pre>
+</div>
+            </td>
+            <td>Service Account configuration for the Schema Migrator.</td>
+        </tr>
+        <tr>
+            <td id="schemaMigrator--role"><a href="./values.yaml#L1247">schemaMigrator.role</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>RBAC configuration for the Schema Migrator.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector"><a href="./values.yaml#L1276">otelCollector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Default values for the OpenTelemetry Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--name"><a href="./values.yaml#L1280">otelCollector.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">otel-collector</pre>
+</div>
+            </td>
+            <td>The name of the Otel Collector component.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--image"><a href="./values.yaml#L1284">otelCollector.image</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Image configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1301">otelCollector.imagePullSecrets</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Image pull secrets for the Otel Collector. This has higher precedence than the root level or global value.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--initContainers"><a href="./values.yaml#L1305">otelCollector.initContainers</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Init containers for the Otel Collector pod.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--initContainers--init"><a href="./values.yaml#L1310">otelCollector.initContainers.init</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Otel Collector init container configuration. This container is used to wait for ClickHouse to be ready before starting the main Otel Collector service.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--command"><a href="./values.yaml#L1333">otelCollector.command</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">extraArgs:
+    - --feature-gates=-pkg.translator.prometheus.NormalizeName
+name: /signoz-otel-collector</pre>
+</div>
+            </td>
+            <td>Configuration for the Otel Collector executable.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--configMap"><a href="./values.yaml#L1343">otelCollector.configMap</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">create: true</pre>
+</div>
+            </td>
+            <td>ConfigMap settings.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--serviceAccount"><a href="./values.yaml#L1349">otelCollector.serviceAccount</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+create: true
+name: null</pre>
+</div>
+            </td>
+            <td>Service Account configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--annotations"><a href="./values.yaml#L1377">otelCollector.annotations</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Annotations for the Otel Collector Deployment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--podAnnotations"><a href="./values.yaml#L1381">otelCollector.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Annotations for the Otel Collector pod(s).</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--podLabels"><a href="./values.yaml#L1387">otelCollector.podLabels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels for the Otel Collector pod(s).</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--additionalEnvs"><a href="./values.yaml#L1391">otelCollector.additionalEnvs</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Additional environment variables for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L1397">otelCollector.lowCardinalityExceptionGrouping</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1401">otelCollector.minReadySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Minimum number of seconds for a new pod to be ready.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1405">otelCollector.progressDeadlineSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">600</pre>
+</div>
+            </td>
+            <td>Maximum time in seconds for a deployment to make progress before it is considered failed.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1409">otelCollector.replicaCount</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>The number of pod replicas for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--clusterRole"><a href="./values.yaml#L1413">otelCollector.clusterRole</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>RBAC ClusterRole configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L1656">otelCollector.livenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Liveness probe configuration. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L1668">otelCollector.readinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Readiness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L1680">otelCollector.customLivenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom liveness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L1684">otelCollector.customReadinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom readiness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L1688">otelCollector.extraVolumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Extra volume mounts for the Otel Collector pod.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L1692">otelCollector.extraVolumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Extra volumes for the Otel Collector pod.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--resources"><a href="./values.yaml#L1729">otelCollector.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L1740">otelCollector.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Priority class for the Otel Collector pods.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L1744">otelCollector.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--tolerations"><a href="./values.yaml#L1748">otelCollector.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--affinity"><a href="./values.yaml#L1752">otelCollector.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L1756">otelCollector.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L1766">otelCollector.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Pod-level security context.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--securityContext"><a href="./values.yaml#L1772">otelCollector.securityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Container-level security context.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--autoscaling"><a href="./values.yaml#L1783">otelCollector.autoscaling</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Autoscaling configuration (HPA).</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--autoscaling--keda"><a href="./values.yaml#L1820">otelCollector.autoscaling.keda</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: null
+cooldownPeriod: "300"
+enabled: false
+maxReplicaCount: "5"
+minReplicaCount: "1"
+pollingInterval: "30"
+triggers: []</pre>
+</div>
+            </td>
+            <td>KEDA-based autoscaling configuration.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Networking</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector--service"><a href="./values.yaml#L1361">otelCollector.service</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+labels: {}
+loadBalancerSourceRanges: []
+type: ClusterIP</pre>
+</div>
+            </td>
+            <td>Service configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ingress"><a href="./values.yaml#L1695">otelCollector.ingress</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+className: ""
+enabled: false
+hosts:
+    - host: otelcollector.domain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 4318
+tls: []</pre>
+</div>
+            </td>
+            <td>Ingress configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1713">otelCollector.ingress.hosts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Hostname and path configurations for the ingress.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Ports</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector--ports"><a href="./values.yaml#L1453">otelCollector.ports</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Port configurations for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--otlp"><a href="./values.yaml#L1456">otelCollector.ports.otlp</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4317
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 4317</pre>
+</div>
+            </td>
+            <td>OTLP gRPC port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--otlp-http"><a href="./values.yaml#L1474">otelCollector.ports.otlp-http</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4318
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 4318</pre>
+</div>
+            </td>
+            <td>OTLP HTTP port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-compact"><a href="./values.yaml#L1492">otelCollector.ports.jaeger-compact</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 6831
+enabled: false
+nodePort: ""
+protocol: UDP
+servicePort: 6831</pre>
+</div>
+            </td>
+            <td>Jaeger Compact port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-thrift"><a href="./values.yaml#L1510">otelCollector.ports.jaeger-thrift</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14268
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 14268</pre>
+</div>
+            </td>
+            <td>Jaeger Thrift port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-grpc"><a href="./values.yaml#L1528">otelCollector.ports.jaeger-grpc</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14250
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 14250</pre>
+</div>
+            </td>
+            <td>Jaeger gRPC port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--zipkin"><a href="./values.yaml#L1546">otelCollector.ports.zipkin</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 9411
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 9411</pre>
+</div>
+            </td>
+            <td>Zipkin port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--metrics"><a href="./values.yaml#L1564">otelCollector.ports.metrics</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8888
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8888</pre>
+</div>
+            </td>
+            <td>Internal metrics port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--zpages"><a href="./values.yaml#L1582">otelCollector.ports.zpages</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 55679
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 55679</pre>
+</div>
+            </td>
+            <td>ZPages port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--pprof"><a href="./values.yaml#L1600">otelCollector.ports.pprof</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 1777
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 1777</pre>
+</div>
+            </td>
+            <td>pprof port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--logsheroku"><a href="./values.yaml#L1618">otelCollector.ports.logsheroku</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8081
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8081</pre>
+</div>
+            </td>
+            <td>Heroku logs port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--logsjson"><a href="./values.yaml#L1636">otelCollector.ports.logsjson</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8082
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8082</pre>
+</div>
+            </td>
+            <td>JSON logs port configuration.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Configuration</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector--config"><a href="./values.yaml#L1845">otelCollector.config</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Main configuration for the OpenTelemetry Collector pipelines.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Postgres</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="postgresql--enabled"><a href="./values.yaml#L1953">postgresql.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Enable or disable the PostgreSQL for signoz. For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Gateway Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L1956">signoz-otel-gateway</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
+</div>
+            </td>
+            <td>This component is configurable with licensed version of SigNoz.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Redpanda Settings</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="redpanda"><a href="./values.yaml#L2172">redpanda</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
+</div>
+            </td>
+            <td>This component is configurable with licensed version of SigNoz.</td>
+        </tr>
+    </tbody>
+</table>
 
-| Parameter                                                   | Description                                                                                                | Default                        |
-|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|--------------------------------|
-| `fullnameOverride`                                          | SigNoz chart full name override (the release name is ignored)                                              | `""`                           |
-| `signoz.name`                                         | Query Service component name                                                                               | `signoz`                |
-| `signoz.image.registry`                               | Query Service image registry name                                                                          | `docker.io`                    |
-| `signoz.image.repository`                             | Container image name                                                                                       | `signoz/signoz`         |
-| `signoz.image.tag`                                    | Container image tag                                                                                        | `0.64.0`                       |
-| `signoz.image.pullPolicy`                             | Container pull policy                                                                                      | `IfNotPresent`                 |
-| `signoz.replicaCount`                                 | Number of signoz nodes                                                                              | `1`                            |
-| `signoz.initContainers.init.enabled`                  | Query Service initContainer enabled                                                                        | `true`                         |
-| `signoz.initContainers.init.image.registry`           | Query Service initContainer registry name                                                                  | `docker.io`                    |
-| `signoz.initContainers.init.image.repository`         | Query Service initContainer image name                                                                     | `busybox`                      |
-| `signoz.initContainers.init.image.tag`                | Query Service initContainer image tag                                                                      | `1.35`                         |
-| `signoz.initContainers.init.image.pullPolicy`         | Query Service initContainer pull policy                                                                    | `IfNotPresent`                 |
-| `signoz.initContainers.init.command`                  | Query Service initContainer command line to execute                                                        | See `values.yaml` for defaults |
-| `signoz.initContainers.init.resources`                | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `signoz.additionalEnvs`                               | Additional environment variables for signoz container                                               | `[]`                           |
-| `signoz.configVars`                                   | Query Service configurations                                                                               | See `values.yaml` for defaults |
-| `signoz.smtpVars.enabled`                             | Enable SMTP for user invitation. It will set `SMTP_ENABLED` when enabled.                                  | `false`                        |
-| `signoz.smtpVars.existingSecret.fromKey`              | Name of key in secret to get value for `SMTP_FROM`. If empty, will not set the env variable.               | `""`                           | 
-| `signoz.smtpVars.existingSecret.hostKey`              | Name of key in secret to get value for `SMTP_HOST`. If empty will not set the env variable.                | `""`                           | 
-| `signoz.smtpVars.existingSecret.name`                 | Name fo the existing k8s secret to pick the values. Needed when one of the key for existing secret is set. | `""`                           | 
-| `signoz.smtpVars.existingSecret.passwordKey`          | Name of key in secret to get value for `SMTP_PASSWORD`. If empty will not set the env variable.            | `""`                           | 
-| `signoz.smtpVars.existingSecret.portKey`              | Name of key in secret to get value for `SMTP_PORT`. If empty will not set the env variable.                | `""`                           | 
-| `signoz.smtpVars.existingSecret.usernameKey `         | Name of key in secret to get value for `SMTP_USERNAME`. If empty will not set the env variable.            | `""`                           | 
-| `signoz.imagePullSecrets`                             | Reference to secrets to be used when pulling images                                                        | `[]`                           |
-| `signoz.serviceAccount.create`                        | Service account for signoz nodes enabled                                                            | `true`                         |
-| `signoz.serviceAccount.annotations`                   | Service account annotations                                                                                | `{}`                           |
-| `signoz.serviceAccount.name`                          | Name of the service account                                                                                | `nil`                          |
-| `signoz.resources`                                    | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `signoz.podSecurityContext`                           | Pods security context                                                                                      | `{}`                           |
-| `signoz.securityContext`                              | Security context for signoz node                                                                    | `{}`                           |
-| `signoz.service.annotations`                          | Service annotations                                                                                        | `{}`                           |
-| `signoz.service.labels`                               | Service labels                                                                                             | `{}`                           |
-| `signoz.service.type`                                 | Query Service service type                                                                                 | `ClusterIP`                    |
-| `signoz.service.port`                                 | Query Service service port                                                                                 | `8080`                         |
-| `signoz.service.internalPort`                         | Query Service service internal port                                                                        | `8085`                         |
-| `signoz.livenessProbe`                                | Query Service liveness probes                                                                              | See `values.yaml` for defaults |
-| `signoz.readinessProbe`                               | Query Service readiness probes                                                                             | See `values.yaml` for defaults |
-| `signoz.customLivenessProbe`                          | Custom liveness probes (if `signoz.livenessProbe` not enabled)                                       | `{}`                           |
-| `signoz.customReadinessProbe`                         | Custom readiness probes (if `signoz.readinessProbe` not enabled)                                     | `{}`                           |
-| `signoz.ingress.enabled`                              | Query Service ingress resource enabled                                                                     | `false`                        |
-| `signoz.ingress.className`                            | Query Service ingress class name                                                                           | `""`                           |
-| `signoz.ingress.hosts`                                | Query Service ingress virtual hosts                                                                        | See `values.yaml` for defaults |
-| `signoz.ingress.annotations`                          | Query Service ingress annotations                                                                          | `{}`                           |
-| `signoz.ingress.tls`                                  | Query Service ingress TLS settings                                                                         | `[]`                           |
-| `signoz.nodeSelector`                                 | Node labels for signoz pod assignment                                                               | `{}`                           |
-| `signoz.tolerations`                                  | Query Service tolerations                                                                                  | `[]`                           |
-| `signoz.nodeAffinity`                                 | Query Service affinity policy                                                                              | `{}`                           |
-| `alertmanager.name`                                         | Alertmanager component name                                                                                | `alertmanager`                 |
-| `alertmanager.image.registry`                               | Alertmanager image registry name                                                                           | `docker.io`                    |
-| `alertmanager.image.repository`                             | Container image name                                                                                       | `signoz/alertmanager`          |
-| `alertmanager.image.tag`                                    | Container image tag                                                                                        | `0.23.7`                       |
-| `alertmanager.image.pullPolicy`                             | Container pull policy                                                                                      | `IfNotPresent`                 |
-| `alertmanager.replicaCount`                                 | Number of Alertmanager nodes                                                                               | `1`                            |
-| `alertmanager.command`                                      | Set container command to execute                                                                           | `[]`                           |
-| `alertmanager.extraArgs`                                    | Extra arguments for the alertmanager container                                                             | `{}`                           |
-| `alertmanager.additionalEnvs`                               | Additional environment variables for alertmanager container                                                | `[]`                           |
-| `alertmanager.initContainers.init.resources`                | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `alertmanager.imagePullSecrets`                             | Reference to secrets to be used when pulling images                                                        | `[]`                           |
-| `alertmanager.service.annotations`                          | Service annotations                                                                                        | `{}`                           |
-| `alertmanager.service.labels`                               | Service labels                                                                                             | `{}`                           |
-| `alertmanager.service.type`                                 | Alertmanager service type                                                                                  | `ClusterIP`                    |
-| `alertmanager.service.port`                                 | Alertmanager service port                                                                                  | `9093`                         |
-| `alertmanager.service.nodePort`                             | Force specific nodePort                                                                                    | `nil`                          |
-| `alertmanager.serviceAccount.create`                        | Service account for alertmanager nodes enabled                                                             | `true`                         |
-| `alertmanager.serviceAccount.annotations`                   | Service account annotations                                                                                | `{}`                           |
-| `alertmanager.serviceAccount.name`                          | Name of the service account                                                                                | `nil`                          |
-| `alertmanager.podSecurityContext`                           | Pods security context                                                                                      | See `values.yaml` for defaults |
-| `alertmanager.dnsConfig`                                    | DNS configuration                                                                                          | `{}`                           |
-| `alertmanager.securityContext`                              | Security context for alertmanager node                                                                     | See `values.yaml` for defaults |
-| `alertmanager.additionalPeers`                              | Additional Peers for alertmanager                                                                          | `[]`                           |
-| `alertmanager.ingress.enabled`                              | Alertmanager ingress resource enabled                                                                      | `false`                        |
-| `alertmanager.ingress.className`                            | Alertmanager ingress class name                                                                            | `""`                           |
-| `alertmanager.ingress.hosts`                                | Alertmanager ingress virtual hosts                                                                         | See `values.yaml` for defaults |
-| `alertmanager.ingress.annotations`                          | Alertmanager ingress annotations                                                                           | `{}`                           |
-| `alertmanager.ingress.tls`                                  | Alertmanager ingress TLS settings                                                                          | `[]`                           |
-| `alertmanager.resources`                                    | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `alertmanager.nodeSelector`                                 | Node labels for alertmanager pod assignment                                                                | `{}`                           |
-| `alertmanager.tolerations`                                  | Alertmanager tolerations                                                                                   | `[]`                           |
-| `alertmanager.nodeAffinity`                                 | Alertmanager affinity policy                                                                               | `{}`                           |
-| `alertmanager.statefulSet.annotations`                      | Set statefulset annotations                                                                                | `{}`                           |
-| `alertmanager.podAnnotations`                               | Set pod annotations                                                                                        | `{}`                           |
-| `alertmanager.podLabels`                                    | Set pod labels                                                                                             | `{}`                           |
-| `alertmanager.podDisruptionBudget`                          | Set pod distruption budget (PDBs)                                                                          | See `values.yaml` for defaults |
-| `alertmanager.persistence.enabled`                          | Enable volume persistence                                                                                  | `true`                         |
-| `alertmanager.persistence.storageClass`                     | Set storage class for persistent volume                                                                    | `nil`                          |
-| `alertmanager.persistence.accessModes`                      | Set access mode for persistent volume                                                                      | `[ReadWriteOnce]`              |
-| `alertmanager.persistence.size`                             | Set storage size                                                                                           | `100Mi`                        |
-| `alertmanager.config`                                       | Alertmanager configurations                                                                                | See `values.yaml` for defaults |
-| `alertmanager.configmapReload`                              | Configure ConfigMap reload                                                                                 | See `values.yaml` for defaults |
-| `alertmanager.templates`                                    | Set alert templates                                                                                        | See `values.yaml` for defaults |
-| `schemaMigrator.nodeSelector`                               | Node labels for schemaMigrator pod assignment                                                              | `{}`                           |
-| `schemaMigrator.tolerations`                                | schemaMigrator tolerations                                                                                 | `[]`                           |
-| `schemaMigrator.nodeAffinity`                               | schemaMigrator affinity policy                                                                             | `{}`                           |
-| `schemaMigrator.initContainers.init.enabled`                | Schema migrator initContainer enabled                                                                      | `true`                         |
-| `schemaMigrator.initContainers.init.image.registry`         | Schema migrator initContainer registry name                                                                | `docker.io`                    |
-| `schemaMigrator.initContainers.init.image.repository`       | Schema migrator initContainer image name                                                                   | `busybox`                      |
-| `schemaMigrator.initContainers.init.image.tag`              | Schema migrator initContainer image tag                                                                    | `1.35`                         |
-| `schemaMigrator.initContainers.init.image.pullPolicy`       | Schema migrator initContainer pull policy                                                                  | `IfNotPresent`                 |
-| `schemaMigrator.initContainers.init.command`                | Schema migrator initContainer command line to execute                                                      | See `values.yaml` for defaults |
-| `schemaMigrator.initContainers.init.resources`              | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `otelCollector.name`                                        | Otel Collector component name                                                                              | `otel-collector`               |
-| `otelCollector.image.registry`                              | Otel Collector image registry name                                                                         | `docker.io`                    |
-| `otelCollector.image.repository`                            | Container image name                                                                                       | `signoz/signoz-otel-collector` |
-| `otelCollector.image.tag`                                   | Container image tag                                                                                        | `0.111.16`                     |
-| `otelCollector.image.pullPolicy`                            | Container pull policy                                                                                      | `IfNotPresent`                 |
-| `otelCollector.replicaCount`                                | Number of otel-collector nodes                                                                             | `1`                            |
-| `otelCollector.service.type`                                | Otel Collector service type                                                                                | `ClusterIP`                    |
-| `otelCollector.service.annotations`                         | Service annotations                                                                                        | `{}`                           |
-| `otelCollector.service.labels`                              | Service labels                                                                                             | `{}`                           |
-| `otelCollector.ports`                                       | Lists of ports exposed by otel-collector service                                                           | See `values.yaml` for defaults |
-| `otelCollector.additionalEnvs`                              | Additional environment variables for otel-collector container                                              | `[]`                           |
-| `otelCollector.initContainers.init.enabled`                 | Otel Collector initContainer enabled                                                                       | `false`                        |
-| `otelCollector.initContainers.init.image.registry`          | Otel Collector initContainer registry name                                                                 | `docker.io`                    |
-| `otelCollector.initContainers.init.image.repository`        | Otel Collector initContainer image name                                                                    | `busybox`                      |
-| `otelCollector.initContainers.init.image.tag`               | Otel Collector initContainer image tag                                                                     | `1.35`                         |
-| `otelCollector.initContainers.init.image.pullPolicy`        | Otel Collector initContainer pull policy                                                                   | `IfNotPresent`                 |
-| `otelCollector.initContainers.init.command`                 | Otel Collector initContainer command line to execute                                                       | See `values.yaml` for defaults |
-| `otelCollector.initContainers.init.resources`               | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `otelCollector.config`                                      | Otel Collector configurations                                                                              | See `values.yaml` for defaults |
-| `otelCollector.imagePullSecrets`                            | Reference to secrets to be used when pulling images                                                        | `[]`                           |
-| `otelCollector.serviceAccount.create`                       | Service account for otel-collector nodes enabled                                                           | `true`                         |
-| `otelCollector.serviceAccount.annotations`                  | Service account annotations                                                                                | `{}`                           |
-| `otelCollector.serviceAccount.name`                         | Name of the service account                                                                                | `nil`                          |
-| `otelCollector.resources`                                   | Resources requests and limits                                                                              | See `values.yaml` for defaults |
-| `otelCollector.nodeSelector`                                | Node labels for Otel Collector pod assignment                                                              | `{}`                           |
-| `otelCollector.tolerations`                                 | Otel Collector tolerations                                                                                 | `[]`                           |
-| `otelCollector.nodeAffinity`                                | Otel Collector affinity policy                                                                             | `{}`                           |
-| `otelCollector.livenessProbe`                               | Otel Collector liveness probes                                                                             | See `values.yaml` for defaults |
-| `otelCollector.readinessProbe`                              | Otel Collector readiness probes                                                                            | See `values.yaml` for defaults |
-| `otelCollector.customLivenessProbe`                         | Custom liveness probes (if `otelCollector.livenessProbe` not enabled)                                      | `{}`                           |
-| `otelCollector.customReadinessProbe`                        | Custom readiness probes (if `otelCollector.readinessProbe` not enabled)                                    | `{}`                           |
-| `otelCollector.extraVolumes`                                | Extra volumes to be added to the otel-collector pods                                                       | `[]`                           |
-| `otelCollector.extraVolumeMounts`                           | Extra volume mounts to be added to the otel-collector pods                                                 | `[]`                           |
-| `otelCollector.ingress.enabled`                             | Open Telemetry Collector ingress resource enabled                                                          | `false`                        |
-| `otelCollector.ingress.className`                           | Open Telemetry Collector ingress class name                                                                | `""`                           |
-| `otelCollector.ingress.hosts`                               | Open Telemetry Collector ingress virtual hosts                                                             | See `values.yaml` for defaults |
-| `otelCollector.ingress.annotations`                         | Open Telemetry Collector ingress annotations                                                               | `{}`                           |
-| `otelCollector.ingress.tls`                                 | Open Telemetry Collector ingress TLS settings                                                              | `[]`                           |
-| `otelCollector.podSecurityContext`                          | Pods security context                                                                                      | `{}`                           |
-| `otelCollector.minReadySeconds`                             | Minimum seconds for otel-collector pod to be ready without crashing                                        | `300`                          |

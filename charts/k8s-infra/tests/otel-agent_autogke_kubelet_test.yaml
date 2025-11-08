@@ -1,0 +1,114 @@
+suite: Test 'gcp/autogke' kubelet Metrics setting
+templates:
+  - otel-agent/configmap.yaml
+set:
+  presets:
+    # Disable other presets to focus on otlp exporter
+    prometheus:
+      enabled: false
+    otlpExporter:
+      enabled: false
+    otlphttpExporter:
+      enabled: false
+    logsCollection:
+      enabled: false
+    hostMetrics:
+      enabled: false
+    kubeletMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: false
+    clusterMetrics:
+      enabled: false
+    resourceDetection:
+      enabled: false
+    k8sEvents:
+      enabled: false
+    selfTelemetry:
+      traces:
+        enabled: false
+      metrics:
+        enabled: false
+      logs:
+        enabled: false
+# Test case 1: Verify when debug exporter is enabled it should be configured correctly with default settings
+tests:
+  - it: should have debug enabled is enabled with default settings
+    set:
+      global:
+        cloud: "gcp/autogke"
+    asserts:
+      - equal:
+          path: data["otel-agent-config.yaml"]
+          value: |-
+            exporters: {}
+            extensions:
+              health_check:
+                endpoint: 0.0.0.0:13133
+              pprof:
+                endpoint: localhost:1777
+              zpages:
+                endpoint: localhost:55679
+            processors:
+              batch:
+                send_batch_size: 10000
+                timeout: 200ms
+            receivers:
+              kubeletstats:
+                auth_type: serviceAccount
+                collection_interval: 30s
+                endpoint: ${env:K8S_HOST_IP}:10250
+                extra_metadata_labels: null
+                insecure_skip_verify: true
+                metric_groups:
+                - container
+                - pod
+                - node
+                - volume
+                metrics:
+                  container.cpu.usage:
+                    enabled: true
+                  container.uptime:
+                    enabled: true
+                  k8s.container.cpu_limit_utilization:
+                    enabled: false
+                  k8s.container.cpu_request_utilization:
+                    enabled: false
+                  k8s.container.memory_limit_utilization:
+                    enabled: false
+                  k8s.container.memory_request_utilization:
+                    enabled: false
+                  k8s.node.cpu.usage:
+                    enabled: true
+                  k8s.node.uptime:
+                    enabled: true
+                  k8s.pod.cpu.usage:
+                    enabled: true
+                  k8s.pod.cpu_limit_utilization:
+                    enabled: false
+                  k8s.pod.cpu_request_utilization:
+                    enabled: false
+                  k8s.pod.memory_limit_utilization:
+                    enabled: false
+                  k8s.pod.memory_request_utilization:
+                    enabled: false
+                  k8s.pod.uptime:
+                    enabled: true
+              otlp:
+                protocols:
+                  grpc:
+                    endpoint: 0.0.0.0:4317
+                    max_recv_msg_size_mib: 4
+                  http:
+                    endpoint: 0.0.0.0:4318
+            service:
+              extensions:
+              - health_check
+              - zpages
+              - pprof
+              pipelines: {}
+              telemetry:
+                logs:
+                  encoding: json
+                metrics:
+                  address: 0.0.0.0:8888

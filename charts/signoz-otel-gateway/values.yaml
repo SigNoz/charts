@@ -177,6 +177,11 @@ config:
   #       receivers:
   #         - otlp
 
+store:
+  # Create the in memory store
+  create: false
+
+
 externalSecrets:
   # Add integration with external secrets
   create: false
@@ -248,14 +253,3 @@ ingress:
           - path: /opentelemetry.proto.collector.trace.v1.TraceService/Export
             pathType: ImplementationSpecific
             port: 4317
-postgresql:
-  enabled: false
-  auth:
-    username: otelgateway
-    password: password
-    database: otelgateway
-  image:
-    tag: 15.0.0
-  service:
-    ports:
-      postgresql: "5432"
