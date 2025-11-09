@@ -399,8 +399,6 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
 {{- define "snippet.otlp-env" }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
   value: {{ include "otel.endpoint" . }}
-- name: OTEL_EXPORTER_OTLP_INSECURE
-  value: {{ include "otel.insecure" . }}
 {{- if or .Values.apiKeyExistingSecretName .Values.signozApiKey }}
 - name: SIGNOZ_API_KEY
   valueFrom:
@@ -415,8 +413,6 @@ OTLP exporter environment variables used by OtelAgent and OtelDeployment.
       name: {{ include "otel.selfTelemetry.apiKey.secretName" . }}
       key: {{ include "otel.selfTelemetry.apiKey.secretKey" . }}
 {{- end }}
-- name: OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY
-  value: {{ include "otel.insecureSkipVerify" . }}
 - name: OTEL_SECRETS_PATH
   value: {{ include "otel.secretsPath" . }}
 - name: K8S_CLUSTER_NAME

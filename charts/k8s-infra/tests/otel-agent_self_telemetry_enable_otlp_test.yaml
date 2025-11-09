@@ -52,8 +52,8 @@ tests:
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
                 tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+                  insecure: true
+                  insecure_skip_verify: false
               otlphttp/self_telemetry:
                 endpoint: selftelemetryhost:443
                 headers:

@@ -327,8 +327,8 @@ exporters:
 {{- end}}
     endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
     tls:
-      insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-      insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+      insecure: {{ .Values.otelInsecure}}
+      insecure_skip_verify: {{ .Values.insecureSkipVerify }}
       {{- if .Values.otelTlsSecrets.enabled }}
       cert_file: ${env:OTEL_SECRETS_PATH}/cert.pem
       key_file: ${env:OTEL_SECRETS_PATH}/key.pem

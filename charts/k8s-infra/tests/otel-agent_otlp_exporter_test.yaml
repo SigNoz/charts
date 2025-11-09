@@ -44,8 +44,8 @@ tests:
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
                 tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+                  insecure: true
+                  insecure_skip_verify: false
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -112,8 +112,8 @@ tests:
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
                 tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+                  insecure: true
+                  insecure_skip_verify: false
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
