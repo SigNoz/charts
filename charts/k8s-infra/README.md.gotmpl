@@ -107,7 +107,14 @@ kubectl delete namespace platform
 ```
 > [!WARNING]  
 > ### Breaking Changes
+> #### Version 0.15.0
+> The following changes have been introduced in this version:
+> - Upgraded the OpenTelemetry Collector to version `0.139.0`
+> - Removed deprecated variables from the OpenTelemetry Collector configuration to ensure compatibility with the latest version
 > 
+> Please refer to the [upgrade guide](https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/upgrade-k8s-infra-v0.15) for detailed instructions on upgrading k8s-infra to v0.15.0
+>
+>
 > #### Version 0.14.1
 > 
 > **Configuration Migration Required:** 
@@ -136,6 +143,7 @@ kubectl delete namespace platform
 >     samplingInitial: 2
 >     samplingThereafter: 500
 > ```
+
 
 {{ define "chart.valueDefaultColumnRender" }}
 {{- $defaultValue := (default .Default .AutoDefault) -}}

@@ -1,7 +1,7 @@
 
 # K8s-Infra
 
-![Version: 0.14.2](https://img.shields.io/badge/Version-0.14.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.109.0](https://img.shields.io/badge/AppVersion-0.109.0-informational?style=flat-square)
+![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.139.0](https://img.shields.io/badge/AppVersion-0.139.0-informational?style=flat-square)
 
 Monitoring your Kubernetes cluster is essential for ensuring performance, stability, and reliability. The SigNoz k8s-infra Helm chart provides a comprehensive solution for collecting and analyzing metrics, logs, and events from your entire Kubernetes environment.
 
@@ -106,6 +106,13 @@ kubectl delete namespace platform
 ```
 > [!WARNING] 
 > ### Breaking Changes
+> #### Version 0.15.0
+> The following changes have been introduced in this version:
+> - Upgraded the OpenTelemetry Collector to version `0.139.0`
+> - Removed deprecated variables from the OpenTelemetry Collector configuration to ensure compatibility with the latest version
+>
+> Please refer to the [upgrade guide](https://signoz.io/docs/opentelemetry-collection-agents/k8s/k8s-infra/user-guides/upgrade-k8s-infra-v0.15) for detailed instructions on upgrading k8s-infra to v0.15.0
+>
 >
 > #### Version 0.14.1
 >
