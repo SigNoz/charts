@@ -65,17 +65,16 @@ tests:
                 logs:
                   encoding: json
                 metrics:
-                  address: 0.0.0.0:8888
                   level: detailed
                   readers:
                   - periodic:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
-                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                            signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                          insecure: true
                           protocol: http/protobuf
                 resource:
                   k8s.cluster.name: ${env:K8S_CLUSTER_NAME}
@@ -89,10 +88,10 @@ tests:
                       exporter:
                         otlp:
                           compression: gzip
-                          endpoint: http://${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+                          endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
                           headers:
-                            signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
-                          insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
+                            signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                          insecure: true
                           protocol: http/protobuf
                   propagators:
                   - tracecontext
