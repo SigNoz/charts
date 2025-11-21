@@ -21,10 +21,10 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
-    backendRefs:
-      - group: ''
-        kind: Service
-        name: {{ $fullName }}
-        port: {{ .Values.signoz.service.port }}
-        weight: 1
+    - backendRefs:
+        - group: ''
+          kind: Service
+          name: {{ $fullName }}
+          port: {{ .Values.signoz.service.port }}
+          weight: 1
 {{- end }}
