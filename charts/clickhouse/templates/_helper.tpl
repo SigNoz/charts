@@ -57,10 +57,10 @@ app.kubernetes.io/component: {{ default "clickhouse" .Values.name }}
 Create the name of the service account to use
 */}}
 {{- define "clickhouse.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{ default (include "clickhouse.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.clickhouseInstance.serviceAccount.create -}}
+    {{ default (include "clickhouse.fullname" .) .Values.clickhouseInstance.serviceAccount.name }}
 {{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
+    {{ default "default" .Values.clickhouseInstance.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -102,9 +102,9 @@ Return suffix part of the headless service
 Return the initContainers image name
 */}}
 {{- define "clickhouse.initContainers.init.image" -}}
-{{- $registryName := default .Values.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.initContainers.init.image.repository -}}
-{{- $tag := .Values.initContainers.init.image.tag | toString -}}
+{{- $registryName := default .Values.clickhouseInstance.initContainers.init.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.clickhouseInstance.initContainers.init.image.repository -}}
+{{- $tag := .Values.clickhouseInstance.initContainers.init.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -116,9 +116,9 @@ Return the initContainers image name
 Return the initContainers image name for UDF
 */}}
 {{- define "clickhouse.initContainers.udf.image" -}}
-{{- $registryName := default .Values.initContainers.udf.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.initContainers.udf.image.repository -}}
-{{- $tag := .Values.initContainers.udf.image.tag | toString -}}
+{{- $registryName := default .Values.clickhouseInstance.initContainers.udf.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.clickhouseInstance.initContainers.udf.image.repository -}}
+{{- $tag := .Values.clickhouseInstance.initContainers.udf.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -130,9 +130,9 @@ Return the initContainers image name for UDF
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
-{{- $registryName := default .Values.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.image.repository -}}
-{{- $tag := .Values.image.tag | toString -}}
+{{- $registryName := default .Values.clickhouseInstance.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.clickhouseInstance.image.repository -}}
+{{- $tag := .Values.clickhouseInstance.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -144,9 +144,9 @@ Return the proper clickhouse image name
 Return the proper exporter image name
 */}}
 {{- define "logs.system.image" -}}
-{{- $registryName := default .Values.logs.system.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.logs.system.image.repository -}}
-{{- $tag := .Values.logs.system.image.tag | toString -}}
+{{- $registryName := default .Values.clickhouseInstance.logs.system.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.clickhouseInstance.logs.system.image.repository -}}
+{{- $tag := .Values.clickhouseInstance.logs.system.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -167,12 +167,12 @@ nodePort: null
 Return the proper Image Registry Secret Names.
 */}}
 {{- define "clickhouse.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+{{- if or .Values.global.imagePullSecrets .Values.clickhouseInstance.imagePullSecrets }}
 imagePullSecrets:
 {{- range .Values.global.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
-{{- range .Values.imagePullSecrets }}
+{{- range .Values.clickhouseInstance.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
 {{- end }}
@@ -183,11 +183,11 @@ Return service account annotations of ClickHouse instance.
 */}}
 {{- define "clickhouse.serviceAccountAnnotations" -}}
 {{- $annotations := dict }}
-{{- if .Values.serviceAccount.create }}
-{{- $annotations = merge $annotations .Values.serviceAccount.annotations }}
+{{- if .Values.clickhouseInstance.serviceAccount.create }}
+{{- $annotations = merge $annotations .Values.clickhouseInstance.serviceAccount.annotations }}
 {{- end }}
-{{- if and .Values.coldStorage.enabled .Values.coldStorage.role.enabled }}
-{{- $annotations = merge $annotations .Values.coldStorage.role.annotations }}
+{{- if and .Values.clickhouseInstance.coldStorage.enabled .Values.clickhouseInstance.coldStorage.role.enabled }}
+{{- $annotations = merge $annotations .Values.clickhouseInstance.coldStorage.role.annotations }}
 {{- end -}}
 annotations:
   {{- toYaml $annotations | nindent 2 }}
@@ -211,7 +211,7 @@ Return namespace of clickhouse
 Return list of files and contents.
 */}}
 {{- define "clickhouse.files" -}}
-{{- range $key,$value := .Values.files }}
+{{- range $key,$value := .Values.clickhouseInstance.files }}
 {{ $key }}: {{ $value | toYaml }}
 {{- end }}
 {{- end }}
