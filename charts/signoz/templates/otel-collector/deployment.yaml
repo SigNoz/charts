@@ -36,6 +36,7 @@ spec:
         - name: {{ . | quote }}
       {{- end }}
       {{- end }}
+      strategy: {{ .Values.otelCollector.strategy | default "RollingUpdate" }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
       priorityClassName: {{ .Values.otelCollector.priorityClassName | quote }}
       {{- with .Values.otelCollector.nodeSelector }}

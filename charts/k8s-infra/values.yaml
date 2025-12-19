@@ -22,39 +22,31 @@ global:
   # global.cloud -- Kubernetes cluster cloud provider, along with distribution if any (e.g., `aws`, `azure`, `gcp`, `gcp/autogke`, `other`).
   # @section -- Global Configuration
   cloud: other
-
 # nameOverride -- K8s infra chart name override.
 # @section -- General Configuration
 nameOverride: ""
-
 # fullnameOverride -- K8s infra chart full name override.
 # @section -- General Configuration
 fullnameOverride: ""
-
 # enabled -- Whether to enable the K8s infra chart.
 # @section -- General Configuration
 enabled: true
-
 # clusterName -- Name of the K8s cluster. Used by OtelCollectors to attach in telemetry data.
 # @section -- General Configuration
 clusterName: ""
-
 # otelCollectorEndpoint -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 # @section -- General Configuration
 # Set it to `ingest.signoz.io:4317` for SigNoz Cloud.
 # If set to null and the chart is installed as a dependency, it will attempt
 # to autogenerate the endpoint of the SigNoz OtelCollector.
 otelCollectorEndpoint: null
-
 # otelInsecure -- Whether the OTLP endpoint is insecure.
 # @section -- General Configuration
 # Set this to false in case of a secure OTLP endpoint.
 otelInsecure: true
-
 # insecureSkipVerify -- Whether to skip verifying the OTLP endpoint's certificate.
 # @section -- General Configuration
 insecureSkipVerify: false
-
 # signozApiKey -- API key for SigNoz Cloud.
 # @section -- API Key Configuration
 signozApiKey: ""
@@ -64,42 +56,33 @@ apiKeyExistingSecretName: ""
 # apiKeyExistingSecretKey -- Existing secret key to be used for the API key.
 # @section -- API Key Configuration
 apiKeyExistingSecretKey: ""
-
 # @section -- OTLP Receiver TLS Configuration
 otelTlsSecrets:
   # otelTlsSecrets.enabled -- Whether to enable OpenTelemetry OTLP secrets for secure communication.
   # @section -- OTLP Receiver TLS Configuration
   enabled: false
-
   # otelTlsSecrets.path -- Path for the secrets volume when mounted in the container.
   # @section -- OTLP Receiver TLS Configuration
   path: /secrets
-
   # otelTlsSecrets.existingSecretName -- Name of an existing secret with TLS certificate, key, and CA to be used.
   # @section -- OTLP Receiver TLS Configuration
   # Files in the secret must be named `cert.pem`, `key.pem`, and `ca.pem`.
   existingSecretName:
-
   # otelTlsSecrets.certificate -- TLS certificate to be included in the secret.
   # @section -- OTLP Receiver TLS Configuration
   certificate: |
     <INCLUDE_CERTIFICATE_HERE>
-
   # otelTlsSecrets.key -- TLS private key to be included in the secret.
   # @section -- OTLP Receiver TLS Configuration
   key: |
     <INCLUDE_PRIVATE_KEY_HERE>
-
   # otelTlsSecrets.ca -- TLS certificate authority (CA) certificate to be included in the secret.
   # @section -- OTLP Receiver TLS Configuration
   ca: ""
-
 # namespace -- The namespace to install k8s-infra components into.
 # @section -- General Configuration
 # @default -- By default, components are installed in the same namespace as the chart.
 namespace: ""
-
-
 # presets -- Presets to easily set up OtelCollector configurations.
 # @section -- Presets Configuration
 # @default -- "Please check out the values.yml for default values"
@@ -565,7 +548,6 @@ presets:
     # presets.k8sEvents.namespaces -- List of namespaces to watch for events. Empty list means all namespaces.
     # @section -- Kubernetes Events Collection Presets
     namespaces: []
-
 # @section -- OpenTelemetry Agent (DaemonSet)
 # otelAgent -- Configuration for the OpenTelemetry Collector Agent, deployed as a DaemonSet.
 otelAgent:
@@ -591,7 +573,6 @@ otelAgent:
     # otelAgent.image.pullPolicy -- Image pull policy for the OtelAgent.
     # @section -- OpenTelemetry Agent (DaemonSet)
     pullPolicy: IfNotPresent
-
   # otelAgent.imagePullSecrets -- Image Pull Secrets for the OtelAgent. Merged with `global.imagePullSecrets`.
   # @section -- OpenTelemetry Agent (DaemonSet)
   imagePullSecrets: []
@@ -606,14 +587,12 @@ otelAgent:
     # otelAgent.command.extraArgs -- Extra arguments for the OtelAgent command.
     # @section -- OpenTelemetry Agent (DaemonSet)
     extraArgs: []
-
   # otelAgent.configMap -- ConfigMap configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   configMap:
     # otelAgent.configMap.create -- Specifies whether a ConfigMap should be created.
     # @section -- OpenTelemetry Agent (DaemonSet)
     create: true
-
   # otelAgent.service -- Service configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   service:
@@ -627,7 +606,6 @@ otelAgent:
     # @section -- OpenTelemetry Agent (DaemonSet)
     # ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#internal-traffic-policy
     internalTrafficPolicy: Local
-
   # otelAgent.serviceAccount -- ServiceAccount configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   serviceAccount:
@@ -640,7 +618,6 @@ otelAgent:
     # otelAgent.serviceAccount.name -- The name of the ServiceAccount to use. A name is generated if not set.
     # @section -- OpenTelemetry Agent (DaemonSet)
     name:
-
   # otelAgent.annotations -- Annotations for the OtelAgent DaemonSet.
   # @section -- OpenTelemetry Agent (DaemonSet)
   annotations: {}
@@ -669,11 +646,9 @@ otelAgent:
   #      additionalEnvs:
   #        MY_KEY: my-value
   additionalEnvs: {}
-
   # otelAgent.minReadySeconds -- Minimum number of seconds for which a newly created Pod should be ready.
   # @section -- OpenTelemetry Agent (DaemonSet)
   minReadySeconds: 5
-
   # otelAgent.clusterRole -- ClusterRole configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # @default -- "Please checkout the values.yml for default values"
@@ -719,7 +694,6 @@ otelAgent:
         resources: ["configmaps"]
         resourceNames: ["otel-container-insight-clusterleader"]
         verbs: ["get", "update"]
-
     # otelAgent.clusterRole.clusterRoleBinding -- ClusterRoleBinding configuration for the OtelAgent.
     # @section -- OpenTelemetry Agent (DaemonSet)
     clusterRoleBinding:
@@ -729,7 +703,6 @@ otelAgent:
       # otelAgent.clusterRoleBinding.name -- The name of the ClusterRoleBinding to use. A name is generated if not set.
       # @section -- OpenTelemetry Agent (DaemonSet)
       name: ""
-
   # otelAgent.ports -- Port configurations for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # @default -- "Please checkout the values.yml for default values"
@@ -863,7 +836,6 @@ otelAgent:
     failureThreshold: 6
     # @section -- OpenTelemetry Agent (DaemonSet)
     successThreshold: 1
-
   # otelAgent.readinessProbe -- Configure readiness probe.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
@@ -884,14 +856,12 @@ otelAgent:
     failureThreshold: 6
     # @section -- OpenTelemetry Agent (DaemonSet)
     successThreshold: 1
-
   # otelAgent.customLivenessProbe -- Custom liveness probe configuration.
   # @section -- OpenTelemetry Agent (DaemonSet)
   customLivenessProbe: {}
   # otelAgent.customReadinessProbe -- Custom readiness probe configuration.
   # @section -- OpenTelemetry Agent (DaemonSet)
   customReadinessProbe: {}
-
   # otelAgent.ingress -- Ingress configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   ingress:
@@ -923,7 +893,6 @@ otelAgent:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otel-agent.domain.com
-
   # otelAgent.resources -- Configure resource requests and limits for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -935,24 +904,19 @@ otelAgent:
     # limits:
     #   cpu: 1000m
     #   memory: 1Gi
-
   # otelAgent.priorityClassName -- OtelAgent Priority Class name.
   # @section -- OpenTelemetry Agent (DaemonSet)
   priorityClassName: ""
-
   # otelAgent.nodeSelector -- Node selector for OtelAgent pod assignment.
   # @section -- OpenTelemetry Agent (DaemonSet)
   nodeSelector: {}
-
   # otelAgent.tolerations -- Toleration labels for OtelAgent pod assignment.
   # @section -- OpenTelemetry Agent (DaemonSet)
   tolerations:
     - operator: Exists
-
   # otelAgent.affinity -- Affinity settings for the OtelAgent pod.
   # @section -- OpenTelemetry Agent (DaemonSet)
   affinity: {}
-
   # otelAgent.podSecurityContext -- Pod-level security configuration.
   # @section -- OpenTelemetry Agent (DaemonSet)
   podSecurityContext: {}
@@ -1028,7 +992,6 @@ otelAgent:
           receivers: [otlp]
           processors: [batch]
           exporters: []
-
   # otelAgent.extraVolumes -- Additional volumes for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   extraVolumes: []
@@ -1047,7 +1010,6 @@ otelAgent:
   # - name: secret-volume
   #   mountPath: /etc/secret
   #   readOnly: true
-
 # @section -- OpenTelemetry Deployment
 # otelDeployment -- Configuration for the OpenTelemetry Collector, deployed as a Deployment for cluster-wide metrics.
 otelDeployment:
@@ -1073,12 +1035,13 @@ otelDeployment:
     # otelDeployment.image.pullPolicy -- Image pull policy for the OtelDeployment.
     # @section -- OpenTelemetry Deployment
     pullPolicy: IfNotPresent
-
   # otelDeployment.imagePullSecrets -- Image Pull Secrets for the OtelDeployment. Merged with `global.imagePullSecrets`.
   # @section -- OpenTelemetry Deployment
   imagePullSecrets: []
-    # - "otelDeployment-pull-secret"
-
+  # otelDeployment.strategy -- Deployment strategy to use
+  # @section -- OtelDeployment
+  # @default -- "RollingUpdate"
+  strategy: ""
   # otelDeployment.command -- Command and arguments for the OtelDeployment container.
   # @section -- OpenTelemetry Deployment
   command:
@@ -1088,14 +1051,12 @@ otelDeployment:
     # otelDeployment.command.extraArgs -- Extra arguments for the OtelDeployment command.
     # @section -- OpenTelemetry Deployment
     extraArgs: []
-
   # otelDeployment.configMap -- ConfigMap configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   configMap:
     # otelDeployment.configMap.create -- Specifies whether a ConfigMap should be created.
     # @section -- OpenTelemetry Deployment
     create: true
-
   # otelDeployment.service -- Service configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   service:
@@ -1105,7 +1066,6 @@ otelDeployment:
     # otelDeployment.service.type -- Service type.
     # @section -- OpenTelemetry Deployment
     type: ClusterIP
-
   # otelDeployment.serviceAccount -- ServiceAccount configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   serviceAccount:
@@ -1118,7 +1078,6 @@ otelDeployment:
     # otelDeployment.serviceAccount.name -- The name of the ServiceAccount to use. A name is generated if not set.
     # @section -- OpenTelemetry Deployment
     name:
-
   # otelDeployment.annotations -- Annotations for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   annotations: {}
@@ -1132,7 +1091,6 @@ otelDeployment:
   # otelDeployment.additionalEnvs -- Additional environment variables for the OtelDeployment container.
   # @section -- OpenTelemetry Deployment
   additionalEnvs: {}
-
   # otelDeployment.podSecurityContext -- Pod-level security configuration.
   # @section -- OpenTelemetry Deployment
   podSecurityContext: {}
@@ -1151,11 +1109,9 @@ otelDeployment:
   # otelDeployment.minReadySeconds -- Minimum number of seconds for which a newly created Pod should be ready.
   # @section -- OpenTelemetry Deployment
   minReadySeconds: 5
-
   # otelDeployment.progressDeadlineSeconds -- Seconds to wait for the Deployment to progress before it's considered failed.
   # @section -- OpenTelemetry Deployment
   progressDeadlineSeconds: 120
-
   # otelDeployment.ports -- Port configurations for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   ports:
@@ -1211,7 +1167,6 @@ otelDeployment:
       nodePort: ""
       # @section -- OpenTelemetry Deployment
       protocol: TCP
-
   # otelDeployment.livenessProbe -- Configure liveness probe.
   # @section -- OpenTelemetry Deployment
   livenessProbe:
@@ -1231,7 +1186,6 @@ otelDeployment:
     failureThreshold: 6
     # @section -- OpenTelemetry Deployment
     successThreshold: 1
-
   # otelDeployment.readinessProbe -- Configure readiness probe.
   # @section -- OpenTelemetry Deployment
   readinessProbe:
@@ -1251,15 +1205,12 @@ otelDeployment:
     failureThreshold: 6
     # @section -- OpenTelemetry Deployment
     successThreshold: 1
-
   # otelDeployment.customLivenessProbe -- Custom liveness probe configuration.
   # @section -- OpenTelemetry Deployment
   customLivenessProbe: {}
-
   # otelDeployment.customReadinessProbe -- Custom readiness probe configuration.
   # @section -- OpenTelemetry Deployment
   customReadinessProbe: {}
-
   # otelDeployment.ingress -- Ingress configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   ingress:
@@ -1286,7 +1237,6 @@ otelDeployment:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otel-deployment.domain.com
-
   # otelDeployment.resources -- Configure resource requests and limits for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   resources:
@@ -1297,27 +1247,21 @@ otelDeployment:
     # limits:
     #   cpu: 1000m
     #   memory: 1Gi
-
   # otelDeployment.priorityClassName -- OtelDeployment Priority Class name.
   # @section -- OpenTelemetry Deployment
   priorityClassName: ""
-
   # otelDeployment.nodeSelector -- Node selector for OtelDeployment pod assignment.
   # @section -- OpenTelemetry Deployment
   nodeSelector: {}
-
   # otelDeployment.tolerations -- Toleration labels for OtelDeployment pod assignment.
   # @section -- OpenTelemetry Deployment
   tolerations: []
-
   # otelDeployment.affinity -- Affinity settings for the OtelDeployment pod.
   # @section -- OpenTelemetry Deployment
   affinity: {}
-
   # otelDeployment.topologySpreadConstraints -- Describes how OtelDeployment pods ought to spread.
   # @section -- OpenTelemetry Deployment
   topologySpreadConstraints: []
-
   # otelDeployment.clusterRole -- ClusterRole configuration for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   # @default -- "Please Checkout the values.yml for default values"
@@ -1361,7 +1305,6 @@ otelDeployment:
       - apiGroups: ["autoscaling"]
         resources: ["horizontalpodautoscalers"]
         verbs: ["get", "list", "watch"]
-
     # otelDeployment.clusterRole.clusterRoleBinding -- ClusterRoleBinding configuration for the OtelDeployment.
     # @section -- OpenTelemetry Deployment
     clusterRoleBinding:
@@ -1371,7 +1314,6 @@ otelDeployment:
       # otelDeployment.clusterRoleBinding.name -- The name of the ClusterRoleBinding to use. A name is generated if not set.
       # @section -- OpenTelemetry Deployment
       name: ""
-
   # otelDeployment.config -- Base configuration for the OtelDeployment Collector.
   # @section -- OpenTelemetry Deployment
   # @default -- "Please Checkout the values.yml for default values"
@@ -1422,7 +1364,6 @@ otelDeployment:
           receivers: []
           processors: [batch]
           exporters: []
-
   # otelDeployment.extraVolumes -- Additional volumes for the OtelDeployment.
   # @section -- OpenTelemetry Deployment
   extraVolumes: []
