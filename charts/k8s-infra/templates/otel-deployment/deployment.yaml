@@ -37,6 +37,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.otelDeployment.affinity }}
+      strategy: {{ .Values.otelDeployment.strategy | default "RollingUpdate" }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
