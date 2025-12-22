@@ -17,6 +17,8 @@ spec:
   {{- if not .Values.otelCollector.autoscaling.enabled }}
   replicas: {{ .Values.otelCollector.replicaCount }}
   {{- end }}
+  strategy:
+    type: {{ .Values.otelCollector.strategy | default "RollingUpdate" }}
   template:
     metadata:
       annotations:
@@ -36,7 +38,6 @@ spec:
         - name: {{ . | quote }}
       {{- end }}
       {{- end }}
-      strategy: {{ .Values.otelCollector.strategy | default "RollingUpdate" }}
       serviceAccountName: {{ include "otelCollector.serviceAccountName" . }}
       priorityClassName: {{ .Values.otelCollector.priorityClassName | quote }}
       {{- with .Values.otelCollector.nodeSelector }}
