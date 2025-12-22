@@ -17,6 +17,7 @@ spec:
   minReadySeconds: {{ .Values.otelDeployment.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelDeployment.progressDeadlineSeconds }}
   replicas: {{ .Values.otelDeployment.replicaCount }}
+  strategy: {{ .Values.otelDeployment.strategy | default "RollingUpdate" }}
   template:
     metadata:
       annotations:
@@ -37,7 +38,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.otelDeployment.affinity }}
-      strategy: {{ .Values.otelDeployment.strategy | default "RollingUpdate" }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
