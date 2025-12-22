@@ -1299,6 +1299,10 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- []
   imagePullSecrets: []
+  # otelCollector.strategy -- Deployment strategy to use
+  # @section -- Otel Collector
+  # @default -- "RollingUpdate"
+  strategy: ""
   # otelCollector.initContainers -- Init containers for the Otel Collector pod.
   # @section -- Otel Collector
   # @default -- "Please checkout the default values in values.yml"
@@ -1957,6 +1961,10 @@ signoz-otel-gateway:
   enabled: false
   # @ignored
   replicaCount: 1
+  # signoz-otel-gateway.strategy -- Deployment strategy to use
+  # @section -- signoz-otel-gateway
+  # @default -- "RollingUpdate"
+  strategy: ""
   # @ignored
   resources:
     requests:
