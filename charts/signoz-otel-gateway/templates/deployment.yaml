@@ -9,7 +9,8 @@ spec:
   selector:
     matchLabels:
       {{- include "signoz-otel-gateway.selectorLabels" . | nindent 6 }}
-  strategy: {{ .Values.signoz-otel-gateway.strategy | default "RollingUpdate" }}
+  strategy:
+    type: {{ .Values.signoz-otel-gateway.strategy | default "RollingUpdate" }}
   template:
     metadata:
       annotations:
