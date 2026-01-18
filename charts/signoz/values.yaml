@@ -274,6 +274,26 @@ clickhouse:
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @section -- ClickHouse Resources
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
+  # 
+  # WARNING: These defaults are for development only. Production needs more resources.
+  # 
+  # ClickHouse is memory-hungry. The default 200Mi will cause OOM kills in production.
+  # For small workloads (< 1M spans/day), start with at least 4Gi memory and 2 CPU cores.
+  # Medium workloads (1-10M spans/day) typically need 8-16Gi memory and 4-8 cores.
+  # Large deployments will need 32Gi+ memory depending on retention and query patterns.
+  # 
+  # Always set both requests and limits. Without limits, ClickHouse can consume all
+  # available node memory. Keep memory limits around 80% of node capacity to leave
+  # room for the OS and other processes.
+  # 
+  # Example for production:
+  #   resources:
+  #     requests:
+  #       cpu: 2000m
+  #       memory: 8Gi
+  #     limits:
+  #       cpu: 4000m
+  #       memory: 16Gi
   resources:
     requests:
       cpu: 100m
@@ -307,6 +327,29 @@ clickhouse:
     - "192.168.0.0/16"
   # clickhouse.persistence -- ClickHouse persistence configuration.
   # @section -- ClickHouse Persistence
+  # 
+  # WARNING: The default 20Gi is way too small for production. You'll run out of space quickly.
+  # 
+  # Rough sizing guide:
+  # - Small deployments (< 1M spans/day, 7-day retention): 50Gi minimum
+  # - Medium (1-10M spans/day, 30-day retention): 200-500Gi
+  # - Large (> 10M spans/day, 90+ day retention): 1Ti+
+  # 
+  # Quick calculation: spans/day × 1.5KB × retention_days × 1.5 safety margin.
+  # Example: 5M spans/day × 30 days = ~337GB, so use 500Gi.
+  # 
+  # Most cloud providers (AWS EBS, GCP Persistent Disk, Azure) support online expansion.
+  # Make sure your storage class has allowVolumeExpansion: true. If it does, just update
+  # the size value and apply - the PVC will expand automatically.
+  # 
+  # Use SSD storage (gp3 on AWS, pd-ssd on GCP) for production. ClickHouse needs good
+  # IOPS - aim for 3000+ IOPS if possible. Standard disks will be slow.
+  # 
+  # ReadWriteOnce is fine for single-replica setups. Only use ReadWriteMany if you're
+  # running a ClickHouse cluster with shared storage (most people don't need this).
+  # 
+  # If you're doing backups to the same cluster, account for 2-3x more space. Better
+  # to use coldStorage (S3/GCS) for long-term archival.
   persistence:
     # clickhouse.persistence.enabled -- Enable data persistence using a PVC for ClickHouse data.
     # @default -- true
@@ -315,6 +358,8 @@ clickhouse:
     # @default -- ""
     existingClaim: ""
     # clickhouse.persistence.storageClass -- Persistent Volume Storage Class. If "-", disables dynamic provisioning. If null, uses the default provisioner.
+    # Set this explicitly in production. Use storage classes that support volume expansion
+    # (like gp3 on AWS, pd-ssd on GCP) so you can grow the disk later if needed.
     # @default -- null
     storageClass: null
     # clickhouse.persistence.accessModes -- Access Modes for the persistent volume.
@@ -322,6 +367,9 @@ clickhouse:
     accessModes:
       - ReadWriteOnce
     # clickhouse.persistence.size -- Persistent Volume size.
+    # Default 20Gi is for dev only. Production needs way more - see sizing notes above.
+    # Plan for your retention period and expected growth. You can expand later if your
+    # storage class supports it, but it's easier to size correctly upfront.
     # @default -- "20Gi"
     size: 20Gi
   # clickhouse.profiles -- ClickHouse user profile configuration.

@@ -61,6 +61,65 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
+### Production Considerations
+
+> **Note**: The default Helm values are set up for development/testing. Production needs proper resource sizing.
+
+#### ClickHouse Resources
+
+ClickHouse is memory-intensive. The default 200Mi will cause OOM kills in production.
+
+For small workloads (< 1M spans/day), start with at least 4Gi memory and 2 CPU cores. Medium workloads (1-10M spans/day) usually need 8-16Gi memory and 4-8 cores. Large deployments will need 32Gi+ depending on your retention and query patterns.
+
+Always set both requests and limits. Without limits, ClickHouse can eat all available node memory. Keep memory limits around 80% of node capacity.
+
+Example:
+```yaml
+clickhouse:
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+```
+
+#### Disk Sizing
+
+The default 20Gi is way too small for production. You'll run out of space fast.
+
+Rough guide:
+- Small (< 1M spans/day, 7-day retention): 50Gi minimum
+- Medium (1-10M spans/day, 30-day retention): 200-500Gi
+- Large (> 10M spans/day, 90+ day retention): 1Ti+
+
+Quick calculation: spans/day × 1.5KB × retention_days × 1.5 safety margin.
+Example: 5M spans/day × 30 days = ~337GB, so use 500Gi.
+
+Most cloud providers (AWS EBS, GCP Persistent Disk, Azure) support online expansion. Make sure your storage class has `allowVolumeExpansion: true`. If it does, just update the size and apply - it'll expand automatically.
+
+Use SSD storage (gp3 on AWS, pd-ssd on GCP) for production. ClickHouse needs good IOPS - aim for 3000+ if possible.
+
+Example:
+```yaml
+clickhouse:
+  persistence:
+    enabled: true
+    storageClass: "gp3"  # or "pd-ssd" for GCP
+    size: 500Gi
+    accessModes:
+      - ReadWriteOnce
+```
+
+#### Tips
+
+- Set resource limits to prevent starvation
+- Monitor ClickHouse memory usage and adjust as needed
+- Size for 6-12 months of growth
+- Consider enabling `clickhouse.coldStorage` for long-term archival to S3/GCS
+- If backing up to the same cluster, account for 2-3x more space
+
 > [!WARNING] 
 > ### Breaking Changes
 > #### Version 0.89.0
