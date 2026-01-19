@@ -17,6 +17,8 @@ spec:
   {{- if not .Values.otelCollector.autoscaling.enabled }}
   replicas: {{ .Values.otelCollector.replicaCount }}
   {{- end }}
+  strategy:
+    type: {{ .Values.otelCollector.strategy | default "RollingUpdate" }}
   template:
     metadata:
       annotations:
