@@ -31,6 +31,7 @@ spec:
       labels:
         {{- include "schemaMigrator.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "schemaMigrator.serviceAccountName" . }}-sync
       initContainers:
         {{- if .Values.schemaMigrator.initContainers.init.enabled }}
         - name: schema-migrator-sync-init
