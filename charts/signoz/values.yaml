@@ -857,7 +857,7 @@ signoz:
     # Enable SMTP for user invitations. For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/smtp-email-invitations/
     signoz_emailing_enabled: false
     # To enable/disable the active query tracker.
-    signoz_prometheus_active_query_tracker_enabled: false
+    signoz_prometheus_active__query__tracker_enabled: false
     # signoz alertemanager configuration
     # For more details see: https://signoz.io/docs/manage/administrator-guide/configuration/alertmanager/
     signoz_alertmanager_provider: signoz
