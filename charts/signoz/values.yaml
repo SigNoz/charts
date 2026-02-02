@@ -1006,6 +1006,29 @@ signoz:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - signoz.domain.com
+  # signoz.httproute -- (object) HttpRoute configuration for SigNoz.
+  # @section -- SigNoz Networking
+  httproute:
+    # signoz.httproute.enabled - Enable HttpRoute resource.
+    # @default -- false
+    enabled: false
+    # signoz.httproute.annotations - Annotations for the HttpRoute resource.
+    # @default -- {}
+    annotations: {}
+    # external-dns.alpha.kubernetes.io/hostname: signoz.domain.com
+    # signoz.httproute.parentRefs - parentRefs for the gateway(s) to attach the HttpRoute to.
+    # @default -- []
+    # @section -- SigNoz Networking
+    parentRefs: []
+    #  - group: gateway.networking.k8s.io 
+    #    kind: Gateway
+    #    name: gateway-example
+    #    namespace: gateway-namespace
+    # signoz.httproute.hostnames - Hostnames that will route to this HttpRoute.
+    # @default -- []
+    # @section -- SigNoz Networking
+    hostnames: []
+    #  - "signoz.domain.com"
   # signoz.resources -- Resource requests and limits.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
   # @section -- SigNoz
