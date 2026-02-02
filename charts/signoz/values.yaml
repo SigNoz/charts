@@ -1339,9 +1339,7 @@ otelCollector:
     # @default -- "/signoz-otel-collector"
     name: /signoz-otel-collector
     # otelCollector.command.extraArgs - Extra command-line arguments for the Otel Collector.
-    # @default -- ["--feature-gates=-pkg.translator.prometheus.NormalizeName"]
     extraArgs:
-      - --feature-gates=-pkg.translator.prometheus.NormalizeName
   # otelCollector.configMap -- ConfigMap settings.
   # @section -- Otel Collector
   configMap:
