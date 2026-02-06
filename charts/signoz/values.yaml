@@ -764,8 +764,8 @@ signoz:
     # @default -- "signoz/signoz"
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
-    # @default -- "v0.90.1"
-    tag: v0.110.0
+    # @default -- "v0.110.1"
+    tag: v0.110.1
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
