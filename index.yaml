@@ -3387,6 +3387,53 @@ entries:
     version: 0.0.1
   signoz:
   - apiVersion: v2
+    appVersion: v0.111.0
+    created: "2026-02-11T11:06:55.132687333Z"
+    dependencies:
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://charts.signoz.io
+      version: 24.1.18
+    - condition: signoz-otel-gateway.enabled
+      name: signoz-otel-gateway
+      repository: https://charts.signoz.io
+      version: 0.0.4
+    - condition: redpanda.enabled
+      name: redpanda
+      repository: https://charts.redpanda.com
+      version: 5.10.2
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.signoz.io
+      version: 0.0.2
+    description: SigNoz Observability Platform Helm Chart
+    digest: bac5e25c328f13efe561e7a11aecf77c83cfe4334b05dbb9211d91fb2aed180a
+    home: https://signoz.io/
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - opentelemetry
+    - apm
+    - monitoring
+    - distributed tracing
+    - distributed logging
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: signoz
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/signoz/signoz
+    - https://github.com/signoz/signoz-otel-collector
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-0.111.0/signoz-0.111.0.tgz
+    version: 0.111.0
+  - apiVersion: v2
     appVersion: v0.110.1
     created: "2026-02-06T12:29:11.652594276Z"
     dependencies:
@@ -16045,4 +16092,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-02-06T12:29:11.653491236Z"
+generated: "2026-02-11T11:06:55.133548943Z"
