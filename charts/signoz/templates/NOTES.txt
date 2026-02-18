@@ -48,7 +48,9 @@ Generates deprecation notices for NOTES.txt
 {{- if .Values.signoz.smtpVars -}}
   {{- $messages = append $messages "The '.Values.signoz.smtpVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
 {{- end -}}
-
+{{- if .Values.schemaMigrator }}
+  {{- $messages = append $messages "The 'schemaMigrator.*' key is deprecated. Please move your overrides to telemetryStoreMigrator.*" }}
+{{- end }}
 {{- if not (empty $messages) -}}
 DEPRECATION NOTICE:
 {{- range $messages }}

@@ -5,8 +5,6 @@ metadata:
   name: {{ include "telemetryStoreMigrator.fullname" . }}
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: telemetrystore-migrator
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
   annotations:
     {{- with .Values.telemetryStoreMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -24,7 +22,6 @@ spec:
     metadata:
       labels:
         {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: telemetrystore-migrator
     spec:
       {{- with .Values.telemetryStoreMigrator.affinity }}
       affinity:
@@ -42,6 +39,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
       initContainers:
         - name: ready
           image: {{ include "telemetryStoreMigrator.image" . }}

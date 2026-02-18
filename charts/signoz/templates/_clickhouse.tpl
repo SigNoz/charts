@@ -236,8 +236,23 @@ Return the ClickHouse Traces URL
 Common ENV variables for the telemetry store migrator containers
 */}}
 {{- define "snippet.telemetryStoreMigrator-env" }}
+{{- if .Values.clickhouse.enabled }}
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
-  value: tcp://{{ .Values.clickhouse.user }}:{{ .Values.clickhouse.password }}@{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}
+  value: "tcp://{{ .Values.clickhouse.user }}:{{ .Values.clickhouse.password }}@{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}"
+{{- else }}
+{{- if .Values.externalClickhouse.existingSecret }}
+- name: CLICKHOUSE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "clickhouse.secretName" . }}
+      key: {{ include "clickhouse.secretPasswordKey" . }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+  value: "tcp://{{ .Values.externalClickhouse.user }}:$(CLICKHOUSE_PASSWORD)@{{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host }}:{{ default 9000 .Values.externalClickhouse.tcpPort }}"
+{{- else }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+  value: "tcp://{{ .Values.externalClickhouse.user }}:{{ .Values.externalClickhouse.password }}@{{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host }}:{{ default 9000 .Values.externalClickhouse.tcpPort }}"
+{{- end }}
+{{- end }}
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
   value: {{ include "clickhouse.cluster" . | trim | quote }}
 - name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT

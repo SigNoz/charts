@@ -1092,7 +1092,7 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   upgradeHelmHooks: true
   # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
-  # @default -- false
+  # @default -- true
   # @section -- Telemetry Store Migrator
   enableReplication: true
   # telemetryStoreMigrator.timeout -- Timeout for the migration.
