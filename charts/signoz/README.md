@@ -674,7 +674,7 @@ tag: v0.142.0</pre>
             <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1097">telemetryStoreMigrator.enableReplication</a></td>
             <td>bool</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
 </div>
             </td>
             <td>Whether to enable replication for the Telemetry Store Migrator.</td>
