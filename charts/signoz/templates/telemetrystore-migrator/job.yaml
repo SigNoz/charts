@@ -42,8 +42,8 @@ spec:
       serviceAccountName: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
       initContainers:
         - name: ready
-          image: {{ include "telemetryStoreMigrator.image" . }}
-          imagePullPolicy: {{ .Values.telemetryStoreMigrator.image.pullPolicy }}
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
             {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
@@ -54,8 +54,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
         - name: bootstrap
-          image: {{ include "telemetryStoreMigrator.image" . }}
-          imagePullPolicy: {{ .Values.telemetryStoreMigrator.image.pullPolicy }}
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
             {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
@@ -66,8 +66,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
         - name: sync
-          image: {{ include "telemetryStoreMigrator.image" . }}
-          imagePullPolicy: {{ .Values.telemetryStoreMigrator.image.pullPolicy }}
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
             {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
@@ -80,8 +80,8 @@ spec:
           {{- end }}
       containers:
         - name: async
-          image: {{ include "telemetryStoreMigrator.image" . }}
-          imagePullPolicy: {{ .Values.telemetryStoreMigrator.image.pullPolicy }}
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
             {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:

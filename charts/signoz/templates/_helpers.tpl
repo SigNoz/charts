@@ -224,19 +224,6 @@ Return the initContainers image name
 {{- end -}}
 {{- end -}}
 
-{{/*
-Return the telemetryStoreMigrator image name
-*/}}
-{{- define "telemetryStoreMigrator.image" -}}
-{{- $registryName := default .Values.telemetryStoreMigrator.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.telemetryStoreMigrator.image.repository -}}
-{{- $tag := .Values.telemetryStoreMigrator.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Return the proper otelCollector image name
@@ -276,30 +263,6 @@ Create the name of the clusterRoleBinding to use
 {{- end }}
 {{- end }}
 
-
-{{/*
-Create the name of the Role to use for telemetryStoreMigrator
-*/}}
-{{- define "telemetryStoreMigrator.roleName" -}}
-{{- if .Values.telemetryStoreMigrator.role.create }}
-{{- $role := printf "%s-%s" (include "telemetryStoreMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $role .Values.telemetryStoreMigrator.role.name }}
-{{- else }}
-{{- default "default" .Values.telemetryStoreMigrator.role.name }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create the name of the RoleBinding to use for telemetryStoreMigrator
-*/}}
-{{- define "telemetryStoreMigrator.roleBindingName" -}}
-{{- if .Values.telemetryStoreMigrator.role.create }}
-{{- $role := printf "%s-%s" (include "telemetryStoreMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $role .Values.telemetryStoreMigrator.role.roleBinding.name }}
-{{- else }}
-{{- default "default" .Values.telemetryStoreMigrator.role.roleBinding.name }}
-{{- end }}
-{{- end }}
 
 {{/*
 Create the name of the service account to use for telemetryStoreMigrator

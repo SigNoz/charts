@@ -1069,20 +1069,6 @@ telemetryStoreMigrator:
   # @default -- "signoz-telemetrystore-migrator"
   # @section -- Telemetry Store Migrator
   name: "signoz-telemetrystore-migrator"
-  # telemetryStoreMigrator.image -- Image configuration for the Telemetry Store Migrator.
-  # @section -- Telemetry Store Migrator
-  image:
-    # telemetryStoreMigrator.image.registry - The container image registry.
-    # @default -- "docker.io"
-    registry: docker.io
-    # telemetryStoreMigrator.image.repository - The container image repository.
-    # @default -- "signoz/signoz-otel-collector"
-    repository: signoz/signoz-otel-collector
-    # telemetryStoreMigrator.image.tag - The container image tag.
-    tag: v0.142.0
-    # telemetryStoreMigrator.image.pullPolicy - The image pull policy.
-    # @default -- "IfNotPresent"
-    pullPolicy: IfNotPresent
   # telemetryStoreMigrator.annotations -- Annotations for the Telemetry Store Migrator job.
   # @default -- {}
   # @section -- Telemetry Store Migrator
@@ -1131,34 +1117,6 @@ telemetryStoreMigrator:
     # telemetryStoreMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
-  # telemetryStoreMigrator.role -- RBAC configuration for the Telemetry Store Migrator.
-  # @section -- Telemetry Store Migrator
-  # @default -- "Please checkout the default values in values.yml"
-  role:
-    # telemetryStoreMigrator.role.create - Specifies whether a Role should be created.
-    # @default -- true
-    create: true
-    # telemetryStoreMigrator.role.annotations - Annotations to add to the Role.
-    # @default -- {}
-    annotations: {}
-    # telemetryStoreMigrator.role.name - The name of the Role to use. If not set and `create` is true, a name is generated.
-    # @default -- ""
-    name: ""
-    # telemetryStoreMigrator.role.rules - A set of RBAC rules.
-    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- "Please checkout the default values in values.yml"
-    rules:
-      - apiGroups: ["batch"]
-        resources: ["jobs"]
-        verbs: ["get", "list", "watch"]
-    # telemetryStoreMigrator.role.roleBinding - RoleBinding configuration.
-    roleBinding:
-      # telemetryStoreMigrator.role.roleBinding.annotations - Annotations to add to the RoleBinding.
-      # @default -- {}
-      annotations: {}
-      # telemetryStoreMigrator.role.roleBinding.name - The name of the RoleBinding to use. If not set, a name is generated.
-      # @default -- ""
-      name: ""
 # Default values for OtelCollector
 # otelCollector -- Default values for the OpenTelemetry Collector.
 # @section -- Otel Collector
