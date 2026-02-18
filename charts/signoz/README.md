@@ -64,8 +64,10 @@ kubectl delete namespace platform
 > [!WARNING] 
 > ### Breaking Changes
 > #### Version 0.112.0
-> `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`. Schema migrations are now handled by a single Job using the `signoz-otel-collector` image. If you had custom values under `schemaMigrator`, move them to `telemetryStoreMigrator`.
-> See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.112) for details.
+> `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`.
+>
+> Store migrations are now handled by a single Job using the builtin `migrate` command in `signoz-otel-collector`.
+> If you had custom values under `schemaMigrator`, move them to `telemetryStoreMigrator`. See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.112) for details.
 >
 > #### Version 0.89.0
 > After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
