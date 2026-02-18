@@ -635,7 +635,7 @@ tls: []</pre>
             <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1071">telemetryStoreMigrator.name</a></td>
             <td>string</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">telemetrystore-migrator</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz-telemetrystore-migrator</pre>
 </div>
             </td>
             <td>The name of the Telemetry Store Migrator component.</td>
