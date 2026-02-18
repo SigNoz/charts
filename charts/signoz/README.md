@@ -360,7 +360,7 @@ name: null</pre>
 signoz_alertmanager_provider: signoz
 signoz_alertmanager_signoz_external__url: http://localhost:8080
 signoz_emailing_enabled: false
-signoz_prometheus_active_query_tracker_enabled: false
+signoz_prometheus_active__query__tracker_enabled: false
 signoz_telemetrystore_provider: clickhouse</pre>
 </div>
             </td>
