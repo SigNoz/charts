@@ -143,18 +143,18 @@ Set signoz internal url
 
 
 {{/*
-Create a default fully qualified app name for schema migrator.
+Create a default fully qualified app name for telemetrystore migrator.
 */}}
-{{- define "schemaMigrator.fullname" -}}
-{{- printf "%s-%s" (include "signoz.fullname" .) .Values.schemaMigrator.name | trunc 63 | trimSuffix "-" -}}
+{{- define "telemetryStoreMigrator.fullname" -}}
+{{- printf "%s-%s" (include "signoz.fullname" .) .Values.telemetryStoreMigrator.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "schemaMigrator.labels" -}}
+{{- define "telemetryStoreMigrator.labels" -}}
 helm.sh/chart: {{ include "signoz.chart" . }}
-{{ include "schemaMigrator.selectorLabels" . }}
+{{ include "telemetryStoreMigrator.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -164,7 +164,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Common Selector labels of schema migrator
 */}}
-{{- define "schemaMigrator.selectorLabels" -}}
+{{- define "telemetryStoreMigrator.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
@@ -224,53 +224,12 @@ Return the initContainers image name
 {{- end -}}
 
 {{/*
-Return the schema migrator's image name
+Return the telemetryStoreMigrator image name
 */}}
-{{- define "schemaMigrator.image" -}}
-{{- $registryName := default .Values.schemaMigrator.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.schemaMigrator.image.repository -}}
-{{- $tag := .Values.schemaMigrator.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-{{/*
-Return the schema migrator's wait initContainer image name
-*/}}
-{{- define "schemaMigrator.initContainers.wait.image" -}}
-{{- $registryName := default .Values.schemaMigrator.initContainers.wait.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.schemaMigrator.initContainers.wait.image.repository -}}
-{{- $tag := .Values.schemaMigrator.initContainers.wait.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the schema migrator's init initContainer image name
-*/}}
-{{- define "schemaMigrator.initContainers.init.image" -}}
-{{- $registryName := default .Values.schemaMigrator.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.schemaMigrator.initContainers.init.image.repository -}}
-{{- $tag := .Values.schemaMigrator.initContainers.init.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the schema migrator's init initContainer image name
-*/}}
-{{- define "schemaMigrator.initContainers.chReady.image" -}}
-{{- $registryName := default .Values.schemaMigrator.initContainers.chReady.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.schemaMigrator.initContainers.chReady.image.repository -}}
-{{- $tag := .Values.schemaMigrator.initContainers.chReady.image.tag | toString -}}
+{{- define "telemetryStoreMigrator.image" -}}
+{{- $registryName := default .Values.telemetryStoreMigrator.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.telemetryStoreMigrator.image.repository -}}
+{{- $tag := .Values.telemetryStoreMigrator.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -318,37 +277,37 @@ Create the name of the clusterRoleBinding to use
 
 
 {{/*
-Create the name of the Role to use for schema migrator
+Create the name of the Role to use for telemetryStoreMigrator
 */}}
-{{- define "schemaMigrator.roleName" -}}
-{{- if .Values.schemaMigrator.role.create }}
-{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $role .Values.schemaMigrator.role.name }}
+{{- define "telemetryStoreMigrator.roleName" -}}
+{{- if .Values.telemetryStoreMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "telemetryStoreMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.telemetryStoreMigrator.role.name }}
 {{- else }}
-{{- default "default" .Values.schemaMigrator.role.name }}
+{{- default "default" .Values.telemetryStoreMigrator.role.name }}
 {{- end }}
 {{- end }}
 
 {{/*
-Create the name of the RoleBinding to use for schema migrator
+Create the name of the RoleBinding to use for telemetryStoreMigrator
 */}}
-{{- define "schemaMigrator.roleBindingName" -}}
-{{- if .Values.schemaMigrator.role.create }}
-{{- $role := printf "%s-%s" (include "schemaMigrator.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $role .Values.schemaMigrator.role.roleBinding.name }}
+{{- define "telemetryStoreMigrator.roleBindingName" -}}
+{{- if .Values.telemetryStoreMigrator.role.create }}
+{{- $role := printf "%s-%s" (include "telemetryStoreMigrator.fullname" .) (include "signoz.namespace" .) -}}
+{{- default $role .Values.telemetryStoreMigrator.role.roleBinding.name }}
 {{- else }}
-{{- default "default" .Values.schemaMigrator.role.roleBinding.name }}
+{{- default "default" .Values.telemetryStoreMigrator.role.roleBinding.name }}
 {{- end }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use for schema migrator
+Create the name of the service account to use for telemetryStoreMigrator
 */}}
-{{- define "schemaMigrator.serviceAccountName" -}}
-{{- if .Values.schemaMigrator.serviceAccount.create -}}
-    {{ default (include "schemaMigrator.fullname" .) .Values.schemaMigrator.serviceAccount.name }}
+{{- define "telemetryStoreMigrator.serviceAccountName" -}}
+{{- if .Values.telemetryStoreMigrator.serviceAccount.create -}}
+    {{ default (include "telemetryStoreMigrator.fullname" .) .Values.telemetryStoreMigrator.serviceAccount.name }}
 {{- else -}}
-    {{ default "default" .Values.schemaMigrator.serviceAccount.name }}
+    {{ default "default" .Values.telemetryStoreMigrator.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

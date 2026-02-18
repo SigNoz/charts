@@ -2,7 +2,7 @@
 Common ClickHouse ENV variables and helpers used by SigNoz
 */}}
 
-{{- define "schemamigrator.url" -}}
+{{- define "telemetryStoreMigrator.url" -}}
 {{- if .Values.clickhouse.enabled -}}
 {{- printf "%v:%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) -}}
 {{- else -}}
@@ -231,6 +231,20 @@ Return the ClickHouse Traces URL
 {{- end -}}
 {{- end -}}
 
+
+{{/*
+Common ENV variables for the telemetry store migrator containers
+*/}}
+{{- define "snippet.telemetryStoreMigrator-env" }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+  value: tcp://{{ .Values.clickhouse.user }}:{{ .Values.clickhouse.password }}@{{ include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+  value: {{ include "clickhouse.cluster" . | trim | quote }}
+- name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT
+  value: {{ .Values.telemetryStoreMigrator.timeout | default "10m" | quote }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
+  value: {{ .Values.telemetryStoreMigrator.enableReplication | quote }}
+{{- end }}
 
 {{- define "clickhouse.cluster" -}}
 {{- if .Values.clickhouse.enabled -}}

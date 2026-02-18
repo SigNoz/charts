@@ -1,0 +1,12 @@
+{{- if .Values.telemetryStoreMigrator.role.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "telemetryStoreMigrator.roleName" . }}
+  namespace: {{ include "signoz.namespace" . }}
+  {{- with .Values.telemetryStoreMigrator.role.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules: {{ toYaml .Values.telemetryStoreMigrator.role.rules | nindent 2 -}}
+{{- end }}

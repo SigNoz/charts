@@ -1,19 +1,19 @@
-{{- if .Values.schemaMigrator.role.create -}}
+{{- if .Values.telemetryStoreMigrator.role.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "schemaMigrator.roleBindingName" . }}-async
+  name: {{ include "telemetryStoreMigrator.roleBindingName" . }}
   namespace: {{ include "signoz.namespace" . }}
-  {{- with .Values.schemaMigrator.role.roleBinding.annotations }}
+  {{- with .Values.telemetryStoreMigrator.role.roleBinding.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "schemaMigrator.roleName" . }}-async
+  name: {{ include "telemetryStoreMigrator.roleName" . }}
 subjects:
-  - name: {{ include "schemaMigrator.serviceAccountName" . }}-async
+  - name: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
     kind: ServiceAccount
     namespace: {{ include "signoz.namespace" . }}
 {{- end }}

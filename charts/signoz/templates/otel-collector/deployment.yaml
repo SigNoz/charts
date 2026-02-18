@@ -57,22 +57,23 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
-      # todo: add k8s-wait-for initContainer here
-      # this initContainer waits for the schema migrator job to finish
       initContainers:
-        {{- if .Values.schemaMigrator.enabled }}
-        - name: "{{ include "otelCollector.fullname" . }}-migrate-init"
-          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
-          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
+        {{- if .Values.telemetryStoreMigrator.enabled }}
+        - name: check
+          image: {{ include "telemetryStoreMigrator.image" . }}
+          imagePullPolicy: {{ .Values.telemetryStoreMigrator.image.pullPolicy }}
+          command:
+            - "/signoz-otel-collector"
           args:
-          - "job"
-          {{- if .Release.IsInstall }}
-          - "{{ include "schemaMigrator.fullname" . }}-sync-init"
-          {{- else }}
-          - "{{ include "schemaMigrator.fullname" . }}-sync"
-          {{- end }}
+            - "migrate"
+            - "sync"
+            - "check"
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
-            {{- toYaml .Values.schemaMigrator.initContainers.wait.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- end }}
         {{- if .Values.otelCollector.initContainers.init.enabled }}
         - name: {{ include "otelCollector.fullname" . }}-init
