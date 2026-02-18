@@ -1068,7 +1068,7 @@ telemetryStoreMigrator:
   # telemetryStoreMigrator.name -- The name of the Telemetry Store Migrator component.
   # @default -- "telemetrystore-migrator"
   # @section -- Telemetry Store Migrator
-  name: "telemetrystore-migrator"
+  name: "signoz-telemetrystore-migrator"
   # telemetryStoreMigrator.image -- Image configuration for the Telemetry Store Migrator.
   # @section -- Telemetry Store Migrator
   image:

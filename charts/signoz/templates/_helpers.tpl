@@ -146,7 +146,7 @@ Set signoz internal url
 Create a default fully qualified app name for telemetrystore migrator.
 */}}
 {{- define "telemetryStoreMigrator.fullname" -}}
-{{- printf "%s-%s" (include "signoz.fullname" .) .Values.telemetryStoreMigrator.name | trunc 63 | trimSuffix "-" -}}
+{{- default "signoz-telemetrystore-migrator" .Values.telemetryStoreMigrator.name -}}
 {{- end -}}
 
 {{/*
