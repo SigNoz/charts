@@ -1681,6 +1681,7 @@ otelCollector:
         timeout: 10s
         use_new_schema: true
       metadataexporter:
+        enabled: true
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
         timeout: 10s
         tenant_id: ${env:TENANT_ID}
