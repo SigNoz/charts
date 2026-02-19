@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.111.0](https://img.shields.io/badge/Version-0.111.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.111.0](https://img.shields.io/badge/AppVersion-v0.111.0-informational?style=flat-square)
+![Version: 0.112.0](https://img.shields.io/badge/Version-0.112.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.112.0](https://img.shields.io/badge/AppVersion-v0.112.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -315,7 +315,7 @@ verify: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz
-tag: v0.111.0</pre>
+tag: v0.112.0</pre>
 </div>
             </td>
             <td>Image configuration for SigNoz.</td>
@@ -366,7 +366,7 @@ name: null</pre>
 signoz_alertmanager_provider: signoz
 signoz_alertmanager_signoz_external__url: http://localhost:8080
 signoz_emailing_enabled: false
-signoz_prometheus_active_query_tracker_enabled: false
+signoz_prometheus_active__query__tracker_enabled: false
 signoz_telemetrystore_provider: clickhouse</pre>
 </div>
             </td>
