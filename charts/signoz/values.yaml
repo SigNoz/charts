@@ -863,58 +863,6 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
-  # signoz.initContainers -- Init containers for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    # signoz.initContainers.init -- Signoz init container configuration.
-    # This container is used to wait for ClickHouse to be ready before starting the main SigNoz service.
-    # @section -- SigNoz
-    # @default -- "Please checkout the default values in values.yml"
-    init:
-      # signoz.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
-      # @default -- true
-      enabled: true
-      # signoz.initContainers.init.image - Image for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # signoz.initContainers.init.command - Command settings for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting query service now"
-      # signoz.initContainers.init.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
-    # signoz.initContainers.migration -- Migration init container configuration.
-    # This container is used to run migrations before the main SigNoz service starts.
-    # @section -- SigNoz
-    migration:
-      # signoz.initContainers.migration.enabled - Enable a migration init container.
-      # @default -- false
-      enabled: false
-      # signoz.initContainers.migration.image - Image for the migration container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # signoz.initContainers.migration.args - Arguments for the migration container's command.
-      # @default -- []
-      args: []
-      # signoz.initContainers.migration.command - Command for the migration container.
-      # @default -- []
-      command: []
-      # signoz.initContainers.migration.resources - Resource requests and limits for the migration container.
-      # @default -- {}
-      resources: {}
   # signoz.podSecurityContext -- Pod-level security context.
   # @section -- SigNoz
   # @default -- {}
@@ -1151,35 +1099,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- "RollingUpdate"
   strategy: ""
-  # otelCollector.initContainers -- Init containers for the Otel Collector pod.
-  # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    # otelCollector.initContainers.init -- Otel Collector init container configuration.
-    # This container is used to wait for ClickHouse to be ready before starting the main Otel Collector service.
-    # @section -- Otel Collector
-    # @default -- "Please checkout the default values in values.yml"
-    init:
-      # otelCollector.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
-      # @default -- false
-      enabled: false
-      # otelCollector.initContainers.init.image - Image for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # otelCollector.initContainers.init.command - Command settings for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting otel collector now"
-      # otelCollector.initContainers.init.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
   # otelCollector.command -- Configuration for the Otel Collector executable.
   # @section -- Otel Collector
   command:

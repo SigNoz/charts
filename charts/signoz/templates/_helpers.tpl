@@ -72,34 +72,6 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
-Return the initContainers image name
-*/}}
-{{- define "signoz.initContainers.init.image" -}}
-{{- $registryName := default .Values.signoz.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.signoz.initContainers.init.image.repository -}}
-{{- $tag := .Values.signoz.initContainers.init.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the initContainers image name for migration
-*/}}
-{{- define "signoz.initContainers.migration.image" -}}
-{{- $registryName := default .Values.signoz.initContainers.migration.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.signoz.initContainers.migration.image.repository -}}
-{{- $tag := .Values.signoz.initContainers.migration.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return the proper signoz image name
 */}}
 {{- define "signoz.image" -}}

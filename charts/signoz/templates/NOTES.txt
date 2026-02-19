@@ -48,8 +48,17 @@ Generates deprecation notices for NOTES.txt
 {{- if .Values.signoz.smtpVars -}}
   {{- $messages = append $messages "The '.Values.signoz.smtpVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
 {{- end -}}
-{{- if .Values.schemaMigrator }}
-  {{- $messages = append $messages "The 'schemaMigrator.*' key is deprecated. Please move your overrides to telemetryStoreMigrator.*" }}
+{{- if .Values.schemaMigrator -}}
+  {{- $messages = append $messages "The '.Values.schemaMigrator.*' key is deprecated. Please move your overrides to telemetryStoreMigrator.*" }}
+{{- end -}}
+{{- if (dig "initContainers" "init" nil .Values.signoz) -}}
+  {{- $messages = append $messages "The '.Values.signoz.initContainers.init' has been removed as it is no longer required. Please remove it from your values overrides." }}
+{{- end -}}
+{{- if (dig "initContainers" "migration" nil .Values.signoz) -}}
+  {{- $messages = append $messages "The '.Values.signoz.initContainers.migration' has been removed as it is no longer required. Please remove it from your values overrides." }}
+{{- end }}
+{{- if (dig "initContainers" "init" nil .Values.otelCollector) -}}
+  {{- $messages = append $messages "The '.Values.otelCollector.initContainers.init' has been removed as it is no longer required. Please remove it from your values overrides." }}
 {{- end }}
 {{- if not (empty $messages) -}}
 DEPRECATION NOTICE:
