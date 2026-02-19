@@ -68,6 +68,13 @@ kubectl delete namespace platform
 >
 > Store migrations are now handled by a single Job using the built-in `migrate` command in `signoz-otel-collector`. 
 > If you had any overrides in `schemaMigrator`, move them to `telemetryStoreMigrator`. See the [chart upgrade guide](./UPGRADE-0.112.md) or the [docs upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.112) for details.
+>
+> The following `initContainers` have been removed as they are no longer required:
+> - `signoz.initContainers.init`
+> - `signoz.initContainers.migration`
+> - `otelCollector.initContainers.init`
+>
+> Otel-collector no longer depends on the migrator Job existing. Readiness is now determined by a ClickHouse-based check (`migrate sync check`). If you had any of these overrides, remove them from your values.
 > 
 > #### Version 0.89.0
 > After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
