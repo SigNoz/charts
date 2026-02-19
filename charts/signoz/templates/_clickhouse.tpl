@@ -22,6 +22,8 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
 - name: CLICKHOUSE_LOG_DATABASE
   value: {{ default "signoz_logs" .Values.externalClickhouse.logDatabase | quote }}
+- name: CLICKHOUSE_METER_DATABASE
+  value: {{ default "signoz_meter" .Values.externalClickhouse.meterDatabase | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.externalClickhouse.verify | quote }}
 {{- end }}
