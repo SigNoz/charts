@@ -63,7 +63,7 @@ kubectl delete namespace platform
 
 > [!WARNING]  
 > ### Breaking Changes
-> #### Version 0.112.1
+> #### Version 0.113.0
 > `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`. 
 >
 > Store migrations are now handled by a single Job using the built-in `migrate` command in `signoz-otel-collector`. 
@@ -76,7 +76,7 @@ kubectl delete namespace platform
 >
 > Otel-collector no longer depends on the migrator Job existing. Readiness is now determined by a ClickHouse-based check (`migrate sync check`). If you had any of these overrides, remove them from your values.
 >
-> **Helm value reference (v0.112.1)**  
+> **Helm value reference (v0.113.0)**  
 >
 > Use the table below when migrating your `values.yaml`.
 >  - Keys marked **Replaced** should be moved to the new path.
