@@ -67,7 +67,7 @@ kubectl delete namespace platform
 > `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`.
 >
 > Store migrations are now handled by a single Job using the built-in `migrate` command in `signoz-otel-collector`.
-> If you had any overrides in `schemaMigrator`, move them to `telemetryStoreMigrator`. See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.112) for details.
+> If you had any overrides in `schemaMigrator`, move them to `telemetryStoreMigrator`. See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.113) for details.
 >
 > The following `initContainers` have been removed as they are no longer required:
 > - `signoz.initContainers.init`
