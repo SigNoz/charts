@@ -77,17 +77,16 @@ kubectl delete namespace platform
 > Otel-collector no longer depends on the migrator Job existing. Readiness is now determined by a ClickHouse-based check (`migrate sync check`). If you had any of these overrides, remove them from your values.
 >
 > **Helm value reference (v0.112.1)** 
-> Use the table below when migrating your `values.yaml`. Keys marked **Replaced** should be moved to the new path. Keys marked **Deprecated** have no replacement—remove them from your overrides.
+>
+> Use the table below when migrating your `values.yaml`.
+>  - Keys marked **Replaced** should be moved to the new path.
+>  - Keys marked **Deprecated** have no replacement, so remove them from your overrides.
 >
 > | Key | Status | Replacement |
 > | --- | --- | --- |
-> | **signoz** | | |
 > | `signoz.initContainers.init` | Deprecated | None |
 > | `signoz.initContainers.migration` | Deprecated | None |
-> | **otelCollector** | | |
 > | `otelCollector.initContainers.init` | Deprecated | None |
-> | **schemaMigrator** | | |
-> | `schemaMigrator` (parent) | Deprecated | `telemetryStoreMigrator` |
 > | `schemaMigrator.enabled` | Replaced | `telemetryStoreMigrator.enabled` |
 > | `schemaMigrator.name` | Replaced | `telemetryStoreMigrator.name` |
 > | `schemaMigrator.annotations` | Replaced | `telemetryStoreMigrator.annotations` |
