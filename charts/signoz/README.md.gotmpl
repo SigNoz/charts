@@ -63,6 +63,46 @@ kubectl delete namespace platform
 
 > [!WARNING]  
 > ### Breaking Changes
+> #### Version 0.113.0
+> `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`. 
+>
+> Store migrations are now handled by a single Job using the built-in `migrate` command in `signoz-otel-collector`. 
+> If you had any overrides in `schemaMigrator`, move them to `telemetryStoreMigrator`. See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0.113) for details.
+>
+> The following `initContainers` have been removed as they are no longer required:
+> - `signoz.initContainers.init`
+> - `signoz.initContainers.migration`
+> - `otelCollector.initContainers.init`
+>
+> Otel-collector no longer depends on the migrator Job existing. Readiness is now determined by a ClickHouse-based check (`migrate sync check`). If you had any of these overrides, remove them from your values.
+>
+> **Helm value reference (v0.113.0)**  
+>
+> Use the table below when migrating your `values.yaml`.
+>  - Keys marked **Replaced** should be moved to the new path.
+>  - Keys marked **Deprecated** have no replacement, so remove them from your overrides.
+>
+> | Key | Status | Replacement |
+> | --- | --- | --- |
+> | `signoz.initContainers.init` | Deprecated | None |
+> | `signoz.initContainers.migration` | Deprecated | None |
+> | `otelCollector.initContainers.init` | Deprecated | None |
+> | `schemaMigrator.enabled` | Replaced | `telemetryStoreMigrator.enabled` |
+> | `schemaMigrator.name` | Replaced | `telemetryStoreMigrator.name` |
+> | `schemaMigrator.annotations` | Replaced | `telemetryStoreMigrator.annotations` |
+> | `schemaMigrator.upgradeHelmHooks` | Replaced | `telemetryStoreMigrator.upgradeHelmHooks` |
+> | `schemaMigrator.enableReplication` | Replaced | `telemetryStoreMigrator.enableReplication` |
+> | `schemaMigrator.nodeSelector` | Replaced | `telemetryStoreMigrator.nodeSelector` |
+> | `schemaMigrator.tolerations` | Replaced | `telemetryStoreMigrator.tolerations` |
+> | `schemaMigrator.affinity` | Replaced | `telemetryStoreMigrator.affinity` |
+> | `schemaMigrator.topologySpreadConstraints` | Replaced | `telemetryStoreMigrator.topologySpreadConstraints` |
+> | `schemaMigrator.resources` | Replaced | `telemetryStoreMigrator.resources` |
+> | `schemaMigrator.serviceAccount` | Replaced | `telemetryStoreMigrator.serviceAccount` |
+> | `schemaMigrator.image` | Deprecated | None (uses otel-collector image) |
+> | `schemaMigrator.args` | Deprecated | None |
+> | `schemaMigrator.initContainers` | Deprecated | None |
+> | `schemaMigrator.role` | Deprecated | None |
+>
 > #### Version 0.89.0
 > After August 28, 2025, Bitnami will require paid subscriptions for their image updates. SigNoz utilises Bitnami container images and Helm charts for Zookeeper.
 > 

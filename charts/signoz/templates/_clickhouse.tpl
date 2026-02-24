@@ -2,24 +2,9 @@
 Common ClickHouse ENV variables and helpers used by SigNoz
 */}}
 
-{{- define "schemamigrator.url" -}}
-{{- if .Values.clickhouse.enabled -}}
-{{- printf "%v:%v" ( include "clickhouse.servicename" . ) ( include "clickhouse.tcpPort" . ) -}}
-{{- else -}}
-{{- printf "%v:%v" ( required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host ) ( default 9000 .Values.externalClickhouse.tcpPort ) -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "snippet.clickhouse-env" }}
-{{- if .Values.clickhouse.enabled -}}
-- name: CLICKHOUSE_HOST
-  value: {{ include "clickhouse.servicename" . }}
-- name: CLICKHOUSE_PORT
-  value: {{ include "clickhouse.tcpPort" . | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ include "clickhouse.httpPort" . | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.clickhouse.cluster | quote }}
+{{- include "snippet.clickhouse-credentials" . }}
+{{- if .Values.clickhouse.enabled }}
 - name: CLICKHOUSE_DATABASE
   value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
 - name: CLICKHOUSE_TRACE_DATABASE
@@ -28,23 +13,9 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ default "signoz_logs" .Values.clickhouse.logDatabase | quote }}
 - name: CLICKHOUSE_METER_DATABASE
   value: {{ default "signoz_meter" .Values.clickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.clickhouse.user | quote }}
-- name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.clickhouse.password | quote }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.clickhouse.secure | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.clickhouse.verify | quote }}
-{{- else -}}
-- name: CLICKHOUSE_HOST
-  value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
-- name: CLICKHOUSE_PORT
-  value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
+{{- else }}
 - name: CLICKHOUSE_DATABASE
   value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}
 - name: CLICKHOUSE_TRACE_DATABASE
@@ -53,20 +24,6 @@ Common ClickHouse ENV variables and helpers used by SigNoz
   value: {{ default "signoz_logs" .Values.externalClickhouse.logDatabase | quote }}
 - name: CLICKHOUSE_METER_DATABASE
   value: {{ default "signoz_meter" .Values.externalClickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.externalClickhouse.user | quote }}
-{{- if .Values.externalClickhouse.existingSecret }}
-- name: CLICKHOUSE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "clickhouse.secretName" . }}
-      key: {{ include "clickhouse.secretPasswordKey" . }}
-{{- else }}
-- name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.externalClickhouse.password | quote }}
-{{- end }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.externalClickhouse.secure | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.externalClickhouse.verify | quote }}
 {{- end }}
@@ -233,6 +190,21 @@ Return the ClickHouse Traces URL
 {{- end -}}
 {{- end -}}
 
+
+{{/*
+Common ENV variables for the telemetry store migrator containers
+*/}}
+{{- define "snippet.telemetryStoreMigrator-env" }}
+{{- include "snippet.clickhouse-credentials" . }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+  value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+  value: $(CLICKHOUSE_CLUSTER)
+- name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT
+  value: {{ .Values.telemetryStoreMigrator.timeout | default "10m" | quote }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
+  value: {{ .Values.telemetryStoreMigrator.enableReplication | quote }}
+{{- end }}
 
 {{- define "clickhouse.cluster" -}}
 {{- if .Values.clickhouse.enabled -}}

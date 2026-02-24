@@ -850,7 +850,6 @@ signoz:
   # @section -- SigNoz
   env:
     signoz_telemetrystore_provider: clickhouse
-    dot_metrics_enabled: true
     # ClickHouse URL is set and applied internally. Don't override unless you know what you are doing.
     # signoz_telemetrystore_clickhouse_dsn: tcp://clickhouse_operator:clickhouse_operator_password@my-release-clickhouse:9000/signoz_traces
 
@@ -863,58 +862,6 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
-  # signoz.initContainers -- Init containers for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    # signoz.initContainers.init -- Signoz init container configuration.
-    # This container is used to wait for ClickHouse to be ready before starting the main SigNoz service.
-    # @section -- SigNoz
-    # @default -- "Please checkout the default values in values.yml"
-    init:
-      # signoz.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
-      # @default -- true
-      enabled: true
-      # signoz.initContainers.init.image - Image for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # signoz.initContainers.init.command - Command settings for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting query service now"
-      # signoz.initContainers.init.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
-    # signoz.initContainers.migration -- Migration init container configuration.
-    # This container is used to run migrations before the main SigNoz service starts.
-    # @section -- SigNoz
-    migration:
-      # signoz.initContainers.migration.enabled - Enable a migration init container.
-      # @default -- false
-      enabled: false
-      # signoz.initContainers.migration.image - Image for the migration container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # signoz.initContainers.migration.args - Arguments for the migration container's command.
-      # @default -- []
-      args: []
-      # signoz.initContainers.migration.command - Command for the migration container.
-      # @default -- []
-      command: []
-      # signoz.initContainers.migration.resources - Resource requests and limits for the migration container.
-      # @default -- {}
-      resources: {}
   # signoz.podSecurityContext -- Pod-level security context.
   # @section -- SigNoz
   # @default -- {}
@@ -1057,218 +1004,66 @@ signoz:
     # signoz.persistence.size - The size of the persistent volume.
     # @default -- "1Gi"
     size: 1Gi
-# schemaMigrator -- Default values for the Schema Migrator.
-# @section -- Schema Migrator
+# telemetryStoreMigrator -- Default values for the Telemetry Store Migrator.
+# @section -- Telemetry Store Migrator
 # @default -- "Please checkout the default values in values.yml"
-schemaMigrator:
-  # schemaMigrator.enabled -- Enable the Schema Migrator component.
+telemetryStoreMigrator:
+  # telemetryStoreMigrator.enabled -- Enable the Telemetry Store Migrator component.
   # @default -- true
-  # @section -- Schema Migrator
+  # @section -- Telemetry Store Migrator
   enabled: true
-  # schemaMigrator.name -- The name of the Schema Migrator component.
-  # @default -- "schema-migrator"
-  # @section -- Schema Migrator
-  name: "schema-migrator"
-  # schemaMigrator.image -- Image configuration for the Schema Migrator.
-  # @section -- Schema Migrator
-  image:
-    # schemaMigrator.image.registry - The container image registry.
-    # @default -- "docker.io"
-    registry: docker.io
-    # schemaMigrator.image.repository - The container image repository.
-    # @default -- "signoz/signoz-schema-migrator"
-    repository: signoz/signoz-schema-migrator
-    # schemaMigrator.image.tag - The container image tag.
-    # @default -- "v0.128.2"
-    tag: v0.142.1
-    # schemaMigrator.image.pullPolicy - The image pull policy.
-    # @default -- "IfNotPresent"
-    pullPolicy: IfNotPresent
-  # schemaMigrator.args -- Arguments for the Schema Migrator.
-  # @default -- ["--up="]
-  # @section -- Schema Migrator
-  args:
-    - "--up="
-  # schemaMigrator.annotations -- Annotations for the Schema Migrator job.
-  # Required for ArgoCD hooks if `upgradeHelmHooks` is enabled.
+  # telemetryStoreMigrator.name -- The name of the Telemetry Store Migrator component.
+  # @default -- "signoz-telemetrystore-migrator"
+  # @section -- Telemetry Store Migrator
+  name: "signoz-telemetrystore-migrator"
+  # telemetryStoreMigrator.annotations -- Annotations for the Telemetry Store Migrator job.
   # @default -- {}
-  # @section -- Schema Migrator
+  # @section -- Telemetry Store Migrator
   annotations: {}
-  # schemaMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks for Helm or Sync Waves for ArgoCD.
+  # telemetryStoreMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.
   # @default -- true
-  # @section -- Schema Migrator
+  # @section -- Telemetry Store Migrator
   upgradeHelmHooks: true
-  # schemaMigrator.enableReplication -- Whether to enable replication for the Schema Migrator.
-  # @default -- false
-  # @section -- Schema Migrator
-  enableReplication: false
-  # schemaMigrator.nodeSelector -- Node selector for pod assignment.
-  # @section -- Schema Migrator
+  # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
+  # @default -- true
+  # @section -- Telemetry Store Migrator
+  enableReplication: true
+  # telemetryStoreMigrator.timeout -- Timeout for the migration.
+  # @default -- "10m"
+  # @section -- Telemetry Store Migrator
+  timeout: "10m"
+  # telemetryStoreMigrator.nodeSelector -- Node selector for pod assignment.
+  # @section -- Telemetry Store Migrator
   # @default -- {}
   nodeSelector: {}
-  # schemaMigrator.tolerations -- Tolerations for pod assignment.
-  # @section -- Schema Migrator
+  # telemetryStoreMigrator.tolerations -- Tolerations for pod assignment.
+  # @section -- Telemetry Store Migrator
   # @default -- []
   tolerations: []
-  # schemaMigrator.affinity -- Affinity settings for pod assignment.
-  # @section -- Schema Migrator
+  # telemetryStoreMigrator.affinity -- Affinity settings for pod assignment.
+  # @section -- Telemetry Store Migrator
   # @default -- {}
   affinity: {}
-  # schemaMigrator.topologySpreadConstraints -- Topology spread constraints for pod distribution.
-  # @section -- Schema Migrator
+  # telemetryStoreMigrator.topologySpreadConstraints -- Topology spread constraints for pod distribution.
+  # @section -- Telemetry Store Migrator
   # @default -- []
   topologySpreadConstraints: []
-  # schemaMigrator.initContainers -- Init containers for the Schema Migrator pod.
-  # @section -- Schema Migrator
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    # schemaMigrator.initContainers.init -- Schema Migrator init container configuration.
-    # This container is used to wait for ClickHouse to be ready before starting the main Schema Migrator service.
-    # @section -- Schema Migrator
-    # @default -- "Please checkout the default values in values.yml"
-    init:
-      # schemaMigrator.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
-      # @default -- true
-      enabled: true
-      # schemaMigrator.initContainers.init.image - Image for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # schemaMigrator.initContainers.init.command - Command settings for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting schema migrator now"
-      # schemaMigrator.initContainers.init.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
-    # schemaMigrator.initContainers.chReady -- ClickHouse ready check container configuration.
-    # This container is used to ensure ClickHouse is ready with the correct version, shard count, and replica count before starting the Schema Migrator.
-    # @section -- Schema Migrator
-    # @default -- "Please checkout the default values in values.yml"
-    chReady:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: clickhouse/clickhouse-server
-        tag: 25.5.6
-        pullPolicy: IfNotPresent
-      command:
-        - "sh"
-        - "-c"
-        - |
-          echo "Running clickhouse ready check"
-          while true
-          do
-            version="$(CLICKHOUSE_VERSION)"
-            shards="$(CLICKHOUSE_SHARDS)"
-            replicas="$(CLICKHOUSE_REPLICAS)"
-            current_version="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT version()")"
-            if [ -z "$current_version" ]; then
-              echo "waiting for clickhouse to be ready"
-              sleep 5
-              continue
-            fi
-            if [ -z "$(echo "$current_version" | grep "$version")" ]; then
-              echo "expected version: $version, current version: $current_version"
-              echo "waiting for clickhouse with correct version"
-              sleep 5
-              continue
-            fi
-            current_shards="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count(DISTINCT(shard_num)) FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
-            if [ -z "$current_shards" ]; then
-              echo "waiting for clickhouse to be ready"
-              sleep 5
-              continue
-            fi
-            if [ "$current_shards" -ne "$shards" ]; then
-              echo "expected shard count: $shards, current shard count: $current_shards"
-              echo "waiting for clickhouse with correct shard count"
-              sleep 5
-              continue
-            fi
-            current_replicas="$(clickhouse client --host ${CLICKHOUSE_HOST} --port ${CLICKHOUSE_PORT} --user "${CLICKHOUSE_USER}" --password "${CLICKHOUSE_PASSWORD}" -q "SELECT count(DISTINCT(replica_num)) FROM system.clusters WHERE cluster = '${CLICKHOUSE_CLUSTER}'")"
-            if [ -z "$current_replicas" ]; then
-              echo "waiting for clickhouse to be ready"
-              sleep 5
-              continue
-            fi
-            if [ "$current_replicas" -ne "$replicas" ]; then
-              echo "expected replica count: $replicas, current replica count: $current_replicas"
-              echo "waiting for clickhouse with correct replica count"
-              sleep 5
-              continue
-            fi
-            break
-          done
-          echo "clickhouse ready, starting schema migrator now"
-      resources: {}
-    # schemaMigrator.initContainers.wait -- Wait container configuration.
-    # This container is used to wait for other resources before starting the Schema Migrator.
-    # @section -- Schema Migrator
-    # @default -- "Please checkout the default values in values.yml"
-    wait:
-      # schemaMigrator.initContainers.wait.enabled - Enable the init container to wait for other resources.
-      # @default -- true
-      enabled: true
-      # schemaMigrator.initContainers.wait.image - Image for the wait container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: groundnuty/k8s-wait-for
-        tag: v2.0
-        pullPolicy: IfNotPresent
-      # schemaMigrator.initContainers.wait.env - Environment variables for the wait container.
-      # @default -- []
-      env: []
-      # schemaMigrator.initContainers.wait.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
-  # schemaMigrator.serviceAccount -- Service Account configuration for the Schema Migrator.
-  # @section -- Schema Migrator
+  # telemetryStoreMigrator.resources -- Resource requests and limits for all migrator containers.
+  # @section -- Telemetry Store Migrator
+  # @default -- {}
+  resources: {}
+  # telemetryStoreMigrator.serviceAccount -- Service Account configuration for the Telemetry Store Migrator.
+  # @section -- Telemetry Store Migrator
   serviceAccount:
-    # schemaMigrator.serviceAccount.create - Specifies whether a service account should be created.
+    # telemetryStoreMigrator.serviceAccount.create - Specifies whether a service account should be created.
     # @default -- true
     create: true
-    # schemaMigrator.serviceAccount.annotations - Annotations to add to the service account.
+    # telemetryStoreMigrator.serviceAccount.annotations - Annotations to add to the service account.
     # @default -- {}
     annotations: {}
-    # schemaMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
+    # telemetryStoreMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
     # @default -- null
     name:
-  # schemaMigrator.role -- RBAC configuration for the Schema Migrator.
-  # @section -- Schema Migrator
-  # @default -- "Please checkout the default values in values.yml"
-  role:
-    # schemaMigrator.role.create - Specifies whether a ClusterRole should be created.
-    # @default -- true
-    create: true
-    # schemaMigrator.role.annotations - Annotations to add to the ClusterRole.
-    # @default -- {}
-    annotations: {}
-    # schemaMigrator.role.name - The name of the ClusterRole to use. If not set and `create` is true, a name is generated.
-    # @default -- ""
-    name: ""
-    # schemaMigrator.role.rules - A set of RBAC rules.
-    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- "Please checkout the default values in values.yml"
-    rules:
-      - apiGroups: ["batch"]
-        resources: ["jobs"]
-        verbs: ["get", "list", "watch"]
-    # schemaMigrator.role.roleBinding - ClusterRoleBinding configuration.
-    roleBinding:
-      # schemaMigrator.role.roleBinding.annotations - Annotations to add to the ClusterRoleBinding.
-      # @default -- {}
-      annotations: {}
-      # schemaMigrator.role.roleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
-      # @default -- ""
-      name: ""
 # Default values for OtelCollector
 # otelCollector -- Default values for the OpenTelemetry Collector.
 # @section -- Otel Collector
@@ -1289,8 +1084,8 @@ otelCollector:
     # @default -- "signoz/signoz-otel-collector"
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
-    # @default -- "v0.128.2"
-    tag: v0.142.1
+    # @default -- "v0.144.0"
+    tag: v0.144.0
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1303,35 +1098,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- "RollingUpdate"
   strategy: ""
-  # otelCollector.initContainers -- Init containers for the Otel Collector pod.
-  # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    # otelCollector.initContainers.init -- Otel Collector init container configuration.
-    # This container is used to wait for ClickHouse to be ready before starting the main Otel Collector service.
-    # @section -- Otel Collector
-    # @default -- "Please checkout the default values in values.yml"
-    init:
-      # otelCollector.initContainers.init.enabled - Enable the init container to wait for ClickHouse.
-      # @default -- false
-      enabled: false
-      # otelCollector.initContainers.init.image - Image for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      # otelCollector.initContainers.init.command - Command settings for the init container.
-      # @default -- "Please checkout the default values in values.yml"
-      command:
-        delay: 5
-        endpoint: /ping
-        waitMessage: "waiting for clickhouseDB"
-        doneMessage: "clickhouse ready, starting otel collector now"
-      # otelCollector.initContainers.init.resources - Resource requests and limits for the init container.
-      # @default -- {}
-      resources: {}
   # otelCollector.command -- Configuration for the Otel Collector executable.
   # @section -- Otel Collector
   command:
@@ -1914,6 +1680,7 @@ otelCollector:
         timeout: 10s
         use_new_schema: true
       metadataexporter:
+        enabled: true
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
         timeout: 10s
         tenant_id: ${env:TENANT_ID}

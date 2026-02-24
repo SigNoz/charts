@@ -57,37 +57,23 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.otelCollector.podSecurityContext | nindent 8 }}
-      # todo: add k8s-wait-for initContainer here
-      # this initContainer waits for the schema migrator job to finish
       initContainers:
-        {{- if .Values.schemaMigrator.enabled }}
-        - name: "{{ include "otelCollector.fullname" . }}-migrate-init"
-          image: {{ include "schemaMigrator.initContainers.wait.image" . }}
-          imagePullPolicy: {{ .Values.schemaMigrator.initContainers.wait.image.pullPolicy }}
-          args:
-          - "job"
-          {{- if .Release.IsInstall }}
-          - "{{ include "schemaMigrator.fullname" . }}-sync-init"
-          {{- else }}
-          - "{{ include "schemaMigrator.fullname" . }}-sync"
-          {{- end }}
-          resources:
-            {{- toYaml .Values.schemaMigrator.initContainers.wait.resources | nindent 12 }}
-        {{- end }}
-        {{- if .Values.otelCollector.initContainers.init.enabled }}
-        - name: {{ include "otelCollector.fullname" . }}-init
-          image: {{ include "otelCollector.initContainers.init.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.initContainers.init.image.pullPolicy }}
-          env:
-            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-          {{- with .Values.otelCollector.initContainers.init.command }}
+        {{- if .Values.telemetryStoreMigrator.enabled }}
+        - name: check
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           command:
-            - sh
-            - -c
-            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-          {{- end }}
+            - "/signoz-otel-collector"
+          args:
+            - "migrate"
+            - "sync"
+            - "check"
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
-            {{- toYaml .Values.otelCollector.initContainers.init.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- end }}
       containers:
         - name: collector
