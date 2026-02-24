@@ -1,0 +1,95 @@
+{{- if .Values.telemetryStoreMigrator.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "telemetryStoreMigrator.fullname" . }}
+  labels:
+    {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.telemetryStoreMigrator.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.telemetryStoreMigrator.upgradeHelmHooks }}
+    argocd.argoproj.io/sync-options: Force=true,Replace=true
+    {{- if .Release.IsUpgrade }}
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{- end }}
+    {{- end }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.telemetryStoreMigrator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telemetryStoreMigrator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telemetryStoreMigrator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telemetryStoreMigrator.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
+      initContainers:
+        - name: ready
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          args:
+            - "migrate"
+            - "ready"
+          {{- with .Values.telemetryStoreMigrator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: bootstrap
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          args:
+            - "migrate"
+            - "bootstrap"
+          {{- with .Values.telemetryStoreMigrator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: sync
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          args:
+            - "migrate"
+            - "sync"
+            - "up"
+          {{- with .Values.telemetryStoreMigrator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      containers:
+        - name: async
+          image: {{ include "otelCollector.image" . }}
+          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
+          env:
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+          args:
+            - "migrate"
+            - "async"
+            - "up"
+          {{- with .Values.telemetryStoreMigrator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      restartPolicy: OnFailure
+{{- end }}

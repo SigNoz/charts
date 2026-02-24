@@ -49,55 +49,6 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.signoz.podSecurityContext | nindent 8 }}
-      {{- with .Values.signoz.initContainers }}
-      initContainers:
-        {{- if .init.enabled }}
-        - name: {{ include "signoz.fullname" $ }}-init
-          image: {{ include "signoz.initContainers.init.image" $ }}
-          imagePullPolicy: {{ .init.image.pullPolicy }}
-          env:
-            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
-          {{- with .init.command }}
-          command:
-            - sh
-            - -c
-            - until wget --user "${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}" --spider -q {{ include "clickhouse.httpUrl" $ }}{{ .endpoint }}; do echo -e "{{ .waitMessage }}"; sleep {{ .delay }}; done; echo -e "{{ .doneMessage }}";
-          {{- end }}
-          resources:
-            {{- toYaml .init.resources | nindent 12 }}
-        {{- end }}
-        {{- if .migration.enabled }}
-        - name: {{ include "signoz.fullname" $ }}-migration
-          image: {{ include "signoz.initContainers.migration.image" $ }}
-          imagePullPolicy: {{ .migration.image.pullPolicy }}
-          env:
-            {{- include "snippet.clickhouse-credentials" $ | nindent 12 }}
-          {{- if .migration.args }}
-          args:
-            {{- toYaml .migration.args | nindent 12 }}
-          {{- end }}
-          {{- if .migration.command }}
-          command:
-            {{- toYaml .migration.command | nindent 12 }}
-          {{- end }}
-          resources:
-            {{- toYaml .migration.resources | nindent 12 }}
-          volumeMounts:
-          {{- if $.Values.signoz.persistence.enabled }}
-          {{- if $.Values.signoz.persistence.existingClaim }}
-            - name: signoz-db-existing-claim
-          {{- else }}
-            - name: signoz-db
-          {{- end }}
-          {{- else }}
-            - name: signoz-db-volume
-          {{- end }}
-              mountPath: /var/lib/signoz
-          {{- if .migration.additionalVolumeMounts }}
-            {{- toYaml .migration.additionalVolumeMounts | nindent 12 }}
-          {{- end }}
-        {{- end }}
-      {{- end }}
       containers:
         - name: signoz
           securityContext:
@@ -178,9 +129,6 @@ spec:
         {{- end }}
         {{- if .Values.signoz.additionalVolumes }}
           {{- toYaml .Values.signoz.additionalVolumes | nindent 8 }}
-        {{- end }}
-        {{- if .Values.signoz.initContainers.migration.additionalVolumes }}
-          {{- toYaml .Values.signoz.initContainers.migration.additionalVolumes | nindent 8 }}
         {{- end }}
 
 {{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) ( not .Values.postgresql.enabled )}}
