@@ -1084,8 +1084,8 @@ otelCollector:
     # @default -- "signoz/signoz-otel-collector"
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
-    # @default -- "v0.128.2"
-    tag: v0.142.0
+    # @default -- "v0.144.0"
+    tag: v0.144.0
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
