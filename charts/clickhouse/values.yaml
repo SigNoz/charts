@@ -575,7 +575,7 @@ clickhouseOperator:
   name: operator
 
   # -- Version of the operator
-  version: 0.21.2
+  version: 0.25.3
 
   # -- Clickhouse Operator image
   image:
@@ -584,7 +584,7 @@ clickhouseOperator:
     # -- Clickhouse Operator image repository to use.
     repository: altinity/clickhouse-operator
     # -- Clickhouse Operator image tag.
-    tag: 0.21.2
+    tag: 0.25.3
     # -- Clickhouse Operator image pull policy.
     pullPolicy: IfNotPresent
 

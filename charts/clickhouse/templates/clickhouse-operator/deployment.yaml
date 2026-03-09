@@ -28,6 +28,10 @@ spec:
         checksum/configd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-configd-files.yaml") . | sha256sum }}
         checksum/templatesd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-templatesd-files.yaml") . | sha256sum }}
         checksum/usersd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/etc-usersd-files.yaml") . | sha256sum }}
+        checksum/keeper-confd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/keeper-etc-confd-files.yaml") . | sha256sum }}
+        checksum/keeper-configd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/keeper-etc-configd-files.yaml") . | sha256sum }}
+        checksum/keeper-templatesd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/keeper-etc-templatesd-files.yaml") . | sha256sum }}
+        checksum/keeper-usersd-files: {{ include (print $.Template.BasePath "/clickhouse-operator/configmaps/keeper-etc-usersd-files.yaml") . | sha256sum }}
       labels:
         {{- include "clickhouseOperator.selectorLabels" . | nindent 8 }}
         {{- if .Values.clickhouseOperator.podLabels }}
@@ -70,6 +74,19 @@ spec:
         - name: etc-clickhouse-operator-usersd-folder
           configMap:
             name: {{ include "clickhouseOperator.fullname" . }}-etc-usersd-files
+        - name: etc-keeper-operator-confd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-keeper-etc-confd-files
+        - name: etc-keeper-operator-configd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-keeper-etc-configd-files
+        - name: etc-keeper-operator-templatesd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-keeper-etc-templatesd-files
+        - name: etc-keeper-operator-usersd-folder
+          configMap:
+            name: {{ include "clickhouseOperator.fullname" . }}-keeper-etc-usersd-files
+
       containers:
         - name: operator
           image: {{ template "clickhouseOperator.image" . }}
@@ -78,13 +95,21 @@ spec:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
             - name: etc-clickhouse-operator-confd-folder
-              mountPath: /etc/clickhouse-operator/conf.d
+              mountPath: /etc/clickhouse-operator/chi/conf.d
             - name: etc-clickhouse-operator-configd-folder
-              mountPath: /etc/clickhouse-operator/config.d
+              mountPath: /etc/clickhouse-operator/chi/config.d
             - name: etc-clickhouse-operator-templatesd-folder
-              mountPath: /etc/clickhouse-operator/templates.d
+              mountPath: /etc/clickhouse-operator/chi/templates.d
             - name: etc-clickhouse-operator-usersd-folder
-              mountPath: /etc/clickhouse-operator/users.d
+              mountPath: /etc/clickhouse-operator/chi/users.d
+            - name: etc-keeper-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/chk/conf.d
+            - name: etc-keeper-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/chk/keeper_config.d
+            - name: etc-keeper-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/chk/templates.d
+            - name: etc-keeper-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/chk/users.d
           env:
             {{- include "clickhouseOperator.commonEnv" . | nindent 12 }}
             {{- with .Values.clickhouseOperator.env }}
@@ -100,13 +125,21 @@ spec:
             - name: etc-clickhouse-operator-folder
               mountPath: /etc/clickhouse-operator
             - name: etc-clickhouse-operator-confd-folder
-              mountPath: /etc/clickhouse-operator/conf.d
+              mountPath: /etc/clickhouse-operator/chi/conf.d
             - name: etc-clickhouse-operator-configd-folder
-              mountPath: /etc/clickhouse-operator/config.d
+              mountPath: /etc/clickhouse-operator/chi/config.d
             - name: etc-clickhouse-operator-templatesd-folder
-              mountPath: /etc/clickhouse-operator/templates.d
+              mountPath: /etc/clickhouse-operator/chi/templates.d
             - name: etc-clickhouse-operator-usersd-folder
-              mountPath: /etc/clickhouse-operator/users.d
+              mountPath: /etc/clickhouse-operator/chi/users.d
+            - name: etc-keeper-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/chk/conf.d
+            - name: etc-keeper-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/chk/keeper_config.d
+            - name: etc-keeper-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/chk/templates.d
+            - name: etc-keeper-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/chk/users.d
           env:
             {{- include "clickhouseOperator.commonEnv" . | nindent 12 }}
             {{- with .Values.clickhouseOperator.metricsExporter.env }}

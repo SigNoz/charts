@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 rules:
+#
+# Core API group
+#
   - apiGroups:
       - ""
     resources:
@@ -39,6 +42,15 @@ rules:
       - ""
     resources:
       - persistentvolumes
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
       - pods
     verbs:
       - get
@@ -46,6 +58,10 @@ rules:
       - patch
       - update
       - watch
+      - delete
+  #
+  # apps.* resources
+  #
   - apiGroups:
       - apps
     resources:
@@ -96,6 +112,8 @@ rules:
       - clickhouseinstallations
     verbs:
       - get
+      - list
+      - watch
       - patch
       - update
       - delete
@@ -143,3 +161,31 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - clickhouse-keeper.altinity.com
+    resources:
+      - clickhousekeeperinstallations
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+      - delete
+
+  - apiGroups:
+      - clickhouse-keeper.altinity.com
+    resources:
+      - clickhousekeeperinstallations/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - clickhouse-keeper.altinity.com
+    resources:
+      - clickhousekeeperinstallations/status
+    verbs:
+      - get
+      - create
+      - patch
+      - update
+      - delete

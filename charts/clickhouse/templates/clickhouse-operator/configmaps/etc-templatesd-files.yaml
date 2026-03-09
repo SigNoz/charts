@@ -38,7 +38,7 @@ data:
                 "containers" : [
                   {
                     "name": "clickhouse",
-                    "image": "clickhouse/clickhouse-server:22.3",
+                    "image": "clickhouse/clickhouse-server:23.8",
                     "ports": [
                       {
                         "name": "http",
@@ -86,5 +86,4 @@ data:
               resources:
                 requests:
                   storage: 2Gi
-  readme: |-
-    Templates in this folder are packaged with an operator and available via 'useTemplate'
+  readme: Templates in this folder are packaged with an operator and available via 'useTemplate'

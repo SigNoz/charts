@@ -24,7 +24,8 @@ data:
         # List of namespaces where clickhouse-operator watches for events.
         # Concurrently running operators should watch on different namespaces.
         #namespaces: ["dev", "test"]
-        namespaces: []
+        namespaces:
+          - ".*"
 
       clickhouse:
         configuration:
@@ -36,12 +37,12 @@ data:
           file:
             path:
               # Path to the folder where ClickHouse configuration files common for all instances within a CHI are located.
-              common: config.d
+              common: chi/config.d
               # Path to the folder where ClickHouse configuration files unique for each instance (host) within a CHI are located.
-              host: conf.d
+              host: chi/conf.d
               # Path to the folder where ClickHouse configuration files with users' settings are located.
               # Files are common for all instances within a CHI.
-              user: users.d
+              user: chi/users.d
           ################################################
           ##
           ## Configuration Users Section
@@ -87,19 +88,25 @@ data:
             - version: "*"
               rules:
                 - settings/*: "yes"
+                - settings/access_control_path: "no"
                 - settings/dictionaries_config: "no"
-                - settings/logger: "no"
-                - settings/macros/*: "no"
                 - settings/max_server_memory_*: "no"
                 - settings/max_*_to_drop: "no"
                 - settings/max_concurrent_queries: "no"
                 - settings/models_config: "no"
                 - settings/user_defined_executable_functions_config: "no"
+                - settings/logger/*: "no"
+                - settings/macros/*: "no"
+                - settings/remote_servers/*: "no"
+                - settings/user_directories/*: "no"
+                - settings/display_secrets_in_show_and_select: "no"
 
                 - zookeeper/*: "yes"
 
+                - files/*.xml: "yes"
                 - files/config.d/*.xml: "yes"
                 - files/config.d/*dict*.xml: "no"
+                - files/config.d/*no_restart*: "no"
 
                 - profiles/default/background_*_pool_size: "yes"
                 - profiles/default/max_*_for_server: "yes"
@@ -116,7 +123,7 @@ data:
           # Possible values for `scheme` are:
           # 1. http
           # 2. https
-          scheme: ""
+          scheme: "auto"
           # ClickHouse credentials (username, password and port) to be used by the operator to connect to ClickHouse instances.
           # Used for:
           # 1. Metrics requests
@@ -149,9 +156,60 @@ data:
             connect: 2
             query: 5
 
+        ################################################
+        ##
+        ## ClickHouse Addons Section
+        ##
+        ################################################
+        addons:
+          rules:
+          - spec:
+              configuration:
+                files: null
+                profiles: null
+                quotas: null
+                settings: null
+                users: null
+            version: '*'
+          - spec:
+              configuration:
+                files: null
+                profiles: null
+                quotas: null
+                settings: null
+                users:
+                  '{clickhouseOperatorUser}/access_management': 1
+                  '{clickhouseOperatorUser}/named_collection_control': 1
+                  '{clickhouseOperatorUser}/show_named_collections': 1
+                  '{clickhouseOperatorUser}/show_named_collections_secrets': 1
+            version: '>= 23.3'
+          - spec:
+              configuration:
+                files: null
+                profiles:
+                  clickhouse_operator/format_display_secrets_in_show_and_select: 1
+                quotas: null
+                settings:
+                  display_secrets_in_show_and_select: 1
+                users: null
+            version: '>= 23.5'
+
         metrics:
           timeouts:
             collect: 9
+
+      ################################################
+      ##
+      ## Keeper Section
+      ##
+      ################################################
+      keeper:
+        configuration:
+          file:
+            path:
+              common: chk/keeper_config.d
+              host: chk/conf.d
+              user: chk/users.d
 
       ################################################
       ##
@@ -162,7 +220,11 @@ data:
         chi:
           # Path to the folder where ClickHouseInstallation .yaml manifests are located.
           # Manifests are applied in sorted alpha-numeric order.
-          path: templates.d
+          path: chi/templates.d
+          policy: ApplyOnNextReconcile
+        chk:
+          path: chk/templates.d
+          policy: ApplyOnNextReconcile
 
       ################################################
       ##
@@ -174,7 +236,7 @@ data:
           # Max number of concurrent CHI reconciles in progress
           reconcileCHIsThreadsNumber: 10
           # Max number of concurrent shard reconciles in progress
-          reconcileShardsThreadsNumber: 1
+          reconcileShardsThreadsNumber: 5
           # The maximum percentage of cluster shards that may be reconciled in parallel
           reconcileShardsMaxConcurrencyPercent: 50
 
@@ -189,7 +251,7 @@ data:
 
           update:
             # How many seconds to wait for created/updated StatefulSet to be 'Ready'
-            timeout: 900
+            timeout: 300
             # How many seconds to wait between checks/polls for created/updated StatefulSet status
             pollInterval: 5
             # What to do in case updated StatefulSet is not in 'Ready' after `reconcile.statefulSet.update.timeout` seconds
@@ -209,6 +271,11 @@ data:
           wait:
             exclude: true
             include: false
+            queries: true
+            replicas:
+              all: false
+              delay: 10
+              new: true
 
       ################################################
       ##
@@ -223,7 +290,8 @@ data:
         # Applied only when not empty. Empty list means "include all, no selection"
         include: []
         # Exclude annotations from the following list:
-        exclude: []
+        exclude:
+          - argocd.argoproj.io/tracking-id
 
       ################################################
       ##
@@ -264,6 +332,18 @@ data:
 
       ################################################
       ##
+      ## Status management
+      ##
+      ################################################
+      status:
+        fields:
+          action: false
+          actions: false
+          error: false
+          errors: false
+
+      ################################################
+      ##
       ## Pod management
       ##
       ################################################
@@ -273,6 +353,15 @@ data:
         # SIGTERM and SIGKILL during Pod termination process.
         # Increase this number is case of slow shutdown.
         terminationGracePeriod: 30
+
+      ################################################
+      ##
+      ## Metrics management
+      ##
+      ################################################
+      metrics:
+        labels:
+          exclude: []
 
       ################################################
       ##
