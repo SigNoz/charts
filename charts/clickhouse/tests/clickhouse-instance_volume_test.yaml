@@ -6,7 +6,7 @@ release:
   name: clickhouse
   namespace: signoz
 tests:
-  - it: should have 3 volumes with persistence.enabled=true
+  - it: should have 2 volumes with persistence.enabled=true
     set:
       persistence:
         enabled: true
@@ -25,14 +25,7 @@ tests:
             name: custom-functions-volume
             configMap:
               name: clickhouse-custom-functions
-      - contains:
-          path: spec.templates.podTemplates[0].spec.volumes
-          count: 1
-          content:
-            name: scripts
-            configMap:
-              name: clickhouse-scripts
-  - it: should have 3 volumes with persistence.enabled=false and templates.volumeClaimTemplates not empty
+  - it: should have 2 volumes with persistence.enabled=false and templates.volumeClaimTemplates not empty
     set:
       persistence:
         enabled: false
@@ -56,13 +49,6 @@ tests:
             name: custom-functions-volume
             configMap:
               name: clickhouse-custom-functions
-      - contains:
-          path: spec.templates.podTemplates[0].spec.volumes
-          count: 1
-          content:
-            name: scripts
-            configMap:
-              name: clickhouse-scripts
   - it: should have data-volumeclaim-template when persistence.enabled=true
     set:
       persistence:

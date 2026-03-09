@@ -18,93 +18,67 @@ global:
 
 ###
 ###
-### ---- ZOOKEEPER ----
+### ---- ClickHouse Keeper ----
 ###
 ###
 
-# Zookeeper default values
-# Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+# ClickHouse Keeper values
+# Uses ClickHouseKeeperInstallation CRD managed by clickhouse-operator
 #
 # @ignored
-zookeeper:
-  #
-  # Please DO NOT override this value.
-  # This chart installs Zookeeper separately.
-  # Only if you know what you are doing, proceed with overriding.
-  #
-
-  # -- Whether to install zookeeper. If false, `clickhouse.externalZookeeper` must be set.
+keeper:
+  # -- Whether to install ClickHouse Keeper. If false, `clickhouse.externalZookeeper` must be set.
   enabled: true
 
-  # Zookeeper image
-  image:
-    # -- Zookeeper image registry to use.
-    registry: *GLOBAL_IMAGE_REGISTRY
-    # -- Zookeeper image repository to use.
-    repository: signoz/zookeeper
-    # -- Zookeeper image tag.
-    # Note: SigNoz ClickHouse does not support all versions of Zookeeper.
-    # Please override the default only if you know what you are doing.
-    tag: 3.7.1
+  # -- ClickHouse Keeper cluster name
+  cluster: cluster
 
-  # -- Name override for zookeeper app
+  # ClickHouse Keeper image
+  image:
+    # -- ClickHouse Keeper image registry to use.
+    registry: *GLOBAL_IMAGE_REGISTRY
+    # -- ClickHouse Keeper image repository to use.
+    repository: clickhouse/clickhouse-keeper
+    # -- ClickHouse Keeper image tag.
+    tag: 25.12.5
+    # -- ClickHouse Keeper image pull policy.
+    pullPolicy: IfNotPresent
+
+  # -- Name override for keeper app
   nameOverride: ""
-  # -- Fullname override for zookeeper app
+  # -- Fullname override for keeper app
   fullnameOverride: ""
 
-  # -- Whether to install zookeeper into a different namespace than the parent
-  namespaceOverride: ""
-
-  # -- Zookeeper pod(s) annotation.
+  # ClickHouse Keeper instance labels
+  labels: {}
+  # ClickHouse Keeper pod labels
+  podLabels: {}
+  # -- ClickHouse Keeper instance annotations.
+  annotations: {}
+  # -- ClickHouse Keeper pod(s) annotation.
   podAnnotations: {}
 
-  autopurge:
-    # -- The time interval (in hours) for which the purge task has to be triggered
-    purgeInterval: 1
-
-  metrics:
-    # -- Enable Prometheus to access ZooKeeper metrics endpoint.
-    enabled: false
-
-    service:
-      enabled: true
-      # -- ZooKeeper metrics service annotation
-      annotations: {}
-        # signoz.io/scrape: 'true'
-        # signoz.io/port: '9141'
-        # signoz.io/path: /metrics
-
-  # -- Minimal SERVER_ID value, nodes increment their IDs respectively.
-  # Servers increment their ID starting at this minimal value.
-  # Eg. with `minServerId=10` and 3 replicas, server IDs will be 10,
-  # 11, 12 for z-0, z-1 and z-2 respectively.
-  minServerId: 1
-
-  # -- Replica count for zookeeper
+  # -- Replica count for ClickHouse Keeper
   replicaCount: 1
 
-  # ZooKeeper Pod Disruption Budget
-  # Ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
-  pdb:
-    # -- Specifies whether a Pod Disruption Budget should be created
-    create: false
+  # ClickHouse Keeper settings
+  settings:
+    # -- Keeper logger level
+    loggerLevel: information
+    # -- Keeper logger console output
+    loggerConsole: "true"
+    # -- Keeper raft logs level
+    raftLogsLevel: information
+    # -- Extra keeper settings (key/value pairs)
+    extra: {}
 
-  # Enable persistence using Persistent Volume Claims
-  #
-  # Ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+  # Persistence configuration for ClickHouse Keeper
   persistence:
-    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
-    enabled: true
-
-    # -- Name of an existing PVC to use (only when deploying a single replica)
-    existingClaim: ""
-
-    # -- PVC Storage Class for ZooKeeper data volume
+    # -- PVC Storage Class for ClickHouse Keeper data volume
     # If defined, storageClassName: <storageClass>
     # If set to "-", storageClassName: "", which disables dynamic provisioning
     # If undefined (the default) or set to null, no storageClassName spec is
-    #   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    #   GKE, AWS & OpenStack)
+    #   set, choosing the default provisioner.
     # @default -- See `values.yaml` for defaults
     storageClass: *GLOBAL_SC
 
@@ -112,18 +86,26 @@ zookeeper:
     accessModes:
       - ReadWriteOnce
 
-    # -- PVC Storage Request for ZooKeeper data volume
+    # -- PVC Storage Request for ClickHouse Keeper data volume
     size: 8Gi
 
-    # -- Annotations for the PVC
-    annotations: {}
+  # -- Security context for ClickHouse Keeper
+  securityContext:
+    fsGroup: 101
 
-  # -- Resources requests and limits for zookeeper
+  # -- Resources requests and limits for ClickHouse Keeper
   resources:
     limits: {}
     requests:
       memory: 256Mi
       cpu: 100m
+
+  # -- Node selector for ClickHouse Keeper pod
+  nodeSelector: {}
+  # -- Toleration labels for ClickHouse Keeper pod assignment
+  tolerations: []
+  # -- Affinity settings for ClickHouse Keeper pod
+  affinity: {}
 
 ###
 ###
@@ -171,7 +153,7 @@ image:
   # -- Clickhouse image tag.
   # Note: SigNoz does not support all versions of ClickHouse.
   # Please override the default only if you know what you are doing.
-  tag: 24.1.2-alpine
+  tag: 25.12.5
   # -- Clickhouse image pull policy.
   pullPolicy: IfNotPresent
 

@@ -35,13 +35,13 @@ tests:
     asserts:
       - exists:
           path: spec.configuration.files["events.proto"]
-  - it: should have zookeeper nodes
+  - it: should have keeper nodes
     set:
-      zookeeper.enabled: true
+      keeper.enabled: true
     asserts:
       - equal:
           path: spec.configuration.zookeeper.nodes[0].host
-          value: "clickhouse-zookeeper-0.clickhouse-zookeeper-headless"
+          value: "keeper-clickhouse-clickhouse-keeper"
       - equal:
           path: spec.configuration.zookeeper.nodes[0].port
           value: 2181

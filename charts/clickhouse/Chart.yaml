@@ -2,21 +2,13 @@ apiVersion: v2
 name: clickhouse
 description: A Helm chart for ClickHouse
 type: application
-version: 24.1.18
-appVersion: "24.1.2"
+version: 25.12.5
+appVersion: "25.12.5"
 icon: https://github.com/ClickHouse/clickhouse-docs/raw/84f38d893eb7e561c7296279d7953b6a508ec413/static/img/clickhouse-logo.svg
 sources:
   - https://github.com/SigNoz/charts
   - https://github.com/ClickHouse/ClickHouse
-dependencies:
-  - name: zookeeper
-    repository: "file://../zookeeper"
-    version: 0.0.1
-    condition: zookeeper.enabled
 maintainers:
   - name: SigNoz
     email: hello@signoz.io
     url: https://signoz.io
-  - name: prashant-shahi
-    email: prashant@signoz.io
-    url: https://prashantshahi.dev

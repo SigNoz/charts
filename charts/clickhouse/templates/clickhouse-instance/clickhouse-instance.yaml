@@ -20,6 +20,7 @@ spec:
       # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
       serviceTemplate: service-template
+      podTemplate: pod-template
 
   configuration:
     users:
@@ -119,13 +120,8 @@ spec:
       {{- if .Values.externalZookeeper }}
         {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
       {{- else }}
-        {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
-        {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
-        {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) }}
-        {{- range $replicaIndex := until $replicaCount }}
-        - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
-          port: {{ include "clickhouse.zookeeper.port" . }}
-        {{- end }}
+        - host: {{ include "clickhouse.keeper.servicename" . }}
+          port: {{ include "clickhouse.keeper.port" . }}
       {{- end }}
 
   templates:
@@ -171,9 +167,6 @@ spec:
             - name: custom-functions-volume
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-custom-functions
-            - name: scripts
-              configMap:
-                name: {{ include "clickhouse.fullname" . }}-scripts
           {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
             - name: data-volume
               emptyDir: {}
@@ -277,8 +270,6 @@ spec:
                   mountPath: /var/lib/clickhouse/user_scripts
                 - name: custom-functions-volume
                   mountPath: /etc/clickhouse-server/functions
-                - name: scripts
-                  mountPath: /scripts
               {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
                 - name: data-volume
                   mountPath: /var/lib/clickhouse
@@ -295,12 +286,6 @@ spec:
               {{- end }}
               {{- if .Values.resources }}
               resources: {{ toYaml .Values.resources | nindent 16 }}
-              {{- end }}
-              {{- if .Values.logs.system.enabled }}
-              lifecycle:
-                postStart:
-                  exec:
-                    command: ["/bin/bash", "/scripts/wait-until-ready.sh"]
               {{- end }}
             {{- if .Values.logs.system.enabled }}
             - name: logs-system-exporter

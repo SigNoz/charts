@@ -60,89 +60,37 @@ clickhouse:
   # @section -- ClickHouse Settings
   # @default -- true
   enabled: true
-  # clickhouse.zookeeper -- Zookeeper default values.
-  # Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+  # clickhouse.keeper -- ClickHouse Keeper configuration.
+  # Uses ClickHouseKeeperInstallation CRD managed by clickhouse-operator.
   # @ignored
-  zookeeper:
-    # Please DO NOT override this value. This chart installs Zookeeper separately.
-    # Only if you know what you are doing, proceed with overriding.
-    # To see default values, refer to the zookeeper section in the values.yaml of the upstream clickhouse chart.
-
-    # clickhouse.zookeeper.enabled -- Whether to install Zookeeper. If false, `clickhouse.externalZookeeper` must be set.
-    # @section -- Zookeeper Settings
+  keeper:
+    # clickhouse.keeper.enabled -- Whether to install ClickHouse Keeper. If false, `clickhouse.externalZookeeper` must be set.
+    # @section -- ClickHouse Keeper Settings
     # @default -- true
     enabled: true
-    # clickhouse.zookeeper.podAnnotations -- Annotations for the Zookeeper pod.
-    # @section -- Zookeeper Settings
+    # clickhouse.keeper.podAnnotations -- Annotations for the ClickHouse Keeper pod.
+    # @section -- ClickHouse Keeper Settings
     # @default -- { signoz.io/scrape: "true", signoz.io/port: "9141", signoz.io/path: "/metrics" }
     podAnnotations:
       signoz.io/scrape: "true"
       signoz.io/port: "9141"
       signoz.io/path: "/metrics"
-    # clickhouse.zookeeper.metrics -- Zookeeper metrics settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: true }
-    metrics:
-      enabled: true
-    # clickhouse.zookeeper.logLevel -- Zookeeper log level.
-    # @section -- Zookeeper Settings
-    # @default -- "INFO"
-    logLevel: INFO
-    # clickhouse.zookeeper.livenessProbe -- Zookeeper liveness probe settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: false }
-    livenessProbe:
-      enabled: false
-    # clickhouse.zookeeper.readinessProbe -- Zookeeper readiness probe settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: false }
-    readinessProbe:
-      enabled: false
-    # clickhouse.zookeeper.customLivenessProbe -- Custom liveness probe for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- "Please checkout the default values in values.yml"
-    customLivenessProbe:
-      exec:
-        command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep ruok']
-      initialDelaySeconds: 30
-      periodSeconds: 10
-      timeoutSeconds: 5
-      successThreshold: 1
-      failureThreshold: 6
-    # clickhouse.zookeeper.customReadinessProbe -- Custom readiness probe for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- "Please checkout the default values in values.yml"
-    customReadinessProbe:
-      exec:
-        command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null']
-      initialDelaySeconds: 5
-      periodSeconds: 10
-      timeoutSeconds: 5
-      successThreshold: 1
-      failureThreshold: 6
-    # clickhouse.zookeeper.image -- Zookeeper image configuration.
-    # @section -- Zookeeper Settings
+    # clickhouse.keeper.image -- ClickHouse Keeper image configuration.
+    # @section -- ClickHouse Keeper Settings
     image:
-      # clickhouse.zookeeper.image.registry -- Zookeeper image registry to use.
+      # clickhouse.keeper.image.registry -- ClickHouse Keeper image registry to use.
       # @default -- (value of global.imageRegistry)
       registry: *GLOBAL_IMAGE_REGISTRY
-      # clickhouse.zookeeper.image.repository -- Zookeeper image repository to use.
-      # @default -- "bitnami/zookeeper"
-      repository: signoz/zookeeper
-      # clickhouse.zookeeper.image.tag -- Zookeeper image tag. SigNoz ClickHouse does not support all versions of Zookeeper.
-      # Please override the default only if you know what you are doing.
-      # @default -- "3.7.1"
-      tag: 3.7.1
-    # clickhouse.zookeeper.replicaCount -- Replica count for Zookeeper.
-    # @section -- Zookeeper Settings
+      # clickhouse.keeper.image.repository -- ClickHouse Keeper image repository to use.
+      repository: clickhouse/clickhouse-keeper
+      # clickhouse.keeper.image.tag -- ClickHouse Keeper image tag.
+      tag: 25.12.5
+    # clickhouse.keeper.replicaCount -- Replica count for ClickHouse Keeper.
+    # @section -- ClickHouse Keeper Settings
     # @default -- 1
     replicaCount: 1
-    # clickhouse.zookeeper.namespaceOverride -- Whether to install Zookeeper into a different namespace than the parent.
-    # @section -- Zookeeper Settings
-    # @default -- ""
-    namespaceOverride: ""
-    # clickhouse.zookeeper.resources -- Resources requests and limits for Zookeeper.
-    # @section -- Zookeeper Settings
+    # clickhouse.keeper.resources -- Resources requests and limits for ClickHouse Keeper.
+    # @section -- ClickHouse Keeper Settings
     # @default -- { limits: {}, requests: { memory: "256Mi", cpu: "100m" } }
     resources:
       limits: {}
@@ -200,8 +148,8 @@ clickhouse:
     repository: clickhouse/clickhouse-server
     # clickhouse.image.tag -- ClickHouse image tag to use. SigNoz is not always tested with the latest version of ClickHouse.
     # Only override if you know what you are doing.
-    # @default -- "25.5.6"
-    tag: 25.5.6
+    # @default -- "25.12.5"
+    tag: 25.12.5
     # clickhouse.image.pullPolicy -- ClickHouse image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -526,8 +474,8 @@ clickhouse:
     # @default -- "operator"
     name: operator
     # clickhouse.clickhouseOperator.version -- Version of the operator.
-    # @default -- "0.21.2"
-    version: 0.21.2
+    # @default -- "0.25.3"
+    version: 0.25.3
     # clickhouse.clickhouseOperator.image -- ClickHouse Operator image configuration.
     # @section -- ClickHouse Operator Image
     image:
@@ -538,8 +486,8 @@ clickhouse:
       # @default -- "altinity/clickhouse-operator"
       repository: altinity/clickhouse-operator
       # clickhouse.clickhouseOperator.image.tag -- ClickHouse Operator image tag.
-      # @default -- "0.21.2"
-      tag: 0.21.2
+      # @default -- "0.25.3"
+      tag: 0.25.3
       # clickhouse.clickhouseOperator.image.pullPolicy -- ClickHouse Operator image pull policy.
       # @default -- "IfNotPresent"
       pullPolicy: IfNotPresent

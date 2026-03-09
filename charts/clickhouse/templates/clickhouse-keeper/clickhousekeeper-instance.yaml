@@ -1,0 +1,92 @@
+{{- if .Values.keeper.enabled }}
+# Ref: https://github.com/Altinity/clickhouse-operator/blob/master/docs/chk-examples/02-extended-1-node.yaml
+apiVersion: clickhouse-keeper.altinity.com/v1
+kind: ClickHouseKeeperInstallation
+metadata:
+  name: {{ include "clickhouse.keeper.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.keeper.labels" . | nindent 4 }}
+    {{- with .Values.keeper.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.keeper.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  configuration:
+    clusters:
+      - name: {{ .Values.keeper.cluster | default "cluster" | quote }}
+        layout:
+          replicasCount: {{ .Values.keeper.replicaCount | default 1 }}
+    settings:
+      logger/level: {{ .Values.keeper.settings.loggerLevel | default "information" | quote }}
+      logger/console: {{ .Values.keeper.settings.loggerConsole | default "true" | quote }}
+      listen_host: "0.0.0.0"
+      keeper_server/four_letter_word_white_list: "*"
+      keeper_server/coordination_settings/raft_logs_level: {{ .Values.keeper.settings.raftLogsLevel | default "information" | quote }}
+      {{- with .Values.keeper.settings.extra }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  defaults:
+    templates:
+      podTemplate: default
+      dataVolumeClaimTemplate: default
+  templates:
+    podTemplates:
+      - name: default
+        metadata:
+          labels:
+            app: clickhouse-keeper
+            {{- include "clickhouse.keeper.labels" . | nindent 12 }}
+            {{- with .Values.keeper.podLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.keeper.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
+          {{- with .Values.keeper.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: clickhouse-keeper
+              imagePullPolicy: {{ .Values.keeper.image.pullPolicy | default "IfNotPresent" }}
+              image: {{ include "clickhouse.keeper.image" . }}
+              {{- with .Values.keeper.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          {{- if .Values.keeper.securityContext }}
+          securityContext:
+            {{- toYaml .Values.keeper.securityContext | nindent 12 }}
+          {{- end }}
+    volumeClaimTemplates:
+      - name: default
+        spec:
+          accessModes:
+            {{- toYaml .Values.keeper.persistence.accessModes | nindent 12 }}
+          resources:
+            requests:
+              storage: {{ .Values.keeper.persistence.size }}
+        {{- $storageClass := default .Values.keeper.persistence.storageClass .Values.global.storageClass -}}
+        {{- if $storageClass -}}
+        {{- if (eq "-" $storageClass) }}
+          storageClassName: ""
+        {{- else }}
+          storageClassName: {{ $storageClass }}
+        {{- end }}
+        {{- end }}
+{{- end }}

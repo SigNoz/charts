@@ -65,38 +65,68 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
-Set zookeeper host
+Set ClickHouse Keeper fullname
+The ClickHouseKeeperInstallation CRD name.
 */}}
-{{- define "clickhouse.zookeeper.servicename" -}}
-{{- if .Values.zookeeper.fullnameOverride -}}
-{{- .Values.zookeeper.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else if .Values.zookeeper.nameOverride -}}
-{{- printf "%s-%s" .Release.Name .Values.zookeeper.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- define "clickhouse.keeper.fullname" -}}
+{{- if .Values.keeper.fullnameOverride -}}
+{{- .Values.keeper.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.keeper.nameOverride -}}
+{{- printf "%s-%s" .Release.Name .Values.keeper.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- printf "%s-%s" .Release.Name "zookeeper" | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" .Release.Name "clickhouse-keeper" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Set zookeeper port
+Return the ClickHouse Keeper service name.
+The clickhouse-operator creates a service named "keeper-{ClickHouseKeeperInstallation.metadata.name}".
 */}}
-{{- define "clickhouse.zookeeper.port" -}}
+{{- define "clickhouse.keeper.servicename" -}}
+{{- printf "keeper-%s" (include "clickhouse.keeper.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Set ClickHouse Keeper port
+*/}}
+{{- define "clickhouse.keeper.port" -}}
 {{- default 2181 }}
 {{- end }}
 
 {{/*
-Return suffix part of the headless service
+Return the proper ClickHouse Keeper image name
 */}}
-{{- define "clickhouse.zookeeper.headlessSvcSuffix" -}}
-{{- $namespace := .Values.zookeeper.namespaceOverride }}
-{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
-{{- $name := printf "%s-headless" (include "clickhouse.zookeeper.servicename" .) }}
-{{- if and $namespace (ne $namespace .Values.namespace) }}
-{{- printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
+{{- define "clickhouse.keeper.image" -}}
+{{- $registryName := default .Values.keeper.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.keeper.image.repository -}}
+{{- $tag := .Values.keeper.image.tag | toString -}}
+{{- if $registryName -}}
+    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
-{{- $name }}
+    {{- printf "%s:%s" $repositoryName $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+ClickHouse Keeper labels
+*/}}
+{{- define "clickhouse.keeper.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouse.keeper.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+ClickHouse Keeper selector labels
+*/}}
+{{- define "clickhouse.keeper.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickhouse.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: clickhouse-keeper
+{{- end -}}
 
 {{/*
 Return the initContainers image name
