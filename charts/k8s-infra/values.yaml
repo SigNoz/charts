@@ -497,6 +497,27 @@ presets:
   # presets.prometheus -- Configuration for scraping Prometheus metrics from pod annotations.
   # @section -- Prometheus Metrics Presets
   prometheus:
+  enableTargetAllocator: false
+
+  targetAllocator:
+    image:
+      repository: prom/target-allocator
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+    service:
+      type: ClusterIP
+      port: 8080
     # presets.prometheus.enabled -- Enable Prometheus metrics scraping.
     # @section -- Prometheus Metrics Presets
     enabled: false
