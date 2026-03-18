@@ -42,10 +42,10 @@ Generates deprecation notices for NOTES.txt
 {{- if .Values.signoz.additionalEnvs -}}
   {{- $messages = append $messages "The '.Values.signoz.additionalEnvs' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
 {{- end -}}
-{{- if .Values.signoz.configVars -}}
+{{- if (dig "configVars" nil .Values.signoz) -}}
   {{- $messages = append $messages "The '.Values.signoz.configVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
 {{- end -}}
-{{- if .Values.signoz.smtpVars -}}
+{{- if (dig "smtpVars" nil .Values.signoz) -}}
   {{- $messages = append $messages "The '.Values.signoz.smtpVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
 {{- end -}}
 {{- if .Values.schemaMigrator -}}
