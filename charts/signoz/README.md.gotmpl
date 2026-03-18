@@ -63,6 +63,12 @@ kubectl delete namespace platform
 
 > [!WARNING]  
 > ### Breaking Changes
+> #### Version 0.116.1
+> Support for legacy environment variable by using following values has been removed from the chart templates and users must migrate any custom templates or values that relied on the legacy env behavior:
+> > - `signoz.configVars` has been remove
+> - `signoz.smtpVars` has been removed
+> - `signoz.additionalEnvs` has been removed
+>
 > #### Version 0.113.0
 > `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`. 
 >
