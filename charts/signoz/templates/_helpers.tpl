@@ -472,7 +472,7 @@ Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $sqlStorePostgresEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{/* Render the sqlstoreEnv (provider, dsn) seprately to maintain the order of the env variables */}}
 {{- template "signoz.renderEnv" $sqlStoreEnv -}}
