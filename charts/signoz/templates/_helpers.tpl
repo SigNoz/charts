@@ -467,49 +467,12 @@ Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
 */}}
 {{- $userEnv := .Values.signoz.env | default dict -}}
 
-{{/*
-====== DEPRECATION & BACKWARD COMPATIBILITY ======
-*/}}
-{{- $legacyEnv := dict -}}
-{{- if .Values.signoz.additionalEnvs }}
-{{- $legacyEnv = mergeOverwrite $legacyEnv .Values.signoz.additionalEnvs -}}
-{{- end }}
-
-{{- if and .Values.configVars .Values.signoz.configVars.clickHouseUrl }}
-  {{- $legacyEnv = mergeOverwrite $legacyEnv (dict "signoz_telemetrystore_clickhouse_dsn" .Values.signoz.configVars.clickHouseUrl) -}}
-{{- end }}
-
-{{- $smtpSecretEnv := dict -}}
-{{- if and .Values.signoz.smtpVars .Values.signoz.smtpVars.enabled .Values.signoz.smtpVars.existingSecret (not .Values.signoz.env.signoz_emailing_enabled) }}  {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_enabled" .Values.signoz.smtpVars.enabled) -}}
-  {{- with .Values.signoz.smtpVars.existingSecret }}
-    {{- $secretName := .name -}}
-    {{- if .fromKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_from" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .fromKey)))) -}}
-    {{- end }}
-    {{- if .hostKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_host" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .hostKey)))) -}}
-    {{- end }}
-    {{- if .portKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_port" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .portKey)))) -}}
-    {{- end }}
-    {{- if and .hostKey .portKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_address" "$(SIGNOZ_EMAILING_SMTP_HOST):$(SIGNOZ_EMAILING_SMTP_PORT)") -}}
-    {{- end }}
-    {{- if .usernameKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_username" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .usernameKey)))) -}}
-    {{- end }}
-    {{- if .passwordKey }}
-      {{- $smtpSecretEnv = merge $smtpSecretEnv (dict "signoz_emailing_smtp_auth_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" .passwordKey)))) -}}
-    {{- end }}
-  {{- end }}
-{{- end }}
-
 
 {{/*
 ====== MERGE AND RENDER ENV BLOCK ======
 */}}
 
-{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $legacyEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
+{{- $completeEnv := mergeOverwrite $defaultEnv $userEnv $smtpSecretEnv $sqlStorePostgresEnv -}}
 {{- template "signoz.renderEnv" $completeEnv -}}
 {{/* Render the sqlstoreEnv (provider, dsn) seprately to maintain the order of the env variables */}}
 {{- template "signoz.renderEnv" $sqlStoreEnv -}}
