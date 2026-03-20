@@ -275,6 +275,9 @@ Return true if external PostgreSQL is in use
 */}}
 {{- define "postgresql.external" -}}
 {{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.host -}}
+    {{- if not (or .Values.externalPostgresql.existingSecret .Values.externalPostgresql.password) -}}
+        {{- fail "externalPostgresql: either password or existingSecret must be set when host is provided" -}}
+    {{- end -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
