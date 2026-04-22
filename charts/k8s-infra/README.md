@@ -2570,3 +2570,14 @@ timeout: 1s</pre>
     </tbody>
 </table>
 
+## Prometheus Target Allocator
+
+This chart optionally supports the Prometheus target allocator for dynamic scrape target distribution.
+
+### Enable Target Allocator
+
+To enable it, set the following values:
+
+```yaml
+prometheus:
+  enableTargetAllocator: true
