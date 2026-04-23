@@ -15,6 +15,10 @@ spec:
     matchLabels:
       {{- include "otelAgent.selectorLabels" . | nindent 6 }}
   minReadySeconds: {{ .Values.otelAgent.minReadySeconds }}
+  {{- with .Values.otelAgent.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       annotations:
