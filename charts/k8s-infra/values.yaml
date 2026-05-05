@@ -650,7 +650,14 @@ otelAgent:
   # @section -- OpenTelemetry Agent (DaemonSet)
   minReadySeconds: 5
   # otelAgent.updateStrategy -- DaemonSet update strategy for the OtelAgent.
+  # When unset, Kubernetes applies its defaults: type=RollingUpdate, rollingUpdate.maxUnavailable=1, rollingUpdate.maxSurge=0.
   # ref: https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#update-strategy
+  # Example:
+  #   updateStrategy:
+  #     type: RollingUpdate
+  #     rollingUpdate:
+  #       maxUnavailable: 25%
+  #       maxSurge: 0
   # @section -- OpenTelemetry Agent (DaemonSet)
   updateStrategy: {}
   # otelAgent.clusterRole -- ClusterRole configuration for the OtelAgent.
