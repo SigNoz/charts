@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.112.1](https://img.shields.io/badge/Version-0.112.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.112.1](https://img.shields.io/badge/AppVersion-v0.112.1-informational?style=flat-square)
+![Version: 0.121.1](https://img.shields.io/badge/Version-0.121.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.121.1](https://img.shields.io/badge/AppVersion-v0.121.1-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -63,6 +63,12 @@ kubectl delete namespace platform
 
 > [!WARNING] 
 > ### Breaking Changes
+> #### Version 0.116.1
+> Support for legacy environment variable by using following values has been removed from the chart templates and users must migrate any custom templates or values that relied on the legacy env behavior:
+> - `signoz.configVars` has been remove
+> - `signoz.smtpVars` has been removed
+> - `signoz.additionalEnvs` has been removed
+>
 > #### Version 0.113.0
 > `schemaMigrator` has been deprecated and replaced by `telemetryStoreMigrator`.
 >
@@ -349,7 +355,7 @@ verify: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz
-tag: v0.112.1</pre>
+tag: v0.121.1</pre>
 </div>
             </td>
             <td>Image configuration for SigNoz.</td>
