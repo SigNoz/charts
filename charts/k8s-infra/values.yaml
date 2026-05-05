@@ -649,6 +649,16 @@ otelAgent:
   # otelAgent.minReadySeconds -- Minimum number of seconds for which a newly created Pod should be ready.
   # @section -- OpenTelemetry Agent (DaemonSet)
   minReadySeconds: 5
+  # otelAgent.updateStrategy -- Update strategy for the OtelAgent DaemonSet.
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#update-strategy
+  # Example:
+  #   updateStrategy:
+  #     type: RollingUpdate
+  #     rollingUpdate:
+  #       maxUnavailable: 1
+  #       maxSurge: 0
+  updateStrategy: {}
   # otelAgent.clusterRole -- ClusterRole configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   # @default -- "Please checkout the values.yml for default values"
