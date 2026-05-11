@@ -1,7 +1,7 @@
 
 # K8s-Infra
 
-![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.139.0](https://img.shields.io/badge/AppVersion-0.139.0-informational?style=flat-square)
+![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.139.0](https://img.shields.io/badge/AppVersion-0.139.0-informational?style=flat-square)
 
 Monitoring your Kubernetes cluster is essential for ensuring performance, stability, and reliability. The SigNoz k8s-infra Helm chart provides a comprehensive solution for collecting and analyzing metrics, logs, and events from your entire Kubernetes environment.
 
@@ -104,8 +104,27 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 ```bash
 kubectl delete namespace platform
 ```
-> [!WARNING] 
+> [!WARNING]
 > ### Breaking Changes
+> #### Version 0.16.0
+>
+> **Default OTLP exporter changed from gRPC to HTTP.**
+> - `presets.otlpExporter.enabled` now defaults to `false`
+> - `presets.otlphttpExporter.enabled` now defaults to `true`
+>
+> **Migration:** if you have set a custom `otelCollectorEndpoint`, update it to the OTLP/HTTP endpoint:
+> ```yaml
+> # SigNoz Cloud
+> otelCollectorEndpoint: https://ingest.<region>.signoz.cloud:443
+>
+> # Self-hosted SigNoz
+> otelCollectorEndpoint: http://<signoz-otel-collector>:4318
+> ```
+>
+> > [!NOTE]
+> > OTLP/HTTP works more reliably across load balancers, ingresses, and proxies than gRPC, and is now the recommended protocol for sending telemetry to both SigNoz Cloud and self-hosted SigNoz.
+> > You can still use gRPC by setting `presets.otlpExporter.enabled: true` and `presets.otlphttpExporter.enabled: false`.
+>
 > #### Version 0.15.0
 > The following changes have been introduced in this version:
 > - Upgraded the OpenTelemetry Collector to version `0.139.0`
@@ -286,7 +305,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
 </div>
             </td>
-            <td>Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend. Set it to `ingest.signoz.io:4317` for SigNoz Cloud. If set to null and the chart is installed as a dependency, it will attempt to autogenerate the endpoint of the SigNoz OtelCollector.</td>
+            <td>Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend. Set it to `https://ingest.<region>.signoz.cloud:443` for SigNoz Cloud. If set to null and the chart is installed as a dependency, it will attempt to autogenerate the endpoint of the SigNoz OtelCollector.</td>
         </tr>
         <tr>
             <td id="otelInsecure"><a href="./values.yaml#L46">otelInsecure</a></td>
@@ -495,7 +514,7 @@ verbosity: basic</pre>
             <td id="presets--otlpExporter"><a href="./values.yaml#L108">presets.otlpExporter</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">enabled: true</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
 </div>
             </td>
             <td>OTLP Exporter for the OTLP exporter.</td>
@@ -504,7 +523,7 @@ verbosity: basic</pre>
             <td id="presets--otlphttpExporter"><a href="./values.yaml#L115">presets.otlphttpExporter</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">enabled: true</pre>
 </div>
             </td>
             <td>OTLP HTTP Exporter to which data will be sent. Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint.</td>

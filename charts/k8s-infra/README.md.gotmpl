@@ -105,8 +105,27 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 ```bash
 kubectl delete namespace platform
 ```
-> [!WARNING]  
+> [!WARNING]
 > ### Breaking Changes
+> #### Version 0.16.0
+>
+> **Default OTLP exporter changed from gRPC to HTTP.**
+> - `presets.otlpExporter.enabled` now defaults to `false`
+> - `presets.otlphttpExporter.enabled` now defaults to `true`
+>
+> **Migration:** if you have set a custom `otelCollectorEndpoint`, update it to the OTLP/HTTP endpoint:
+> ```yaml
+> # SigNoz Cloud
+> otelCollectorEndpoint: https://ingest.<region>.signoz.cloud:443
+>
+> # Self-hosted SigNoz
+> otelCollectorEndpoint: http://<signoz-otel-collector>:4318
+> ```
+>
+> > [!NOTE]
+> > OTLP/HTTP works more reliably across load balancers, ingresses, and proxies than gRPC, and is now the recommended protocol for sending telemetry to both SigNoz Cloud and self-hosted SigNoz.
+> > You can still use gRPC by setting `presets.otlpExporter.enabled: true` and `presets.otlphttpExporter.enabled: false`.
+>
 > #### Version 0.15.0
 > The following changes have been introduced in this version:
 > - Upgraded the OpenTelemetry Collector to version `0.139.0`
