@@ -8,23 +8,23 @@ metadata:
 data:
   01-clickhouse-user.xml: |
     <yandex>
-        <users>
-            <clickhouse_operator>
-                <networks>
-                    <ip>127.0.0.1</ip>
-                </networks>
-                <password_sha256_hex>{{ .Values.clickhouseOperator.secret.password | sha256sum }}</password_sha256_hex>
-                <profile>{{ .Values.clickhouseOperator.secret.username }}</profile>
-                <quota>default</quota>
-            </clickhouse_operator>
-        </users>
-        <profiles>
-            <clickhouse_operator>
-                <log_queries>0</log_queries>
-                <skip_unavailable_shards>1</skip_unavailable_shards>
-                <http_connection_timeout>10</http_connection_timeout>
-            </clickhouse_operator>
-        </profiles>
+      <users>
+        <{{ .Values.user | default "admin" }}>
+          <networks>
+            <ip>127.0.0.1</ip>
+          </networks>
+          <password>${CLICKHOUSE_PASSWORD}</password>
+          <profile>default</profile>
+          <quota>default</quota>
+        </{{ .Values.user | default "admin" }}>
+      </users>
+      <profiles>
+        <{{ .Values.user | default "admin" }}>
+          <log_queries>0</log_queries>
+          <skip_unavailable_shards>1</skip_unavailable_shards>
+          <http_connection_timeout>10</http_connection_timeout>
+        </{{ .Values.user | default "admin" }}>
+      </profiles>
     </yandex>
   02-clickhouse-default-profile.xml: |
     <yandex>
