@@ -587,6 +587,10 @@ otelAgent:
     # otelAgent.command.extraArgs -- Extra arguments for the OtelAgent command.
     # @section -- OpenTelemetry Agent (DaemonSet)
     extraArgs: []
+  # otelAgent.updateStrategy -- Update strategy for the OtelAgent DaemonSet.
+  # ref: https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/
+  # @section -- OpenTelemetry Agent (DaemonSet)
+  updateStrategy: {}
   # otelAgent.configMap -- ConfigMap configuration for the OtelAgent.
   # @section -- OpenTelemetry Agent (DaemonSet)
   configMap:
