@@ -829,6 +829,12 @@ clickhouse:
     # @default -- null
     # @section -- ClickHouse
     storageClass: null
+    # -- VolumeAttributesClass to apply to the data PVC (Kubernetes 1.31+).
+    # When set, renders `volumeAttributesClassName: <name>` on the PVC, allowing
+    # in-place modification of volume parameters (e.g. EBS gp3 IOPS/throughput)
+    # without recreating the underlying volume.
+    # @section -- ClickHouse
+    volumeAttributesClassName: null
     # -- Access modes of the PVC.
     # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @default -- ["ReadWriteOnce"]

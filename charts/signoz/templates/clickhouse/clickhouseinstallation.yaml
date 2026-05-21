@@ -350,6 +350,9 @@ spec:
           storageClassName: {{ $storageClass }}
         {{- end }}
     {{- end }}
+    {{- if .Values.clickhouse.persistence.volumeAttributesClassName }}
+          volumeAttributesClassName: {{ .Values.clickhouse.persistence.volumeAttributesClassName }}
+    {{- end }}
     {{- end }}
 
   {{- if and (.Values.clickhouse.templates.volumeClaimTemplates) (not .Values.clickhouse.persistence.enabled) }}
@@ -364,6 +367,9 @@ spec:
             requests:
               storage: {{ .resources.requests.storage }}
           storageClassName: {{ .storageClassName }}
+          {{- if .volumeAttributesClassName }}
+          volumeAttributesClassName: {{ .volumeAttributesClassName }}
+          {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}
