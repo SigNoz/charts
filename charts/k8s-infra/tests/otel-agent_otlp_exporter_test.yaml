@@ -44,8 +44,8 @@ tests:
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
                 tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+                  insecure: true
+                  insecure_skip_verify: false
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -95,8 +95,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
 
   # Test case 2: Verify otlp/http is enabled when the value is set to true
   - it: should enable otlp/http when otlphttpExporter set to true
@@ -114,8 +112,8 @@ tests:
                 headers:
                   signoz-access-token: ${env:SIGNOZ_API_KEY}
                 tls:
-                  insecure: ${env:OTEL_EXPORTER_OTLP_INSECURE}
-                  insecure_skip_verify: ${env:OTEL_EXPORTER_OTLP_INSECURE_SKIP_VERIFY}
+                  insecure: true
+                  insecure_skip_verify: false
             extensions:
               health_check:
                 endpoint: 0.0.0.0:13133
@@ -165,5 +163,3 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888

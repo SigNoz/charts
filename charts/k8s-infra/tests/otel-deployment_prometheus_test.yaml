@@ -139,8 +139,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
 
   - it: should have prometheus/scraper receiver with deploymentEnvironment processor
     set:
@@ -256,5 +254,3 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888

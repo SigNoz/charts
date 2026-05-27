@@ -136,8 +136,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
         template: otel-agent/configmap.yaml
       - contains:
           path: spec.template.spec.volumes
@@ -269,8 +267,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
         template: otel-agent/configmap.yaml
       - contains:
           path: spec.template.spec.volumes
@@ -400,8 +396,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
         template: otel-agent/configmap.yaml
       - notContains:
           path: spec.template.spec.volumes
@@ -533,8 +527,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
         template: otel-agent/configmap.yaml
       - contains:
           path: spec.template.spec.volumes

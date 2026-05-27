@@ -17,6 +17,8 @@ spec:
   minReadySeconds: {{ .Values.otelDeployment.minReadySeconds }}
   progressDeadlineSeconds: {{ .Values.otelDeployment.progressDeadlineSeconds }}
   replicas: {{ .Values.otelDeployment.replicaCount }}
+  strategy:
+    type: {{ .Values.otelDeployment.strategy | default "RollingUpdate" }}
   template:
     metadata:
       annotations:

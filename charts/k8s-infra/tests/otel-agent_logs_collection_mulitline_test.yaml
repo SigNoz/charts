@@ -42,9 +42,9 @@ tests:
           value: |-
             exporters:
               otlphttp/self_telemetry:
-                endpoint: http://test-endpoint:4317
+                endpoint: test-endpoint:4317
                 headers:
-                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                  signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                 tls:
                   insecure: true
                   insecure_skip_verify: true
@@ -111,8 +111,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
   
   - it: multiline (line_start_pattern) is rendered correctly
     set:
@@ -126,9 +124,9 @@ tests:
           value: |-
             exporters:
               otlphttp/self_telemetry:
-                endpoint: http://test-endpoint:4317
+                endpoint: test-endpoint:4317
                 headers:
-                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                  signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                 tls:
                   insecure: true
                   insecure_skip_verify: true
@@ -199,8 +197,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
   - it: multiline (line_end_pattern) is rendered correctly
     set:
       presets:
@@ -213,9 +209,9 @@ tests:
           value: |-
             exporters:
               otlphttp/self_telemetry:
-                endpoint: http://test-endpoint:4317
+                endpoint: test-endpoint:4317
                 headers:
-                  signoz-access-token: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
+                  signoz-ingestion-key: ${env:SIGNOZ_SELF_TELEMETRY_API_KEY}
                 tls:
                   insecure: true
                   insecure_skip_verify: true
@@ -286,5 +282,3 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888

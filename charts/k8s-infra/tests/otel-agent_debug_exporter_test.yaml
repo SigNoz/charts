@@ -96,8 +96,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
 
   # Test case 2: Verify debug exporter is enabled when set to true with custom settings
   - it: should have debug enabled is enabled with custom settings
@@ -166,8 +164,6 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
 
   # Test case 3: Verify debug exporter is enabled when set to true with custom settings
   - it: should have logging exporter enabled is enabled with custom settings
@@ -236,5 +232,3 @@ tests:
               telemetry:
                 logs:
                   encoding: json
-                metrics:
-                  address: 0.0.0.0:8888
