@@ -52,6 +52,10 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.telemetryStoreMigrator.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         - name: bootstrap
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
@@ -62,6 +66,10 @@ spec:
             - "bootstrap"
           {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.telemetryStoreMigrator.securityContext }}
+          securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
         - name: sync
@@ -77,6 +85,10 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.telemetryStoreMigrator.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       containers:
         - name: async
           image: {{ include "otelCollector.image" . }}
@@ -89,6 +101,10 @@ spec:
             - "up"
           {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.telemetryStoreMigrator.securityContext }}
+          securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
       restartPolicy: OnFailure
