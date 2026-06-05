@@ -1720,6 +1720,33 @@ postgresql:
   # @default -- false
   # @section -- Postgres
   enabled: false
+# externalPostgresql -- External PostgreSQL configuration. Required when `postgresql.enabled` is false and you want to use an external PostgreSQL.
+# @section -- External Postgres
+externalPostgresql:
+  # externalPostgresql.host -- Host of the external PostgreSQL instance.
+  # @default -- ""
+  host: ""
+  # externalPostgresql.port -- Port of the external PostgreSQL instance.
+  # @default -- 5432
+  port: 5432
+  # externalPostgresql.user -- Username for the external PostgreSQL.
+  # @default -- ""
+  user: ""
+  # externalPostgresql.password -- Password for the external PostgreSQL. Ignored if `externalPostgresql.existingSecret` is set.
+  # @default -- ""
+  password: ""
+  # externalPostgresql.database -- Database name on the external PostgreSQL.
+  # @default -- "signoz"
+  database: "signoz"
+  # externalPostgresql.existingSecret -- Name of an existing Kubernetes secret containing the password.
+  # @default -- ""
+  existingSecret: ""
+  # externalPostgresql.existingSecretPasswordKey -- Key in the existing secret that contains the password.
+  # @default -- ""
+  existingSecretPasswordKey: ""
+  # externalPostgresql.sslmode -- SSL mode for the connection (disable, require, verify-ca, verify-full).
+  # @default -- "disable"
+  sslmode: "disable"
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
