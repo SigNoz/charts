@@ -5,6 +5,9 @@ metadata:
   name: {{ include "telemetryStoreMigrator.fullname" . }}
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: Helm
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   annotations:
     {{- with .Values.telemetryStoreMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
