@@ -1,0 +1,23 @@
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: RELEASE-NAME-clickhouse-operator-metrics
+  namespace: NAMESPACE
+  labels:
+    helm.sh/chart: clickhouse-24.1.18
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/version: "24.1.2"
+    app.kubernetes.io/managed-by: Helm
+    clickhouse.altinity.com/chop: 0.21.2
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8888
+      name: RELEASE-NAME-clickhouse-operator-metrics
+  selector:
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/component: operator
