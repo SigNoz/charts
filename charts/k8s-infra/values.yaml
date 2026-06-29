@@ -494,6 +494,8 @@ presets:
         enabled: true
       k8s.pod.status_reason:
         enabled: true
+      k8s.container.status.reason:
+        enabled: true
   # presets.prometheus -- Configuration for scraping Prometheus metrics from pod annotations.
   # @section -- Prometheus Metrics Presets
   prometheus:
