@@ -200,8 +200,8 @@ clickhouse:
     repository: clickhouse/clickhouse-server
     # clickhouse.image.tag -- ClickHouse image tag to use. SigNoz is not always tested with the latest version of ClickHouse.
     # Only override if you know what you are doing.
-    # @default -- "25.5.6"
-    tag: 25.5.6
+    # @default -- "25.12.5"
+    tag: 25.12.5
     # clickhouse.image.pullPolicy -- ClickHouse image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
