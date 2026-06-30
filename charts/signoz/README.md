@@ -61,7 +61,7 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-> [!WARNING] 
+> [!WARNING]
 > ### Breaking Changes
 > #### Version 0.131.0
 > ClickHouse has been upgraded from `25.5.6` to `25.12.5`. This is a significant ClickHouse version jump, so review the upgrade guide before upgrading to avoid issues with your existing data.
