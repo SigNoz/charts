@@ -36,7 +36,7 @@ enabled: true
 clusterName: ""
 # otelCollectorEndpoint -- Endpoint/IP Address of the SigNoz or any other OpenTelemetry backend.
 # @section -- General Configuration
-# Set it to `ingest.signoz.io:4317` for SigNoz Cloud.
+# Set it to `https://ingest.<region>.signoz.cloud:443` for SigNoz Cloud.
 # If set to null and the chart is installed as a dependency, it will attempt
 # to autogenerate the endpoint of the SigNoz OtelCollector.
 otelCollectorEndpoint: null
@@ -108,14 +108,14 @@ presets:
   otlpExporter:
     # presets.otlpExporter.enabled - Enable the OTLP exporter to send data to the backend.
     # @section -- OTLP Exporter Presets
-    enabled: true
+    enabled: false
   # presets.otlphttpExporter --  OTLP HTTP Exporter to which data will be sent.
   # Set this to true to enable the OTLP HTTP exporter, which uses the HTTP endpoint instead of the gRPC endpoint.
   # @section -- OTLP Exporter Presets
   otlphttpExporter:
     # presets.otlphttpExporter.enabled - Enable the OTLP HTTP exporter.
     # @section -- OTLP Exporter Presets
-    enabled: false
+    enabled: true
   # presets.selfTelemetry -- Configuration for sending the collector's own telemetry data.
   # By Default, the Collector generates basic metrics about itself and exposes them using the OpenTelemetry Go Prometheus
   # exporter for scraping at http://<otel-collector>:8888/metrics
@@ -493,6 +493,8 @@ presets:
       k8s.node.condition:
         enabled: true
       k8s.pod.status_reason:
+        enabled: true
+      k8s.container.status.reason:
         enabled: true
   # presets.prometheus -- Configuration for scraping Prometheus metrics from pod annotations.
   # @section -- Prometheus Metrics Presets

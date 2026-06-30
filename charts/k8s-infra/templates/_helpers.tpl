@@ -278,7 +278,7 @@ Return endpoint of OtelCollector.
 {{- if .Values.otelCollectorEndpoint }}
 {{- .Values.otelCollectorEndpoint }}
 {{- else if not .Chart.IsRoot }}
-{{- printf "%s:%s" (include "otel.servicename" .) "4317" }}
+{{- printf "%s:%s" (include "otel.servicename" .) "4318" }}
 {{- end }}
 {{- end }}
 
