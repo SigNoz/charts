@@ -61,8 +61,13 @@ Sometimes everything doesn't get properly removed. If that happens try deleting 
 kubectl delete namespace platform
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > ### Breaking Changes
+> #### Version 0.131.0
+> ClickHouse has been upgraded from `25.5.6` to `25.12.5`. This is a significant ClickHouse version jump, so review the upgrade guide before upgrading to avoid issues with your existing data.
+>
+> See the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0-131) for details.
+>
 > #### Version 0.116.1
 > Support for legacy environment variable by using following values has been removed from the chart templates and users must migrate any custom templates or values that relied on the legacy env behavior:
 > - `signoz.configVars` has been remove
