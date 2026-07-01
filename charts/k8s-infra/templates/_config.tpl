@@ -512,6 +512,9 @@ receivers:
     auth_type: {{ .Values.presets.kubeletMetrics.authType }}
     endpoint: {{ .Values.presets.kubeletMetrics.endpoint }}
     insecure_skip_verify: {{ default true .Values.presets.kubeletMetrics.insecureSkipVerify }}
+    node: ${env:K8S_NODE_NAME}
+    k8s_api_config:
+      auth_type: serviceAccount
     extra_metadata_labels:
     {{- if ne .Values.global.cloud "gcp/autogke"}}
       {{ toYaml .Values.presets.kubeletMetrics.extraMetadataLabels | nindent 6 }}
