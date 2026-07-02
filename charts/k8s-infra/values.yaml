@@ -498,6 +498,12 @@ presets:
         enabled: true
       k8s.pod.status_reason:
         enabled: true
+      # NOTE: k8s.container.status.reason and k8s.container.status.state are experimental
+      # (development stability) upstream — their allowed values/schema may change on a
+      # collector bump. Enabled by default to power container status in infra monitoring;
+      # revisit on OTel Collector upgrades. Upstream docs:
+      # - https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/k8sclusterreceiver/documentation.md#k8scontainerstatusreason
+      # - https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/k8sclusterreceiver/documentation.md#k8scontainerstatusstate
       k8s.container.status.reason:
         enabled: true
       k8s.container.status.state:
