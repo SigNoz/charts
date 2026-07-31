@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Test SigNoz service ports are independent of the container ports
+
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/signoz/service.yaml
+  - templates/otel-collector/configmap.yaml
+
+release:
+  name: signoz
+  namespace: signoz
+
+tests:
+  - it: should render the default container ports on the SigNoz statefulset
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0]
+          value:
+            name: http
+            containerPort: 8080
+            protocol: TCP
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].ports[1]
+          value:
+            name: http-internal
+            containerPort: 8085
+            protocol: TCP
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].ports[2]
+          value:
+            name: opamp-internal
+            containerPort: 4320
+            protocol: TCP
+        template: templates/signoz/statefulset.yaml
+
+  - it: should target the container ports by name from the SigNoz service
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+        template: templates/signoz/service.yaml
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+        template: templates/signoz/service.yaml
+
+  - it: should keep the container port at 8080 when signoz.service.port is overridden
+    set:
+      signoz:
+        service:
+          port: 80
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8080
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+        template: templates/signoz/service.yaml
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+        template: templates/signoz/service.yaml
+
+  - it: should keep the container port at 4320 when signoz.service.opampPort is overridden
+    set:
+      signoz:
+        service:
+          opampPort: 4321
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[2].containerPort
+          value: 4320
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: spec.ports[2].port
+          value: 4321
+        template: templates/signoz/service.yaml
+
+  - it: should point the Otel Collector OpAMP endpoint at the configured signoz.service.opampPort
+    asserts:
+      - matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'ws://signoz:4320/v1/opamp'
+        template: templates/otel-collector/configmap.yaml
+
+  - it: should follow signoz.service.opampPort in the Otel Collector OpAMP endpoint
+    set:
+      signoz:
+        service:
+          opampPort: 4321
+    asserts:
+      - matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'ws://signoz:4321/v1/opamp'
+        template: templates/otel-collector/configmap.yaml

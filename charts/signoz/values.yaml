@@ -799,13 +799,13 @@ signoz:
     # signoz.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
     # @default -- "ClusterIP"
     type: ClusterIP
-    # signoz.service.port - The external HTTP port for SigNoz.
+    # signoz.service.port - The external HTTP port for SigNoz. The container always listens on 8080.
     # @default -- 8080
     port: 8080
-    # signoz.service.internalPort - The internal gRPC port for SigNoz.
+    # signoz.service.internalPort - The internal gRPC port for SigNoz. The container always listens on 8085.
     # @default -- 8085
     internalPort: 8085
-    # signoz.service.opampPort - The internal OpAMP port for SigNoz.
+    # signoz.service.opampPort - The internal OpAMP port for SigNoz. The container always listens on 4320.
     # @default -- 4320
     opampPort: 4320
     # signoz.service.nodePort - Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
