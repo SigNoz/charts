@@ -60,14 +60,15 @@ spec:
             - {{ . | quote }}
             {{- end }}
           ports:
+            {{- /* SigNoz listens on fixed ports. The service ports are resolved by name. */}}
             - name: http
-              containerPort: {{ default 8080  .Values.signoz.service.port }}
+              containerPort: 8080
               protocol: TCP
             - name: http-internal
-              containerPort: {{ default 8085 .Values.signoz.service.internalPort }}
+              containerPort: 8085
               protocol: TCP
             - name: opamp-internal
-              containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
+              containerPort: 4320
               protocol: TCP
           env:
             {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
