@@ -8,10 +8,11 @@ metadata:
     {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
     {{- end }}
-  {{- if .Values.annotations }}
   annotations:
+    helm.sh/resource-policy: keep
+    {{- if .Values.annotations }}
     {{- toYaml .Values.annotations | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   defaults:
     templates:
