@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if .Values.clickhouseOperator.configs.templatesdFiles }}
+{{ tpl (toYaml .Values.clickhouseOperator.configs.templatesdFiles) . | nindent 2 }}
+{{- else }}
   001-templates.json.example: |
     {
       "apiVersion": "clickhouse.altinity.com/v1",
@@ -88,3 +91,4 @@ data:
                   storage: 2Gi
   readme: |-
     Templates in this folder are packaged with an operator and available via 'useTemplate'
+{{- end }}

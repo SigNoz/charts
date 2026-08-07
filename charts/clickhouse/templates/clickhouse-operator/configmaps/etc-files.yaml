@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if .Values.clickhouseOperator.configs.etcFiles }}
+{{ tpl (toYaml .Values.clickhouseOperator.configs.etcFiles) . | nindent 2 }}
+{{- else }}
   config.yaml: |
       #
       # Template parameters available:
@@ -286,3 +289,4 @@ data:
         stderrthreshold: ""
         vmodule: ""
         log_backtrace_at: ""
+{{- end }}

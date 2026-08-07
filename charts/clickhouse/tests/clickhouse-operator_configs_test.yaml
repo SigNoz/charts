@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-operator_configs_test.yaml
+templates:
+  - templates/clickhouse-operator/configmaps/etc-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-confd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should render custom operator configuration files
+    set:
+      clickhouseOperator:
+        configs:
+          etcFiles:
+            config.yaml: "watch: {namespaces: [{{ .Release.Namespace }}]}"
+          confdFiles:
+            custom-host.xml: "<clickhouse><listen_host>127.0.0.1</listen_host></clickhouse>"
+          configdFiles:
+            custom-common.xml: "<clickhouse><listen_host>0.0.0.0</listen_host></clickhouse>"
+          templatesdFiles:
+            custom-template.yaml: "apiVersion: clickhouse.altinity.com/v1"
+          usersdFiles:
+            custom-users.xml: "<clickhouse><users/></clickhouse>"
+    asserts:
+      - equal:
+          path: data["config.yaml"]
+          value: "watch: {namespaces: [signoz]}"
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - equal:
+          path: data["custom-host.xml"]
+          value: "<clickhouse><listen_host>127.0.0.1</listen_host></clickhouse>"
+        template: templates/clickhouse-operator/configmaps/etc-confd-files.yaml
+      - equal:
+          path: data["custom-common.xml"]
+          value: "<clickhouse><listen_host>0.0.0.0</listen_host></clickhouse>"
+        template: templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+      - equal:
+          path: data["custom-template.yaml"]
+          value: "apiVersion: clickhouse.altinity.com/v1"
+        template: templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+      - equal:
+          path: data["custom-users.xml"]
+          value: "<clickhouse><users/></clickhouse>"
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml

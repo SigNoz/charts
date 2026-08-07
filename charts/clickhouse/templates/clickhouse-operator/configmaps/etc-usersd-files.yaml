@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if .Values.clickhouseOperator.configs.usersdFiles }}
+{{ tpl (toYaml .Values.clickhouseOperator.configs.usersdFiles) . | nindent 2 }}
+{{- else }}
   01-clickhouse-user.xml: |
     <yandex>
         <users>
@@ -45,3 +48,4 @@ data:
             </default>
         </profiles>
     </yandex>
+{{- end }}

@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if .Values.clickhouseOperator.configs.configdFiles }}
+{{ tpl (toYaml .Values.clickhouseOperator.configs.configdFiles) . | nindent 2 }}
+{{- else }}
   01-clickhouse-01-listen.xml: |
     <yandex>
         <!-- Listen wildcard address to allow accepting connections from other containers and host network. -->
@@ -158,4 +161,4 @@ data:
             <flush_interval_milliseconds>{{ .Values.clickhouseOperator.processorsProfileLog.flushInterval }}</flush_interval_milliseconds>
         </processors_profile_log>
     </yandex>
-
+{{- end }}
