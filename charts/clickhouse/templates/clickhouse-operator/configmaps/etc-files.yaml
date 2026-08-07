@@ -7,8 +7,11 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
-{{- if $files }}
+{{- if ne $files nil }}
 {{- range $name, $contents := $files }}
+{{- if not (kindIs "string" $contents) }}
+{{- fail (printf "clickhouseOperator.configs.etcFiles.%s must be a string" $name) }}
+{{- end }}
   {{ $name }}: {{ tpl ($contents | toString) $ | toYaml | nindent 4 }}
 {{- end }}
 {{- else }}

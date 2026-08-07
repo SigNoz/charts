@@ -67,3 +67,15 @@ tests:
               <users password="quoted: value"/>
             </clickhouse>
         template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+
+  - it: should preserve defaults when the configs map is null
+    set:
+      clickhouseOperator:
+        configs: null
+    asserts:
+      - isNotNull:
+          path: data["config.yaml"]
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-user.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml

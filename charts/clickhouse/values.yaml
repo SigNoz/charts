@@ -765,7 +765,7 @@ clickhouseOperator:
   configs:
     # -- Replaces the default ClickHouse Operator root configuration files when set
     etcFiles: null
-    # -- Replaces the ClickHouse Operator confd files when set
+    # -- Adds ClickHouse Operator confd files when set
     confdFiles: null
     # -- Replaces the default ClickHouse common configuration files when set
     configdFiles: null
