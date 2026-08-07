@@ -1444,6 +1444,34 @@ entries:
   k8s-infra:
   - apiVersion: v2
     appVersion: 0.139.0
+    created: "2026-08-07T15:32:31.947145555Z"
+    description: Helm chart for collecting metrics and logs in K8s
+    digest: 1c6493671ed413d58f70b1bfcf722c49cf0eb8f64d88d564d7e0379311ab572c
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - OpenTelemetry
+    - apm
+    - monitoring
+    - logs
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    - email: prashant@signoz.io
+      name: prashant-shahi
+      url: https://prashantshahi.dev
+    name: k8s-infra
+    sources:
+    - https://github.com/signoz/charts
+    - https://github.com/open-telemetry/opentelemetry-collector-contrib
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/k8s-infra-0.17.0/k8s-infra-0.17.0.tgz
+    version: 0.17.0
+  - apiVersion: v2
+    appVersion: 0.139.0
     created: "2026-05-11T10:01:20.493318478Z"
     description: Helm chart for collecting metrics and logs in K8s
     digest: ea9a1cd599b1b1650ba7d4744b29cb65cf9c6a2af2edcad2c1649b9620e7b2bd
@@ -17793,4 +17821,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-08-06T08:08:12.192003485Z"
+generated: "2026-08-07T15:32:31.947893284Z"
