@@ -1,3 +1,4 @@
+{{- $files := dig "configs" "usersdFiles" nil .Values.clickhouseOperator -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +7,10 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
-{{- if .Values.clickhouseOperator.configs.usersdFiles }}
-{{ tpl (toYaml .Values.clickhouseOperator.configs.usersdFiles) . | nindent 2 }}
+{{- if $files }}
+{{- range $name, $contents := $files }}
+  {{ $name }}: {{ tpl ($contents | toString) $ | toYaml | nindent 4 }}
+{{- end }}
 {{- else }}
   01-clickhouse-user.xml: |
     <yandex>

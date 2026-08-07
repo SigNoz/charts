@@ -10,6 +10,21 @@ release:
   name: clickhouse
   namespace: signoz
 tests:
+  - it: should preserve default operator configuration files
+    asserts:
+      - isNotNull:
+          path: data["config.yaml"]
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-01-listen.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+      - isNotNull:
+          path: data["001-templates.json.example"]
+        template: templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-user.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+
   - it: should render custom operator configuration files
     set:
       clickhouseOperator:
@@ -23,7 +38,11 @@ tests:
           templatesdFiles:
             custom-template.yaml: "apiVersion: clickhouse.altinity.com/v1"
           usersdFiles:
-            custom-users.xml: "<clickhouse><users/></clickhouse>"
+            custom-users.xml: "{{ .Values.customUsers }}"
+      customUsers: |-
+        <clickhouse>
+          <users password="quoted: value"/>
+        </clickhouse>
     asserts:
       - equal:
           path: data["config.yaml"]
@@ -43,5 +62,8 @@ tests:
         template: templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
       - equal:
           path: data["custom-users.xml"]
-          value: "<clickhouse><users/></clickhouse>"
+          value: |-
+            <clickhouse>
+              <users password="quoted: value"/>
+            </clickhouse>
         template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml

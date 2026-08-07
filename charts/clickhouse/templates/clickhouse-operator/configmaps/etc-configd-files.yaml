@@ -1,3 +1,4 @@
+{{- $files := dig "configs" "configdFiles" nil .Values.clickhouseOperator -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +7,10 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
-{{- if .Values.clickhouseOperator.configs.configdFiles }}
-{{ tpl (toYaml .Values.clickhouseOperator.configs.configdFiles) . | nindent 2 }}
+{{- if $files }}
+{{- range $name, $contents := $files }}
+  {{ $name }}: {{ tpl ($contents | toString) $ | toYaml | nindent 4 }}
+{{- end }}
 {{- else }}
   01-clickhouse-01-listen.xml: |
     <yandex>
@@ -161,4 +164,4 @@ data:
             <flush_interval_milliseconds>{{ .Values.clickhouseOperator.processorsProfileLog.flushInterval }}</flush_interval_milliseconds>
         </processors_profile_log>
     </yandex>
-{{- end }}
+{{ end }}
