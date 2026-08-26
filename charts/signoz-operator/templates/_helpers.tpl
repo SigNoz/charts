@@ -70,5 +70,42 @@ Deployment selector is immutable.
 {{- define "signoz-operator.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "signoz-operator.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-control-plane: controller-manager
+{{- end }}
+
+{{/*
+Annotations for every CRD the chart installs.
+
+CRDs live in templates/crds/ rather than the chart's crds/ directory so that
+"helm upgrade" keeps them current. crds.keep restores the delete protection the
+crds/ directory would otherwise have given for free.
+
+Each CRD in templates/crds/ opens with the block below, keeping controller-gen's
+own annotations, and closes with an "end" action:
+
+  metadata:
+    name: <plural>.resources.signoz.io
+    annotations:
+      controller-gen.kubebuilder.io/version: <version>
+      [[- include "signoz-operator.crdAnnotations" . | nindent 4 ]]
+    labels:
+      [[- include "signoz-operator.crdLabels" . | nindent 4 ]]
+*/}}
+{{- define "signoz-operator.crdAnnotations" -}}
+{{- $annotations := deepCopy (.Values.crds.annotations | default dict) -}}
+{{- if .Values.crds.keep -}}
+{{- $_ := set $annotations "helm.sh/resource-policy" "keep" -}}
+{{- end -}}
+{{- with $annotations }}
+{{- toYaml . }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Labels for every CRD the chart installs.
+*/}}
+{{- define "signoz-operator.crdLabels" -}}
+{{- include "signoz-operator.labels" . }}
+{{- with .Values.crds.additionalLabels }}
+{{ toYaml . }}
+{{- end -}}
 {{- end }}

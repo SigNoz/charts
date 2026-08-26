@@ -1,59 +1,77 @@
-## String to partially override the fullname template (retains the release name).
-##
-# nameOverride: ""
+# nameOverride -- String to partially override the fullname template (retains the release name).
+# @section -- General Configuration
+nameOverride: ""
+# fullnameOverride -- String to fully override the fullname template.
+# @section -- General Configuration
+fullnameOverride: ""
 
-## String to fully override the fullname template.
-##
-# fullnameOverride: ""
+# crds -- Custom Resource Definitions the operator reconciles.
+# @section -- CRDs Configuration
+crds:
+  # crds.install -- Whether to install the CRDs. Set to false when the CRDs are
+  # managed out of band, e.g. by a cluster addon or a separate `kubectl apply`.
+  # @section -- CRDs Configuration
+  install: true
+  # crds.keep -- Adds the `helm.sh/resource-policy: keep` annotation to every CRD, so
+  # `helm uninstall` leaves them in place. Set to false only if you want an uninstall
+  # to remove the CRDs -- doing so garbage collects every SigNoz custom resource in
+  # the cluster along with them.
+  # @section -- CRDs Configuration
+  keep: true
+  # crds.annotations -- Additional annotations to add to every CRD.
+  # @section -- CRDs Configuration
+  annotations: {}
+  # crds.additionalLabels -- Additional labels to add to every CRD.
+  # @section -- CRDs Configuration
+  additionalLabels: {}
 
-## Controller manager deployment.
-##
-manager:
-  ## Set to false to install only the CRDs and RBAC.
-  ##
+# controller -- Controller deployment.
+# @section -- Controller Configuration
+controller:
+  # controller.enabled -- Set to false to install only the CRDs and RBAC.
+  # @section -- Controller Configuration
   enabled: true
-
+  # controller.replicas -- Number of controller replicas. Leader election keeps a single
+  # replica reconciling at a time, so anything above 1 is for failover only.
+  # @section -- Controller Configuration
   replicas: 1
-
   image:
+    # controller.image.repository -- Controller image repository.
+    # @section -- Controller Configuration
     repository: signoz/signoz-operator
-    ## Image tag. Defaults to the chart's appVersion when unset.
-    ##
-    # tag: ""
+    # controller.image.tag -- Controller image tag. Defaults to the chart's appVersion when unset.
+    # @section -- Controller Configuration
+    tag: ""
+    # controller.image.pullPolicy -- Controller image pull policy.
+    # @section -- Controller Configuration
     pullPolicy: IfNotPresent
-
-  ## Image pull secrets.
-  ##
-  # imagePullSecrets:
-  #   - name: myregistrykey
-
-  ## Arguments passed to the manager.
-  ##
-  args:
-    - --leader-elect
-    - --health-probe-bind-address=:8081
-
-  ## Environment variables. SIGNOZ_OPERATOR_OPERATOR_NAMESPACE is always set
-  ## to the release namespace and cannot be removed.
-  ##
+  # controller.imagePullSecrets -- Image pull secrets for the controller pod.
+  # @section -- Controller Configuration
+  imagePullSecrets: []
+  # controller.args -- Additional arguments passed to the controller.
+  # @section -- Controller Configuration
+  args: []
+  # controller.env -- Additional environment variables for the controller.
+  # `SIGNOZ_OPERATOR_OPERATOR_NAMESPACE` is always set to the release namespace and
+  # cannot be removed.
+  # @section -- Controller Configuration
   env: []
-
-  ## Pod-level security settings.
-  ##
+  # controller.podSecurityContext -- Pod-level security settings.
+  # @section -- Controller Configuration
   podSecurityContext:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
-
-  ## Container-level security settings.
-  ##
+  # controller.securityContext -- Container-level security settings.
+  # @section -- Controller Configuration
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
         - ALL
     readOnlyRootFilesystem: true
-
+  # controller.resources -- Resource requests and limits for the controller container.
+  # @section -- Controller Configuration
   resources:
     limits:
       cpu: 500m
@@ -61,73 +79,64 @@ manager:
     requests:
       cpu: 10m
       memory: 64Mi
-
+  # controller.affinity -- Affinity rules for the controller pod.
+  # @section -- Controller Configuration
   affinity: {}
-
+  # controller.nodeSelector -- Node selector for the controller pod.
+  # @section -- Controller Configuration
   nodeSelector: {}
-
+  # controller.tolerations -- Tolerations for the controller pod.
+  # @section -- Controller Configuration
   tolerations: []
-
+  # controller.topologySpreadConstraints -- Topology spread constraints for the controller pod.
+  # @section -- Controller Configuration
   topologySpreadConstraints: []
-
-  ## Deployment strategy.
-  ##
-  # strategy:
-  #   type: RollingUpdate
-
-  ## Priority class name.
-  ##
-  # priorityClassName: ""
-
+  # controller.strategy -- Deployment strategy for the controller.
+  # @section -- Controller Configuration
+  strategy: {}
+  # controller.priorityClassName -- Priority class name for the controller pod.
+  # @section -- Controller Configuration
+  priorityClassName: ""
+  # controller.terminationGracePeriodSeconds -- Grace period before the controller pod is killed.
+  # @section -- Controller Configuration
   terminationGracePeriodSeconds: 10
-
-  ## Extra labels and annotations on the Deployment.
-  ##
+  # controller.labels -- Additional labels on the controller Deployment.
+  # @section -- Controller Configuration
   labels: {}
+  # controller.annotations -- Additional annotations on the controller Deployment.
+  # @section -- Controller Configuration
   annotations: {}
-
-  ## Extra labels and annotations on the manager pod.
-  ##
   pod:
+    # controller.pod.labels -- Additional labels on the controller pod.
+    # @section -- Controller Configuration
     labels: {}
+    # controller.pod.annotations -- Additional annotations on the controller pod.
+    # @section -- Controller Configuration
     annotations: {}
 
-## RBAC configuration.
-##
+# rbac -- RBAC resources for the controller.
+# @section -- RBAC Configuration
 rbac:
-  ## Install the manager rules as a Role/RoleBinding scoped to the release
-  ## namespace instead of a ClusterRole/ClusterRoleBinding. The operator
-  ## reconciles resources cluster-wide, so leave this false unless the
-  ## operator is deliberately confined to a single namespace.
-  ##
+  # rbac.namespaced -- Install the controller rules as a Role/RoleBinding scoped to the
+  # release namespace instead of a ClusterRole/ClusterRoleBinding. The operator
+  # reconciles resources cluster-wide, so leave this false unless the operator is
+  # deliberately confined to a single namespace.
+  # @section -- RBAC Configuration
   namespaced: false
 
-## ServiceAccount used by the manager.
-##
+# serviceAccount -- ServiceAccount used by the controller.
+# @section -- ServiceAccount Configuration
 serviceAccount:
-  ## Set to false to reuse an existing ServiceAccount.
-  ##
+  # serviceAccount.enabled -- Set to false to reuse an existing ServiceAccount.
+  # @section -- ServiceAccount Configuration
   enabled: true
-
-  ## Name of an existing ServiceAccount (only read when enabled is false).
-  ##
-  # name: ""
-
+  # serviceAccount.name -- Name of an existing ServiceAccount. Only read when
+  # `serviceAccount.enabled` is false.
+  # @section -- ServiceAccount Configuration
+  name: ""
+  # serviceAccount.annotations -- Additional annotations on the ServiceAccount.
+  # @section -- ServiceAccount Configuration
   annotations: {}
+  # serviceAccount.labels -- Additional labels on the ServiceAccount.
+  # @section -- ServiceAccount Configuration
   labels: {}
-
-## Custom Resource Definitions.
-##
-## The CRDs ship in the chart's crds/ directory, not in templates/. Helm
-## applies them once on install and then leaves them alone: helm upgrade,
-## helm rollback and helm uninstall all skip crds/. That protects the custom
-## resources from a cascading delete, at the cost of having to upgrade the
-## CRDs by hand whenever the chart's appVersion changes:
-##
-##   helm pull signoz/signoz-operator --version <version> --untar
-##   kubectl apply --server-side -f signoz-operator/crds/
-##
-## There is deliberately no crd.enabled or crd.keep value here -- files under
-## crds/ are not rendered as templates, so they cannot read values. Skip the
-## CRDs at install time with `helm install --skip-crds` instead.
-##

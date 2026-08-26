@@ -77,3 +77,43 @@ rules:
   - get
   - patch
   - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "signoz-operator.resourceName" (dict "suffix" "leader-election" "context" .) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "signoz-operator.labels" . | nindent 4 }}
+rules:
+- resources:
+  - configmaps
+  apiGroups:
+  - ""
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- resources:
+  - leases
+  apiGroups:
+  - coordination.k8s.io
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- resources:
+  - events
+  apiGroups:
+  - ""
+  verbs:
+  - create
+  - patch

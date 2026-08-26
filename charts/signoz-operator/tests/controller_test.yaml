@@ -1,4 +1,4 @@
-suite: Test the manager deployment
+suite: Test the controller deployment
 templates:
   - deployment.yaml
 release:
@@ -12,7 +12,7 @@ tests:
           value: signoz/signoz-operator:v0.1.0
   - it: should honour an explicit image tag
     set:
-      manager:
+      controller:
         image:
           tag: v9.9.9
     asserts:
@@ -33,7 +33,7 @@ tests:
       - equal:
           path: spec.template.spec.serviceAccountName
           value: existing-sa
-  - it: should always expose the operator namespace to the manager
+  - it: should always expose the operator namespace to the controller
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -42,24 +42,51 @@ tests:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-  - it: should keep user supplied env alongside the operator namespace
+  - it: should keep user supplied env alongside the chart managed env
     set:
-      manager:
+      controller:
         env:
           - name: HTTP_PROXY
             value: http://proxy:3128
     asserts:
       - lengthEqual:
           path: spec.template.spec.containers[0].env
-          count: 2
+          count: 4
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTP_PROXY
             value: http://proxy:3128
-  - it: should not render when the manager is disabled
+  - it: should name the container controller
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: controller
+  - it: should enable leader election and bind the health probe
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OPERATOR_LEADER_ELECT
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OPERATOR_HEALTH_PROBE_BIND_ADDRESS
+            value: ":8081"
+  - it: should append extra args when supplied
     set:
-      manager:
+      controller:
+        args:
+          - --zap-log-level=debug
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - --zap-log-level=debug
+  - it: should not render when the controller is disabled
+    set:
+      controller:
         enabled: false
     asserts:
       - hasDocuments:
