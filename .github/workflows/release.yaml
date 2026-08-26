@@ -33,14 +33,6 @@ jobs:
           helm repo add signoz https://charts.signoz.io
           helm repo add redpanda https://charts.redpanda.com
 
-      # chart-releaser packages every directory under charts/ that has a
-      # Chart.yaml and offers no exclude list, so charts that are not ready to
-      # publish are dropped from the working tree first. signoz-operator ships
-      # no CRDs yet and signoz/signoz-operator has no image behind its
-      # appVersion. Remove the chart from this list to start publishing it.
-      - name: Hold unpublished charts
-        run: rm -rf charts/signoz-operator
-
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         env:
