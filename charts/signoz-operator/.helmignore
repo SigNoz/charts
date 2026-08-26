@@ -7,3 +7,4 @@
 tests/
 ci/
 .gitkeep
+README.md.gotmpl

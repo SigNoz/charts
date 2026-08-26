@@ -1,0 +1,140 @@
+
+# SigNoz Operator
+
+{{ template "chart.badgesSection" . }}
+
+The SigNoz Operator manages SigNoz resources as Kubernetes custom resources, so they can be version controlled and applied the same way as the rest of your manifests.
+
+### TL;DR;
+
+```sh
+helm repo add signoz https://charts.signoz.io
+helm install -n platform --create-namespace "my-release" signoz/{{ template "chart.name" . }}
+```
+
+### Introduction
+
+This chart installs the SigNoz Operator and the CRDs it reconciles using the [Helm](https://helm.sh) package manager.
+
+The operator does not run SigNoz itself — install the [signoz](https://github.com/SigNoz/charts/tree/main/charts/signoz) chart, or point the operator at SigNoz Cloud. It reconciles nothing until it can reach a SigNoz API, which you configure with a `ProviderConfig` (namespaced) or a `ClusterProviderConfig` (cluster-wide).
+
+### Prerequisites
+
+- Kubernetes 1.16+
+- Helm 3.0+
+
+### Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm -n platform --create-namespace install "my-release" signoz/{{ template "chart.name" . }}
+```
+
+Then create a provider config pointing at your SigNoz instance:
+
+```yaml
+apiVersion: resources.signoz.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: signoz
+  namespace: platform
+spec:
+  endpoint: http://my-release-signoz:8080
+```
+
+> [!NOTE]
+> ### Custom Resource Definitions
+>
+> The CRDs are regular templates in this chart, so `helm upgrade` keeps them current — there is no separate `kubectl apply` step.
+>
+> They carry the `helm.sh/resource-policy: keep` annotation by default, which means `helm uninstall` leaves both the CRDs and your custom resources in place. Set `crds.keep=false` if you want an uninstall to remove them, keeping in mind that deleting a CRD garbage collects every custom resource of that kind in the cluster.
+>
+> To let another tool own the CRDs, install with `crds.install=false`.
+
+### Uninstalling the chart
+
+To uninstall/delete the `my-release` resources:
+
+```bash
+helm -n platform uninstall "my-release"
+```
+
+See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
+
+The command above removes the operator and its RBAC, but leaves the CRDs and your custom resources behind. To remove those as well:
+
+```bash
+kubectl delete crd -l app.kubernetes.io/instance=my-release
+```
+
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="yaml">{{ $defaultValue }}</pre>
+{{ end }}
+
+{{ define "chart.valuesTableHtml" }}
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+<h3>{{- .SectionName }}</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}
