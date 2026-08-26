@@ -1,0 +1,66 @@
+suite: Test the manager deployment
+templates:
+  - deployment.yaml
+release:
+  name: prod
+  namespace: signoz-operator
+tests:
+  - it: should tag the image with the chart appVersion by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: signoz/signoz-operator:v0.1.0
+  - it: should honour an explicit image tag
+    set:
+      manager:
+        image:
+          tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: signoz/signoz-operator:v9.9.9
+  - it: should bind to the ServiceAccount the chart creates
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: prod-signoz-operator
+  - it: should bind to an existing ServiceAccount when one is named
+    set:
+      serviceAccount:
+        enabled: false
+        name: existing-sa
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: existing-sa
+  - it: should always expose the operator namespace to the manager
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OPERATOR_OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+  - it: should keep user supplied env alongside the operator namespace
+    set:
+      manager:
+        env:
+          - name: HTTP_PROXY
+            value: http://proxy:3128
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].env
+          count: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTP_PROXY
+            value: http://proxy:3128
+  - it: should not render when the manager is disabled
+    set:
+      manager:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

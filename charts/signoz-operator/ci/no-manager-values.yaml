@@ -1,0 +1,10 @@
+## Values chart-testing installs the chart with.
+##
+## The manager is disabled because signoz/signoz-operator has no published
+## image tag yet, so `ct install` would sit in ImagePullBackOff until it times
+## out. What is left -- the CRDs and the RBAC rules -- is exactly the surface
+## the operator's tag sync rewrites, so this is the part worth applying to a
+## real cluster. Delete this file once the first operator image is published.
+##
+manager:
+  enabled: false

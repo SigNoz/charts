@@ -1,0 +1,24 @@
+apiVersion: v2
+name: signoz-operator
+description: Helm chart for the SigNoz Kubernetes operator
+type: application
+## version and appVersion move in lockstep: version is always appVersion
+## without the leading "v". The operator's tag sync sets both together --
+## never bump one by hand.
+##
+version: 0.1.0
+appVersion: "v0.1.0"
+home: https://signoz.io
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+keywords:
+- SigNoz
+- kubernetes
+- operator
+- apm
+- monitoring
+sources:
+- https://github.com/SigNoz/signoz-operator
+maintainers:
+- name: SigNoz
+  email: hello@signoz.io
+  url: https://signoz.io

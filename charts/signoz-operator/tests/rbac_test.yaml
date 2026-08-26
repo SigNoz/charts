@@ -1,0 +1,51 @@
+suite: Test the manager RBAC
+templates:
+  - manager-role.yaml
+  - manager-rolebinding.yaml
+  - serviceaccount.yaml
+release:
+  name: prod
+  namespace: signoz-operator
+tests:
+  - it: should grant the rules cluster wide by default
+    template: manager-role.yaml
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: prod-signoz-operator
+  - it: should confine the rules to the release namespace when asked
+    template: manager-role.yaml
+    set:
+      rbac:
+        namespaced: true
+    asserts:
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.namespace
+          value: signoz-operator
+  - it: should bind the role to the ServiceAccount it creates
+    template: manager-rolebinding.yaml
+    asserts:
+      - isKind:
+          of: ClusterRoleBinding
+      - equal:
+          path: roleRef.name
+          value: prod-signoz-operator
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: prod-signoz-operator
+            namespace: signoz-operator
+  - it: should not create a ServiceAccount when one is supplied
+    template: serviceaccount.yaml
+    set:
+      serviceAccount:
+        enabled: false
+        name: existing-sa
+    asserts:
+      - hasDocuments:
+          count: 0

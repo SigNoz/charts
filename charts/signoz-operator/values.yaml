@@ -1,0 +1,133 @@
+## String to partially override the fullname template (retains the release name).
+##
+# nameOverride: ""
+
+## String to fully override the fullname template.
+##
+# fullnameOverride: ""
+
+## Controller manager deployment.
+##
+manager:
+  ## Set to false to install only the CRDs and RBAC.
+  ##
+  enabled: true
+
+  replicas: 1
+
+  image:
+    repository: signoz/signoz-operator
+    ## Image tag. Defaults to the chart's appVersion when unset.
+    ##
+    # tag: ""
+    pullPolicy: IfNotPresent
+
+  ## Image pull secrets.
+  ##
+  # imagePullSecrets:
+  #   - name: myregistrykey
+
+  ## Arguments passed to the manager.
+  ##
+  args:
+    - --leader-elect
+    - --health-probe-bind-address=:8081
+
+  ## Environment variables. SIGNOZ_OPERATOR_OPERATOR_NAMESPACE is always set
+  ## to the release namespace and cannot be removed.
+  ##
+  env: []
+
+  ## Pod-level security settings.
+  ##
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## Container-level security settings.
+  ##
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+  affinity: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  topologySpreadConstraints: []
+
+  ## Deployment strategy.
+  ##
+  # strategy:
+  #   type: RollingUpdate
+
+  ## Priority class name.
+  ##
+  # priorityClassName: ""
+
+  terminationGracePeriodSeconds: 10
+
+  ## Extra labels and annotations on the Deployment.
+  ##
+  labels: {}
+  annotations: {}
+
+  ## Extra labels and annotations on the manager pod.
+  ##
+  pod:
+    labels: {}
+    annotations: {}
+
+## RBAC configuration.
+##
+rbac:
+  ## Install the manager rules as a Role/RoleBinding scoped to the release
+  ## namespace instead of a ClusterRole/ClusterRoleBinding. The operator
+  ## reconciles resources cluster-wide, so leave this false unless the
+  ## operator is deliberately confined to a single namespace.
+  ##
+  namespaced: false
+
+## ServiceAccount used by the manager.
+##
+serviceAccount:
+  ## Set to false to reuse an existing ServiceAccount.
+  ##
+  enabled: true
+
+  ## Name of an existing ServiceAccount (only read when enabled is false).
+  ##
+  # name: ""
+
+  annotations: {}
+  labels: {}
+
+## Custom Resource Definitions.
+##
+## The CRDs ship in the chart's crds/ directory, not in templates/. Helm
+## applies them once on install and then leaves them alone: helm upgrade,
+## helm rollback and helm uninstall all skip crds/. That protects the custom
+## resources from a cascading delete, at the cost of having to upgrade the
+## CRDs by hand whenever the chart's appVersion changes:
+##
+##   helm pull signoz/signoz-operator --version <version> --untar
+##   kubectl apply --server-side -f signoz-operator/crds/
+##
+## There is deliberately no crd.enabled or crd.keep value here -- files under
+## crds/ are not rendered as templates, so they cannot read values. Skip the
+## CRDs at install time with `helm install --skip-crds` instead.
+##

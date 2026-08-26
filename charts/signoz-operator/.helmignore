@@ -1,0 +1,9 @@
+.DS_Store
+.git/
+.gitignore
+*.tmproj
+.vscode/
+.idea/
+tests/
+ci/
+.gitkeep
