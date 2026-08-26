@@ -108,19 +108,7 @@ kubectl delete crd -l app.kubernetes.io/instance=signoz-operator
     </thead>
     <tbody>
         <tr>
-            <td id="crds"><a href="./values.yaml#L10">crds</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
-install: true
-keep: true
-labels: {}</pre>
-</div>
-            </td>
-            <td>Custom Resource Definitions the operator reconciles.</td>
-        </tr>
-        <tr>
-            <td id="crds--install"><a href="./values.yaml#L14">crds.install</a></td>
+            <td id="crds--install"><a href="./values.yaml#L12">crds.install</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -129,7 +117,7 @@ labels: {}</pre>
             <td>Whether to install the CRDs. Set to false when the CRDs are managed out of band, e.g. by a cluster addon or a separate `kubectl apply`.</td>
         </tr>
         <tr>
-            <td id="crds--keep"><a href="./values.yaml#L20">crds.keep</a></td>
+            <td id="crds--keep"><a href="./values.yaml#L18">crds.keep</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -138,7 +126,7 @@ labels: {}</pre>
             <td>Adds the `helm.sh/resource-policy: keep` annotation to every CRD, so `helm uninstall` leaves them in place. Set to false only if you want an uninstall to remove the CRDs -- doing so garbage collects every SigNoz custom resource in the cluster along with them.</td>
         </tr>
         <tr>
-            <td id="crds--annotations"><a href="./values.yaml#L23">crds.annotations</a></td>
+            <td id="crds--annotations"><a href="./values.yaml#L21">crds.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -147,7 +135,7 @@ labels: {}</pre>
             <td>Additional annotations to add to every CRD.</td>
         </tr>
         <tr>
-            <td id="crds--labels"><a href="./values.yaml#L26">crds.labels</a></td>
+            <td id="crds--labels"><a href="./values.yaml#L24">crds.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -167,53 +155,7 @@ labels: {}</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="controller"><a href="./values.yaml#L30">controller</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">affinity: {}
-annotations: {}
-args: []
-enabled: true
-env: []
-image:
-    pullPolicy: IfNotPresent
-    repository: signoz/signoz-operator
-    tag: ""
-imagePullSecrets: []
-labels: {}
-nodeSelector: {}
-pod:
-    annotations: {}
-    labels: {}
-podSecurityContext:
-    runAsNonRoot: true
-    seccompProfile:
-        type: RuntimeDefault
-priorityClassName: ""
-replicas: 1
-resources:
-    limits:
-        cpu: 500m
-        memory: 128Mi
-    requests:
-        cpu: 10m
-        memory: 64Mi
-securityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-        drop:
-            - ALL
-    readOnlyRootFilesystem: true
-strategy: {}
-terminationGracePeriodSeconds: 10
-tolerations: []
-topologySpreadConstraints: []</pre>
-</div>
-            </td>
-            <td>Controller deployment.</td>
-        </tr>
-        <tr>
-            <td id="controller--enabled"><a href="./values.yaml#L33">controller.enabled</a></td>
+            <td id="controller--enabled"><a href="./values.yaml#L29">controller.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -222,7 +164,7 @@ topologySpreadConstraints: []</pre>
             <td>Set to false to install only the CRDs and RBAC.</td>
         </tr>
         <tr>
-            <td id="controller--replicas"><a href="./values.yaml#L37">controller.replicas</a></td>
+            <td id="controller--replicas"><a href="./values.yaml#L33">controller.replicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -231,7 +173,7 @@ topologySpreadConstraints: []</pre>
             <td>Number of controller replicas. Leader election keeps a single replica reconciling at a time, so anything above 1 is for failover only.</td>
         </tr>
         <tr>
-            <td id="controller--image--repository"><a href="./values.yaml#L41">controller.image.repository</a></td>
+            <td id="controller--image--repository"><a href="./values.yaml#L37">controller.image.repository</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz/signoz-operator</pre>
@@ -240,7 +182,7 @@ topologySpreadConstraints: []</pre>
             <td>Controller image repository.</td>
         </tr>
         <tr>
-            <td id="controller--image--tag"><a href="./values.yaml#L44">controller.image.tag</a></td>
+            <td id="controller--image--tag"><a href="./values.yaml#L40">controller.image.tag</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -249,7 +191,7 @@ topologySpreadConstraints: []</pre>
             <td>Controller image tag. Defaults to the chart's appVersion when unset.</td>
         </tr>
         <tr>
-            <td id="controller--image--pullPolicy"><a href="./values.yaml#L47">controller.image.pullPolicy</a></td>
+            <td id="controller--image--pullPolicy"><a href="./values.yaml#L43">controller.image.pullPolicy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
@@ -258,7 +200,7 @@ topologySpreadConstraints: []</pre>
             <td>Controller image pull policy.</td>
         </tr>
         <tr>
-            <td id="controller--imagePullSecrets"><a href="./values.yaml#L50">controller.imagePullSecrets</a></td>
+            <td id="controller--imagePullSecrets"><a href="./values.yaml#L46">controller.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -267,7 +209,7 @@ topologySpreadConstraints: []</pre>
             <td>Image pull secrets for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--args"><a href="./values.yaml#L53">controller.args</a></td>
+            <td id="controller--args"><a href="./values.yaml#L49">controller.args</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -276,7 +218,7 @@ topologySpreadConstraints: []</pre>
             <td>Additional arguments passed to the controller.</td>
         </tr>
         <tr>
-            <td id="controller--env"><a href="./values.yaml#L58">controller.env</a></td>
+            <td id="controller--env"><a href="./values.yaml#L54">controller.env</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -285,7 +227,7 @@ topologySpreadConstraints: []</pre>
             <td>Additional environment variables for the controller. `SIGNOZ_OPERATOR_OPERATOR_NAMESPACE` is always set to the release namespace and cannot be removed.</td>
         </tr>
         <tr>
-            <td id="controller--podSecurityContext"><a href="./values.yaml#L61">controller.podSecurityContext</a></td>
+            <td id="controller--podSecurityContext"><a href="./values.yaml#L57">controller.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">runAsNonRoot: true
@@ -296,7 +238,7 @@ seccompProfile:
             <td>Pod-level security settings.</td>
         </tr>
         <tr>
-            <td id="controller--securityContext"><a href="./values.yaml#L67">controller.securityContext</a></td>
+            <td id="controller--securityContext"><a href="./values.yaml#L63">controller.securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">allowPrivilegeEscalation: false
@@ -309,7 +251,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Container-level security settings.</td>
         </tr>
         <tr>
-            <td id="controller--resources"><a href="./values.yaml#L75">controller.resources</a></td>
+            <td id="controller--resources"><a href="./values.yaml#L71">controller.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">limits:
@@ -323,7 +265,7 @@ requests:
             <td>Resource requests and limits for the controller container.</td>
         </tr>
         <tr>
-            <td id="controller--affinity"><a href="./values.yaml#L84">controller.affinity</a></td>
+            <td id="controller--affinity"><a href="./values.yaml#L80">controller.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -332,7 +274,7 @@ requests:
             <td>Affinity rules for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--nodeSelector"><a href="./values.yaml#L87">controller.nodeSelector</a></td>
+            <td id="controller--nodeSelector"><a href="./values.yaml#L83">controller.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -341,7 +283,7 @@ requests:
             <td>Node selector for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--tolerations"><a href="./values.yaml#L90">controller.tolerations</a></td>
+            <td id="controller--tolerations"><a href="./values.yaml#L86">controller.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -350,7 +292,7 @@ requests:
             <td>Tolerations for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--topologySpreadConstraints"><a href="./values.yaml#L93">controller.topologySpreadConstraints</a></td>
+            <td id="controller--topologySpreadConstraints"><a href="./values.yaml#L89">controller.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -359,7 +301,7 @@ requests:
             <td>Topology spread constraints for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--strategy"><a href="./values.yaml#L96">controller.strategy</a></td>
+            <td id="controller--strategy"><a href="./values.yaml#L92">controller.strategy</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -368,7 +310,7 @@ requests:
             <td>Deployment strategy for the controller.</td>
         </tr>
         <tr>
-            <td id="controller--priorityClassName"><a href="./values.yaml#L99">controller.priorityClassName</a></td>
+            <td id="controller--priorityClassName"><a href="./values.yaml#L95">controller.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -377,7 +319,7 @@ requests:
             <td>Priority class name for the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--terminationGracePeriodSeconds"><a href="./values.yaml#L102">controller.terminationGracePeriodSeconds</a></td>
+            <td id="controller--terminationGracePeriodSeconds"><a href="./values.yaml#L98">controller.terminationGracePeriodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -386,7 +328,7 @@ requests:
             <td>Grace period before the controller pod is killed.</td>
         </tr>
         <tr>
-            <td id="controller--labels"><a href="./values.yaml#L105">controller.labels</a></td>
+            <td id="controller--labels"><a href="./values.yaml#L101">controller.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -395,7 +337,7 @@ requests:
             <td>Additional labels on the controller Deployment.</td>
         </tr>
         <tr>
-            <td id="controller--annotations"><a href="./values.yaml#L108">controller.annotations</a></td>
+            <td id="controller--annotations"><a href="./values.yaml#L104">controller.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -404,7 +346,7 @@ requests:
             <td>Additional annotations on the controller Deployment.</td>
         </tr>
         <tr>
-            <td id="controller--pod--labels"><a href="./values.yaml#L112">controller.pod.labels</a></td>
+            <td id="controller--pod--labels"><a href="./values.yaml#L108">controller.pod.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -413,7 +355,7 @@ requests:
             <td>Additional labels on the controller pod.</td>
         </tr>
         <tr>
-            <td id="controller--pod--annotations"><a href="./values.yaml#L115">controller.pod.annotations</a></td>
+            <td id="controller--pod--annotations"><a href="./values.yaml#L111">controller.pod.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -433,16 +375,7 @@ requests:
     </thead>
     <tbody>
         <tr>
-            <td id="rbac"><a href="./values.yaml#L119">rbac</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">namespaced: false</pre>
-</div>
-            </td>
-            <td>RBAC resources for the controller.</td>
-        </tr>
-        <tr>
-            <td id="rbac--namespaced"><a href="./values.yaml#L125">rbac.namespaced</a></td>
+            <td id="rbac--namespaced"><a href="./values.yaml#L119">rbac.namespaced</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -462,19 +395,7 @@ requests:
     </thead>
     <tbody>
         <tr>
-            <td id="serviceAccount"><a href="./values.yaml#L129">serviceAccount</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
-enabled: true
-labels: {}
-name: ""</pre>
-</div>
-            </td>
-            <td>ServiceAccount used by the controller.</td>
-        </tr>
-        <tr>
-            <td id="serviceAccount--enabled"><a href="./values.yaml#L132">serviceAccount.enabled</a></td>
+            <td id="serviceAccount--enabled"><a href="./values.yaml#L124">serviceAccount.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -483,7 +404,7 @@ name: ""</pre>
             <td>Set to false to reuse an existing ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="serviceAccount--name"><a href="./values.yaml#L136">serviceAccount.name</a></td>
+            <td id="serviceAccount--name"><a href="./values.yaml#L128">serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -492,7 +413,7 @@ name: ""</pre>
             <td>Name of an existing ServiceAccount. Only read when `serviceAccount.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="serviceAccount--annotations"><a href="./values.yaml#L139">serviceAccount.annotations</a></td>
+            <td id="serviceAccount--annotations"><a href="./values.yaml#L131">serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -501,7 +422,7 @@ name: ""</pre>
             <td>Additional annotations on the ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="serviceAccount--labels"><a href="./values.yaml#L142">serviceAccount.labels</a></td>
+            <td id="serviceAccount--labels"><a href="./values.yaml#L134">serviceAccount.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>

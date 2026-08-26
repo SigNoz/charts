@@ -5,8 +5,6 @@ nameOverride: ""
 # @section -- General Configuration
 fullnameOverride: ""
 
-# crds -- Custom Resource Definitions the operator reconciles.
-# @section -- CRDs Configuration
 crds:
   # crds.install -- Whether to install the CRDs. Set to false when the CRDs are
   # managed out of band, e.g. by a cluster addon or a separate `kubectl apply`.
@@ -25,8 +23,6 @@ crds:
   # @section -- CRDs Configuration
   labels: {}
 
-# controller -- Controller deployment.
-# @section -- Controller Configuration
 controller:
   # controller.enabled -- Set to false to install only the CRDs and RBAC.
   # @section -- Controller Configuration
@@ -114,8 +110,6 @@ controller:
     # @section -- Controller Configuration
     annotations: {}
 
-# rbac -- RBAC resources for the controller.
-# @section -- RBAC Configuration
 rbac:
   # rbac.namespaced -- Install the controller rules as a Role/RoleBinding scoped to the
   # release namespace instead of a ClusterRole/ClusterRoleBinding. The operator
@@ -124,8 +118,6 @@ rbac:
   # @section -- RBAC Configuration
   namespaced: false
 
-# serviceAccount -- ServiceAccount used by the controller.
-# @section -- ServiceAccount Configuration
 serviceAccount:
   # serviceAccount.enabled -- Set to false to reuse an existing ServiceAccount.
   # @section -- ServiceAccount Configuration
