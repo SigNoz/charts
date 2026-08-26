@@ -1,0 +1,24 @@
+{{ .Chart.Name }} {{ .Chart.AppVersion }} has been installed as {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+{{ if .Values.controller.enabled }}
+Check that the controller is running:
+
+  kubectl -n {{ .Release.Namespace }} get deployment {{ include "signoz-operator.fullname" . }}
+{{- else }}
+The controller is disabled (controller.enabled=false), so only the CRDs and RBAC were
+installed. Nothing will reconcile until you enable it.
+{{- end }}
+
+The operator reconciles nothing until it can reach a SigNoz instance. Create a
+ProviderConfig (namespaced) or a ClusterProviderConfig (cluster-wide) pointing
+at your SigNoz API, then reference it from each resource:
+
+  kubectl explain providerconfigs.resources.signoz.io
+{{ if not .Values.crds.install }}
+CRDs were not installed (crds.install=false). Apply them yourself before the
+controller can reconcile anything.
+{{- else if .Values.crds.keep }}
+The CRDs carry helm.sh/resource-policy: keep, so `helm uninstall` leaves them
+and your custom resources in place. Remove them deliberately when you are done:
+
+  kubectl delete crd -l app.kubernetes.io/instance={{ .Release.Name }}
+{{- end }}

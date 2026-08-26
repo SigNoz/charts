@@ -1,0 +1,119 @@
+apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.rbac.namespaced }}
+kind: Role
+{{- else }}
+kind: ClusterRole
+{{- end }}
+metadata:
+  name: {{ include "signoz-operator.fullname" . }}
+  {{- if .Values.rbac.namespaced }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+    {{- include "signoz-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - resources.signoz.io
+  resources:
+  - authdomains
+  - clusterproviderconfigs
+  - dashboards
+  - plannedmaintenances
+  - providerconfigs
+  - roles
+  - routepolicies
+  - rules
+  - savedviews
+  - serviceaccounts
+  - users
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - resources.signoz.io
+  resources:
+  - authdomains/finalizers
+  - clusterproviderconfigs/finalizers
+  - dashboards/finalizers
+  - plannedmaintenances/finalizers
+  - providerconfigs/finalizers
+  - roles/finalizers
+  - routepolicies/finalizers
+  - rules/finalizers
+  - savedviews/finalizers
+  - serviceaccounts/finalizers
+  - users/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - resources.signoz.io
+  resources:
+  - authdomains/status
+  - clusterproviderconfigs/status
+  - dashboards/status
+  - plannedmaintenances/status
+  - providerconfigs/status
+  - roles/status
+  - routepolicies/status
+  - rules/status
+  - savedviews/status
+  - serviceaccounts/status
+  - users/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "signoz-operator.resourceName" (dict "suffix" "leader-election" "context" .) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "signoz-operator.labels" . | nindent 4 }}
+rules:
+- resources:
+  - configmaps
+  apiGroups:
+  - ""
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- resources:
+  - leases
+  apiGroups:
+  - coordination.k8s.io
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- resources:
+  - events
+  apiGroups:
+  - ""
+  verbs:
+  - create
+  - patch
