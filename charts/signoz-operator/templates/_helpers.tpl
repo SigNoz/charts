@@ -105,7 +105,7 @@ Labels for every CRD the chart installs.
 */}}
 {{- define "signoz-operator.crdLabels" -}}
 {{- include "signoz-operator.labels" . }}
-{{- with .Values.crds.additionalLabels }}
+{{- with .Values.crds.labels }}
 {{ toYaml . }}
 {{- end -}}
 {{- end }}

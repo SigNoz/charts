@@ -9,7 +9,8 @@ The SigNoz Operator manages SigNoz resources as Kubernetes custom resources, so 
 
 ```sh
 helm repo add signoz https://charts.signoz.io
-helm install -n platform --create-namespace "my-release" signoz/signoz-operator
+helm install signoz-operator signoz/signoz-operator \
+  --namespace signoz-operator --create-namespace
 ```
 
 ### Introduction
@@ -25,23 +26,20 @@ The operator does not run SigNoz itself — install the [signoz](https://github.
 
 ### Installing the Chart
 
-To install the chart with the release name `my-release`:
+To install the chart with the release name `signoz-operator`:
 
 ```bash
 helm repo add signoz https://charts.signoz.io
-helm -n platform --create-namespace install "my-release" signoz/signoz-operator
+helm install signoz-operator signoz/signoz-operator \
+  --namespace signoz-operator --create-namespace
 ```
 
-Then create a provider config pointing at your SigNoz instance:
+Giving the release the same name as the chart keeps the generated resource names short — the Deployment, ServiceAccount and ClusterRole are all called `signoz-operator` rather than repeating the name twice.
 
-```yaml
-apiVersion: resources.signoz.io/v1alpha1
-kind: ProviderConfig
-metadata:
-  name: signoz
-  namespace: platform
-spec:
-  endpoint: http://my-release-signoz:8080
+Then create a `ProviderConfig` in the namespace holding your custom resources, or a cluster-wide `ClusterProviderConfig`, pointing at your SigNoz API. The fields it takes ship with the CRD:
+
+```bash
+kubectl explain providerconfigs.resources.signoz.io.spec
 ```
 
 > [!NOTE]
@@ -55,10 +53,10 @@ spec:
 
 ### Uninstalling the chart
 
-To uninstall/delete the `my-release` resources:
+To uninstall/delete the `signoz-operator` release:
 
 ```bash
-helm -n platform uninstall "my-release"
+helm uninstall signoz-operator --namespace signoz-operator
 ```
 
 See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
@@ -66,7 +64,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 The command above removes the operator and its RBAC, but leaves the CRDs and your custom resources behind. To remove those as well:
 
 ```bash
-kubectl delete crd -l app.kubernetes.io/instance=my-release
+kubectl delete crd -l app.kubernetes.io/instance=signoz-operator
 ```
 
 ## Values
@@ -113,10 +111,10 @@ kubectl delete crd -l app.kubernetes.io/instance=my-release
             <td id="crds"><a href="./values.yaml#L10">crds</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">additionalLabels: {}
-annotations: {}
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
 install: true
-keep: true</pre>
+keep: true
+labels: {}</pre>
 </div>
             </td>
             <td>Custom Resource Definitions the operator reconciles.</td>
@@ -149,7 +147,7 @@ keep: true</pre>
             <td>Additional annotations to add to every CRD.</td>
         </tr>
         <tr>
-            <td id="crds--additionalLabels"><a href="./values.yaml#L26">crds.additionalLabels</a></td>
+            <td id="crds--labels"><a href="./values.yaml#L26">crds.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>

@@ -21,9 +21,9 @@ crds:
   # crds.annotations -- Additional annotations to add to every CRD.
   # @section -- CRDs Configuration
   annotations: {}
-  # crds.additionalLabels -- Additional labels to add to every CRD.
+  # crds.labels -- Additional labels to add to every CRD.
   # @section -- CRDs Configuration
-  additionalLabels: {}
+  labels: {}
 
 # controller -- Controller deployment.
 # @section -- Controller Configuration
