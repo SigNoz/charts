@@ -17931,6 +17931,28 @@ entries:
     version: 0.0.2
   signoz-operator:
   - apiVersion: v2
+    appVersion: v0.0.1
+    created: "2026-08-26T22:26:20.825395259Z"
+    description: Helm chart for the SigNoz Kubernetes operator
+    digest: a502cbdef3ec861c32d1057dac37c6cfd53934ad9c8af08d66226974bc72dfc2
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - kubernetes
+    - operator
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: signoz-operator
+    sources:
+    - https://github.com/SigNoz/signoz-operator
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-operator-0.0.1/signoz-operator-0.0.1.tgz
+    version: 0.0.1
+  - apiVersion: v2
     appVersion: v0.0.1-rc.2
     created: "2026-08-26T21:31:50.449887199Z"
     description: Helm chart for the SigNoz Kubernetes operator
@@ -18032,4 +18054,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-08-26T21:31:50.450619115Z"
+generated: "2026-08-26T22:26:20.826637132Z"
