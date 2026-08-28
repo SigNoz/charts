@@ -1,0 +1,134 @@
+# nameOverride -- String to partially override the fullname template (retains the release name).
+# @section -- General Configuration
+nameOverride: ""
+# fullnameOverride -- String to fully override the fullname template.
+# @section -- General Configuration
+fullnameOverride: ""
+
+crds:
+  # crds.install -- Whether to install the CRDs. Set to false when the CRDs are
+  # managed out of band, e.g. by a cluster addon or a separate `kubectl apply`.
+  # @section -- CRDs Configuration
+  install: true
+  # crds.keep -- Adds the `helm.sh/resource-policy: keep` annotation to every CRD, so
+  # `helm uninstall` leaves them in place. Set to false only if you want an uninstall
+  # to remove the CRDs -- doing so garbage collects every SigNoz custom resource in
+  # the cluster along with them.
+  # @section -- CRDs Configuration
+  keep: true
+  # crds.annotations -- Additional annotations to add to every CRD.
+  # @section -- CRDs Configuration
+  annotations: {}
+  # crds.labels -- Additional labels to add to every CRD.
+  # @section -- CRDs Configuration
+  labels: {}
+
+controller:
+  # controller.enabled -- Set to false to install only the CRDs and RBAC.
+  # @section -- Controller Configuration
+  enabled: true
+  # controller.replicas -- Number of controller replicas. Leader election keeps a single
+  # replica reconciling at a time, so anything above 1 is for failover only.
+  # @section -- Controller Configuration
+  replicas: 1
+  image:
+    # controller.image.repository -- Controller image repository.
+    # @section -- Controller Configuration
+    repository: signoz/signoz-operator
+    # controller.image.tag -- Controller image tag. Defaults to the chart's appVersion when unset.
+    # @section -- Controller Configuration
+    tag: ""
+    # controller.image.pullPolicy -- Controller image pull policy.
+    # @section -- Controller Configuration
+    pullPolicy: IfNotPresent
+  # controller.imagePullSecrets -- Image pull secrets for the controller pod.
+  # @section -- Controller Configuration
+  imagePullSecrets: []
+  # controller.args -- Additional arguments passed to the controller.
+  # @section -- Controller Configuration
+  args: []
+  # controller.env -- Additional environment variables for the controller.
+  # `SIGNOZ_OPERATOR_OPERATOR_NAMESPACE` is always set to the release namespace and
+  # cannot be removed.
+  # @section -- Controller Configuration
+  env: []
+  # controller.podSecurityContext -- Pod-level security settings.
+  # @section -- Controller Configuration
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  # controller.securityContext -- Container-level security settings.
+  # @section -- Controller Configuration
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+  # controller.resources -- Resource requests and limits for the controller container.
+  # @section -- Controller Configuration
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  # controller.affinity -- Affinity rules for the controller pod.
+  # @section -- Controller Configuration
+  affinity: {}
+  # controller.nodeSelector -- Node selector for the controller pod.
+  # @section -- Controller Configuration
+  nodeSelector: {}
+  # controller.tolerations -- Tolerations for the controller pod.
+  # @section -- Controller Configuration
+  tolerations: []
+  # controller.topologySpreadConstraints -- Topology spread constraints for the controller pod.
+  # @section -- Controller Configuration
+  topologySpreadConstraints: []
+  # controller.strategy -- Deployment strategy for the controller.
+  # @section -- Controller Configuration
+  strategy: {}
+  # controller.priorityClassName -- Priority class name for the controller pod.
+  # @section -- Controller Configuration
+  priorityClassName: ""
+  # controller.terminationGracePeriodSeconds -- Grace period before the controller pod is killed.
+  # @section -- Controller Configuration
+  terminationGracePeriodSeconds: 10
+  # controller.labels -- Additional labels on the controller Deployment.
+  # @section -- Controller Configuration
+  labels: {}
+  # controller.annotations -- Additional annotations on the controller Deployment.
+  # @section -- Controller Configuration
+  annotations: {}
+  pod:
+    # controller.pod.labels -- Additional labels on the controller pod.
+    # @section -- Controller Configuration
+    labels: {}
+    # controller.pod.annotations -- Additional annotations on the controller pod.
+    # @section -- Controller Configuration
+    annotations: {}
+
+rbac:
+  # rbac.namespaced -- Install the controller rules as a Role/RoleBinding scoped to the
+  # release namespace instead of a ClusterRole/ClusterRoleBinding. The operator
+  # reconciles resources cluster-wide, so leave this false unless the operator is
+  # deliberately confined to a single namespace.
+  # @section -- RBAC Configuration
+  namespaced: false
+
+serviceAccount:
+  # serviceAccount.enabled -- Set to false to reuse an existing ServiceAccount.
+  # @section -- ServiceAccount Configuration
+  enabled: true
+  # serviceAccount.name -- Name of an existing ServiceAccount. Only read when
+  # `serviceAccount.enabled` is false.
+  # @section -- ServiceAccount Configuration
+  name: ""
+  # serviceAccount.annotations -- Additional annotations on the ServiceAccount.
+  # @section -- ServiceAccount Configuration
+  annotations: {}
+  # serviceAccount.labels -- Additional labels on the ServiceAccount.
+  # @section -- ServiceAccount Configuration
+  labels: {}
