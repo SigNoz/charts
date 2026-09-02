@@ -145,3 +145,54 @@ spec:
           resources:
             {{- toYaml .Values.otelDeployment.resources | nindent 12 }}
 {{- end }}
+{{- if .Values.prometheus.enableTargetAllocator }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}-target-allocator
+  labels:
+    app.kubernetes.io/name: {{ include "chart.name" . }}
+    app.kubernetes.io/component: target-allocator
+spec:
+  replicas: {{ .Values.prometheus.targetAllocator.replicas }}
+
+  selector:
+    matchLabels:
+      app: {{ include "chart.fullname" . }}-target-allocator
+
+  template:
+    metadata:
+      labels:
+        app: {{ include "chart.fullname" . }}-target-allocator
+
+    spec:
+      containers:
+        - name: target-allocator
+
+          image: "{{ .Values.prometheus.targetAllocator.image.repository }}:{{ .Values.prometheus.targetAllocator.image.tag }}"
+
+          imagePullPolicy: {{ .Values.prometheus.targetAllocator.image.pullPolicy }}
+
+          ports:
+            - containerPort: 8080
+              name: http
+
+          resources:
+{{ toYaml .Values.prometheus.targetAllocator.resources | indent 12 }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chart.fullname" . }}-target-allocator
+spec:
+  type: {{ .Values.prometheus.targetAllocator.service.type }}
+
+  selector:
+    app: {{ include "chart.fullname" . }}-target-allocator
+
+  ports:
+    - name: http
+      port: {{ .Values.prometheus.targetAllocator.service.port }}
+      targetPort: 8080
+{{- end }}
