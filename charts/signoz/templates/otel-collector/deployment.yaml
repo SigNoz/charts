@@ -104,6 +104,10 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.otelCollector.additionalEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- include "snippet.clickhouse-env" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}

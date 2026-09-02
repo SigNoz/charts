@@ -1153,6 +1153,13 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- {}
   podLabels: {}
+  # otelCollector.additionalEnvFrom -- Additional environment variables from configmaps or secrets for the Otel Collector.
+  # @section -- Otel Collector
+  # @default -- []
+  additionalEnvFrom: []
+  # - secretRef:
+  #     name: some-secret
+
   # otelCollector.additionalEnvs -- Additional environment variables for the Otel Collector.
   # @section -- Otel Collector
   # @default -- {}
