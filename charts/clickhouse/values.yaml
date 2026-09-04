@@ -228,6 +228,42 @@ affinity: {}
 # -- TopologySpreadConstraints describes how clickhouse pods ought to spread
 topologySpreadConstraints: []
 
+# Volume Permissions
+# Init containers parameters:
+# volumePermissions: Change the owner and group of the persistent volume(s) mountpoint(s) to 'runAsUser:fsGroup' on each node
+volumePermissions:
+  # -- Enable init container that changes the owner and group of the persistent volume
+  enabled: false
+
+  # -- Init container volume-permissions image
+  image:
+    # -- Init container volume-permissions image registry
+    registry: docker.io
+    # -- Init container volume-permissions image repository
+    repository: bitnami/bitnami-shell
+    # -- Init container volume-permissions image tag (immutable tags are recommended)
+    tag: 11-debian-11-r118
+    # -- Init container volume-permissions image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+    digest: ""
+    # -- Init container volume-permissions image pull policy
+    pullPolicy: IfNotPresent
+    # -- Init container volume-permissions image pull secrets
+    pullSecrets: []
+
+  # -- Init container volume-permissions resource limits and requests
+  resources:
+    limits: {}
+    requests: {}
+
+  # Init container Security Context
+  # Note: the chown of the data folder is done to securityContext.runAsUser
+  # and not the below volumePermissions.containerSecurityContext.runAsUser
+  containerSecurityContext:
+    # -- Enabled init container Security Context
+    enabled: true
+    # -- User ID for the init container
+    runAsUser: 0
+
 ## Configure liveness and readiness probes.
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 ##

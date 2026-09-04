@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-clickhouse-operator-etc-usersd-files
+  namespace: NAMESPACE
+  labels:
+    helm.sh/chart: clickhouse-24.1.18
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/version: "24.1.2"
+    app.kubernetes.io/managed-by: Helm
+    clickhouse.altinity.com/chop: 0.21.2
+data:
+  01-clickhouse-user.xml: |
+    <yandex>
+      <users>
+        <testuser>
+          <networks>
+            <ip>127.0.0.1</ip>
+          </networks>
+          <password>${CLICKHOUSE_PASSWORD}</password>
+          <profile>default</profile>
+          <quota>default</quota>
+        </testuser>
+      </users>
+      <profiles>
+        <testuser>
+          <log_queries>0</log_queries>
+          <skip_unavailable_shards>1</skip_unavailable_shards>
+          <http_connection_timeout>10</http_connection_timeout>
+        </testuser>
+      </profiles>
+    </yandex>
+  02-clickhouse-default-profile.xml: |
+    <yandex>
+      <profiles>
+        <default>
+          <log_queries>1</log_queries>
+          <connect_timeout_with_failover_ms>1000</connect_timeout_with_failover_ms>
+          <distributed_aggregation_memory_efficient>1</distributed_aggregation_memory_efficient>
+          <parallel_view_processing>1</parallel_view_processing>
+        </default>
+      </profiles>
+    </yandex>
+  03-database-ordinary.xml: |
+    <yandex>
+        <profiles>
+            <default>
+                <default_database_engine>Ordinary</default_database_engine>
+            </default>
+        </profiles>
+    </yandex>
