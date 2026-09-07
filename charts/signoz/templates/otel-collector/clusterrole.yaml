@@ -3,7 +3,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "otelCollector.clusterRoleName" . }}
-  namespace: {{ include "signoz.namespace" . }}
   {{- with .Values.otelCollector.clusterRole.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

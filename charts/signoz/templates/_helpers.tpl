@@ -36,7 +36,7 @@ Create chart name and version as used by the chart label.
 Return namespace of the signoz release
 */}}
 {{- define "signoz.namespace" -}}
-{{- .Release.Namespace -}}
+{{- default .Release.Namespace .Values.namespace -}}
 {{- end -}}
 
 {{/*

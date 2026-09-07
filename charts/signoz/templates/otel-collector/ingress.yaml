@@ -6,6 +6,7 @@ apiVersion: {{ include "ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
   {{- with .Values.otelCollector.ingress.annotations }}

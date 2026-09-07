@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "signoz.fullname" . }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "signoz.labels" . | nindent 4 }}
   {{- if .Values.signoz.annotations }}
