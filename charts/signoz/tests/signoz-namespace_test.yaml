@@ -1,0 +1,161 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Test SigNoz Namespace Handling
+release:
+  name: signoz
+  namespace: sre-signoz
+
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/signoz/service.yaml
+  - templates/signoz/serviceaccount.yaml
+  - templates/signoz/ingress.yaml
+  - templates/signoz/tests/test-connection.yaml
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/service.yaml
+  - templates/otel-collector/serviceaccount.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/hpa.yaml
+  - templates/otel-collector/ingress.yaml
+  - templates/otel-collector/keda-autoscaler.yaml
+  - templates/otel-collector/clusterrole.yaml
+  - templates/otel-collector/clusterrolebinding.yaml
+  - templates/telemetrystore-migrator/job.yaml
+  - templates/telemetrystore-migrator/serviceaccount.yaml
+  - templates/secrets-clickhouse-external.yaml
+
+tests:
+  - it: should render release namespace on all core namespaced resources by default
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/signoz/service.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/signoz/serviceaccount.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/signoz/tests/test-connection.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/deployment.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/service.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/serviceaccount.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/configmap.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/telemetrystore-migrator/job.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/telemetrystore-migrator/serviceaccount.yaml
+
+  - it: should preserve cluster-scoped resources without metadata.namespace
+    asserts:
+      - notExists:
+          path: metadata.namespace
+        template: templates/otel-collector/clusterrole.yaml
+      - notExists:
+          path: metadata.namespace
+        template: templates/otel-collector/clusterrolebinding.yaml
+      - equal:
+          path: subjects[0].namespace
+          value: sre-signoz
+        template: templates/otel-collector/clusterrolebinding.yaml
+
+  - it: should render release namespace on optional namespaced resources when enabled
+    set:
+      signoz:
+        ingress:
+          enabled: true
+      otelCollector:
+        ingress:
+          enabled: true
+        autoscaling:
+          enabled: true
+          keda:
+            enabled: false
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "clickhouse.external"
+        cluster: "cluster"
+        password: "secretpassword"
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/signoz/ingress.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/ingress.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/hpa.yaml
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/secrets-clickhouse-external.yaml
+
+  - it: should render release namespace on KEDA ScaledObject when enabled
+    set:
+      otelCollector:
+        autoscaling:
+          enabled: true
+          keda:
+            enabled: true
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: sre-signoz
+        template: templates/otel-collector/keda-autoscaler.yaml
+
+  - it: should respect values.namespace override when set
+    set:
+      namespace: custom-override-ns
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: custom-override-ns
+        template: templates/signoz/statefulset.yaml
+      - equal:
+          path: metadata.namespace
+          value: custom-override-ns
+        template: templates/signoz/service.yaml
+      - equal:
+          path: metadata.namespace
+          value: custom-override-ns
+        template: templates/otel-collector/deployment.yaml
+      - equal:
+          path: metadata.namespace
+          value: custom-override-ns
+        template: templates/otel-collector/service.yaml
+      - notExists:
+          path: metadata.namespace
+        template: templates/otel-collector/clusterrole.yaml
+      - notExists:
+          path: metadata.namespace
+        template: templates/otel-collector/clusterrolebinding.yaml
+      - equal:
+          path: subjects[0].namespace
+          value: custom-override-ns
+        template: templates/otel-collector/clusterrolebinding.yaml
