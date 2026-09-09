@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-operator_configs_test.yaml
+templates:
+  - templates/clickhouse-operator/configmaps/etc-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-confd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should preserve default operator configuration files
+    asserts:
+      - isNotNull:
+          path: data["config.yaml"]
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-01-listen.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+      - isNotNull:
+          path: data["001-templates.json.example"]
+        template: templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-user.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+
+  - it: should render custom operator configuration files
+    set:
+      clickhouseOperator:
+        configs:
+          etcFiles:
+            config.yaml: "watch: {namespaces: [{{ .Release.Namespace }}]}"
+          confdFiles:
+            custom-host.xml: "<clickhouse><listen_host>127.0.0.1</listen_host></clickhouse>"
+          configdFiles:
+            custom-common.xml: "<clickhouse><listen_host>0.0.0.0</listen_host></clickhouse>"
+          templatesdFiles:
+            custom-template.yaml: "apiVersion: clickhouse.altinity.com/v1"
+          usersdFiles:
+            custom-users.xml: "{{ .Values.customUsers }}"
+      customUsers: |-
+        <clickhouse>
+          <users password="quoted: value"/>
+        </clickhouse>
+    asserts:
+      - equal:
+          path: data["config.yaml"]
+          value: "watch: {namespaces: [signoz]}"
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - equal:
+          path: data["custom-host.xml"]
+          value: "<clickhouse><listen_host>127.0.0.1</listen_host></clickhouse>"
+        template: templates/clickhouse-operator/configmaps/etc-confd-files.yaml
+      - equal:
+          path: data["custom-common.xml"]
+          value: "<clickhouse><listen_host>0.0.0.0</listen_host></clickhouse>"
+        template: templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+      - equal:
+          path: data["custom-template.yaml"]
+          value: "apiVersion: clickhouse.altinity.com/v1"
+        template: templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+      - equal:
+          path: data["custom-users.xml"]
+          value: |-
+            <clickhouse>
+              <users password="quoted: value"/>
+            </clickhouse>
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+
+  - it: should preserve defaults when the configs map is null
+    set:
+      clickhouseOperator:
+        configs: null
+    asserts:
+      - isNotNull:
+          path: data["config.yaml"]
+        template: templates/clickhouse-operator/configmaps/etc-files.yaml
+      - isNotNull:
+          path: data["01-clickhouse-user.xml"]
+        template: templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
