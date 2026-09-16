@@ -1,0 +1,7 @@
+SigNoz Helm chart for Redpanda
+Copyright 2026 SigNoz
+
+This product includes software developed by Redpanda Data
+(https://github.com/redpanda-data/helm-charts), licensed under the
+Apache License, Version 2.0. Files modified by SigNoz carry a
+modification notice in their header.

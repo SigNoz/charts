@@ -1,3 +1,7 @@
+{{- /* SPDX-FileCopyrightText: Redpanda Data <https://github.com/redpanda-data> */ -}}
+{{- /* SPDX-FileCopyrightText: 2026 SigNoz <hello@signoz.io> */ -}}
+{{- /* SPDX-License-Identifier: Apache-2.0 */ -}}
+{{- /* Modified by SigNoz from the Redpanda Helm chart 5.10.2. See NOTICE. */ -}}
 {{- /* Generated from "chart.go" */ -}}
 
 {{- define "redpanda.render" -}}
