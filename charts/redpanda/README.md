@@ -22,7 +22,6 @@ Kubernetes: `>= 1.25.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.redpanda.com | console | >=0.5 <1.0 |
 
 ## Settings
 
@@ -231,16 +230,6 @@ See the [property reference documentation](https://docs.redpanda.com/docs/refere
 See the [property reference documentation](https://docs.redpanda.com/docs/reference/cluster-properties/#max_compacted_log_segment_size).
 
 **Default:** `536870912`
-
-### [console](https://artifacthub.io/packages/helm/redpanda-data/redpanda?modal=values&path=console)
-
-Redpanda Console settings. For a reference of configuration settings, see the [Redpanda Console documentation](https://docs.redpanda.com/docs/reference/console/config/).
-
-**Default:**
-
-```
-{"config":{},"configmap":{"create":false},"deployment":{"create":false},"enabled":true,"secret":{"create":false}}
-```
 
 ### [enterprise](https://artifacthub.io/packages/helm/redpanda-data/redpanda?modal=values&path=enterprise)
 

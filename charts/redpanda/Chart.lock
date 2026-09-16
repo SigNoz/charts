@@ -1,6 +1,0 @@
-dependencies:
-- name: console
-  repository: file://charts/console
-  version: 0.7.31
-digest: sha256:95adc6ad05fa59f0275425c87d4fafbefc439dd34a16974db46904463e805b41
-generated: "2026-09-16T19:16:31.805732+05:30"

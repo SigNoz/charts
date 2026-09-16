@@ -138,21 +138,6 @@ rackAwareness:
   # Override this only if you use a custom Node annotation.
   nodeAnnotation: topology.kubernetes.io/zone
 
-#
-# -- Redpanda Console settings.
-# For a reference of configuration settings,
-# see the [Redpanda Console documentation](https://docs.redpanda.com/docs/reference/console/config/).
-console:
-  enabled: true
-  configmap:
-    create: false
-  secret:
-    create: false
-  deployment:
-    create: false
-  config: {}
-
-#
 auth:
   sasl:
     # -- Enable SASL authentication.
