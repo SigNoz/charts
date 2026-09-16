@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "otelCollector.fullname" . }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
   {{- if .Values.otelCollector.annotations }}

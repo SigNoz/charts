@@ -40,6 +40,10 @@ nameOverride: ""
 # @section -- General Settings
 # @default -- ""
 fullnameOverride: ""
+# namespace -- The namespace to install SigNoz components into.
+# @section -- General Settings
+# @default -- By default, components are installed in the same namespace as the chart.
+namespace: ""
 # -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach to telemetry data.
 # @section -- General Settings
 # @default -- ""

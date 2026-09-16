@@ -3,6 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "telemetryStoreMigrator.fullname" . }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
   annotations:

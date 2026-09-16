@@ -3,6 +3,7 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: {{ include "otelCollector.fullname" . }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
   {{- if .Values.otelCollector.autoscaling.keda.annotations }}
