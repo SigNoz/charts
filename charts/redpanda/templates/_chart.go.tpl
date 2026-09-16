@@ -66,7 +66,6 @@
 {{- break -}}
 {{- end -}}
 {{- $manifests = (concat (default (list) $manifests) (default (list) (get (fromJson (include "redpanda.consoleChartIntegration" (dict "a" (list $dot)))) "r"))) -}}
-{{- $manifests = (concat (default (list) $manifests) (default (list) (get (fromJson (include "redpanda.connectorsChartIntegration" (dict "a" (list $dot)))) "r"))) -}}
 {{- $_is_returning = true -}}
 {{- (dict "r" $manifests) | toJson -}}
 {{- break -}}

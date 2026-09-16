@@ -22,7 +22,6 @@ Kubernetes: `>= 1.25.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.redpanda.com | connectors | >=0.1.2 <1.0 |
 | https://charts.redpanda.com | console | >=0.5 <1.0 |
 
 ## Settings
@@ -232,16 +231,6 @@ See the [property reference documentation](https://docs.redpanda.com/docs/refere
 See the [property reference documentation](https://docs.redpanda.com/docs/reference/cluster-properties/#max_compacted_log_segment_size).
 
 **Default:** `536870912`
-
-### [connectors](https://artifacthub.io/packages/helm/redpanda-data/redpanda?modal=values&path=connectors)
-
-Redpanda Managed Connectors settings For a reference of configuration settings, see the [Redpanda Connectors documentation](https://docs.redpanda.com/docs/deploy/deployment-option/cloud/managed-connectors/).
-
-**Default:**
-
-```
-{"deployment":{"create":false},"enabled":false,"test":{"create":false}}
-```
 
 ### [console](https://artifacthub.io/packages/helm/redpanda-data/redpanda?modal=values&path=console)
 

@@ -1236,25 +1236,6 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "redpanda.KafkaListeners.ConnectorsTLS" -}}
-{{- $l := (index .a 0) -}}
-{{- $tls := (index .a 1) -}}
-{{- $fullName := (index .a 2) -}}
-{{- range $_ := (list 1) -}}
-{{- $_is_returning := false -}}
-{{- $t := (mustMergeOverwrite (dict "enabled" false "ca" (dict "secretRef" "" "secretNameOverwrite" "") "cert" (dict "secretRef" "" "secretNameOverwrite" "") "key" (dict "secretRef" "" "secretNameOverwrite" "")) (dict "enabled" (get (fromJson (include "redpanda.InternalTLS.IsEnabled" (dict "a" (list $l.tls $tls)))) "r"))) -}}
-{{- if (not $t.enabled) -}}
-{{- $_is_returning = true -}}
-{{- (dict "r" $t) | toJson -}}
-{{- break -}}
-{{- end -}}
-{{- $_ := (set $t "ca" (mustMergeOverwrite (dict "secretRef" "" "secretNameOverwrite" "") (dict "secretRef" (printf "%s-default-cert" $fullName)))) -}}
-{{- $_is_returning = true -}}
-{{- (dict "r" $t) | toJson -}}
-{{- break -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "redpanda.KafkaExternal.IsEnabled" -}}
 {{- $l := (index .a 0) -}}
 {{- range $_ := (list 1) -}}

@@ -153,19 +153,6 @@ console:
   config: {}
 
 #
-# -- Redpanda Managed Connectors settings
-# For a reference of configuration settings,
-# see the [Redpanda Connectors documentation](https://docs.redpanda.com/docs/deploy/deployment-option/cloud/managed-connectors/).
-connectors:
-  enabled: false
-  deployment:
-    create: false
-  test:
-    create: false
-
-# -- Authentication settings.
-# For details,
-# see the [SASL documentation](https://docs.redpanda.com/docs/manage/kubernetes/security/sasl-kubernetes/).
 auth:
   sasl:
     # -- Enable SASL authentication.
