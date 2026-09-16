@@ -3497,6 +3497,26 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/postgresql-0.0.1/postgresql-0.0.1.tgz
     version: 0.0.1
+  redpanda:
+  - apiVersion: v2
+    appVersion: v25.1.2
+    created: "2026-09-16T15:34:23.803636429Z"
+    description: Redpanda is the real-time engine for modern apps. (vendored from
+      redpanda-data/helm-charts redpanda-5.10.2)
+    digest: e77508cfd7abac79bbab9c946a0b2b9509bab50afe34df3d34ed5194520d0988
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    kubeVersion: '>= 1.25.0-0'
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: redpanda
+    sources:
+    - https://github.com/redpanda-data/redpanda-operator/tree/main/charts/redpanda
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/redpanda-5.10.2/redpanda-5.10.2.tgz
+    version: 5.10.2
   signoz:
   - apiVersion: v2
     appVersion: v0.141.1
@@ -18223,4 +18243,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-09-09T15:01:28.599663721Z"
+generated: "2026-09-16T15:34:23.804118818Z"
