@@ -1,8 +1,9 @@
+{{- if .Values.clickhouseInstance.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "clickhouse.fullname" . }}-custom-functions
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouse.labels" . | nindent 4 }}
 data:
@@ -28,3 +29,4 @@ data:
             <command>./histogramQuantile</command>
         </function>
     </functions>
+{{- end }}
