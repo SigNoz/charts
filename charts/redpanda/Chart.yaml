@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: Redpanda Data <https://github.com/redpanda-data>
+# SPDX-FileCopyrightText: 2026 SigNoz <hello@signoz.io>
+# SPDX-License-Identifier: Apache-2.0
+# Modified by SigNoz from the Redpanda Helm chart 5.10.2. See NOTICE.
+apiVersion: v2
+appVersion: v25.1.2
+description: Redpanda is the real-time engine for modern apps. (vendored from redpanda-data/helm-charts redpanda-5.10.2)
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+kubeVersion: '>= 1.25.0-0'
+maintainers:
+- name: SigNoz
+  email: hello@signoz.io
+  url: https://signoz.io
+name: redpanda
+sources:
+- https://github.com/redpanda-data/redpanda-operator/tree/main/charts/redpanda
+type: application
+version: 5.10.2
