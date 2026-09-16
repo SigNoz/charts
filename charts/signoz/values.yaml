@@ -1956,9 +1956,6 @@ redpanda:
       kafka_batch_max_bytes: 209715200
       kafka_request_max_bytes: 209715200
   # @ignored
-  console:
-    enabled: false
-  # @ignored
   rbac:
     enabled: false
   # @ignored
