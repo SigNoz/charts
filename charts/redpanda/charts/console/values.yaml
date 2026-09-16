@@ -1,0 +1,281 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Default values for console.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# -- Redpanda Console Docker image settings.
+image:
+  registry: docker.redpanda.com
+  # -- Docker repository from which to pull the Redpanda Docker image.
+  repository: redpandadata/console
+  # -- The imagePullPolicy.
+  pullPolicy: IfNotPresent
+  # -- The Redpanda Console version.
+  # See DockerHub for:
+  # [All stable versions](https://hub.docker.com/r/redpandadata/console/tags)
+  # and [all unstable versions](https://hub.docker.com/r/redpandadata/console-unstable/tags).
+  # @default -- `Chart.appVersion`
+  tag: ""
+
+# -- Pull secrets may be used to provide credentials to image repositories
+# See https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+# -- Override `console.name` template.
+nameOverride: ""
+# -- Override `console.fullname` template.
+fullnameOverride: ""
+
+# -- Automount API credentials for the Service Account into the pod. Console does not communicate with
+# Kubernetes API.
+automountServiceAccountToken: false
+
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- Specifies whether a service account should automount API-Credentials. Console does not
+  # communicate with Kubernetes API. The ServiceAccount could be used for workload identity.
+  automountServiceAccountToken: false
+  # -- Annotations to add to the service account.
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and `serviceAccount.create` is `true`,
+  # a name is generated using the `console.fullname` template
+  name: ""
+
+# Common labels to add to all the pods
+commonLabels: {}
+
+# -- Annotations to add to the deployment.
+annotations: {}
+
+podAnnotations: {}
+
+podLabels: {}
+
+podSecurityContext:
+  runAsUser: 99
+  fsGroup: 99
+
+securityContext:
+  runAsNonRoot: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+  # nodePort: 30001
+  # -- Override the value in `console.config.server.listenPort` if not `nil`
+  targetPort:
+  annotations: {}
+
+ingress:
+  enabled: false
+  className:
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as minikube. If you want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+# -- PriorityClassName given to Pods.
+# For details,
+# see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass).
+priorityClassName: ""
+
+console:
+  # -- Settings for the `Config.yaml` (required).
+  # For a reference of configuration settings,
+  # see the [Redpanda Console documentation](https://docs.redpanda.com/docs/reference/console/config/).
+  config: {}
+  # roles:
+  # roleBindings:
+
+# -- Additional environment variables for the Redpanda Console Deployment.
+extraEnv: []
+  # - name: KAFKA_RACKID
+  #   value: "1"
+
+# -- Additional environment variables for Redpanda Console mapped from Secret or ConfigMap.
+extraEnvFrom: []
+# - secretRef:
+#     name: kowl-config-secret
+
+# -- Add additional volumes, such as for TLS keys.
+extraVolumes: []
+# - name: kafka-certs
+#   secret:
+#     secretName: kafka-certs
+# - name: config
+#   configMap:
+#     name: console-config
+
+# -- Add additional volume mounts, such as for TLS keys.
+extraVolumeMounts: []
+# - name: kafka-certs # Must match the volume name
+#   mountPath: /etc/kafka/certs
+#   readOnly: true
+
+# -- Add additional containers, such as for oauth2-proxy.
+extraContainers: []
+
+# -- Any initContainers defined should be written here
+initContainers:
+  # -- Additional set of init containers
+  extraInitContainers: |-
+#    - name: "test-init-container"
+#      image: "mintel/docker-alpine-bash-curl-jq:latest"
+#      command: [ "/bin/bash", "-c" ]
+#      args:
+#        - |
+#          set -xe
+#          echo "Hello World!"
+
+# -- SecretMounts is an abstraction to make a Secret available in the container's filesystem.
+# Under the hood it creates a volume and a volume mount for the Redpanda Console container.
+secretMounts: []
+#  - name: kafka-certs
+#    secretName: kafka-certs
+#    path: /etc/console/certs
+#    defaultMode: 0755
+
+# -- Create a new Kubernetes Secret for all sensitive configuration inputs.
+# Each provided Secret is mounted automatically and made available to the
+# Pod.
+# If you want to use one or more existing Secrets,
+# you can use the `extraEnvFrom` list to mount environment variables from string and secretMounts to mount files such as Certificates from Secrets.
+secret:
+  create: true
+
+  # Secret values in case you want the chart to create a Secret. All Certificates are mounted
+  # as files and the path to those files are configured through environment variables so
+  # that Console can automatically pick them up.
+  # -- Kafka Secrets.
+  kafka: {}
+    # saslPassword:
+    # awsMskIamSecretKey:
+    # tlsCa:
+    # tlsCert:
+    # tlsKey:
+    # tlsPassphrase:
+    # schemaRegistryPassword:
+    # schemaRegistryTlsCa:
+    # schemaRegistryTlsCert:
+    # schemaRegistryTlsKey:
+    # protobufGitBasicAuthPassword
+  # Enterprise version secrets
+  # - SSO secrets (Enterprise version).
+  login:
+    # Configurable JWT value
+    jwtSecret: ""
+    google: {}
+      # clientSecret:
+      # groupsServiceAccount:
+    github: {}
+      # clientSecret:
+      # personalAccessToken:
+    okta: {}
+      # clientSecret:
+      # directoryApiToken:
+    oidc: {}
+      # clientSecret:
+
+  enterprise: {}
+    # license:
+
+  redpanda:
+    adminApi: {}
+      # password:
+      # tlsCa:
+      # tlsCert:
+      # tlsKey:
+
+# -- Settings for license key, as an alternative to secret.enterprise when
+# a license secret is available
+enterprise:
+  licenseSecretRef:
+    name: ""
+    key: ""
+
+# -- Settings for liveness and readiness probes.
+# For details,
+# see the [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes).
+livenessProbe:
+  # initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  # -- Grant time to test connectivity to upstream services such as Kafka and Schema Registry.
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+configmap:
+  create: true
+deployment:
+  create: true
+
+strategy: {}
+
+tests:
+  enabled: true

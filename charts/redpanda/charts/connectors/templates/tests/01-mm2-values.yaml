@@ -1,0 +1,176 @@
+{{/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- define "curl-options" -}}
+{{- print " -svm3 --fail --retry \"120\" --retry-max-time \"120\" --retry-all-errors -o - -w \"\\nstatus=%{http_code} %{redirect_url} size=%{size_download} time=%{time_total} content-type=\\\"%{content_type}\\\"\\n\" "}}
+{{- end -}}
+{{- if .Values.test.create -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "connectors.fullname" . }}-mm2-test
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+{{- with include "full.labels" . }}
+  {{- . | nindent 4 }}
+{{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  restartPolicy: Never
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: create-mm2
+      image: docker.redpanda.com/redpandadata/redpanda:latest
+      command:
+        - /bin/bash
+        - -c
+        - |
+          set -xe
+
+          trap connectorsState ERR
+
+          connectorsState () {
+            echo check connectors expand status
+            curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors?expand=status
+            echo check connectors expand info
+            curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors?expand=info
+            echo check connector configuration
+            curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors/$CONNECTOR_NAME
+            echo check connector topics
+            curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors/$CONNECTOR_NAME/topics
+          }
+
+          curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors
+
+          SASL_MECHANISM="PLAIN"
+          {{- if .Values.auth.sasl.enabled }}
+          set -e
+          set +x
+
+          IFS=: read -r CONNECT_SASL_USERNAME KAFKA_SASL_PASSWORD CONNECT_SASL_MECHANISM < $(find /mnt/users/* -print)
+          CONNECT_SASL_MECHANISM=${CONNECT_SASL_MECHANISM:-{{ .Values.auth.sasl.mechanism | upper }}}
+          if [[ -n "$CONNECT_SASL_USERNAME" && -n "$KAFKA_SASL_PASSWORD" && -n "$CONNECT_SASL_MECHANISM" ]]; then
+            rpk profile set user=$CONNECT_SASL_USERNAME pass=$KAFKA_SASL_PASSWORD sasl.mechanism=$CONNECT_SASL_MECHANISM
+            SASL_MECHANISM=$CONNECT_SASL_MECHANISM
+            JAAS_CONFIG_SOURCE="\"source.cluster.sasl.jaas.config\": \"org.apache.kafka.common.security.scram.ScramLoginModule required username=\\\\"\"${CONNECT_SASL_USERNAME}\\\\"\" password=\\\\"\"${KAFKA_SASL_PASSWORD}\\\\"\";\","
+            JAAS_CONFIG_TARGET="\"target.cluster.sasl.jaas.config\": \"org.apache.kafka.common.security.scram.ScramLoginModule required username=\\\\"\"${CONNECT_SASL_USERNAME}\\\\"\" password=\\\\"\"${KAFKA_SASL_PASSWORD}\\\\"\";\","
+          fi
+
+          set -x
+          set +e
+          {{- end }}
+
+          rpk profile create test
+          rpk profile set tls.enabled={{.Values.connectors.brokerTLS.enabled}} brokers={{ .Values.connectors.bootstrapServers }}
+          {{- if .Values.connectors.brokerTLS.ca.secretRef }}
+          rpk profile set tls.ca={{ printf "/redpanda-certs/%s" (default "ca.crt" .Values.connectors.brokerTLS.ca.secretNameOverwrite) }}
+          {{- end }}
+          
+          {{- if .Values.connectors.brokerTLS.enabled }}
+          CONNECT_TLS_ENABLED=true
+          {{- else }}
+          CONNECT_TLS_ENABLED=false
+          {{- end }}
+          SECURITY_PROTOCOL=PLAINTEXT
+          if [[ -n "$CONNECT_SASL_MECHANISM" && $CONNECT_TLS_ENABLED == "true" ]]; then
+            SECURITY_PROTOCOL="SASL_SSL"
+          elif [[ -n "$CONNECT_SASL_MECHANISM" ]]; then
+            SECURITY_PROTOCOL="SASL_PLAINTEXT"
+          elif [[ $CONNECT_TLS_ENABLED == "true" ]]; then
+            SECURITY_PROTOCOL="SSL"
+          fi
+
+          rpk topic list
+          rpk topic create test-topic
+          rpk topic list
+          echo "Test message!" | rpk topic produce test-topic
+
+          CONNECTOR_NAME=mm2-$RANDOM
+          cat << 'EOF' > /tmp/mm2-conf.json
+          {
+            "name": "CONNECTOR_NAME",
+            "config": {
+              "connector.class": "org.apache.kafka.connect.mirror.MirrorSourceConnector",
+              "topics": "test-topic",
+              "replication.factor": "1",
+              "tasks.max": "1",
+              "source.cluster.bootstrap.servers": {{ .Values.connectors.bootstrapServers | quote }},
+              "target.cluster.bootstrap.servers": {{ .Values.connectors.bootstrapServers | quote }},
+              "target.cluster.alias": "test-only",
+              "source.cluster.alias": "source",
+              "key.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+              "value.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+              "source->target.enabled": "true",
+              "target->source.enabled": "false",
+              "sync.topic.configs.interval.seconds": "5",
+              "sync.topics.configs.enabled": "true",
+              "source.cluster.ssl.truststore.type": "PEM",
+              "target.cluster.ssl.truststore.type": "PEM",
+              "source.cluster.ssl.truststore.location": {{ printf "/opt/kafka/connect-certs/ca/%s" (default "ca.crt" .Values.connectors.brokerTLS.ca.secretNameOverwrite) | quote }},
+              "target.cluster.ssl.truststore.location": {{ printf "/opt/kafka/connect-certs/ca/%s" (default "ca.crt" .Values.connectors.brokerTLS.ca.secretNameOverwrite) | quote }},
+              JAAS_CONFIG_SOURCE
+              JAAS_CONFIG_TARGET
+              "source.cluster.security.protocol": "SECURITY_PROTOCOL",
+              "target.cluster.security.protocol": "SECURITY_PROTOCOL",
+              "source.cluster.sasl.mechanism": "SASL_MECHANISM",
+              "target.cluster.sasl.mechanism": "SASL_MECHANISM",
+              "offset-syncs.topic.replication.factor": 1
+            }
+          }
+          EOF
+
+          sed -i "s/CONNECTOR_NAME/$CONNECTOR_NAME/g" /tmp/mm2-conf.json
+          sed -i "s/SASL_MECHANISM/$SASL_MECHANISM/g" /tmp/mm2-conf.json
+          sed -i "s/SECURITY_PROTOCOL/$SECURITY_PROTOCOL/g" /tmp/mm2-conf.json
+          set +x
+          sed -i "s/JAAS_CONFIG_SOURCE/$JAAS_CONFIG_SOURCE/g" /tmp/mm2-conf.json
+          sed -i "s/JAAS_CONFIG_TARGET/$JAAS_CONFIG_TARGET/g" /tmp/mm2-conf.json
+          set -x
+
+          curl {{ template "curl-options" . }} -H 'Content-Type: application/json' http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors -d @/tmp/mm2-conf.json
+
+          # The rpk topic consume could fail for the first few times as kafka connect needs
+          # to spawn the task and copy one message from the source topic. To solve this race condition
+          # the retry should be implemented in bash for rpk topic consume or other mechanism that
+          # can confirm source connectors started its execution. As a fast fix fixed 30 second fix is added.
+          sleep 30
+
+          rpk topic consume source.test-topic -n 1 | grep "Test message!"
+
+          curl {{ template "curl-options" . }} -X DELETE http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors/$CONNECTOR_NAME
+
+          curl {{ template "curl-options" . }} http://{{ include "connectors.serviceName" . }}:{{ .Values.connectors.restPort }}/connectors
+
+          rpk topic delete test-topic source.test-topic mm2-offset-syncs.test-only.internal
+      volumeMounts:
+  {{- if .Values.connectors.brokerTLS.ca.secretRef }}
+        - mountPath: /redpanda-certs
+          name: redpanda-ca
+  {{- end }}
+  {{- toYaml .Values.storage.volumeMounts | nindent 8 }}
+  volumes:
+  {{- if .Values.connectors.brokerTLS.ca.secretRef }}
+    - name: redpanda-ca
+      secret:
+        defaultMode: 0444
+        secretName: {{ .Values.connectors.brokerTLS.ca.secretRef }}
+  {{- end }}
+  {{- toYaml .Values.storage.volume | nindent 4 }}
+{{- end }}

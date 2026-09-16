@@ -1,0 +1,313 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file contains values for variables referenced from yaml files in the templates directory.
+#
+# For further information on Helm templating see the documentation at:
+#  https://helm.sh/docs/chart_template_guide/values_files/
+
+#
+# >>> This chart requires Helm version 3.6.0 or greater <<<
+#
+
+# Common settings
+#
+# -- Override `connectors.name` template.
+nameOverride: ""
+# -- Override `connectors.fullname` template.
+fullnameOverride: ""
+# -- Additional labels to add to all Kubernetes objects.
+# For example, `my.k8s.service: redpanda`.
+commonLabels: {}
+# -- Taints to be tolerated by Pods.
+# For details,
+# see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/).
+tolerations: []
+
+# -- Redpanda Docker image settings.
+image:
+  # -- Docker repository from which to pull the Redpanda Docker image.
+  repository: docker.redpanda.com/redpandadata/connectors
+  # -- The Redpanda version.
+  # See DockerHub for:
+  # [All stable versions](https://hub.docker.com/r/redpandadata/redpanda/tags)
+  # and [all unstable versions](https://hub.docker.com/r/redpandadata/redpanda-unstable/tags).
+  # @default -- `Chart.appVersion`.
+  tag: ""
+  # -- The imagePullPolicy.
+  # If `image.tag` is 'latest', the default is `Always`.
+  pullPolicy: IfNotPresent
+
+# -- Pull secrets may be used to provide credentials to image repositories
+# See https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+test:
+  create: true
+
+connectors:
+  # -- The port on which the Kafka Connect REST API listens. The API is used for administrative tasks.
+  restPort: 8083
+  # -- A comma-separated list of Redpanda broker addresses in the format of IP:Port or DNS:Port. Kafka Connect uses this to connect to the Redpanda/Kafka cluster.
+  bootstrapServers: ""
+  # A comma-separated list of Schema Registry addresses in the format IP:Port or DNS:Port. The Schema Registry is a service that manages the schemas used by producers and consumers.
+  schemaRegistryURL: ""
+  # -- A placeholder for any Java configuration settings for Kafka Connect that are not explicitly defined in this Helm chart. Java configuration settings are passed to the Kafka Connect startup script.
+  additionalConfiguration: ""
+  secretManager:
+    enabled: false
+    region: ""
+    consolePrefix: ""
+    connectorsPrefix: ""
+  # -- The number of bytes of records a producer will attempt to batch together before sending to Redpanda. Batching improves throughput.
+  producerBatchSize: 131072
+  # -- The time, in milliseconds, that a producer will wait before sending a batch of records. Waiting allows the producer to gather more records in the same batch and improve throughput.
+  producerLingerMS: 1
+  storage:
+    # -- The number of replicas for each of the internal topics that Kafka Connect uses.
+    replicationFactor:
+      # -- Replication factor for the offset topic.
+      offset: -1
+      # -- Replication factor for the configuration topic.
+      config: -1
+      # -- Replication factor for the status topic.
+      status: -1
+    # -- Indicates if read and write operations for the respective topics are allowed remotely.
+    remote:
+      read:
+        offset: false
+        config: false
+        status: false
+      write:
+        offset: false
+        config: false
+        status: false
+    topic:
+      # -- The name of the internal topic that Kafka Connect uses to store source connector offsets.
+      offset: _internal_connectors_offsets
+      # -- The name of the internal topic that Kafka Connect uses to store connector and task configurations.
+      config: _internal_connectors_configs
+      # -- The name of the internal topic that Kafka Connect uses to store connector and task status updates.
+      status: _internal_connectors_status
+  # -- A unique string that identifies the Kafka Connect cluster. It's used in the formation of the internal topic names, ensuring that multiple Kafka Connect clusters can connect to the same Redpanda cluster without interfering with each other.
+  groupID: connectors-cluster
+  brokerTLS:
+    enabled: false
+    ca:
+      # -- The name of the Secret where the ca.crt file content is located.
+      secretRef: ""
+      # -- If `secretRef` points to a Secret where the certificate authority (CA) is not under the
+      # `ca.crt` key, use `secretNameOverwrite` to overwrite it e.g. `corp-ca.crt`.
+      secretNameOverwrite: ""
+    cert:
+      # -- The name of the secret where client signed certificate is located
+      secretRef: ""
+      # -- If secretRef points to secret where client signed certificate is not under
+      # tls.crt key then please use secretNameOverwrite to overwrite it e.g. corp-tls.crt
+      secretNameOverwrite: ""
+    key:
+      # -- The name of the secret where client private key is located
+      secretRef: ""
+      # -- If secretRef points to secret where client private key is not under
+      # tls.key key then please use secretNameOverwrite to overwrite it e.g. corp-tls.key
+      secretNameOverwrite: ""
+
+# -- Authentication settings.
+# For details,
+# see the [SASL documentation](https://docs.redpanda.com/docs/manage/kubernetes/security/sasl-kubernetes/).
+# The first line of the secret file is used. So the first superuser is used to authenticate to the Redpanda cluster.
+auth:
+  sasl:
+    enabled: false
+    # -- The authentication mechanism to use for the superuser. Options are `scram-sha-256` and `scram-sha-512`.
+    mechanism: scram-sha-512
+    # -- A Secret that contains your SASL user password.
+    secretRef: ""
+    userName: ""
+
+# -- Log-level settings.
+logging:
+  # -- Log level
+  # Valid values (from least to most verbose) are: `error`, `warn`, `info` and `debug`.
+  level: warn
+
+# -- Monitoring.
+# When set to `true`, the Helm chart creates a PodMonitor that can be used by Prometheus-Operator or VictoriaMetrics-Operator to scrape the metrics.
+monitoring:
+  enabled: false
+  scrapeInterval: 30s
+  labels: {}
+  annotations: {}
+  namespaceSelector:
+    any: true
+
+container:
+  #
+  # -- Security context for the Redpanda Connectors container.
+  # See also `deployment.securityContext` for Pod-level settings.
+  securityContext:
+    allowPrivilegeEscalation: false
+  # -- Pod resource management.
+  resources:
+    request:
+      # Numeric values here are also acceptable.
+      cpu: "1"
+      memory: 2350Mi
+    limits:
+      cpu: "1"
+      memory: 2350Mi
+    # -- Java maximum heap size must not be greater than `container.resources.limits.memory`.
+    javaMaxHeapSize: 2G
+  javaGCLogEnabled: "false"
+
+deployment:
+  # Replicas can be used to scale Deployment
+  # replicas
+
+  create: true
+  # Customize the command to use as the entrypoint of the Deployment.
+  # command: []
+  strategy:
+    type: RollingUpdate
+  schedulerName: ""
+  budget:
+    maxUnavailable: 1
+  # -- Additional annotations to apply to the Pods of this Deployment.
+  annotations: {}
+  # -- Adjust the period for your probes to meet your needs.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes).
+  livenessProbe:
+    initialDelaySeconds: 10
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  readinessProbe:
+    initialDelaySeconds: 60
+    failureThreshold: 2
+    periodSeconds: 10
+    successThreshold: 3
+    timeoutSeconds: 5
+
+  # -- Additional environment variables for the Pods.
+  extraEnv: []
+  # - name: RACK_ID
+  #   value: "1"
+
+  # -- Configure extra environment variables from Secrets and ConfigMaps.
+  extraEnvFrom: []
+  # - secretRef:
+  #     name: my-secret
+  # - configMapRef:
+  #     name: my-configmap
+
+  # -- The maximum time in seconds for a deployment to make progress before it is
+  # considered to be failed. The deployment controller will continue to process
+  # failed deployments and a condition with a ProgressDeadlineExceeded reason
+  # will be surfaced in the deployment status. Note that progress will not be
+  # estimated during the time a deployment is paused.
+  progressDeadlineSeconds: 600
+
+  # -- The number of old ReplicaSets to retain to allow rollback. This is a pointer
+  # to distinguish between explicit zero and not specified.
+  revisionHistoryLimit: 10
+
+  # -- Inter-Pod Affinity rules for scheduling Pods of this Deployment.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity).
+  podAffinity: {}
+  # -- Node Affinity rules for scheduling Pods of this Deployment.
+  # The suggestion would be to spread Pods according to topology zone.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity).
+  nodeAffinity: {}
+  # -- Anti-affinity rules for scheduling Pods of this Deployment.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity).
+  # You may either edit the default settings for anti-affinity rules,
+  # or specify new anti-affinity rules to use instead of the defaults.
+  podAntiAffinity:
+    # -- The `topologyKey` to be used.
+    # Can be used to spread across different nodes, AZs, regions etc.
+    topologyKey: kubernetes.io/hostname
+    # -- Valid anti-affinity types are `soft`, `hard`, or `custom`.
+    # Use `custom` if you want to supply your own anti-affinity rules in the `podAntiAffinity.custom` object.
+    type: hard
+    # -- Weight for `soft` anti-affinity rules.
+    # Does not apply for other anti-affinity types.
+    weight: 100
+    # -- Change `podAntiAffinity.type` to `custom` and provide your own podAntiAffinity rules here.
+    custom: {}
+  # -- Node selection constraints for scheduling Pods of this Deployment.
+  # These constraints override the global `nodeSelector` value.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector).
+  nodeSelector: {}
+  # -- PriorityClassName given to Pods of this Deployment.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass).
+  priorityClassName: ""
+  # -- Taints to be tolerated by Pods of this Deployment.
+  # These tolerations override the global tolerations value.
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/).
+  tolerations: []
+  # For details,
+  # see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/).
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+  securityContext:
+    fsGroup: 101
+    runAsUser: 101
+    fsGroupChangePolicy: OnRootMismatch
+  terminationGracePeriodSeconds: 30
+  restartPolicy: Always
+
+storage:
+  volume:
+  - emptyDir:
+      medium: Memory
+      sizeLimit: 5Mi
+    name: rp-connect-tmp
+  volumeMounts:
+  - mountPath: /tmp
+    name: rp-connect-tmp
+
+# -- ServiceAccount management.
+serviceAccount:
+  # -- Specifies whether a ServiceAccount should be created.
+  create: false
+  # -- Specifies whether a service account should automount API-Credentials
+  automountServiceAccountToken: false
+  # -- Annotations to add to the ServiceAccount.
+  annotations: {}
+  # -- The name of the ServiceAccount to use.
+  # If not set and `serviceAccount.create` is `true`,
+  # a name is generated using the `connectors.fullname` template.
+  name: ""
+
+# -- Service management.
+service:
+  # -- Annotations to add to the Service.
+  annotations: {}
+  # -- The name of the service to use.
+  # If not set, a name is generated using the `connectors.fullname` template.
+  name: ""
+  ports:
+    - name: prometheus
+      port: 9404

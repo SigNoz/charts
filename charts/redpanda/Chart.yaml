@@ -1,0 +1,23 @@
+apiVersion: v2
+appVersion: v25.1.2
+dependencies:
+- condition: console.enabled
+  name: console
+  repository: "file://charts/console"
+  version: 0.7.31
+- condition: connectors.enabled
+  name: connectors
+  repository: "file://charts/connectors"
+  version: 0.1.14
+description: Redpanda is the real-time engine for modern apps. (vendored from redpanda-data/helm-charts redpanda-5.10.2)
+icon: https://images.ctfassets.net/paqvtpyf8rwu/3cYHw5UzhXCbKuR24GDFGO/73fb682e6157d11c10d5b2b5da1d5af0/skate-stand-panda.svg
+kubeVersion: '>= 1.25.0-0'
+maintainers:
+- name: SigNoz
+  email: hello@signoz.io
+  url: https://signoz.io
+name: redpanda
+sources:
+- https://github.com/redpanda-data/redpanda-operator/tree/main/charts/redpanda
+type: application
+version: 5.10.2

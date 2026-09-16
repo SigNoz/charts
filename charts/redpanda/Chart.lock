@@ -1,0 +1,9 @@
+dependencies:
+- name: console
+  repository: file://charts/console
+  version: 0.7.31
+- name: connectors
+  repository: file://charts/connectors
+  version: 0.1.14
+digest: sha256:4dfdd978894bd24dd93cd809f24b3d36a34f2a9db3cf0603f6847583a33b30c6
+generated: "2026-09-16T18:17:31.605294+05:30"

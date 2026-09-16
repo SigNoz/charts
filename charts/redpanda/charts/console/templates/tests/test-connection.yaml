@@ -1,0 +1,22 @@
+{{- if .Values.tests.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "console.fullname" . }}-test-connection"
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "console.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+{{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+{{- end }}
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "console.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
+  priorityClassName: {{ .Values.priorityClassName }}
+{{- end }}

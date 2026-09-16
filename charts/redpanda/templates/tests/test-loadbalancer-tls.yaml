@@ -1,0 +1,173 @@
+{{/*
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+  
+  http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */}}
+{{- if and .Values.tests.enabled .Values.tls.enabled ( eq .Values.external.type "LoadBalancer" ) -}}
+  {{- $values := .Values }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "redpanda.fullname" . }}-test-loadbalancer-tls
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- with include "full.labels" . }}
+  {{- . | nindent 4 }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  serviceAccountName: test-loadbalancer-tls-redpanda
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: {{ template "redpanda.name" . }}
+      image: mintel/docker-alpine-bash-curl-jq:latest
+      command:
+        - bash
+        - -c
+        - |
+          set -x
+          export APISERVER=https://kubernetes.default.svc
+          export SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+          export NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+          export TOKEN=$(cat ${SERVICEACCOUNT}/token)
+          export CACERT=${SERVICEACCOUNT}/ca.crt
+          
+          ip_list=""
+          
+          replicas={{ .Values.statefulset.replicas }}
+          if [ "${replicas}" -lt "1" ]; then
+              echo "replicas cannot be less than 1"
+              exit 1
+          fi
+          
+          range=$(expr $replicas - 1)
+          ordinal_list=$(seq 0 $range)
+          
+          set -e
+          
+          for i in $ordinal_list
+          do
+              POD_DESC=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" \
+              -X GET ${APISERVER}/api/v1/namespaces/{{ .Release.Namespace }}/services/lb-{{ template "redpanda.fullname" . }}-$i)
+              ip=$(echo $POD_DESC | jq -r .status.loadBalancer.ingress[0].ip )
+              ip_list="$ip $ip_list"
+          done
+          
+          echo test will be run against $ip_list
+          echo testing LoadBalancer connectivity
+
+  {{- range $name, $cert := $values.tls.certs }}
+  {{- if $cert.secretRef }}
+    {{- if eq $cert.secretRef.name "external-tls-secret" }}
+          echo "---> testing external tls"
+
+      {{- if eq $values.listeners.kafka.external.default.tls.cert $name }}
+          echo "-----> testing external tls: kafka api"
+          {{- $port := ( first $values.listeners.kafka.external.default.advertisedPorts ) }}
+
+          for ip in $ip_list
+          do
+            openssl s_client -verify_return_error -prexit \
+              {{- if $cert.caEnabled -}}
+            -CAfile {{ printf "/etc/tls/certs/%s" $name }}/ca.crt \
+              {{- end -}}
+            -key {{ printf "/etc/tls/certs/%s" $name }}/tls.key -connect $ip:{{ $port }}
+          done
+      {{- end }}
+
+    {{- if (include "redpanda-22-2-x-without-sasl" $ | fromJson).bool }}
+      {{- if eq $values.listeners.schemaRegistry.external.default.tls.cert $name }}
+          echo "-----> testing external tls: schema registry"
+          {{- $port := ( first $values.listeners.schemaRegistry.external.default.advertisedPorts ) }}
+          for ip in $ip_list
+          do
+              openssl s_client -verify_return_error -prexit \
+                {{- if $cert.caEnabled -}}
+              -CAfile {{ printf "/etc/tls/certs/%s" $name }}/ca.crt \
+                {{- end -}}
+              -key {{ printf "/etc/tls/certs/%s" $name }}/tls.key -connect $ip:{{ $port }}
+          done
+      {{- end }}
+
+      {{- if eq $values.listeners.http.external.default.tls.cert $name }}
+          echo "-----> testing external tls: http api"
+          {{- $port := ( first $values.listeners.http.external.default.advertisedPorts ) }}
+          for ip in $ip_list
+          do
+              openssl s_client -verify_return_error -prexit \
+                {{- if $cert.caEnabled -}}
+              -CAfile {{ printf "/etc/tls/certs/%s" $name }}/ca.crt \
+                {{- end -}}
+              -key {{ printf "/etc/tls/certs/%s" $name }}/tls.key -connect $ip:{{ $port }}
+          done
+      {{- end }}
+    {{- end }}
+
+    {{- end }}
+  {{- end }}
+  {{- end }}
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+      securityContext: {{ include "container-security-context" . | nindent 8 }}
+  volumes: {{ include "default-volumes" . | nindent 4 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-loadbalancer-tls-redpanda
+  annotations:
+    helm.sh/hook-weight: "-100"
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-loadbalancer-tls-redpanda
+  annotations:
+    helm.sh/hook-weight: "-100"
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: test-loadbalancer-tls-redpanda
+subjects:
+  - kind: ServiceAccount
+    name: test-loadbalancer-tls-redpanda
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: test-loadbalancer-tls-redpanda
+  annotations:
+    helm.sh/hook-weight: "-100"
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+    verbs:
+      - get
+
+{{- end -}}
