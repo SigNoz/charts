@@ -1,0 +1,104 @@
+{{/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{/*
+    
+This test currently fails because of a bug where when multiple containers exist
+The api returns an error. We should be requesting logs from each container.
+
+
+{{- if and .Values.tests.enabled .Values.rbac.enabled (include "redpanda-atleast-23-1-1" .|fromJson).bool -}}
+  {{- $sasl := .Values.auth.sasl }}
+  {{- $useSaslSecret := and $sasl.enabled (not (empty $sasl.secretRef )) }}
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "redpanda.fullname" . }}-test-rpk-debug-bundle
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+{{- with include "full.labels" . }}
+  {{- . | nindent 4 }}
+{{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              statefulset.kubernetes.io/pod-name: {{ include "redpanda.fullname" . }}-0
+          topologyKey: kubernetes.io/hostname
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  initContainers:
+    - name: {{ template "redpanda.name" . }}
+      image: {{ .Values.image.repository}}:{{ template "redpanda.tag" . }}
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+        - name: shared-data
+          mountPath: /usr/share/redpanda/test
+        - name: datadir
+          mountPath: /var/lib/redpanda/data
+      command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+  {{- if .Values.auth.sasl.enabled }}
+          old_setting=${-//[^x]/}
+          set +x
+          IFS=: read -r {{ include "rpk-sasl-environment-variables" . }} < <(grep "" $(find /etc/secrets/users/* -print))
+          {{- if (include "redpanda-atleast-23-2-1" . | fromJson).bool }}
+          RPK_SASL_MECHANISM=${RPK_SASL_MECHANISM:-{{ .Values.auth.sasl.mechanism | upper }}}
+          {{- else }}
+          REDPANDA_SASL_MECHANISM=${REDPANDA_SASL_MECHANISM:-{{ .Values.auth.sasl.mechanism | upper }}}
+          {{- end }}
+          export {{ include "rpk-sasl-environment-variables" . }}
+          if [[ -n "$old_setting" ]]; then set -x; fi
+  {{- end }}
+        rpk debug bundle -o /usr/share/redpanda/test/debug-test.zip -n {{ .Release.Namespace }}
+  containers:
+    - name: {{ template "redpanda.name" . }}-tester
+      image: busybox:latest
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+        - name: shared-data
+          mountPath: /test
+      command:
+      - /bin/ash
+      - -c
+      - |
+        set -e
+        unzip /test/debug-test.zip -d /tmp/bundle
+
+        test -f /tmp/bundle/logs/{{ .Release.Namespace }}-0.txt
+        test -f /tmp/bundle/logs/{{ .Release.Namespace }}-1.txt
+        test -f /tmp/bundle/logs/{{ .Release.Namespace }}-2.txt
+
+        test -d /tmp/bundle/controller
+
+        test -f /tmp/bundle/k8s/pods.json
+        test -f /tmp/bundle/k8s/configmaps.json
+      securityContext: {{ include "container-security-context" . | nindent 8 }}
+  volumes: {{ include "default-volumes" . | nindent 4 }}
+{{- end -}}
+*/}}

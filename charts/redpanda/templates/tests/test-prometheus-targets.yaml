@@ -1,0 +1,84 @@
+{{/*
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */}}
+
+{{- if and .Values.tests.enabled .Values.monitoring.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redpanda.fullname" . }}-test-prometheus-targets"
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- with include "full.labels" . }}
+  {{- . | nindent 4 }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: {{ template "redpanda.name" . }}
+      image: registry.gitlab.com/gitlab-ci-utils/curl-jq:latest
+      command: [ "/bin/bash", "-c" ]
+      args:
+        - |
+          set -xe
+          
+          HEALTHY=$( curl {{ template "curl-options" . }} http://prometheus-operated.prometheus.svc.cluster.local:9090/-/healthy)
+          if [ $HEALTHY != 200 ]; then
+            echo "prometheus is not healthy, exiting"
+            exit 1
+          fi
+          
+          echo "prometheus is healthy, checking if ready..."
+
+          READY=$( curl {{ template "curl-options" . }} http://prometheus-operated.prometheus.svc.cluster.local:9090/-/ready)
+          if [ $READY != 200 ]; then
+            echo "prometheus is not ready, exiting"
+            exit 1
+          fi
+          
+          echo "prometheus is ready, requesting target information..."
+
+          
+          curl_prometheus() {
+
+            # Run the command, and save the exit code
+            # from: https://prometheus.io/docs/prometheus/latest/querying/api/
+            local RESULT=$( curl {{ template "curl-options" . }} http://prometheus-operated.prometheus.svc.cluster.local:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{{ include "redpanda.fullname" . }}/0 | jq '.data.activeTargets[].health | select(. == "up")' | wc -l  )
+
+            echo $RESULT
+          }
+          for d in $(seq 1 30); do
+            RESULT=$(curl_prometheus)
+            if [ $RESULT == {{ .Values.statefulset.replicas }} ]; then
+              break
+            fi
+            sleep 15
+          done
+
+          set +x
+          if [ $RESULT != {{ .Values.statefulset.replicas }} ]; then
+              curl --fail http://prometheus-operated.prometheus.svc.cluster.local:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{{ include "redpanda.fullname" . }}/0 | jq .
+              echo "the number of targets unexpected; got ${RESULT} targets 'up', but was expecting {{ .Values.statefulset.replicas }}"
+              exit 1
+          fi
+{{- end }}

@@ -1,0 +1,72 @@
+{{/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if and .Values.tests.enabled (not (include "http-internal-tls-enabled" . | fromJson).bool) .Values.listeners.http.enabled (include "redpanda-22-2-x-without-sasl" . | fromJson).bool -}}
+  {{- $sasl := .Values.auth.sasl }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redpanda.fullname" . }}-test-pandaproxy-status"
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- with include "full.labels" . }}
+    {{- . | nindent 4 }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: {{ template "redpanda.name" . }}
+      image: {{ .Values.image.repository }}:{{ template "redpanda.tag" . }}
+      command: [ "/bin/bash", "-c" ]
+      args:
+        - |
+  {{- if .Values.auth.sasl.enabled }}
+          old_setting=${-//[^x]/}
+          set +x
+          IFS=: read -r {{ include "rpk-sasl-environment-variables" . }} < <(grep "" $(find /etc/secrets/users/* -print))
+          {{- if (include "redpanda-atleast-23-2-1" . | fromJson).bool }}
+          RPK_SASL_MECHANISM=${RPK_SASL_MECHANISM:-{{ .Values.auth.sasl.mechanism | upper }}}
+          {{- else }}
+          REDPANDA_SASL_MECHANISM=${REDPANDA_SASL_MECHANISM:-{{ .Values.auth.sasl.mechanism | upper }}}
+          {{- end }}
+          export {{ include "rpk-sasl-environment-variables" . }}
+          RPK_USER="${RPK_USER:-${REDPANDA_SASL_USERNAME}}"
+          RPK_PASS="${RPK_PASS:-${REDPANDA_SASL_PASSWORD}}"
+          if [[ -n "$old_setting" ]]; then set -x; fi
+  {{- end }}
+
+          curl {{ template "curl-options" . }} \
+          {{- if or (include "sasl-enabled" .|fromJson).bool .Values.listeners.http.authenticationMethod }}
+          -u ${RPK_USER}:${RPK_PASS} \
+          {{- end }}
+          http://{{ include "redpanda.servicename" . }}:{{ .Values.listeners.http.port }}/brokers
+
+          curl {{ template "curl-options" . }} \
+          {{- if or (include "sasl-enabled" .|fromJson).bool .Values.listeners.http.authenticationMethod }}
+          -u ${RPK_USER}:${RPK_PASS} \
+          {{- end }}
+          http://{{ include "redpanda.servicename" . }}:{{ .Values.listeners.http.port }}/topics
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+      securityContext: {{ include "container-security-context" . | nindent 8 }}
+  volumes: {{ include "default-volumes" . | nindent 4 }}
+{{- end }}
