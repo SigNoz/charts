@@ -1,0 +1,66 @@
+{{/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.tests.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redpanda.fullname" . }}-test-lifecycle"
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- with include "full.labels" . }}
+    {{- . | nindent 4 }}
+  {{- end }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: {{ template "redpanda.name" . }}
+      image: {{ .Values.image.repository }}:{{ template "redpanda.tag" . }}
+      env:
+        - name: SERVICE_NAME
+          value: {{ include "redpanda.fullname" . }}-0
+      command:
+        - /bin/timeout
+        - "{{ mul .Values.statefulset.terminationGracePeriodSeconds 2 }}"
+        - bash
+        - -xec
+        - |
+          /bin/timeout -v {{ div .Values.statefulset.terminationGracePeriodSeconds 2 }} bash -x /var/lifecycle/preStop.sh
+          ls -l /tmp/preStop*
+          test -f /tmp/preStopHookStarted
+          test -f /tmp/preStopHookFinished
+
+          /bin/timeout -v {{ div .Values.statefulset.terminationGracePeriodSeconds 2 }} bash -x /var/lifecycle/postStart.sh
+          ls -l /tmp/postStart*
+          test -f /tmp/postStartHookStarted
+          test -f /tmp/postStartHookFinished
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+        - name: lifecycle-scripts
+          mountPath: /var/lifecycle
+      securityContext: {{ include "container-security-context" . | nindent 8 }}
+  volumes: {{ include "default-volumes" . | nindent 4 }}
+    - name: lifecycle-scripts
+      secret:
+        secretName: {{ (include "redpanda.fullname" . | trunc 50 ) }}-sts-lifecycle
+        defaultMode: 0o775
+  {{- end }}

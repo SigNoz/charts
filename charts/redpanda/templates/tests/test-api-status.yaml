@@ -1,0 +1,52 @@
+{{/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if and .Values.tests.enabled (not (or (include "tls-enabled" . | fromJson).bool (include "sasl-enabled" . | fromJson).bool)) -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redpanda.fullname" . }}-test-api-status"
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+  {{- with include "full.labels" . }}
+    {{- . | nindent 4 }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  restartPolicy: Never
+  securityContext: {{ include "pod-security-context" . | nindent 4 }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+    - name: {{ template "redpanda.name" . }}
+      image: {{ .Values.image.repository }}:{{ template "redpanda.tag" . }}
+      command:
+      - /usr/bin/timeout
+      - "120"
+      - bash
+      - -c
+      - |
+        until rpk cluster info \
+          --brokers {{ include "redpanda.fullname" . }}-0.{{ include "redpanda.internal.domain" . }}:{{ .Values.listeners.kafka.port }}
+          do sleep 2
+        done
+      volumeMounts: {{ include "default-mounts" . | nindent 8 }}
+      securityContext: {{ include "container-security-context" . | nindent 8 }}
+  volumes: {{ include "default-volumes" . | nindent 4 }}
+{{- end }}
