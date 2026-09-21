@@ -1660,7 +1660,7 @@ otelCollector:
             default: default
           - name: signoz.collector.id
         aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
-      # AI observability processors, present in signoz-otel-collector 0.144.6 and later. SigNoz fills them over OpAMP.
+      # AI observability processors, present in signoz-otel-collector 0.144.11 and later. SigNoz fills them over OpAMP.
       # Keep both in the traces pipeline when overriding it, or drop both when pinning an older collector.
       signozspanmapper:
         groups: []
