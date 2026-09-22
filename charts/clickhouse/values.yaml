@@ -455,12 +455,13 @@ coldStorage:
   secretAccess: <secret_access_key>
   # AWS role configuration - to use environment variables instead of passing access and secret keys
   role:
-    # -- Whether to enable AWS IAM ARN role
+    # -- Whether to resolve credentials from the environment instead of `accessKey`/`secretAccess`
     enabled: false
-    # -- Annotations to use by service account associated to Clickhouse instance
-    annotations:
-      # aws role arn
-      eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+    # -- Annotations to use by service account associated to Clickhouse instance.
+    # Leave empty when credentials are provided by EKS Pod Identity; set the role
+    # ARN annotation below to use IRSA instead.
+    annotations: {}
+    #  eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/clickhouse
 
 # -- Clickhouse configuration files.
 #
