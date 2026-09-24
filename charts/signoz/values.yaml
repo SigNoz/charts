@@ -1052,6 +1052,14 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   # @default -- {}
   resources: {}
+  # telemetryStoreMigrator.securityContext -- Container-level security context for all migrator containers.
+  # @section -- Telemetry Store Migrator
+  # @default -- {}
+  securityContext: {}
+    # allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #     - ALL
   # telemetryStoreMigrator.serviceAccount -- Service Account configuration for the Telemetry Store Migrator.
   # @section -- Telemetry Store Migrator
   serviceAccount:
