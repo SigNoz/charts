@@ -99,7 +99,7 @@ spec:
           readinessProbe: {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
           {{- end }}
           volumeMounts:
-          {{- if not .Values.postgresql.enabled }}
+          {{- if and (not .Values.postgresql.enabled) (not (include "postgresql.external" .)) }}
           {{- if .Values.signoz.persistence.enabled }}
           {{- if .Values.signoz.persistence.existingClaim }}
             - name: signoz-db-existing-claim
@@ -119,10 +119,10 @@ spec:
       volumes:
         - name: dashboards
           emptyDir: {}
-        {{- if and (not .Values.signoz.persistence.enabled) (not .Values.postgresql.enabled )}}
+        {{- if and (not .Values.signoz.persistence.enabled) (not .Values.postgresql.enabled) (not (include "postgresql.external" .)) }}
         - name: signoz-db-volume
           emptyDir: {}
-        {{- else if and .Values.signoz.persistence.existingClaim (not .Values.postgresql.enabled )}}
+        {{- else if and .Values.signoz.persistence.existingClaim (not .Values.postgresql.enabled) (not (include "postgresql.external" .)) }}
         - name: signoz-db-existing-claim
           persistentVolumeClaim:
             claimName: {{ .Values.signoz.persistence.existingClaim }}
@@ -131,7 +131,7 @@ spec:
           {{- toYaml .Values.signoz.additionalVolumes | nindent 8 }}
         {{- end }}
 
-{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) ( not .Values.postgresql.enabled )}}
+{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) (not .Values.postgresql.enabled) (not (include "postgresql.external" .)) }}
   volumeClaimTemplates:
     - metadata:
         name: signoz-db
