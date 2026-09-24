@@ -77,6 +77,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       hostNetwork: {{ .Values.otelAgent.hostNetwork | default false }}
+      {{- if .Values.otelAgent.hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       containers:
         - name: {{ include "otelAgent.fullname" . }}
           image: {{ include "otelAgent.image" . }}
