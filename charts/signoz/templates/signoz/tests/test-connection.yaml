@@ -9,7 +9,8 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: {{ default "docker.io" .Values.global.imageRegistry }}/busybox:1.35
+      image: {{ include "signoz.testConnection.image" . }}
+      imagePullPolicy: {{ .Values.testConnection.image.pullPolicy }}
       command: ['wget']
       args: ['http://{{ include "signoz.url" . }}/api/v1/health?live=1']
       # NOTE: replace the path with version or healthcheck URL after the implementation
