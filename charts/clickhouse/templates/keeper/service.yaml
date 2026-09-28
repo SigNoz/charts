@@ -1,0 +1,54 @@
+{{- if .Values.keeper.enabled }}
+{{- /*
+  Headless service: gives each pod the stable DNS name the raft_configuration
+  relies on. publishNotReadyAddresses is required -- members must reach each
+  other to form the initial quorum, and none is Ready until that quorum exists.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clickhouse.keeper.servicename" . }}-headless
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keeper
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "clickhouse.keeper.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: client
+      port: {{ .Values.keeper.service.port }}
+      targetPort: client
+    - name: raft
+      port: {{ .Values.keeper.raftPort }}
+      targetPort: raft
+---
+{{- /*
+  The address ClickHouse connects to. Only Ready members are routed here, so a
+  restarting pod takes itself out rather than handing a client a session it
+  cannot keep.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clickhouse.keeper.servicename" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keeper
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "clickhouse.keeper.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: client
+      port: {{ .Values.keeper.service.port }}
+      targetPort: client
+    {{- if .Values.keeper.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.keeper.metrics.port }}
+      targetPort: metrics
+    {{- end }}
+{{- end }}

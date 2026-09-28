@@ -1,0 +1,143 @@
+{{- if .Values.keeper.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "clickhouse.keeper.servicename" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keeper
+spec:
+  serviceName: {{ include "clickhouse.keeper.servicename" . }}-headless
+  replicas: {{ .Values.keeper.replicaCount }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "clickhouse.keeper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "clickhouse.keeper.selectorLabels" . | nindent 8 }}
+        {{- if .Values.keeper.podLabels }}
+        {{- toYaml .Values.keeper.podLabels | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/keeper/configmap.yaml") . | sha256sum }}
+        {{- if .Values.keeper.podAnnotations }}
+        {{- toYaml .Values.keeper.podAnnotations | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.keeper.imagePullSecrets | default .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.keeper.podSecurityContext | nindent 8 }}
+      {{- with .Values.keeper.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.keeper.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.keeper.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: keeper
+          image: {{ include "clickhouse.keeper.image" . }}
+          imagePullPolicy: {{ .Values.keeper.image.pullPolicy | default .Values.image.pullPolicy }}
+          {{- /*
+            Raft requires a unique id per member. The pod hostname always ends
+            in -<ordinal>, so derive it here rather than baking a per-replica
+            config. A hostname that does not end in a number exits non-zero
+            instead of silently defaulting to a duplicate id.
+          */}}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -eu
+              ordinal="${HOSTNAME##*-}"
+              case "$ordinal" in
+                ''|*[!0-9]*)
+                  echo "cannot derive server_id from hostname '$HOSTNAME'" >&2
+                  exit 1
+                  ;;
+              esac
+              export KEEPER_SERVER_ID=$((ordinal + 1))
+              echo "starting clickhouse-keeper with server_id=${KEEPER_SERVER_ID}"
+              exec /usr/bin/clickhouse-keeper \
+                --config-file=/etc/clickhouse-keeper/keeper_config.xml
+          ports:
+            - name: client
+              containerPort: {{ .Values.keeper.service.port }}
+            - name: raft
+              containerPort: {{ .Values.keeper.raftPort }}
+            {{- if .Values.keeper.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.keeper.metrics.port }}
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.keeper.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.keeper.resources | nindent 12 }}
+          {{- /*
+            `ruok` over bash's /dev/tcp rather than curl or nc: the
+            clickhouse-server image ships neither.
+          */}}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - exec 3<>/dev/tcp/127.0.0.1/{{ .Values.keeper.service.port }} && printf 'ruok' >&3 && head -c4 <&3 | grep -q imok
+            initialDelaySeconds: {{ .Values.keeper.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keeper.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.keeper.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.keeper.readinessProbe.failureThreshold }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - exec 3<>/dev/tcp/127.0.0.1/{{ .Values.keeper.service.port }} && printf 'ruok' >&3 && head -c4 <&3 | grep -q imok
+            initialDelaySeconds: {{ .Values.keeper.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keeper.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.keeper.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.keeper.livenessProbe.failureThreshold }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/clickhouse-keeper
+            - name: data
+              mountPath: {{ .Values.keeper.persistence.mountPath }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "clickhouse.keeper.servicename" . }}
+        {{- if not .Values.keeper.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if .Values.keeper.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{- toYaml .Values.keeper.persistence.accessModes | nindent 10 }}
+        {{- $sc := .Values.keeper.persistence.storageClass | default .Values.global.storageClass }}
+        {{- if $sc }}
+        {{- if (eq "-" $sc) }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: {{ $sc }}
+        {{- end }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.keeper.persistence.size }}
+  {{- end }}
+{{- end }}
