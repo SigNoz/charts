@@ -393,3 +393,15 @@ overridden independently to decouple the Keeper version from ClickHouse.
     {{- printf "%s:%s" $repository $tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Keeper labels. Mirrors clickhouse.labels but uses the keeper selector labels,
+so app.kubernetes.io/component is emitted once rather than twice.
+*/}}
+{{- define "clickhouse.keeper.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouse.keeper.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+{{- end -}}

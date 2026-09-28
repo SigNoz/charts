@@ -10,8 +10,7 @@ metadata:
   name: {{ include "clickhouse.keeper.servicename" . }}-headless
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "clickhouse.labels" . | nindent 4 }}
-    app.kubernetes.io/component: keeper
+    {{- include "clickhouse.keeper.labels" . | nindent 4 }}
 spec:
   clusterIP: None
   publishNotReadyAddresses: true
@@ -36,8 +35,7 @@ metadata:
   name: {{ include "clickhouse.keeper.servicename" . }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "clickhouse.labels" . | nindent 4 }}
-    app.kubernetes.io/component: keeper
+    {{- include "clickhouse.keeper.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   selector:
