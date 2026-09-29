@@ -249,11 +249,11 @@ spec:
                                                   type: object
                                                 decimalPrecision:
                                                   enum:
-                                                  - 0
-                                                  - 1
-                                                  - 2
-                                                  - 3
-                                                  - 4
+                                                  - "0"
+                                                  - "1"
+                                                  - "2"
+                                                  - "3"
+                                                  - "4"
                                                   - full
                                                   type: string
                                                 unit:
