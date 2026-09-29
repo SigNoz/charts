@@ -352,21 +352,23 @@ initContainers:
       repository: alpine
       tag: 3.18.2
       pullPolicy: IfNotPresent
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        version="v0.0.1"
-        node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
-        node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
-        echo "Fetching histogram-binary for ${node_os}/${node_arch}"
-        cd /tmp
-        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
-        tar -xzf histogram-quantile.tar.gz
-        chmod +x histogram-quantile
-        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
-        echo "histogram-quantile installed successfully"
+    # -- Version of the histogram-quantile release to fetch. Only used when `command` is not set.
+    version: v0.0.1
+    # -- URL template used to download the histogram-quantile release tarball. Evaluated inside
+    # the init container's shell, so `${version}`/`${node_os}`/`${node_arch}` are shell variables,
+    # not Helm template variables - keep them verbatim if you override this. Override to point at
+    # an internal mirror in network-restricted environments. Only used when `command` is not set.
+    downloadUrl: "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+    # -- Full override of the udf init container's command. Takes precedence over
+    # `version`/`downloadUrl` when set - use this for full control (e.g. fetching a
+    # pre-extracted binary, or a different tool entirely).
+    command: []
+    # -- Extra environment variables for the udf init container, e.g. credentials for an
+    # authenticated internal mirror, for use by a `command` override.
+    env: []
+    # -- envFrom for the udf init container, e.g. a Secret holding mirror credentials, for use
+    # by a `command` override.
+    envFrom: []
   init:
     enabled: false
     image:
