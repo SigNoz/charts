@@ -271,6 +271,49 @@ Return the service name of Clickhouse
 {{- end }}
 
 {{/*
+Return true if external PostgreSQL is in use
+*/}}
+{{- define "postgresql.external" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.host -}}
+    {{- if not (or .Values.externalPostgresql.existingSecret .Values.externalPostgresql.password) -}}
+        {{- fail "externalPostgresql: either password or existingSecret must be set when host is provided" -}}
+    {{- end -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return true if a secret object for external PostgreSQL should be created
+*/}}
+{{- define "postgresql.createSecret" -}}
+{{- if and (not .Values.postgresql.enabled) (not .Values.externalPostgresql.existingSecret) .Values.externalPostgresql.password -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the external PostgreSQL secret name
+*/}}
+{{- define "postgresql.secretName" -}}
+{{- if .Values.externalPostgresql.existingSecret -}}
+    {{- .Values.externalPostgresql.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-postgresql-external" .Release.Name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the external PostgreSQL secret password key
+*/}}
+{{- define "postgresql.secretPasswordKey" -}}
+{{- if .Values.externalPostgresql.existingSecret -}}
+    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in externalPostgresql" .Values.externalPostgresql.existingSecretPasswordKey -}}
+{{- else -}}
+    {{- printf "postgresql-password" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the service fqdn of Postgresql
 */}}
 {{- define "postgresql.service" -}}
@@ -297,7 +340,15 @@ Return the service fqdn of Postgresql
 {{- else -}}
 {{ printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $username $password $name $port $database }}
 {{- end -}}
-{{- end }}
+{{- else if (include "postgresql.external" .) -}}
+{{- $username := "$(POSTGRES_USER)" -}}
+{{- $password := "$(POSTGRES_PASSWORD)" -}}
+{{- $database := "$(POSTGRES_DB)" -}}
+{{- $port := "$(POSTGRES_PORT)" -}}
+{{- $host := required "externalPostgresql.host is required if using external PostgreSQL" .Values.externalPostgresql.host -}}
+{{- $sslmode := default "disable" .Values.externalPostgresql.sslmode -}}
+{{ printf "postgres://%s:%s@%s:%s/%s?sslmode=%s" $username $password $host $port $database $sslmode }}
+{{- end -}}
 {{- end -}}
 
 
@@ -450,13 +501,18 @@ SQL STORE POSTGRES ENV
   {{- if .Values.postgresql.auth.database }}
     {{- $_ := set $sqlStorePostgresEnv "postgres_db" .Values.postgresql.auth.database }}
   {{- end }}
+{{- else if (include "postgresql.external" .) }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_port" .Values.externalPostgresql.port }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_user" .Values.externalPostgresql.user }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_password" (dict "valueFrom" (dict "secretKeyRef" (dict "name" (include "postgresql.secretName" .) "key" (include "postgresql.secretPasswordKey" .) ))) }}
+  {{- $_ := set $sqlStorePostgresEnv "postgres_db" .Values.externalPostgresql.database }}
 {{- end }}
 {{/*
 SQL STORE ENV
 Keep it seprate from sqlStorePostgresEnv to maintain the order of env variables
 */}}
 {{- $sqlStoreEnv := dict -}}
-{{- if .Values.postgresql.enabled -}}
+{{- if or .Values.postgresql.enabled (include "postgresql.external" .) -}}
 {{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_provider" "postgres")}}
 {{ $sqlStoreEnv = merge $sqlStoreEnv ( dict "signoz_sqlstore_postgres_dsn" (include "postgresql.service" .))}}
 {{- end }}
