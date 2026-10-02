@@ -17,19 +17,21 @@ spec:
     templates:
       {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
       dataVolumeClaimTemplate: data-volumeclaim-template
-      # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
       serviceTemplate: service-template
 
   configuration:
     users:
-      {{ .Values.user }}/password: {{ .Values.password }}
-      {{ .Values.user }}/networks/ip:
-        {{- range $.Values.allowedNetworkIps }}
-        - {{ . | quote }}
-        {{- end }}
-      {{ .Values.user }}/profile: default
-      {{ .Values.user }}/quota: default
+      {{- $username := .Values.user | default "admin" }}
+      {{ $username }}:
+        password: "${CLICKHOUSE_PASSWORD}"
+        networks:
+          ip:
+            {{- range $.Values.allowedNetworkIps }}
+            - {{ . | quote }}
+            {{- end }}
+        profile: default
+        quota: default
 
     profiles:
       {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
@@ -213,8 +215,6 @@ spec:
           {{- end }}
           containers:
             - name: clickhouse
-              # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
-              # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
               image: {{ template "clickhouse.image" . }}
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               command:
@@ -228,7 +228,22 @@ spec:
                   containerPort: 9000
                 - name: interserver
                   containerPort: 9009
-              
+
+              {{- $secretName := (.Values.clickhouseOperator.secret.name | default (include "clickhouseOperator.fullname" .)) }}
+              {{- if or (.Values.clickhouseOperator.secret.create) (.Values.clickhouseOperator.secret.name) }}
+              env:
+                - name: CLICKHOUSE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $secretName | quote }}
+                      key: {{ .Values.clickhouseOperator.secret.usernameKey | default "username" | quote }}
+                - name: CLICKHOUSE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $secretName | quote }}
+                      key: {{ .Values.clickhouseOperator.secret.passwordKey | default "password" | quote }}
+              {{- end }}
+
               {{- if .Values.startupProbe.enabled }}
               startupProbe:
                 httpGet:
