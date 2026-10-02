@@ -1136,6 +1136,9 @@ otelCollector:
     # otelCollector.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
     # @default -- "ClusterIP"
     type: ClusterIP
+    # otelCollector.service.loadBalancerIP - Static IP address to assign to the LoadBalancer (when service type is `LoadBalancer`).
+    # @default -- ""
+    loadBalancerIP: ""
     # otelCollector.service.loadBalancerSourceRanges - Allowed source ranges when service type is `LoadBalancer`.
     # @default -- []
     loadBalancerSourceRanges: []
