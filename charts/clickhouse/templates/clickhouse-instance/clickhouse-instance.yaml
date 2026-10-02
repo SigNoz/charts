@@ -390,6 +390,9 @@ spec:
           storageClassName: {{ $storageClass }}
         {{- end }}
     {{- end }}
+    {{- if .Values.persistence.volumeAttributesClassName }}
+          volumeAttributesClassName: {{ .Values.persistence.volumeAttributesClassName }}
+    {{- end }}
     {{- end }}
 
   {{- if and (.Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
@@ -404,5 +407,8 @@ spec:
             requests:
               storage: {{ .resources.requests.storage }}
           storageClassName: {{ .storageClassName }}
+          {{- if .volumeAttributesClassName }}
+          volumeAttributesClassName: {{ .volumeAttributesClassName }}
+          {{- end }}
     {{- end }}
   {{- end }}
