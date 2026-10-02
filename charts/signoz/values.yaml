@@ -52,6 +52,25 @@ clusterName: ""
 imagePullSecrets: []
 # - "signoz-pull-secret"
 
+# testConnection -- Pod launched by `helm test` to verify the SigNoz frontend is reachable.
+# @section -- Test Settings
+testConnection:
+  # testConnection.image -- Image configuration for the `helm test` connection pod.
+  # @section -- Test Settings
+  image:
+    # testConnection.image.repository - The container image repository.
+    # @default -- "busybox"
+    # @section -- Test Settings
+    repository: busybox
+    # testConnection.image.tag - The container image tag.
+    # @default -- "1.35"
+    # @section -- Test Settings
+    tag: "1.35"
+    # testConnection.image.pullPolicy - The image pull policy.
+    # @default -- "IfNotPresent"
+    # @section -- Test Settings
+    pullPolicy: IfNotPresent
+
 # clickhouse -- Clickhouse default values. For a complete list of configurations, check `values.yaml` of the upstream `clickhouse` chart.
 # @default -- "Check out the clickhouse chart for default values"
 # @ignored
