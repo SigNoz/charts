@@ -1,0 +1,190 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: RELEASE-NAME-clickhouse-operator
+  namespace: NAMESPACE
+  labels:
+    helm.sh/chart: clickhouse-24.1.18
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/version: "24.1.2"
+    app.kubernetes.io/managed-by: Helm
+    clickhouse.altinity.com/chop: 0.21.2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: clickhouse
+      app.kubernetes.io/instance: RELEASE-NAME
+      app.kubernetes.io/component: operator
+  template:
+    metadata:
+      annotations:
+        checksum/files: 93cdd24be8733a8dca64d19d82b8357743891f210918e6d3a7464931d12bd2ed
+        checksum/confd-files: 0c54f724ed901f5e0b6545c4ad797fdc68881dbc38a2bd11f935a49b19696997
+        checksum/configd-files: b48ded6ef655f867344967b2103b0fd8334e1bdd358ea109423778c01d30d1a7
+        checksum/templatesd-files: 8c0d9a3eb2559007666838dfa1bdd31a0ff4dcc68ea902cb2f84a49278e83141
+        checksum/usersd-files: 167cff326558a14a0d329b0711d90b00e6c6eff24cee5e4084315c2a0a732147
+      labels:
+        app.kubernetes.io/name: clickhouse
+        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/component: operator
+    spec:      
+      serviceAccountName: RELEASE-NAME-clickhouse-operator
+      priorityClassName: ""
+      securityContext:
+        {}
+      volumes:
+        - name: etc-clickhouse-operator-folder
+          configMap:
+            name: RELEASE-NAME-clickhouse-operator-etc-files
+        - name: etc-clickhouse-operator-confd-folder
+          configMap:
+            name: RELEASE-NAME-clickhouse-operator-etc-confd-files
+        - name: etc-clickhouse-operator-configd-folder
+          configMap:
+            name: RELEASE-NAME-clickhouse-operator-etc-configd-files
+        - name: etc-clickhouse-operator-templatesd-folder
+          configMap:
+            name: RELEASE-NAME-clickhouse-operator-etc-templatesd-files
+        - name: etc-clickhouse-operator-usersd-folder
+          configMap:
+            name: RELEASE-NAME-clickhouse-operator-etc-usersd-files
+      containers:
+        - name: operator
+          image: docker.io/altinity/clickhouse-operator:0.21.2
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: etc-clickhouse-operator-folder
+              mountPath: /etc/clickhouse-operator
+            - name: etc-clickhouse-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/conf.d
+            - name: etc-clickhouse-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/config.d
+            - name: etc-clickhouse-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/templates.d
+            - name: etc-clickhouse-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/users.d
+          env:
+            # Pod-specific
+            # spec.nodeName: ip-172-20-52-62.ec2.internal
+            - name: OPERATOR_POD_NODE_NAME
+              valueFrom:
+                fieldRef:
+                    fieldPath: spec.nodeName
+            # metadata.name: clickhouse-operator-6f87589dbb-ftcsf
+            - name: OPERATOR_POD_NAME
+              valueFrom:
+                fieldRef:
+                    fieldPath: metadata.name
+            # metadata.namespace: kube-system
+            - name: OPERATOR_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                    fieldPath: metadata.namespace
+            # status.podIP: 100.96.3.2
+            - name: OPERATOR_POD_IP
+              valueFrom:
+                fieldRef:
+                    fieldPath: status.podIP
+            # spec.serviceAccount: RELEASE-NAME-clickhouse-operator
+            # spec.serviceAccountName: RELEASE-NAME-clickhouse-operator
+            - name: OPERATOR_POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                    fieldPath: spec.serviceAccountName
+            
+            # Container-specific
+            - name: OPERATOR_CONTAINER_CPU_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: requests.cpu
+            - name: OPERATOR_CONTAINER_CPU_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: limits.cpu
+            - name: OPERATOR_CONTAINER_MEM_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: requests.memory
+            - name: OPERATOR_CONTAINER_MEM_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: limits.memory
+          resources:
+            null
+
+        - name: metrics-exporter
+          image: docker.io/altinity/metrics-exporter:0.21.2
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: etc-clickhouse-operator-folder
+              mountPath: /etc/clickhouse-operator
+            - name: etc-clickhouse-operator-confd-folder
+              mountPath: /etc/clickhouse-operator/conf.d
+            - name: etc-clickhouse-operator-configd-folder
+              mountPath: /etc/clickhouse-operator/config.d
+            - name: etc-clickhouse-operator-templatesd-folder
+              mountPath: /etc/clickhouse-operator/templates.d
+            - name: etc-clickhouse-operator-usersd-folder
+              mountPath: /etc/clickhouse-operator/users.d
+          env:
+            # Pod-specific
+            # spec.nodeName: ip-172-20-52-62.ec2.internal
+            - name: OPERATOR_POD_NODE_NAME
+              valueFrom:
+                fieldRef:
+                    fieldPath: spec.nodeName
+            # metadata.name: clickhouse-operator-6f87589dbb-ftcsf
+            - name: OPERATOR_POD_NAME
+              valueFrom:
+                fieldRef:
+                    fieldPath: metadata.name
+            # metadata.namespace: kube-system
+            - name: OPERATOR_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                    fieldPath: metadata.namespace
+            # status.podIP: 100.96.3.2
+            - name: OPERATOR_POD_IP
+              valueFrom:
+                fieldRef:
+                    fieldPath: status.podIP
+            # spec.serviceAccount: RELEASE-NAME-clickhouse-operator
+            # spec.serviceAccountName: RELEASE-NAME-clickhouse-operator
+            - name: OPERATOR_POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                    fieldPath: spec.serviceAccountName
+            
+            # Container-specific
+            - name: OPERATOR_CONTAINER_CPU_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: requests.cpu
+            - name: OPERATOR_CONTAINER_CPU_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: limits.cpu
+            - name: OPERATOR_CONTAINER_MEM_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: requests.memory
+            - name: OPERATOR_CONTAINER_MEM_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                    containerName: operator
+                    resource: limits.memory
+          ports:
+            - containerPort: 8888
+              name: metrics
+          resources:
+            null
