@@ -29,9 +29,9 @@ nameOverride: ""
 ## @param fullnameOverride String to fully override common.names.fullname template
 ##
 fullnameOverride: ""
-## @param clusterDomain Kubernetes Cluster Domain
+## @param clusterDomain Kubernetes Cluster Domain (falls back to global.clusterDomain, then cluster.local)
 ##
-clusterDomain: cluster.local
+clusterDomain: ""
 ## @param extraDeploy Extra objects to deploy (evaluated as a template)
 ##
 extraDeploy: []

@@ -41,7 +41,7 @@ In order to replicate the container startup scripts execute this command:
 
 ZooKeeper can be accessed via port {{ .Values.service.ports.client }} on the following DNS name from within your cluster:
 
-    {{ template "common.names.fullname" . }}.{{ template "zookeeper.namespace" . }}.svc.{{ .Values.clusterDomain }}
+    {{ template "common.names.fullname" . }}.{{ template "zookeeper.namespace" . }}.svc.{{ coalesce .Values.clusterDomain .Values.global.clusterDomain "cluster.local" }}
 
 To connect to your ZooKeeper server run the following commands:
 
