@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-operator securityContext
+templates:
+  - templates/clickhouse-operator/deployment.yaml
+  - templates/clickhouse-operator/configmaps/etc-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-confd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-templatesd-files.yaml
+  - templates/clickhouse-operator/configmaps/etc-usersd-files.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should not set securityContext on operator container when not configured
+    template: templates/clickhouse-operator/deployment.yaml
+    documentIndex: 0
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext
+
+  - it: should not set securityContext on metrics-exporter container when not configured
+    template: templates/clickhouse-operator/deployment.yaml
+    documentIndex: 0
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[1].securityContext
+
+  - it: should set securityContext on operator container when configured
+    template: templates/clickhouse-operator/deployment.yaml
+    documentIndex: 0
+    set:
+      clickhouseOperator.securityContext.allowPrivilegeEscalation: false
+      clickhouseOperator.securityContext.capabilities.drop:
+        - ALL
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: ALL
+
+  - it: should set securityContext on metrics-exporter container when configured
+    template: templates/clickhouse-operator/deployment.yaml
+    documentIndex: 0
+    set:
+      clickhouseOperator.metricsExporter.securityContext.allowPrivilegeEscalation: false
+      clickhouseOperator.metricsExporter.securityContext.capabilities.drop:
+        - ALL
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.capabilities.drop[0]
+          value: ALL
+
+  - it: should set securityContext independently on each container
+    template: templates/clickhouse-operator/deployment.yaml
+    documentIndex: 0
+    set:
+      clickhouseOperator.securityContext.allowPrivilegeEscalation: false
+    asserts:
+      - exists:
+          path: spec.template.spec.containers[0].securityContext
+      - notExists:
+          path: spec.template.spec.containers[1].securityContext
