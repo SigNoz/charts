@@ -154,8 +154,8 @@ traceDatabase: signoz_traces
 logDatabase: signoz_logs
 # -- Clickhouse user
 user: admin
-# -- Clickhouse password
-password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+## -- Clickhouse password (commented out for secret-based auth)
+# password: "<password>"
 
 # -- Clickhouse cluster replicas
 replicasCount: 1
@@ -618,14 +618,28 @@ clickhouseOperator:
   podSecurityContext: {}
     # fsGroup: 2000
 
+
   # Clickhouse Operator secret for ClickHouse user password
   secret:
-    # -- Specifies whether a secret should be created
+    # -- Specifies whether a secret should be created. If false, an existing secret will be used.
+    # If true, the chart will create a secret with the username and password below.
     create: true
-    # -- User name for Clickhouse Operator
-    username: clickhouse_operator
-    # -- User password for Clickhouse Operator
-    password: clickhouse_operator_password
+    # -- Name of the secret (defaults to generated name if not specified)
+    name: ""
+    # -- Key name for username in the secret
+    usernameKey: username
+    # -- Key name for password in the secret  
+    passwordKey: password
+    # -- Username to store in the secret (only used when create: true)
+    username: "clickhouse_operator"
+    # -- Password to store in the secret (only used when create: true).
+    # If empty, a random 24-character password will be generated and preserved across upgrades.
+    # For security, avoid setting passwords in values.yaml; prefer helm --set-file, 
+    # encrypted values (SOPS/helm-secrets), or use create: false with an existing secret.
+    password: ""
+    # -- Whether the secret should be immutable (Kubernetes 1.21+). When set to true,
+    # the secret cannot be updated after creation to prevent accidental changes.
+    # immutable: true
 
   # -- Clickhouse Operator priority class name
   priorityClassName: ""
@@ -640,8 +654,6 @@ clickhouseOperator:
 
   # -- Additional environment variables for Clickhouse Operator container.
   env: []
-    #  - name: SAMPLE_ENV
-    #    value: "sample-value"
 
   # -- Clickhouse logging config
   logger:
