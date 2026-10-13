@@ -1,0 +1,218 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: RELEASE-NAME-clickhouse
+  namespace: NAMESPACE
+  labels:
+    helm.sh/chart: clickhouse-24.1.18
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/version: "24.1.2"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  defaults:
+    templates:
+      dataVolumeClaimTemplate: data-volumeclaim-template
+      serviceTemplate: service-template
+
+  configuration:
+    users:
+      testuser:
+        password: "${CLICKHOUSE_PASSWORD}"
+        networks:
+          ip:
+            - "10.0.0.0/8"
+            - "100.64.0.0/10"
+            - "172.16.0.0/12"
+            - "192.0.0.0/24"
+            - "198.18.0.0/15"
+            - "192.168.0.0/16"
+        profile: default
+        quota: default
+
+    profiles:
+      default/allow_experimental_window_functions: "1"
+      default/allow_nondeterministic_mutations: "1"
+
+    clusters:
+      - name: "cluster"
+        templates:
+          podTemplate: pod-template
+        layout:
+          replicasCount: 1
+          shardsCount: 1
+
+    settings:
+      format_schema_path: /etc/clickhouse-server/config.d/
+      user_defined_executable_functions_config: /etc/clickhouse-server/functions/custom-functions.xml
+      user_scripts_path: /var/lib/clickhouse/user_scripts/
+
+    files:
+      events.proto: |
+        syntax = "proto3";
+        message Event {
+          string uuid = 1;
+          string event = 2;
+          string properties = 3;
+          string timestamp = 4;
+          uint64 team_id = 5;
+          string distinct_id = 6;
+          string created_at = 7;
+          string elements_chain = 8;
+        }
+            
+
+    zookeeper:
+      nodes:
+        - host: RELEASE-NAME-zookeeper-0.RELEASE-NAME-zookeeper-headless
+          port: 2181
+
+  templates:
+    podTemplates:
+      - name: pod-template
+        metadata:
+          labels:
+            helm.sh/chart: clickhouse-24.1.18
+            app.kubernetes.io/name: clickhouse
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: clickhouse
+            app.kubernetes.io/version: "24.1.2"
+            app.kubernetes.io/managed-by: Helm
+        spec:          
+          serviceAccountName: RELEASE-NAME-clickhouse
+          priorityClassName: ""
+          securityContext:
+            fsGroup: 101
+            fsGroupChangePolicy: OnRootMismatch
+            runAsGroup: 101
+            runAsUser: 101
+
+          volumes:
+            - name: shared-binary-volume
+              emptyDir: {}
+            - name: custom-functions-volume
+              configMap:
+                name: RELEASE-NAME-clickhouse-custom-functions
+            - name: scripts
+              configMap:
+                name: RELEASE-NAME-clickhouse-scripts
+          initContainers:
+            - name: RELEASE-NAME-clickhouse-udf-init
+              image: docker.io/alpine:3.18.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  version="v0.0.1"
+                  node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+                  node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+                  echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+                  cd /tmp
+                  wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+                  tar -xzf histogram-quantile.tar.gz
+                  chmod +x histogram-quantile
+                  mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+                  echo "histogram-quantile installed successfully"
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+          containers:
+            - name: clickhouse
+              image: docker.io/clickhouse/clickhouse-server:24.1.2-alpine
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/bash
+                - -c
+                - /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml
+              ports:
+                - name: http
+                  containerPort: 8123
+                - name: client
+                  containerPort: 9000
+                - name: interserver
+                  containerPort: 9009
+              env:
+                - name: CLICKHOUSE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: "my-ch-creds"
+                      key: "customuser"
+                - name: CLICKHOUSE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: "my-ch-creds"
+                      key: "custompass"
+              startupProbe:
+                httpGet:
+                  port: http
+                  path: /ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+                timeoutSeconds: 5
+                successThreshold: 1
+                failureThreshold: 30
+              livenessProbe:
+                httpGet:
+                  port: http
+                  path: /ping
+                initialDelaySeconds: 60
+                periodSeconds: 3
+                timeoutSeconds: 1
+                successThreshold: 1
+                failureThreshold: 10
+              readinessProbe:
+                httpGet:
+                  port: http
+                  path: /ping
+                initialDelaySeconds: 10
+                periodSeconds: 3
+                timeoutSeconds: 1
+                successThreshold: 1
+                failureThreshold: 3
+
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                - name: custom-functions-volume
+                  mountPath: /etc/clickhouse-server/functions
+                - name: scripts
+                  mountPath: /scripts
+                - name: data-volumeclaim-template
+                  mountPath: /var/lib/clickhouse
+              resources: 
+                requests:
+                  cpu: 100m
+                  memory: 200Mi
+
+    serviceTemplates:
+      - name: service-template
+        generateName: RELEASE-NAME-clickhouse
+        metadata:
+          labels:
+            helm.sh/chart: clickhouse-24.1.18
+            app.kubernetes.io/name: clickhouse
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: clickhouse
+            app.kubernetes.io/version: "24.1.2"
+            app.kubernetes.io/managed-by: Helm
+        spec:
+          type: ClusterIP
+          ports:
+            - name: http
+              port: 8123
+              nodePort: null
+            - name: tcp
+              port: 9000
+              nodePort: null
+    volumeClaimTemplates:
+      - name: data-volumeclaim-template
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi

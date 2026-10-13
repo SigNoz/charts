@@ -127,6 +127,31 @@ Return the initContainers image name for UDF
 {{- end -}}
 
 {{/*
+Return the volume permissions image name
+*/}}
+{{- define "clickhouse.volumePermissions.image" -}}
+{{- $registryName := default .Values.volumePermissions.image.registry .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.volumePermissions.image.repository -}}
+{{- $tag := .Values.volumePermissions.image.tag | toString -}}
+{{- $digest := .Values.volumePermissions.image.digest | toString -}}
+{{- $reg := $registryName | trimSuffix "/" -}}
+{{- $repo := $repositoryName | trimPrefix "/" -}}
+{{- if $registryName -}}
+    {{- if $digest -}}
+        {{- printf "%s/%s@%s" $reg $repo $digest -}}
+    {{- else -}}
+        {{- printf "%s/%s:%s" $reg $repo $tag -}}
+    {{- end -}}
+{{- else -}}
+    {{- if $digest -}}
+        {{- printf "%s@%s" $repo $digest -}}
+    {{- else -}}
+        {{- printf "%s:%s" $repo $tag -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper clickhouse image name
 */}}
 {{- define "clickhouse.image" -}}
@@ -167,12 +192,19 @@ nodePort: null
 Return the proper Image Registry Secret Names.
 */}}
 {{- define "clickhouse.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
+{{- $global := .Values.global.imagePullSecrets | default (list) -}}
+{{- $local := .Values.imagePullSecrets | default (list) -}}
+{{- $vp := list -}}
+{{- if .Values.volumePermissions -}}
+  {{- if .Values.volumePermissions.image -}}
+    {{- $vp = .Values.volumePermissions.image.pullSecrets | default (list) -}}
+  {{- end -}}
+{{- end -}}
+{{- $all := concat $global $local $vp -}}
+{{- $pulls := uniq $all -}}
+{{- if $pulls }}
 imagePullSecrets:
-{{- range .Values.global.imagePullSecrets }}
-  - name: {{ . }}
-{{- end }}
-{{- range .Values.imagePullSecrets }}
+{{- range $pulls }}
   - name: {{ . }}
 {{- end }}
 {{- end }}
