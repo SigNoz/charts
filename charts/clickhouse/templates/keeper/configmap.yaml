@@ -1,0 +1,64 @@
+{{- if .Values.keeper.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouse.keeper.servicename" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "clickhouse.keeper.labels" . | nindent 4 }}
+data:
+  keeper_config.xml: |
+    <clickhouse>
+      <logger>
+        <level>{{ .Values.keeper.logLevel }}</level>
+        <console>true</console>
+      </logger>
+
+      <listen_host>0.0.0.0</listen_host>
+      <max_connections>{{ .Values.keeper.maxConnections }}</max_connections>
+
+      <keeper_server>
+        <tcp_port>{{ .Values.keeper.service.port }}</tcp_port>
+        {{- /*
+          Raft needs a distinct id per member and there is no downward-API
+          field for a StatefulSet ordinal, so the container derives it from
+          the pod hostname and exports KEEPER_SERVER_ID.
+        */}}
+        <server_id from_env="KEEPER_SERVER_ID" />
+
+        <log_storage_path>{{ .Values.keeper.persistence.mountPath }}/log</log_storage_path>
+        <snapshot_storage_path>{{ .Values.keeper.persistence.mountPath }}/snapshots</snapshot_storage_path>
+
+        <coordination_settings>
+          <operation_timeout_ms>{{ .Values.keeper.coordination.operationTimeoutMs }}</operation_timeout_ms>
+          <session_timeout_ms>{{ .Values.keeper.coordination.sessionTimeoutMs }}</session_timeout_ms>
+          <min_session_timeout_ms>{{ .Values.keeper.coordination.minSessionTimeoutMs }}</min_session_timeout_ms>
+          <raft_logs_level>{{ .Values.keeper.coordination.raftLogsLevel }}</raft_logs_level>
+          <snapshots_to_keep>{{ .Values.keeper.coordination.snapshotsToKeep }}</snapshots_to_keep>
+        </coordination_settings>
+
+        <raft_configuration>
+          {{- $svc := include "clickhouse.keeper.servicename" . }}
+          {{- $suffix := include "clickhouse.keeper.headlessSvcSuffix" . }}
+          {{- $raftPort := .Values.keeper.raftPort }}
+          {{- range $i := until (int .Values.keeper.replicaCount) }}
+          <server>
+            <id>{{ add $i 1 }}</id>
+            <hostname>{{ printf "%s-%d.%s" $svc $i $suffix }}</hostname>
+            <port>{{ $raftPort }}</port>
+          </server>
+          {{- end }}
+        </raft_configuration>
+      </keeper_server>
+
+      {{- if .Values.keeper.metrics.enabled }}
+      <prometheus>
+        <endpoint>/metrics</endpoint>
+        <port>{{ .Values.keeper.metrics.port }}</port>
+        <metrics>true</metrics>
+        <events>true</events>
+        <asynchronous_metrics>true</asynchronous_metrics>
+      </prometheus>
+      {{- end }}
+    </clickhouse>
+{{- end }}
