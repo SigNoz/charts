@@ -1,0 +1,144 @@
+suite: Test SigNoz Environment Variables and Volumes with External PostgreSQL
+
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/secrets-postgresql-external.yaml
+
+release:
+  name: signoz
+  namespace: signoz
+
+tests:
+  - it: should render the Environment variables for external PostgreSQL in signoz statefulset
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        port: 5432
+        user: "signoz"
+        password: "secret123"
+        database: "signoz"
+        sslmode: "disable"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_SQLSTORE_PROVIDER
+            value: postgres
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            value: "signoz"
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PORT
+            value: "5432"
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_DB
+            value: "signoz"
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: signoz-postgresql-external
+                key: postgresql-password
+        template: templates/signoz/statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@my-rds.example.com:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"
+        template: templates/signoz/statefulset.yaml
+
+  - it: should create external PostgreSQL secret when password is provided and no existingSecret
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        port: 5432
+        user: "signoz"
+        password: "secret123"
+        database: "signoz"
+    asserts:
+      - isKind:
+          of: Secret
+        template: templates/secrets-postgresql-external.yaml
+      - equal:
+          path: metadata.name
+          value: signoz-postgresql-external
+        template: templates/secrets-postgresql-external.yaml
+
+  - it: should NOT create external PostgreSQL secret when existingSecret is set
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        user: "signoz"
+        password: "secret123"
+        existingSecret: "my-pg-secret"
+        existingSecretPasswordKey: "pg-pass"
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/secrets-postgresql-external.yaml
+
+  - it: should use existingSecret for password when set
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        port: 5432
+        user: "signoz"
+        password: "ignored"
+        database: "signoz"
+        existingSecret: "my-pg-secret"
+        existingSecretPasswordKey: "pg-pass"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: my-pg-secret
+                key: pg-pass
+        template: templates/signoz/statefulset.yaml
+
+  - it: should render custom sslmode in DSN
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        port: 5432
+        user: "signoz"
+        password: "secret123"
+        database: "signoz"
+        sslmode: "require"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@my-rds.example.com:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=require"
+        template: templates/signoz/statefulset.yaml
+
+  - it: SigNoz StatefulSet should NOT render volumeMounts when external PostgreSQL is configured
+    set:
+      externalPostgresql:
+        host: "my-rds.example.com"
+        port: 5432
+        user: "signoz"
+        password: "secret123"
+        database: "signoz"
+      signoz:
+        additionalVolumeMounts: []
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 0
+        template: templates/signoz/statefulset.yaml
