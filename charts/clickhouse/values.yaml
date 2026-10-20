@@ -144,69 +144,6 @@ nameOverride: ""
 # -- Fullname override for clickhouse
 fullnameOverride: ""
 
-# -- Clickhouse cluster
-cluster: cluster
-# -- Clickhouse database
-database: signoz_metrics
-# -- Clickhouse trace database (SigNoz Traces)
-traceDatabase: signoz_traces
-# -- Clickhouse log database (SigNoz Logs)
-logDatabase: signoz_logs
-# -- Clickhouse user
-user: admin
-# -- Clickhouse password
-password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
-
-# -- Clickhouse cluster replicas
-replicasCount: 1
-# -- Clickhouse cluster shards
-shardsCount: 1
-
-# -- Clickhouse image
-image:
-  # -- Clickhouse image registry to use.
-  registry: docker.io
-  # -- Clickhouse image repository to use.
-  repository: clickhouse/clickhouse-server
-  # -- Clickhouse image tag.
-  # Note: SigNoz does not support all versions of ClickHouse.
-  # Please override the default only if you know what you are doing.
-  tag: 24.1.2-alpine
-  # -- Clickhouse image pull policy.
-  pullPolicy: IfNotPresent
-
-# -- Image Registry Secret Names for ClickHouse.
-# If global.imagePullSecrets is set as well, it will merged.
-imagePullSecrets: []
-  # - "clickhouse-pull-secret"
-# ClickHouse instance labels
-labels: {}
-# ClickHouse pod labels
-podLabels: {}
-# -- ClickHouse instance annotations.
-annotations: {}
-
-# ClickHouse Service Account
-serviceAccount:
-  # -- Specifies whether a service account should be created
-  create: true
-  # -- Annotations to add to the service account
-  annotations: {}
-  # -- The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name:
-
-# Clickhouse service
-service:
-  # -- Annotations to use by service associated to Clickhouse instance
-  annotations: {}
-  # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
-  type: ClusterIP
-  # -- Clickhouse HTTP port
-  httpPort: 8123
-  # -- Clickhouse TCP port
-  tcpPort: 9000
-
 # -- Whether to use TLS connection connecting to ClickHouse
 secure: false
 # -- Whether to verify TLS certificate on connection to ClickHouse
@@ -217,340 +154,411 @@ externalZookeeper: {}
   #   - host: signoz-zookeeper
   #     port: 2181
 
-# -- Clickhouse priority class name
-priorityClassName: ""
-# -- Node selector for settings for clickhouse pod
-nodeSelector: {}
-# -- Toleration labels for clickhouse pod assignment
-tolerations: []
-# -- Affinity settings for clickhouse pod
-affinity: {}
-# -- TopologySpreadConstraints describes how clickhouse pods ought to spread
-topologySpreadConstraints: []
-
-## Configure liveness and readiness probes.
-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-##
-startupProbe:
+# ClickHouse Instance Configuration
+clickhouseInstance:
+  # -- Whether to install clickhouse instance. If false, only the operator will be installed
   enabled: true
-  port: http
-  path: /ping
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 30
-  successThreshold: 1
-livenessProbe:
-  enabled: true
-  port: http
-  path: /ping
-  initialDelaySeconds: 60
-  periodSeconds: 3
-  timeoutSeconds: 1
-  failureThreshold: 10
-  successThreshold: 1
-readinessProbe:
-  enabled: true
-  port: http
-  path: /ping
-  initialDelaySeconds: 10
-  periodSeconds: 3
-  timeoutSeconds: 1
-  failureThreshold: 3
-  successThreshold: 1
+  
+  # -- Name of the clickhouse instance
+  name: clickhouse
 
-## Custom startup, liveness and readiness probes
-customStartupProbe: {}
-customLivenessProbe: {}
-customReadinessProbe: {}
+  # -- Clickhouse cluster
+  cluster: cluster
+  # -- Clickhouse database
+  database: signoz_metrics
+  # -- Clickhouse trace database (SigNoz Traces)
+  traceDatabase: signoz_traces
+  # -- Clickhouse log database (SigNoz Logs)
+  logDatabase: signoz_logs
+  # -- Clickhouse user
+  user: admin
+  # -- Clickhouse password
+  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
 
-# -- Configure resource requests and limits. Update according to your own use
-# case as these values might not be suitable for your workload.
-# Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-#
-# @default -- See `values.yaml` for defaults
-resources:
-  requests:
-    cpu: 100m
-    memory: 200Mi
-#   limits:
-#     cpu: 2000m
-#     memory: 4Gi
-
-# -- Security context for Clickhouse node
-securityContext:
-  enabled: true
-  runAsUser: 101
-  runAsGroup: 101
-  fsGroup: 101
-  fsGroupChangePolicy: OnRootMismatch
-
-# -- An allowlist of IP addresses or network masks the ClickHouse user is
-# allowed to access from. By default anything within a private network will be
-# allowed. This should suffice for most use case although to expose to other
-# networks you will need to update this setting.
-#
-# Refs:
-# - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
-# - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
-allowedNetworkIps:
-  - "10.0.0.0/8"
-  - "100.64.0.0/10"
-  - "172.16.0.0/12"
-  - "192.0.0.0/24"
-  - "198.18.0.0/15"
-  - "192.168.0.0/16"
-
-persistence:
-  # -- Enable data persistence using PVC.
-  enabled: true
-
-  # -- Use a manually managed Persistent Volume and Claim.
-  # If defined, PVC must be created manually before volume will be bound.
-  #
-  existingClaim: ""
-
-  # -- Persistent Volume Storage Class to use.
-  # If defined, `storageClassName: <storageClass>`.
-  # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
-  # If undefined (the default) or set to `null`, no storageClassName spec is
-  # set, choosing the default provisioner.
-  #
-  storageClass: null
-
-  # -- Access Modes for persistent volume
-  accessModes:
-    - ReadWriteOnce
-
-  # -- Persistent Volume size
-  size: 20Gi
-
-# -- Clickhouse user profile configuration.
-# You can use this to override profile settings, for example
-# `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
-#
-# For the full list of settings, see:
-# - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
-# - https://clickhouse.com/docs/en/operations/settings/settings/
-#
-profiles: {}
-
-# -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
-# @default -- See `values.yaml` for defaults
-defaultProfiles:
-  default/allow_experimental_window_functions: "1"
-  default/allow_nondeterministic_mutations: "1"
-
-# -- Clickhouse init container to copy histogramQuantile UDF
-# @default -- See `values.yaml` for defaults
-initContainers:
-  enabled: true
-  udf:
-    enabled: true
-    image:
-      registry: docker.io
-      repository: alpine
-      tag: 3.18.2
-      pullPolicy: IfNotPresent
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        version="v0.0.1"
-        node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
-        node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
-        echo "Fetching histogram-binary for ${node_os}/${node_arch}"
-        cd /tmp
-        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
-        tar -xzf histogram-quantile.tar.gz
-        chmod +x histogram-quantile
-        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
-        echo "histogram-quantile installed successfully"
-  init:
-    enabled: false
-    image:
-      registry: docker.io
-      repository: busybox
-      tag: 1.35
-      pullPolicy: IfNotPresent
-    command:
-      - /bin/sh
-      - -c
-      - |
-        set -e
-        until curl -s -o /dev/null http://signoz-clickhouse:8123/
-        do sleep 1
-        done
-
-# -- Clickhouse cluster layout. (Experimental, use at own risk)
-# For a full list of options, see
-# https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
-# section on clusters and layouts.
-layout:
-  shardsCount: 1
+  # -- Clickhouse cluster replicas
   replicasCount: 1
+  # -- Clickhouse cluster shards
+  shardsCount: 1
 
-# -- ClickHouse settings configuration.
-# You can use this to override settings, for example `prometheus/port: 9363`
-# For the full list of settings, see:
-# - https://clickhouse.com/docs/en/operations/settings/settings/
-settings: {}
-  # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
-  # prometheus/endpoint: /metrics
-  # prometheus/port: 9363
-  # prometheus/metrics: true
-  # prometheus/events: true
-  # prometheus/asynchronous_metrics: true
+  # -- Clickhouse image
+  image:
+    # -- Clickhouse image registry to use.
+    registry: docker.io
+    # -- Clickhouse image repository to use.
+    repository: clickhouse/clickhouse-server
+    # -- Clickhouse image tag.
+    # Note: SigNoz does not support all versions of ClickHouse.
+    # Please override the default only if you know what you are doing.
+    tag: 24.1.2-alpine
+    # -- Clickhouse image pull policy.
+    pullPolicy: IfNotPresent
 
-# -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
-# @default -- See `values.yaml` for defaults
-defaultSettings:
-  format_schema_path: /etc/clickhouse-server/config.d/
-  user_scripts_path: /var/lib/clickhouse/user_scripts/
-  user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+  # -- Image Registry Secret Names for ClickHouse.
+  # If global.imagePullSecrets is set as well, it will merged.
+  imagePullSecrets: []
+    # - "clickhouse-pull-secret"
+  # ClickHouse instance labels
+  labels: {}
+  # ClickHouse pod labels
+  podLabels: {}
+  # -- ClickHouse instance annotations.
+  annotations: {}
 
-# -- ClickHouse pod(s) annotation.
-podAnnotations: {}
-  # Uncomment lines below to enable scraping of ClickHouse metrics.
-  # Be sure to uncomment `settings` to enable built-in Prometheus HTTP endpoint.
-  # signoz.io/scrape: 'true'
-  # signoz.io/port: '9363'
-  # signoz.io/path: /metrics
+  # ClickHouse Service Account
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- Annotations to add to the service account
+    annotations: {}
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
 
-# -- Topologies on how to distribute the ClickHouse pod.
-# Possible values can be found here:
-# https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-podDistribution: []
-  # - type: ShardAntiAffinity
-  #   topologyKey: kubernetes.io/hostname
-  # - type: ReplicaAntiAffinity
-  #   topologyKey: kubernetes.io/hostname
-  # - type: MaxNumberPerNode
-  #   number: 2
-  #   topologyKey: kubernetes.io/hostname
+  # Clickhouse service
+  service:
+    # -- Annotations to use by service associated to Clickhouse instance
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+    # -- Clickhouse HTTP port
+    httpPort: 8123
+    # -- Clickhouse TCP port
+    tcpPort: 9000
 
-# -- Additional volumes for ClickHouse pod
-additionalVolumes: []
-# -- Additional volume mounts for ClickHouse pod
-additionalVolumeMounts: []
+  # -- Clickhouse priority class name
+  priorityClassName: ""
+  # -- Node selector for settings for clickhouse pod
+  nodeSelector: {}
+  # -- Toleration labels for clickhouse pod assignment
+  tolerations: []
+  # -- Affinity settings for clickhouse pod
+  affinity: {}
+  # -- TopologySpreadConstraints describes how clickhouse pods ought to spread
+  topologySpreadConstraints: []
 
-# Cold storage configuration
-coldStorage:
-  # -- Whether to enable S3 or GCS cold storage
-  enabled: false
-  # -- Reserve free space on default disk (in bytes)
-  # Default value set below is 10MiB
-  defaultKeepFreeSpaceBytes: "10485760"
-  # -- Type of cold storage: s3 or gcs
-  type: s3
-  # -- Endpoint for S3 or GCS
-  # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
-  #         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
-  # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
-  endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
-  # -- Access Key for S3 or GCS
-  accessKey: <access_key_id>
-  # -- Secret Access Key for S3 or GCS
-  secretAccess: <secret_access_key>
-  # AWS role configuration - to use environment variables instead of passing access and secret keys
-  role:
-    # -- Whether to enable AWS IAM ARN role
+  ## Configure liveness and readiness probes.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  ##
+  startupProbe:
+    enabled: true
+    port: http
+    path: /ping
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  livenessProbe:
+    enabled: true
+    port: http
+    path: /ping
+    initialDelaySeconds: 60
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    port: http
+    path: /ping
+    initialDelaySeconds: 10
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  ## Custom startup, liveness and readiness probes
+  customStartupProbe: {}
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+
+  # -- Configure resource requests and limits. Update according to your own use
+  # case as these values might not be suitable for your workload.
+  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  # @default -- See `values.yaml` for defaults
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  #   limits:
+  #     cpu: 2000m
+  #     memory: 4Gi
+
+  # -- Security context for Clickhouse node
+  securityContext:
+    enabled: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+    fsGroupChangePolicy: OnRootMismatch
+
+  # -- An allowlist of IP addresses or network masks the ClickHouse user is
+  # allowed to access from. By default anything within a private network will be
+  # allowed. This should suffice for most use case although to expose to other
+  # networks you will need to update this setting.
+  #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
+  # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
+  allowedNetworkIps:
+    - "10.0.0.0/8"
+    - "100.64.0.0/10"
+    - "172.16.0.0/12"
+    - "192.0.0.0/24"
+    - "198.18.0.0/15"
+    - "192.168.0.0/16"
+
+  persistence:
+    # -- Enable data persistence using PVC.
+    enabled: true
+
+    # -- Use a manually managed Persistent Volume and Claim.
+    # If defined, PVC must be created manually before volume will be bound.
+    #
+    existingClaim: ""
+
+    # -- Persistent Volume Storage Class to use.
+    # If defined, `storageClassName: <storageClass>`.
+    # If set to "-", `storageClassName: ""`, which disables dynamic provisioning
+    # If undefined (the default) or set to `null`, no storageClassName spec is
+    # set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Access Modes for persistent volume
+    accessModes:
+      - ReadWriteOnce
+
+    # -- Persistent Volume size
+    size: 20Gi
+
+  # -- Clickhouse user profile configuration.
+  # You can use this to override profile settings, for example
+  # `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+  #
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  #
+  profiles: {}
+
+  # -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
+  # @default -- See `values.yaml` for defaults
+  defaultProfiles:
+    default/allow_experimental_window_functions: "1"
+    default/allow_nondeterministic_mutations: "1"
+
+  # -- Clickhouse init container to copy histogramQuantile UDF
+  # @default -- See `values.yaml` for defaults
+  initContainers:
+    enabled: true
+    udf:
+      enabled: true
+      image:
+        registry: docker.io
+        repository: alpine
+        tag: 3.18.2
+        pullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          version="v0.0.1"
+          node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+          node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+          echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+          cd /tmp
+          wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+          tar -xzf histogram-quantile.tar.gz
+          chmod +x histogram-quantile
+          mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+          echo "histogram-quantile installed successfully"
+    init:
+      enabled: false
+      image:
+        registry: docker.io
+        repository: busybox
+        tag: 1.35
+        pullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          until curl -s -o /dev/null http://signoz-clickhouse:8123/
+          do sleep 1
+          done
+
+  # -- Clickhouse cluster layout. (Experimental, use at own risk)
+  # For a full list of options, see
+  # https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+  # section on clusters and layouts.
+  layout:
+    shardsCount: 1
+    replicasCount: 1
+
+  # -- ClickHouse settings configuration.
+  # You can use this to override settings, for example `prometheus/port: 9363`
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  settings: {}
+    # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+    # prometheus/endpoint: /metrics
+    # prometheus/port: 9363
+    # prometheus/metrics: true
+    # prometheus/events: true
+    # prometheus/asynchronous_metrics: true
+
+  # -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+  # @default -- See `values.yaml` for defaults
+  defaultSettings:
+    format_schema_path: /etc/clickhouse-server/config.d/
+    user_scripts_path: /var/lib/clickhouse/user_scripts/
+    user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+
+  # -- ClickHouse pod(s) annotation.
+  podAnnotations: {}
+    # Uncomment lines below to enable scraping of ClickHouse metrics.
+    # Be sure to uncomment `settings` to enable built-in Prometheus HTTP endpoint.
+    # signoz.io/scrape: 'true'
+    # signoz.io/port: '9363'
+    # signoz.io/path: /metrics
+
+  # -- Topologies on how to distribute the ClickHouse pod.
+  # Possible values can be found here:
+  # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
+  podDistribution: []
+    # - type: ShardAntiAffinity
+    #   topologyKey: kubernetes.io/hostname
+    # - type: ReplicaAntiAffinity
+    #   topologyKey: kubernetes.io/hostname
+    # - type: MaxNumberPerNode
+    #   number: 2
+    #   topologyKey: kubernetes.io/hostname
+
+  # -- Additional volumes for ClickHouse pod
+  additionalVolumes: []
+  # -- Additional volume mounts for ClickHouse pod
+  additionalVolumeMounts: []
+
+  # Cold storage configuration
+  coldStorage:
+    # -- Whether to enable S3 or GCS cold storage
     enabled: false
-    # -- Annotations to use by service account associated to Clickhouse instance
-    annotations:
-      # aws role arn
-      eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+    # -- Reserve free space on default disk (in bytes)
+    # Default value set below is 10MiB
+    defaultKeepFreeSpaceBytes: "10485760"
+    # -- Type of cold storage: s3 or gcs
+    type: s3
+    # -- Endpoint for S3 or GCS
+    # For S3, if region is us-east-1, endpoint can be https://s3.amazonaws.com
+    #         if region is not us-east-1, endpoint should be https://s3-<region>.amazonaws.com
+    # For GCS, endpoint should be https://storage.googleapis.com/<bucket-name>/data/
+    endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+    # -- Access Key for S3 or GCS
+    accessKey: <access_key_id>
+    # -- Secret Access Key for S3 or GCS
+    secretAccess: <secret_access_key>
+    # AWS role configuration - to use environment variables instead of passing access and secret keys
+    role:
+      # -- Whether to enable AWS IAM ARN role
+      enabled: false
+      # -- Annotations to use by service account associated to Clickhouse instance
+      annotations:
+        # aws role arn
+        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
 
-# -- Clickhouse configuration files.
-#
-# Refs:
-# - https://clickhouse.com/docs/en/operations/configuration-files/
-# - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
-files: {}
-  # config.d/log_rotation.xml: |
-  #   <clickhouse>
-  #     <logger>
-  #       <level>trace</level>
-  #       <console>true</console>
-  #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
-  #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
-  #       <size>100M</size>
-  #       <count>10</count>
-  #     </logger>
-  #   </clickhouse>
-  # test.xml: |
-  #   <clickhouse>
-  #     <some-setting>some-value</some-setting>
-  #   </clickhouse>
+  # -- Clickhouse configuration files.
+  #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/configuration-files/
+  # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+  files: {}
+    # config.d/log_rotation.xml: |
+    #   <clickhouse>
+    #     <logger>
+    #       <level>trace</level>
+    #       <console>true</console>
+    #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+    #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+    #       <size>100M</size>
+    #       <count>10</count>
+    #     </logger>
+    #   </clickhouse>
+    # test.xml: |
+    #   <clickhouse>
+    #     <some-setting>some-value</some-setting>
+    #   </clickhouse>
 
-# -- Custom volume claim templates for ClickHouse pod
-# This is only used when persistence.enabled is false
-templates:
-  volumeClaimTemplates: []
+  # -- Custom volume claim templates for ClickHouse pod
+  # This is only used when persistence.enabled is false
+  templates:
+    volumeClaimTemplates: []
 
-# -- Extra containers for ClickHouse pod
-extraContainers: []
+  # -- Extra containers for ClickHouse pod
+  extraContainers: []
 
-logs:
-  system:
-    # -- Enable collection of system table entries as logs
-    enabled: false
-    image:
-      registry: docker.io
-      repository: signoz/signoz-otel-collector
-      tag: 0.111.16
-      pullPolicy: IfNotPresent
-      pullSecrets: []
-    # -- Config of the opentelemetry collector
-    config:
-      receivers:
-        clickhousesystemtablesreceiver:
-          dsn: tcp://localhost:9000
-          query_log_scrape_config:
-            scrape_interval_seconds: 30
-            min_scrape_delay_seconds: 10
-      processors:
-        batch:
-          send_batch_max_size: 25000
-          send_batch_size: 20000
-          timeout: 1s
-        resourcedetection:
-          detectors:
-            - env
-      extensions:
-        health_check:
-          endpoint: 0.0.0.0:13133
-      exporters:
-        otlp:
-          endpoint: ${env:K8S_HOST_IP}:4317
-          tls:
-            insecure: true
-            insecure_skip_verify: true
-          retry_on_failure:
-            enabled: true
-            initial_interval: 2s
-            max_interval: 5s
-            max_elapsed_time: 15s
-          sending_queue:
-            enabled: false
-      service:
-        telemetry:
-          logs:
-            encoding: json
-          metrics:
-            address: 0.0.0.0:8888
+  logs:
+    system:
+      # -- Enable collection of system table entries as logs
+      enabled: false
+      image:
+        registry: docker.io
+        repository: signoz/signoz-otel-collector
+        tag: 0.111.16
+        pullPolicy: IfNotPresent
+        pullSecrets: []
+      # -- Config of the opentelemetry collector
+      config:
+        receivers:
+          clickhousesystemtablesreceiver:
+            dsn: tcp://localhost:9000
+            query_log_scrape_config:
+              scrape_interval_seconds: 30
+              min_scrape_delay_seconds: 10
+        processors:
+          batch:
+            send_batch_max_size: 25000
+            send_batch_size: 20000
+            timeout: 1s
+          resourcedetection:
+            detectors:
+              - env
         extensions:
-          - health_check
-        pipelines:
-          logs:
-            receivers:
-              - clickhousesystemtablesreceiver
-            processors:
-              - resourcedetection
-              - batch
-            exporters:
-              - otlp
+          health_check:
+            endpoint: 0.0.0.0:13133
+        exporters:
+          otlp:
+            endpoint: ${env:K8S_HOST_IP}:4317
+            tls:
+              insecure: true
+              insecure_skip_verify: true
+            retry_on_failure:
+              enabled: true
+              initial_interval: 2s
+              max_interval: 5s
+              max_elapsed_time: 15s
+            sending_queue:
+              enabled: false
+        service:
+          telemetry:
+            logs:
+              encoding: json
+            metrics:
+              address: 0.0.0.0:8888
+          extensions:
+            - health_check
+          pipelines:
+            logs:
+              receivers:
+                - clickhousesystemtablesreceiver
+              processors:
+                - resourcedetection
+                - batch
+              exporters:
+                - otlp
 ###
 ###
 ### ---- MISC ----

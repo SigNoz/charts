@@ -1,3 +1,4 @@
+{{- if .Values.clickhouseInstance.enabled }}
 apiVersion: clickhouse.altinity.com/v1
 kind: ClickHouseInstallation
 metadata:
@@ -5,17 +6,17 @@ metadata:
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouse.labels" . | nindent 4 }}
-    {{- if .Values.labels }}
-    {{- toYaml .Values.labels | nindent 4 }}
+    {{- if .Values.clickhouseInstance.labels }}
+    {{- toYaml .Values.clickhouseInstance.labels | nindent 4 }}
     {{- end }}
-  {{- if .Values.annotations }}
+  {{- if .Values.clickhouseInstance.annotations }}
   annotations:
-    {{- toYaml .Values.annotations | nindent 4 }}
+    {{- toYaml .Values.clickhouseInstance.annotations | nindent 4 }}
   {{- end }}
 spec:
   defaults:
     templates:
-      {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
+      {{- if and (.Values.clickhouseInstance.persistence.enabled) (not .Values.clickhouseInstance.persistence.existingClaim) }}
       dataVolumeClaimTemplate: data-volumeclaim-template
       # logVolumeClaimTemplate: log-volumeclaim-template
       {{- end }}
@@ -23,26 +24,26 @@ spec:
 
   configuration:
     users:
-      {{ .Values.user }}/password: {{ .Values.password }}
-      {{ .Values.user }}/networks/ip:
-        {{- range $.Values.allowedNetworkIps }}
+      {{ .Values.clickhouseInstance.user }}/password: {{ .Values.clickhouseInstance.password }}
+      {{ .Values.clickhouseInstance.user }}/networks/ip:
+        {{- range $.Values.clickhouseInstance.allowedNetworkIps }}
         - {{ . | quote }}
         {{- end }}
-      {{ .Values.user }}/profile: default
-      {{ .Values.user }}/quota: default
+      {{ .Values.clickhouseInstance.user }}/profile: default
+      {{ .Values.clickhouseInstance.user }}/quota: default
 
     profiles:
-      {{- merge dict .Values.profiles .Values.defaultProfiles | toYaml | nindent 6 }}
+      {{- merge dict .Values.clickhouseInstance.profiles .Values.clickhouseInstance.defaultProfiles | toYaml | nindent 6 }}
 
     clusters:
-      - name: {{ .Values.cluster | quote }}
+      - name: {{ .Values.clickhouseInstance.cluster | quote }}
         templates:
           podTemplate: pod-template
         layout:
-          {{- toYaml .Values.layout | nindent 10 }}
+          {{- toYaml .Values.clickhouseInstance.layout | nindent 10 }}
 
     settings:
-      {{- merge dict .Values.settings .Values.defaultSettings | toYaml | nindent 6 }}
+      {{- merge dict .Values.clickhouseInstance.settings .Values.clickhouseInstance.defaultSettings | toYaml | nindent 6 }}
 
     files:
       events.proto: |
@@ -57,7 +58,7 @@ spec:
           string created_at = 7;
           string elements_chain = 8;
         }
-      {{- if .Values.coldStorage.enabled }}
+      {{- if .Values.clickhouseInstance.coldStorage.enabled }}
       config.d/storage.xml: |
         <clickhouse>
           <storage_configuration>
@@ -71,26 +72,26 @@ spec:
                   You can reserve some amount of free space on any disk (including default) by adding
                   keep_free_space_bytes tag.
                 -->
-                <keep_free_space_bytes>{{ .Values.coldStorage.defaultKeepFreeSpaceBytes }}</keep_free_space_bytes>
+                <keep_free_space_bytes>{{ .Values.clickhouseInstance.coldStorage.defaultKeepFreeSpaceBytes }}</keep_free_space_bytes>
               </default>
-              {{- if eq .Values.coldStorage.type "s3" }}
+              {{- if eq .Values.clickhouseInstance.coldStorage.type "s3" }}
               <s3>
                 <type>s3</type>
-                <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
-                {{- if .Values.coldStorage.role.enabled }}
+                <endpoint>{{ .Values.clickhouseInstance.coldStorage.endpoint }}</endpoint>
+                {{- if .Values.clickhouseInstance.coldStorage.role.enabled }}
                 <use_environment_credentials>true</use_environment_credentials>
                 {{- else }}
-                <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
-                <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
+                <access_key_id>{{ .Values.clickhouseInstance.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.clickhouseInstance.coldStorage.secretAccess }}</secret_access_key>
                 {{- end }}
               </s3>
-              {{- else if eq .Values.coldStorage.type "gcs" }}
+              {{- else if eq .Values.clickhouseInstance.coldStorage.type "gcs" }}
               <gcs>
                 <support_batch_delete>false</support_batch_delete>
                 <type>s3</type>
-                <endpoint>{{ .Values.coldStorage.endpoint }}</endpoint>
-                <access_key_id>{{ .Values.coldStorage.accessKey }}</access_key_id>
-                <secret_access_key>{{ .Values.coldStorage.secretAccess }}</secret_access_key>
+                <endpoint>{{ .Values.clickhouseInstance.coldStorage.endpoint }}</endpoint>
+                <access_key_id>{{ .Values.clickhouseInstance.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.clickhouseInstance.coldStorage.secretAccess }}</secret_access_key>
               </gcs>
               {{- end }}
             </disks>
@@ -101,7 +102,7 @@ spec:
                     <disk>default</disk>
                   </default>
                   <s3>
-                    <disk>{{ .Values.coldStorage.type }}</disk>
+                    <disk>{{ .Values.clickhouseInstance.coldStorage.type }}</disk>
                     <perform_ttl_move_on_insert>0</perform_ttl_move_on_insert>
                     <prefer_not_to_merge>1</prefer_not_to_merge>
                   </s3>
@@ -134,35 +135,35 @@ spec:
         metadata:
           labels:
             {{- include "clickhouse.labels" . | nindent 12 }}
-            {{- if .Values.podLabels }}
-            {{- toYaml .Values.podLabels | nindent 12 }}
+            {{- if .Values.clickhouseInstance.podLabels }}
+            {{- toYaml .Values.clickhouseInstance.podLabels | nindent 12 }}
             {{- end }}
-          {{- with .Values.podAnnotations }}
+          {{- with .Values.clickhouseInstance.podAnnotations }}
           annotations:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- with .Values.podDistribution }}
+        {{- with .Values.clickhouseInstance.podDistribution }}
         podDistribution:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
           {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
           serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
-          priorityClassName: {{ .Values.priorityClassName | quote }}
-          {{- if .Values.affinity }}
-          affinity: {{ toYaml .Values.affinity | nindent 12 }}
+          priorityClassName: {{ .Values.clickhouseInstance.priorityClassName | quote }}
+          {{- if .Values.clickhouseInstance.affinity }}
+          affinity: {{ toYaml .Values.clickhouseInstance.affinity | nindent 12 }}
           {{- end }}
-          {{- if .Values.tolerations }}
-          tolerations: {{ toYaml .Values.tolerations | nindent 12 }}
+          {{- if .Values.clickhouseInstance.tolerations }}
+          tolerations: {{ toYaml .Values.clickhouseInstance.tolerations | nindent 12 }}
           {{- end }}
-          {{- if .Values.nodeSelector }}
-          nodeSelector: {{ toYaml .Values.nodeSelector | nindent 12 }}
+          {{- if .Values.clickhouseInstance.nodeSelector }}
+          nodeSelector: {{ toYaml .Values.clickhouseInstance.nodeSelector | nindent 12 }}
           {{- end }}
-          {{- with .Values.topologySpreadConstraints }}
+          {{- with .Values.clickhouseInstance.topologySpreadConstraints }}
           topologySpreadConstraints: {{ toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.securityContext.enabled }}
-          securityContext: {{- omit .Values.securityContext "enabled" | toYaml | nindent 12 }}
+          {{- if .Values.clickhouseInstance.securityContext.enabled }}
+          securityContext: {{- omit .Values.clickhouseInstance.securityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
 
           volumes:
@@ -174,41 +175,41 @@ spec:
             - name: scripts
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-scripts
-          {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
+          {{- if and (not .Values.clickhouseInstance.templates.volumeClaimTemplates) (not .Values.clickhouseInstance.persistence.enabled) }}
             - name: data-volume
               emptyDir: {}
-          {{- else if .Values.persistence.existingClaim }}
+          {{- else if .Values.clickhouseInstance.persistence.existingClaim }}
             - name: existing-volumeclaim
               persistentVolumeClaim:
-                claimName: {{ .Values.persistence.existingClaim }}
+                claimName: {{ .Values.clickhouseInstance.persistence.existingClaim }}
           {{- end }}
-          {{- if .Values.logs.system.enabled }}
+          {{- if .Values.clickhouseInstance.logs.system.enabled }}
             - name: logs-system-config
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-logs-system-config
           {{- end }}
-          {{- if .Values.additionalVolumes }}
-            {{- toYaml .Values.additionalVolumes | nindent 12 }}
+          {{- if .Values.clickhouseInstance.additionalVolumes }}
+            {{- toYaml .Values.clickhouseInstance.additionalVolumes | nindent 12 }}
           {{- end }}
 
-          {{- if .Values.initContainers.enabled }}
+          {{- if .Values.clickhouseInstance.initContainers.enabled }}
           initContainers:
-            {{- if .Values.initContainers.udf.enabled }}
+            {{- if .Values.clickhouseInstance.initContainers.udf.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-udf-init
               image: {{ include "clickhouse.initContainers.udf.image" . }}
-              imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
+              imagePullPolicy: {{ .Values.clickhouseInstance.initContainers.udf.image.pullPolicy }}
               command:
-                {{- toYaml .Values.initContainers.udf.command | nindent 16 }}
+                {{- toYaml .Values.clickhouseInstance.initContainers.udf.command | nindent 16 }}
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
             {{- end }}
-            {{- if .Values.initContainers.init.enabled }}
+            {{- if .Values.clickhouseInstance.initContainers.init.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-init
               image: {{ include "clickhouse.initContainers.init.image" . }}
-              imagePullPolicy: {{ .Values.initContainers.init.image.pullPolicy }}
+              imagePullPolicy: {{ .Values.clickhouseInstance.initContainers.init.image.pullPolicy }}
               command:
-                {{- toYaml .Values.initContainers.init.command | nindent 16 }}
+                {{- toYaml .Values.clickhouseInstance.initContainers.init.command | nindent 16 }}
             {{- end }}
           {{- end }}
           containers:
@@ -216,7 +217,7 @@ spec:
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
               # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
               image: {{ template "clickhouse.image" . }}
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              imagePullPolicy: {{ .Values.clickhouseInstance.image.pullPolicy }}
               command:
                 - /bin/bash
                 - -c
@@ -229,47 +230,47 @@ spec:
                 - name: interserver
                   containerPort: 9009
               
-              {{- if .Values.startupProbe.enabled }}
+              {{- if .Values.clickhouseInstance.startupProbe.enabled }}
               startupProbe:
                 httpGet:
-                  port: {{ .Values.startupProbe.port }}
-                  path: {{ .Values.startupProbe.path }}
-                initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.startupProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.startupProbe.successThreshold }}
-                failureThreshold: {{ .Values.startupProbe.failureThreshold }}
-              {{- else if .Values.customStartupProbe }}
+                  port: {{ .Values.clickhouseInstance.startupProbe.port }}
+                  path: {{ .Values.clickhouseInstance.startupProbe.path }}
+                initialDelaySeconds: {{ .Values.clickhouseInstance.startupProbe.initialDelaySeconds }}
+                periodSeconds: {{ .Values.clickhouseInstance.startupProbe.periodSeconds }}
+                timeoutSeconds: {{ .Values.clickhouseInstance.startupProbe.timeoutSeconds }}
+                successThreshold: {{ .Values.clickhouseInstance.startupProbe.successThreshold }}
+                failureThreshold: {{ .Values.clickhouseInstance.startupProbe.failureThreshold }}
+              {{- else if .Values.clickhouseInstance.customStartupProbe }}
               startupProbe:
-                {{- toYaml .Values.customStartupProbe | nindent 16 }}
+                {{- toYaml .Values.clickhouseInstance.customStartupProbe | nindent 16 }}
               {{- end }}
-              {{- if .Values.livenessProbe.enabled }}
+              {{- if .Values.clickhouseInstance.livenessProbe.enabled }}
               livenessProbe:
                 httpGet:
-                  port: {{ .Values.livenessProbe.port }}
-                  path: {{ .Values.livenessProbe.path }}
-                initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.livenessProbe.successThreshold }}
-                failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
-              {{- else if .Values.customLivenessProbe }}
+                  port: {{ .Values.clickhouseInstance.livenessProbe.port }}
+                  path: {{ .Values.clickhouseInstance.livenessProbe.path }}
+                initialDelaySeconds: {{ .Values.clickhouseInstance.livenessProbe.initialDelaySeconds }}
+                periodSeconds: {{ .Values.clickhouseInstance.livenessProbe.periodSeconds }}
+                timeoutSeconds: {{ .Values.clickhouseInstance.livenessProbe.timeoutSeconds }}
+                successThreshold: {{ .Values.clickhouseInstance.livenessProbe.successThreshold }}
+                failureThreshold: {{ .Values.clickhouseInstance.livenessProbe.failureThreshold }}
+              {{- else if .Values.clickhouseInstance.customLivenessProbe }}
               livenessProbe:
-                {{- toYaml .Values.customLivenessProbe | nindent 16 }}
+                {{- toYaml .Values.clickhouseInstance.customLivenessProbe | nindent 16 }}
               {{- end }}
-              {{- if .Values.readinessProbe.enabled }}
+              {{- if .Values.clickhouseInstance.readinessProbe.enabled }}
               readinessProbe:
                 httpGet:
-                  port: {{ .Values.readinessProbe.port }}
-                  path: {{ .Values.readinessProbe.path }}
-                initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.readinessProbe.successThreshold }}
-                failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-              {{- else if .Values.customReadinessProbe }}
+                  port: {{ .Values.clickhouseInstance.readinessProbe.port }}
+                  path: {{ .Values.clickhouseInstance.readinessProbe.path }}
+                initialDelaySeconds: {{ .Values.clickhouseInstance.readinessProbe.initialDelaySeconds }}
+                periodSeconds: {{ .Values.clickhouseInstance.readinessProbe.periodSeconds }}
+                timeoutSeconds: {{ .Values.clickhouseInstance.readinessProbe.timeoutSeconds }}
+                successThreshold: {{ .Values.clickhouseInstance.readinessProbe.successThreshold }}
+                failureThreshold: {{ .Values.clickhouseInstance.readinessProbe.failureThreshold }}
+              {{- else if .Values.clickhouseInstance.customReadinessProbe }}
               readinessProbe:
-                {{- toYaml .Values.customReadinessProbe | nindent 16 }}
+                {{- toYaml .Values.clickhouseInstance.customReadinessProbe | nindent 16 }}
               {{- end }}
 
               volumeMounts:
@@ -279,33 +280,33 @@ spec:
                   mountPath: /etc/clickhouse-server/functions
                 - name: scripts
                   mountPath: /scripts
-              {{- if and (not .Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
+              {{- if and (not .Values.clickhouseInstance.templates.volumeClaimTemplates) (not .Values.clickhouseInstance.persistence.enabled) }}
                 - name: data-volume
                   mountPath: /var/lib/clickhouse
               {{- end }}
-              {{- if and (.Values.persistence.enabled) (.Values.persistence.existingClaim) }}
+              {{- if and (.Values.clickhouseInstance.persistence.enabled) (.Values.clickhouseInstance.persistence.existingClaim) }}
                 - name: existing-volumeclaim
                   mountPath: /var/lib/clickhouse
-              {{- else if .Values.persistence.enabled }}
+              {{- else if .Values.clickhouseInstance.persistence.enabled }}
                 - name: data-volumeclaim-template
                   mountPath: /var/lib/clickhouse
               {{- end }}
-              {{- if .Values.additionalVolumeMounts }}
-                {{- toYaml .Values.additionalVolumeMounts | nindent 16 }}
+              {{- if .Values.clickhouseInstance.additionalVolumeMounts }}
+                {{- toYaml .Values.clickhouseInstance.additionalVolumeMounts | nindent 16 }}
               {{- end }}
-              {{- if .Values.resources }}
-              resources: {{ toYaml .Values.resources | nindent 16 }}
+              {{- if .Values.clickhouseInstance.resources }}
+              resources: {{ toYaml .Values.clickhouseInstance.resources | nindent 16 }}
               {{- end }}
-              {{- if .Values.logs.system.enabled }}
+              {{- if .Values.clickhouseInstance.logs.system.enabled }}
               lifecycle:
                 postStart:
                   exec:
                     command: ["/bin/bash", "/scripts/wait-until-ready.sh"]
               {{- end }}
-            {{- if .Values.logs.system.enabled }}
+            {{- if .Values.clickhouseInstance.logs.system.enabled }}
             - name: logs-system-exporter
               image: {{ include "logs.system.image" . }}
-              imagePullPolicy: {{ .Values.logs.system.image.pullPolicy }}
+              imagePullPolicy: {{ .Values.clickhouseInstance.logs.system.image.pullPolicy }}
               command:
                 - /signoz-collector
               args:
@@ -338,22 +339,22 @@ spec:
                       fieldPath: metadata.namespace
                 - name: OTEL_RESOURCE_ATTRIBUTES
                   value: "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)"
-              {{- if .Values.logs.system.resources }}
-              resources: {{ toYaml .Values.logs.system.resources | nindent 16 }}
+              {{- if .Values.clickhouseInstance.logs.system.resources }}
+              resources: {{ toYaml .Values.clickhouseInstance.logs.system.resources | nindent 16 }}
               {{- end }}
               volumeMounts:
                 - name: logs-system-config
                   mountPath: /conf
             {{- end }}
 
-            {{- if .Values.extraContainers }}
-              {{- toYaml .Values.extraContainers | nindent 12 }}
+            {{- if .Values.clickhouseInstance.extraContainers }}
+              {{- toYaml .Values.clickhouseInstance.extraContainers | nindent 12 }}
             {{- end }}
 
     serviceTemplates:
       - name: service-template
         generateName: {{ include "clickhouse.fullname" . }}
-        {{- with .Values.service }}
+        {{- with .Values.clickhouseInstance.service }}
         metadata:
           labels:
             {{- include "clickhouse.labels" $ | nindent 12 }}
@@ -372,29 +373,29 @@ spec:
               {{ include "service.ifClusterIP" .type -}}
         {{- end }}
 
-    {{- if and (.Values.persistence.enabled) (not .Values.persistence.existingClaim) }}
+    {{- if and (.Values.clickhouseInstance.persistence.enabled) (not .Values.clickhouseInstance.persistence.existingClaim) }}
     volumeClaimTemplates:
       - name: data-volumeclaim-template
         reclaimPolicy: Retain
         spec:
           accessModes:
-            {{- toYaml .Values.persistence.accessModes | nindent 12 }}
+            {{- toYaml .Values.clickhouseInstance.persistence.accessModes | nindent 12 }}
           resources:
             requests:
-              storage: {{ .Values.persistence.size }}
-        {{- $storageClass := default .Values.persistence.storageClass .Values.global.storageClass -}}
+              storage: {{ .Values.clickhouseInstance.persistence.size }}
+        {{- $storageClass := default .Values.clickhouseInstance.persistence.storageClass .Values.global.storageClass -}}
         {{- if $storageClass -}}
         {{- if (eq "-" $storageClass) }}
           storageClassName: ""
         {{- else }}
           storageClassName: {{ $storageClass }}
         {{- end }}
-    {{- end }}
+        {{- end }}
     {{- end }}
 
-  {{- if and (.Values.templates.volumeClaimTemplates) (not .Values.persistence.enabled) }}
+  {{- if and (.Values.clickhouseInstance.templates.volumeClaimTemplates) (not .Values.clickhouseInstance.persistence.enabled) }}
     volumeClaimTemplates:
-    {{- range .Values.templates.volumeClaimTemplates }}
+    {{- range .Values.clickhouseInstance.templates.volumeClaimTemplates }}
       - name: {{ .name }}
         reclaimPolicy: Retain
         spec:
@@ -406,3 +407,4 @@ spec:
           storageClassName: {{ .storageClassName }}
     {{- end }}
   {{- end }}
+{{- end }}
