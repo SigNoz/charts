@@ -86,6 +86,16 @@ Return the proper signoz image name
 {{- end -}}
 
 {{/*
+Return the image used by the helm test-connection pod
+*/}}
+{{- define "signoz.testConnection.image" -}}
+{{- $registryName := default "docker.io" .Values.global.imageRegistry -}}
+{{- $repositoryName := .Values.testConnection.image.repository -}}
+{{- $tag := .Values.testConnection.image.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+
+{{/*
 Set signoz port
 */}}
 {{- define "signoz.port" -}}
