@@ -1,7 +1,7 @@
 
 # SigNoz
 
-![Version: 0.142.0](https://img.shields.io/badge/Version-0.142.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.142.0](https://img.shields.io/badge/AppVersion-v0.142.0-informational?style=flat-square)
+![Version: 0.146.0](https://img.shields.io/badge/Version-0.146.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.146.0](https://img.shields.io/badge/AppVersion-v0.146.0-informational?style=flat-square)
 
 SigNoz is an open-source observability platform native to OpenTelemetry with logs, traces and metrics in a single application. An open-source alternative to DataDog, NewRelic, etc. 🔥 🖥. 👉 Open source Application Performance Monitoring (APM) & Observability tool
 
@@ -360,7 +360,7 @@ verify: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
 registry: docker.io
 repository: signoz/signoz
-tag: v0.142.0</pre>
+tag: v0.146.0</pre>
 </div>
             </td>
             <td>Image configuration for SigNoz.</td>
@@ -1303,7 +1303,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="postgresql--enabled"><a href="./values.yaml#L1722">postgresql.enabled</a></td>
+            <td id="postgresql--enabled"><a href="./values.yaml#L1741">postgresql.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -1323,7 +1323,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L1725">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L1744">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -1344,7 +1344,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L1732">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L1751">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -1364,7 +1364,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L1945">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L1964">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

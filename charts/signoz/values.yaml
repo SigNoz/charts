@@ -765,7 +765,7 @@ signoz:
     repository: signoz/signoz
     # signoz.image.tag - The container image tag.
     # @default -- "v0.110.1"
-    tag: v0.142.0
+    tag: v0.146.0
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1085,7 +1085,7 @@ otelCollector:
     repository: signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.144.0"
-    tag: v0.144.10
+    tag: v0.144.14
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1660,6 +1660,25 @@ otelCollector:
             default: default
           - name: signoz.collector.id
         aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+      # AI observability processors, present in signoz-otel-collector 0.144.11 and later. SigNoz fills them over OpAMP.
+      # Keep both in the traces pipeline when overriding it, or drop both when pinning an older collector.
+      signozspanmapper:
+        groups: []
+      signozllmpricing:
+        attrs:
+          model: gen_ai.request.model
+          in: gen_ai.usage.input_tokens
+          out: gen_ai.usage.output_tokens
+          cache_read: gen_ai.usage.cache_read.input_tokens
+          cache_write: gen_ai.usage.cache_creation.input_tokens
+        default_pricing:
+          rules: []
+        output_attrs:
+          in: signoz.gen_ai.usage.input_tokens.cost
+          out: signoz.gen_ai.usage.output_tokens.cost
+          cache_read: signoz.gen_ai.usage.cache_read.input_tokens.cost
+          cache_write: signoz.gen_ai.usage.cache_write.input_tokens.cost
+          total: signoz.gen_ai.usage.tokens.cost
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1699,7 +1718,7 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/delta, batch]
+          processors: [signozspanmetrics/delta, signozspanmapper, signozllmpricing, batch]
           exporters: [clickhousetraces, metadataexporter, signozmeter]
         metrics:
           receivers: [otlp]
