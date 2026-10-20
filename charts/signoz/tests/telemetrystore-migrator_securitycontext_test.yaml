@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: telemetryStoreMigrator securityContext
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+release:
+  name: signoz
+  namespace: signoz
+tests:
+  - it: should not set securityContext on any container when not configured
+    set:
+      telemetryStoreMigrator.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers[0].securityContext
+      - notExists:
+          path: spec.template.spec.initContainers[1].securityContext
+      - notExists:
+          path: spec.template.spec.initContainers[2].securityContext
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext
+
+  - it: should set securityContext on all containers when configured
+    set:
+      telemetryStoreMigrator.enabled: true
+      telemetryStoreMigrator.securityContext.allowPrivilegeEscalation: false
+      telemetryStoreMigrator.securityContext.capabilities.drop:
+        - ALL
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.capabilities.drop[0]
+          value: ALL
+      - equal:
+          path: spec.template.spec.initContainers[1].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.initContainers[2].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
