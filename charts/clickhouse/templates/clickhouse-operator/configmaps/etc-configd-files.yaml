@@ -1,3 +1,4 @@
+{{- $files := dig "configs" "configdFiles" nil .Values.clickhouseOperator -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +7,14 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if ne $files nil }}
+{{- range $name, $contents := $files }}
+{{- if not (kindIs "string" $contents) }}
+{{- fail (printf "clickhouseOperator.configs.configdFiles.%s must be a string" $name) }}
+{{- end }}
+  {{ $name }}: {{ tpl ($contents | toString) $ | toYaml | nindent 4 }}
+{{- end }}
+{{- else }}
   01-clickhouse-01-listen.xml: |
     <yandex>
         <!-- Listen wildcard address to allow accepting connections from other containers and host network. -->
@@ -158,4 +167,4 @@ data:
             <flush_interval_milliseconds>{{ .Values.clickhouseOperator.processorsProfileLog.flushInterval }}</flush_interval_milliseconds>
         </processors_profile_log>
     </yandex>
-
+{{ end }}
