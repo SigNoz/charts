@@ -70,37 +70,62 @@ spec:
                   spec:
                     properties:
                       alert:
+                        description: The display name of the alert rule.
                         minLength: 1
                         type: string
                       alertType:
+                        description: 'The signal the rule evaluates: METRIC_BASED_ALERT,
+                          TRACES_BASED_ALERT, LOGS_BASED_ALERT, EXCEPTIONS_BASED_ALERT
+                          or AI_TRACES_BASED_ALERT.'
                         enum:
                         - METRIC_BASED_ALERT
                         - TRACES_BASED_ALERT
                         - LOGS_BASED_ALERT
                         - EXCEPTIONS_BASED_ALERT
+                        - AI_TRACES_BASED_ALERT
                         type: string
                       annotations:
                         additionalProperties:
                           type: string
+                        description: Free text attached to every alert, conventionally
+                          summary and description. Values may use Go templates with
+                          $value, $threshold and $labels.
                         type: object
                       condition:
+                        description: The query to evaluate and the thresholds applied
+                          to its result.
                         properties:
                           absentFor:
+                            description: How many minutes without data pass before
+                              the nodata alert fires. Ignored unless alertOnAbsent
+                              is true.
                             format: int64
                             type: integer
                           alertOnAbsent:
+                            description: Whether to fire a nodata alert when the query
+                              returns no data. Defaults to false.
                             type: boolean
                           algorithm:
+                            description: 'anomaly_rule only: the anomaly detection
+                              algorithm. The supported value is standard.'
                             type: string
                           compositeQuery:
+                            description: The queries whose result is compared against
+                              the thresholds.
                             properties:
                               panelType:
+                                description: 'The panel the UI renders the queries
+                                  with: graph, table or value. Use graph for alerts.'
                                 enum:
                                 - value
                                 - table
                                 - graph
                                 type: string
                               queries:
+                                description: 'The queries to evaluate, at least one.
+                                  Every envelope type must match queryType: builder_query
+                                  and builder_formula for builder, promql for promql,
+                                  clickhouse_sql for clickhouse_sql.'
                                 items:
                                   properties:
                                     spec:
@@ -109,13 +134,40 @@ spec:
                                           items:
                                             properties:
                                               alias:
+                                                description: The name the aggregation
+                                                  is reported under; when omitted,
+                                                  the result carries the alias __result_N,
+                                                  with N the zero-based index of the
+                                                  aggregation.
                                                 type: string
                                               comparisonSpaceAggregationParam:
+                                                description: 'Histogram metrics with
+                                                  spaceAggregation count only: the
+                                                  comparison operator and bucket bound
+                                                  used to estimate how many observations
+                                                  fall at or below, or above, the
+                                                  threshold. Ignored for other metric
+                                                  types and aggregations.'
                                                 properties:
                                                   operator:
+                                                    description: 'Comparison applied
+                                                      to histogram bucket bounds when
+                                                      spaceAggregation is count: <=
+                                                      gives the estimated count of
+                                                      observations at or below threshold,
+                                                      > the estimated count above
+                                                      it.'
                                                     minLength: 1
                                                     type: string
                                                   threshold:
+                                                    description: Bucket bound the
+                                                      comparison uses, in the unit
+                                                      of the histogram metric. The
+                                                      count is exact when threshold
+                                                      equals one of the metric's le
+                                                      bucket bounds, and otherwise
+                                                      an estimate interpolated linearly
+                                                      between the two nearest bounds.
                                                     type: number
                                                 required:
                                                 - operator
@@ -124,8 +176,15 @@ spec:
                                               expression:
                                                 type: string
                                               metricName:
+                                                description: The name of the metric
+                                                  to query, for example k8s.pod.cpu_request_utilization.
                                                 type: string
                                               reduceTo:
+                                                description: 'How a series collapses
+                                                  to one number in scalar requests:
+                                                  sum, count, avg, min, max, last
+                                                  or median. Ignored by time_series
+                                                  requests.'
                                                 enum:
                                                 - sum
                                                 - count
@@ -136,6 +195,11 @@ spec:
                                                 - median
                                                 type: string
                                               spaceAggregation:
+                                                description: How series are combined
+                                                  across each group, such as sum,
+                                                  avg, min, max or count; histograms
+                                                  take percentiles such as p50, p90,
+                                                  p95 or p99.
                                                 enum:
                                                 - sum
                                                 - avg
@@ -149,12 +213,20 @@ spec:
                                                 - p99
                                                 type: string
                                               temporality:
+                                                description: 'The temporality of the
+                                                  metric: delta, cumulative or unspecified.
+                                                  Resolved from the metric metadata
+                                                  when omitted.'
                                                 enum:
                                                 - delta
                                                 - cumulative
                                                 - unspecified
                                                 type: string
                                               timeAggregation:
+                                                description: How samples of one series
+                                                  are combined within each step, such
+                                                  as avg, sum, min, max, count, count_distinct,
+                                                  latest, rate or increase.
                                                 enum:
                                                 - latest
                                                 - sum
@@ -168,6 +240,45 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        bucketOptions:
+                                          properties:
+                                            kind:
+                                              description: How the upper bounds are
+                                                spaced.
+                                              enum:
+                                              - linear
+                                              - log
+                                              type: string
+                                            spec:
+                                              properties:
+                                                maxValue:
+                                                  description: The upper bound of
+                                                    the last regular band; values
+                                                    above it are counted in a trailing
+                                                    overflow band.
+                                                  type: number
+                                                numBuckets:
+                                                  description: The number of evenly
+                                                    spaced bands between 0 and maxValue.
+                                                    A default applies when omitted
+                                                    or 0.
+                                                  format: int64
+                                                  type: integer
+                                                scale:
+                                                  description: 'The exponential histogram
+                                                    scale: 2^scale bands per doubling
+                                                    of the value. The maximum supported
+                                                    scale applies when omitted.'
+                                                  format: int64
+                                                  type: integer
+                                              type: object
+                                          required:
+                                          - kind
+                                          - spec
+                                          type: object
+                                          x-kubernetes-validations:
+                                          - message: kind linear requires spec.maxValue
+                                            rule: self.kind != 'linear' || has(self.spec.maxValue)
                                         cursor:
                                           type: string
                                         disabled:
@@ -177,21 +288,49 @@ spec:
                                         filter:
                                           properties:
                                             expression:
+                                              description: 'A filter in the query
+                                                filter syntax: comparisons such as
+                                                =, !=, <, >, IN, LIKE, CONTAINS and
+                                                EXISTS on field names, combined with
+                                                AND, OR and NOT, with string values
+                                                in single quotes, for example key
+                                                = ''value'' AND other_key > 10. Which
+                                                fields exist depends on the signal
+                                                or endpoint the filter is used with.'
                                               type: string
                                           type: object
                                         functions:
                                           items:
                                             properties:
                                               args:
+                                                description: The function arguments;
+                                                  which ones are required depends
+                                                  on the function, for example a threshold
+                                                  for the cutOff and clamp functions.
                                                 items:
                                                   properties:
                                                     name:
+                                                      description: The argument name
+                                                        for functions that take named
+                                                        arguments, such as z_score_threshold
+                                                        or seasonality for anomaly.
                                                       type: string
                                                     value:
+                                                      description: The argument value
+                                                        as a number, string or boolean,
+                                                        for example the threshold
+                                                        for cutOffMin or the duration
+                                                        for timeShift.
                                                       x-kubernetes-preserve-unknown-fields: true
                                                   type: object
                                                 type: array
                                               name:
+                                                description: The function to apply,
+                                                  such as cutOffMin, cutOffMax, clampMin,
+                                                  clampMax, absolute, runningDiff,
+                                                  log2, log10, cumulativeSum, ewma3,
+                                                  ewma5, ewma7, median3, median5,
+                                                  median7, timeShift, anomaly or fillZero.
                                                 enum:
                                                 - cutoffmin
                                                 - cutoffmax
@@ -218,18 +357,30 @@ spec:
                                           items:
                                             properties:
                                               description:
+                                                description: Human-readable summary
+                                                  of the field, present only for well-known
+                                                  fields.
                                                 type: string
                                               fieldContext:
+                                                description: 'Where the field lives:
+                                                  resource, attribute, scope, span,
+                                                  trace, log, body or metric. Empty
+                                                  means unspecified, so the server
+                                                  resolves it.'
                                                 enum:
                                                 - metric
                                                 - log
                                                 - span
                                                 - trace
                                                 - resource
+                                                - scope
                                                 - attribute
                                                 - body
                                                 type: string
                                               fieldDataType:
+                                                description: 'Data type of the field
+                                                  values: string, bool, int64, float64
+                                                  or number. Empty means unspecified.'
                                                 enum:
                                                 - string
                                                 - bool
@@ -238,15 +389,26 @@ spec:
                                                 - number
                                                 type: string
                                               name:
+                                                description: The field name, such
+                                                  as service.name, k8s.pod.name or
+                                                  http.response.status_code. Dots
+                                                  are part of the name, and the names
+                                                  available depend on the signal and
+                                                  the data ingested.
                                                 minLength: 1
                                                 type: string
                                               signal:
+                                                description: 'The signal the field
+                                                  belongs to: traces, logs or metrics.
+                                                  Empty means any signal.'
                                                 enum:
                                                 - traces
                                                 - logs
                                                 - metrics
                                                 type: string
                                               unit:
+                                                description: Unit of the field values,
+                                                  present only for well-known fields.
                                                 type: string
                                             required:
                                             - name
@@ -255,6 +417,10 @@ spec:
                                         having:
                                           properties:
                                             expression:
+                                              description: A condition on aggregation
+                                                results in the filter syntax, referencing
+                                                an alias or expression, for example
+                                                count() > 100.
                                               type: string
                                           type: object
                                         legend:
@@ -263,12 +429,21 @@ spec:
                                           format: int64
                                           type: integer
                                         limitBy:
+                                          description: Reserved for applying limit
+                                            within each combination of the given group-by
+                                            keys. Accepted but currently ignored.
                                           properties:
                                             keys:
+                                              description: The group-by field names
+                                                that partition the result before the
+                                                limit is applied.
                                               items:
                                                 type: string
                                               type: array
                                             value:
+                                              description: The aggregation alias or
+                                                expression whose value ranks entries
+                                                within each partition.
                                               type: string
                                           type: object
                                         name:
@@ -280,25 +455,51 @@ spec:
                                           items:
                                             properties:
                                               direction:
+                                                description: 'The sort direction:
+                                                  asc or desc.'
                                                 enum:
                                                 - asc
                                                 - desc
                                                 type: string
                                               key:
+                                                description: 'The sort key. For aggregation
+                                                  requests name is a group-by field
+                                                  such as service.name, an aggregation
+                                                  alias, or the aggregation expression:
+                                                  count() or p99(duration_nano) for
+                                                  traces and logs; for metrics the
+                                                  spaceAggregation(timeAggregation(metricName))
+                                                  form such as sum(rate(signoz_calls_total)),
+                                                  p99(metricName) for histogram metrics,
+                                                  or __result. Raw requests sort by
+                                                  any field, such as timestamp.'
                                                 properties:
                                                   description:
+                                                    description: Human-readable summary
+                                                      of the field, present only for
+                                                      well-known fields.
                                                     type: string
                                                   fieldContext:
+                                                    description: 'Where the field
+                                                      lives: resource, attribute,
+                                                      scope, span, trace, log, body
+                                                      or metric. Empty means unspecified,
+                                                      so the server resolves it.'
                                                     enum:
                                                     - metric
                                                     - log
                                                     - span
                                                     - trace
                                                     - resource
+                                                    - scope
                                                     - attribute
                                                     - body
                                                     type: string
                                                   fieldDataType:
+                                                    description: 'Data type of the
+                                                      field values: string, bool,
+                                                      int64, float64 or number. Empty
+                                                      means unspecified.'
                                                     enum:
                                                     - string
                                                     - bool
@@ -307,15 +508,27 @@ spec:
                                                     - number
                                                     type: string
                                                   name:
+                                                    description: The field name, such
+                                                      as service.name, k8s.pod.name
+                                                      or http.response.status_code.
+                                                      Dots are part of the name, and
+                                                      the names available depend on
+                                                      the signal and the data ingested.
                                                     minLength: 1
                                                     type: string
                                                   signal:
+                                                    description: 'The signal the field
+                                                      belongs to: traces, logs or
+                                                      metrics. Empty means any signal.'
                                                     enum:
                                                     - traces
                                                     - logs
                                                     - metrics
                                                     type: string
                                                   unit:
+                                                    description: Unit of the field
+                                                      values, present only for well-known
+                                                      fields.
                                                     type: string
                                                 required:
                                                 - name
@@ -325,30 +538,61 @@ spec:
                                         query:
                                           type: string
                                         returnSpansFrom:
+                                          description: The name of the operand query
+                                            whose spans are returned; when empty,
+                                            the spans matched by the whole expression
+                                            are returned.
                                           type: string
                                         secondaryAggregations:
+                                          description: Accepted but currently ignored,
+                                            including their nested order, limit and
+                                            limitBy.
                                           items:
                                             properties:
                                               alias:
+                                                description: The name the aggregation
+                                                  is reported under; when omitted,
+                                                  the result carries the alias __result_N,
+                                                  with N the zero-based index of the
+                                                  aggregation.
                                                 type: string
                                               expression:
+                                                description: The aggregation over
+                                                  the primary results, such as count(),
+                                                  sum(item_price) or countIf(day >
+                                                  10).
                                                 type: string
                                               groupBy:
+                                                description: The fields to group this
+                                                  aggregation by.
                                                 items:
                                                   properties:
                                                     description:
+                                                      description: Human-readable
+                                                        summary of the field, present
+                                                        only for well-known fields.
                                                       type: string
                                                     fieldContext:
+                                                      description: 'Where the field
+                                                        lives: resource, attribute,
+                                                        scope, span, trace, log, body
+                                                        or metric. Empty means unspecified,
+                                                        so the server resolves it.'
                                                       enum:
                                                       - metric
                                                       - log
                                                       - span
                                                       - trace
                                                       - resource
+                                                      - scope
                                                       - attribute
                                                       - body
                                                       type: string
                                                     fieldDataType:
+                                                      description: 'Data type of the
+                                                        field values: string, bool,
+                                                        int64, float64 or number.
+                                                        Empty means unspecified.'
                                                       enum:
                                                       - string
                                                       - bool
@@ -357,55 +601,114 @@ spec:
                                                       - number
                                                       type: string
                                                     name:
+                                                      description: The field name,
+                                                        such as service.name, k8s.pod.name
+                                                        or http.response.status_code.
+                                                        Dots are part of the name,
+                                                        and the names available depend
+                                                        on the signal and the data
+                                                        ingested.
                                                       minLength: 1
                                                       type: string
                                                     signal:
+                                                      description: 'The signal the
+                                                        field belongs to: traces,
+                                                        logs or metrics. Empty means
+                                                        any signal.'
                                                       enum:
                                                       - traces
                                                       - logs
                                                       - metrics
                                                       type: string
                                                     unit:
+                                                      description: Unit of the field
+                                                        values, present only for well-known
+                                                        fields.
                                                       type: string
                                                   required:
                                                   - name
                                                   type: object
                                                 type: array
                                               limit:
+                                                description: The maximum number of
+                                                  groups to return. Unlimited when
+                                                  0.
                                                 format: int64
                                                 type: integer
                                               limitBy:
+                                                description: Applies limit within
+                                                  each distinct combination of the
+                                                  given keys.
                                                 properties:
                                                   keys:
+                                                    description: The group-by field
+                                                      names that partition the result
+                                                      before the limit is applied.
                                                     items:
                                                       type: string
                                                     type: array
                                                   value:
+                                                    description: The aggregation alias
+                                                      or expression whose value ranks
+                                                      entries within each partition.
                                                     type: string
                                                 type: object
                                               order:
+                                                description: The sort order of this
+                                                  aggregation result.
                                                 items:
                                                   properties:
                                                     direction:
+                                                      description: 'The sort direction:
+                                                        asc or desc.'
                                                       enum:
                                                       - asc
                                                       - desc
                                                       type: string
                                                     key:
+                                                      description: 'The sort key.
+                                                        For aggregation requests name
+                                                        is a group-by field such as
+                                                        service.name, an aggregation
+                                                        alias, or the aggregation
+                                                        expression: count() or p99(duration_nano)
+                                                        for traces and logs; for metrics
+                                                        the spaceAggregation(timeAggregation(metricName))
+                                                        form such as sum(rate(signoz_calls_total)),
+                                                        p99(metricName) for histogram
+                                                        metrics, or __result. Raw
+                                                        requests sort by any field,
+                                                        such as timestamp.'
                                                       properties:
                                                         description:
+                                                          description: Human-readable
+                                                            summary of the field,
+                                                            present only for well-known
+                                                            fields.
                                                           type: string
                                                         fieldContext:
+                                                          description: 'Where the
+                                                            field lives: resource,
+                                                            attribute, scope, span,
+                                                            trace, log, body or metric.
+                                                            Empty means unspecified,
+                                                            so the server resolves
+                                                            it.'
                                                           enum:
                                                           - metric
                                                           - log
                                                           - span
                                                           - trace
                                                           - resource
+                                                          - scope
                                                           - attribute
                                                           - body
                                                           type: string
                                                         fieldDataType:
+                                                          description: 'Data type
+                                                            of the field values: string,
+                                                            bool, int64, float64 or
+                                                            number. Empty means unspecified.'
                                                           enum:
                                                           - string
                                                           - bool
@@ -414,15 +717,29 @@ spec:
                                                           - number
                                                           type: string
                                                         name:
+                                                          description: The field name,
+                                                            such as service.name,
+                                                            k8s.pod.name or http.response.status_code.
+                                                            Dots are part of the name,
+                                                            and the names available
+                                                            depend on the signal and
+                                                            the data ingested.
                                                           minLength: 1
                                                           type: string
                                                         signal:
+                                                          description: 'The signal
+                                                            the field belongs to:
+                                                            traces, logs or metrics.
+                                                            Empty means any signal.'
                                                           enum:
                                                           - traces
                                                           - logs
                                                           - metrics
                                                           type: string
                                                         unit:
+                                                          description: Unit of the
+                                                            field values, present
+                                                            only for well-known fields.
                                                           type: string
                                                       required:
                                                       - name
@@ -430,6 +747,10 @@ spec:
                                                   type: object
                                                 type: array
                                               stepInterval:
+                                                description: 'The time bucket for
+                                                  this aggregation: seconds as a number
+                                                  or a Go duration string. Uses the
+                                                  primary aggregation step when omitted.'
                                                 x-kubernetes-preserve-unknown-fields: true
                                             type: object
                                           type: array
@@ -437,18 +758,30 @@ spec:
                                           items:
                                             properties:
                                               description:
+                                                description: Human-readable summary
+                                                  of the field, present only for well-known
+                                                  fields.
                                                 type: string
                                               fieldContext:
+                                                description: 'Where the field lives:
+                                                  resource, attribute, scope, span,
+                                                  trace, log, body or metric. Empty
+                                                  means unspecified, so the server
+                                                  resolves it.'
                                                 enum:
                                                 - metric
                                                 - log
                                                 - span
                                                 - trace
                                                 - resource
+                                                - scope
                                                 - attribute
                                                 - body
                                                 type: string
                                               fieldDataType:
+                                                description: 'Data type of the field
+                                                  values: string, bool, int64, float64
+                                                  or number. Empty means unspecified.'
                                                 enum:
                                                 - string
                                                 - bool
@@ -457,38 +790,69 @@ spec:
                                                 - number
                                                 type: string
                                               name:
+                                                description: The field name, such
+                                                  as service.name, k8s.pod.name or
+                                                  http.response.status_code. Dots
+                                                  are part of the name, and the names
+                                                  available depend on the signal and
+                                                  the data ingested.
                                                 minLength: 1
                                                 type: string
                                               signal:
+                                                description: 'The signal the field
+                                                  belongs to: traces, logs or metrics.
+                                                  Empty means any signal.'
                                                 enum:
                                                 - traces
                                                 - logs
                                                 - metrics
                                                 type: string
                                               unit:
+                                                description: Unit of the field values,
+                                                  present only for well-known fields.
                                                 type: string
                                             required:
                                             - name
                                             type: object
                                           type: array
                                         signal:
+                                          description: 'The telemetry signal to query:
+                                            traces, logs or metrics. It selects the
+                                            aggregation shape and is required for
+                                            builder_query.'
                                           enum:
                                           - traces
                                           - logs
                                           - metrics
                                           type: string
+                                        skipStepAlignment:
+                                          description: When true, start and end are
+                                            evaluated as given instead of rounded
+                                            down to the step, and the result is not
+                                            cached. Defaults to false.
+                                          type: boolean
                                         source:
+                                          description: The data source within the
+                                            signal. Set to meter for Cost Meter metrics;
+                                            leave empty for regular telemetry.
                                           enum:
                                           - meter
                                           type: string
                                         stats:
+                                          description: Reserved; currently has no
+                                            effect.
                                           type: boolean
                                         step:
+                                          description: 'The evaluation step: seconds
+                                            as a number or a Go duration string such
+                                            as 60s. Derived from the time range when
+                                            omitted.'
                                           x-kubernetes-preserve-unknown-fields: true
                                         stepInterval:
                                           x-kubernetes-preserve-unknown-fields: true
                                       type: object
                                     type:
+                                      description: The type of the query.
                                       enum:
                                       - builder_query
                                       - builder_ai_query
@@ -509,12 +873,17 @@ spec:
                                       || has(self.spec.signal)
                                 type: array
                               queryType:
+                                description: 'The query language of every query: builder,
+                                  promql or clickhouse_sql.'
                                 enum:
                                 - builder
                                 - clickhouse_sql
                                 - promql
                                 type: string
                               unit:
+                                description: The unit of the query result, such as
+                                  percent, ms or bytes. Used to format values in notifications
+                                  and to convert thresholds given in a different targetUnit.
                                 type: string
                             required:
                             - panelType
@@ -522,33 +891,60 @@ spec:
                             - queryType
                             type: object
                           requireMinPoints:
+                            description: Whether a series is skipped until it has
+                              at least requiredNumPoints points in the window. Defaults
+                              to false.
                             type: boolean
                           requiredNumPoints:
+                            description: The minimum number of points a series needs
+                              before it is evaluated. Must be greater than 0 when
+                              requireMinPoints is true.
                             format: int64
                             type: integer
                           seasonality:
+                            description: 'anomaly_rule only: the seasonal period the
+                              history is compared against, hourly, daily or weekly.'
                             enum:
                             - hourly
                             - daily
                             - weekly
                             type: string
                           selectedQueryName:
+                            description: The name of the query whose result is evaluated,
+                              such as A or F1. Must match a query in compositeQuery.
+                              When omitted, F1 is used if present, otherwise the enabled
+                              query with the highest name.
                             minLength: 1
                             type: string
                           thresholds:
+                            description: The thresholds to evaluate, as a kind and
+                              spec. Required when schemaVersion is v2alpha1; derived
+                              from op, target and matchType for v1.
                             properties:
                               kind:
+                                description: The kind of threshold.
                                 enum:
                                 - basic
                                 type: string
                               spec:
+                                description: The basic threshold specification (array
+                                  of thresholds).
                                 items:
                                   properties:
                                     channels:
+                                      description: The displayName of each notification
+                                        channel alerts crossing this threshold are
+                                        sent to. Ignored when notificationSettings.usePolicy
+                                        is true.
                                       items:
                                         type: string
                                       type: array
                                     matchType:
+                                      description: Which points in the window must
+                                        satisfy op. Accepted as at_least_once, all_the_times,
+                                        on_average, in_total or last, their aliases
+                                        avg and sum, or the legacy codes as strings,
+                                        '1' to '5'.
                                       enum:
                                       - at_least_once
                                       - all_the_times
@@ -557,9 +953,19 @@ spec:
                                       - last
                                       type: string
                                     name:
+                                      description: The threshold name, conventionally
+                                        critical, error, warning or info. Alerts carry
+                                        it as the threshold.name label and, lowercased,
+                                        as the severity label; templates can read
+                                        it as $threshold.name.
                                       minLength: 1
                                       type: string
                                     op:
+                                      description: How the value is compared with
+                                        target. Accepted as above, below, equal, not_equal,
+                                        above_or_equal, below_or_equal or outside_bounds,
+                                        their symbols, or the legacy codes as strings,
+                                        '1' to '7'.
                                       enum:
                                       - above
                                       - below
@@ -570,10 +976,20 @@ spec:
                                       - outside_bounds
                                       type: string
                                     recoveryTarget:
+                                      description: The value at which a firing alert
+                                        resolves, in targetUnit. Keeps an alert firing
+                                        between target and recoveryTarget to avoid
+                                        flapping; null resolves at target.
                                       type: number
                                     target:
+                                      description: The value the query result is compared
+                                        against, in targetUnit.
                                       type: number
                                     targetUnit:
+                                      description: The unit of target and recoveryTarget,
+                                        such as percent or ms. Converted to the query
+                                        unit before comparison when the two differ;
+                                        empty means the query unit.
                                       type: string
                                   required:
                                   - matchType
@@ -592,12 +1008,20 @@ spec:
                         - thresholds
                         type: object
                       description:
+                        description: A human readable description of what the rule
+                          monitors.
                         type: string
                       disabled:
+                        description: Whether the rule is paused. A disabled rule is
+                          neither evaluated nor notifies. Defaults to false.
                         type: boolean
                       evaluation:
+                        description: The evaluation window, as a kind and spec. Required
+                          when schemaVersion is v2alpha1; derived from evalWindow
+                          and frequency for v1.
                         properties:
                           kind:
+                            description: The kind of evaluation.
                             enum:
                             - rolling
                             - cumulative
@@ -605,21 +1029,36 @@ spec:
                           spec:
                             properties:
                               evalWindow:
+                                description: The sliding lookback window each evaluation
+                                  queries, as a Go duration such as 5m.
                                 type: string
                               frequency:
+                                description: How often the rule is evaluated, as a
+                                  Go duration such as 1m. Must be positive.
                                 type: string
                               schedule:
+                                description: The boundary the accumulation window
+                                  starts from. Each evaluation queries from the most
+                                  recent boundary to now.
                                 properties:
                                   day:
+                                    description: The day of the month of the reset
+                                      boundary, 1 to 31. Required for monthly.
                                     format: int64
                                     type: integer
                                   hour:
+                                    description: The hour of the reset boundary, 0
+                                      to 23. Required for daily, weekly and monthly.
                                     format: int64
                                     type: integer
                                   minute:
+                                    description: The minute of the reset boundary,
+                                      0 to 59. Required for every type.
                                     format: int64
                                     type: integer
                                   type:
+                                    description: 'How often the window resets: hourly,
+                                      daily, weekly or monthly.'
                                     enum:
                                     - hourly
                                     - daily
@@ -627,12 +1066,16 @@ spec:
                                     - monthly
                                     type: string
                                   weekday:
+                                    description: The weekday of the reset boundary,
+                                      0 (Sunday) to 6 (Saturday). Required for weekly.
                                     format: int64
                                     type: integer
                                 required:
                                 - type
                                 type: object
                               timezone:
+                                description: The IANA time zone the schedule is resolved
+                                  in, such as UTC or Asia/Kolkata.
                                 type: string
                             type: object
                         required:
@@ -650,36 +1093,71 @@ spec:
                       labels:
                         additionalProperties:
                           type: string
+                        description: Labels attached to every alert the rule fires.
+                          Keys match [a-zA-Z_.][a-zA-Z0-9_.]*; values may use Go templates
+                          such as {{ "{{" }}$labels.service_name{{ "}}" }}. severity is the conventional
+                          routing label.
                         type: object
                       notificationSettings:
+                        description: Grouping, re-notification and routing behaviour.
+                          Required when schemaVersion is v2alpha1; derived from the
+                          v1 fields otherwise.
                         properties:
                           groupBy:
+                            description: Label names whose values group alerts into
+                              one notification, such as service.name.
                             items:
                               type: string
                             type: array
                           newGroupEvalDelay:
+                            description: A grace period, as a Go duration such as
+                              2m, during which a newly seen label group is excluded
+                              from evaluation. Applies to metric rules only; log and
+                              trace rules are never delayed. A group whose values
+                              are not yet known is evaluated immediately.
                             type: string
                           renotify:
+                            description: Whether and how often to re-send a notification
+                              for an alert that stays active.
                             properties:
                               alertStates:
+                                description: 'The alert states that are re-notified:
+                                  firing, nodata or both.'
                                 items:
                                   type: string
                                 type: array
                               enabled:
+                                description: Whether an active alert is re-sent after
+                                  interval elapses. When false an alert notifies once
+                                  per firing.
                                 type: boolean
                               interval:
+                                description: The time between repeat notifications,
+                                  as a Go duration such as 4h. Must be positive when
+                                  enabled is true.
                                 type: string
                             type: object
                           usePolicy:
+                            description: When true, alerts are routed by the organisation
+                              level notification policies instead of the channels
+                              named on the thresholds. Defaults to false.
                             type: boolean
                         type: object
                       ruleType:
+                        description: 'The evaluation strategy: threshold_rule compares
+                          against thresholds, promql_rule evaluates a PromQL expression,
+                          anomaly_rule scores deviation from seasonal history. Defaults
+                          to threshold_rule for builder queries and is forced to promql_rule
+                          for promql queries.'
                         enum:
                         - threshold_rule
                         - promql_rule
                         - anomaly_rule
                         type: string
                       schemaVersion:
+                        description: 'The rule payload schema: v1 (the default when
+                          omitted) uses the flat condition fields, v2alpha1 uses condition.thresholds,
+                          evaluation and notificationSettings.'
                         enum:
                         - v2alpha1
                         type: string
