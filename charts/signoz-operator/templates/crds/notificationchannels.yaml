@@ -1,0 +1,555 @@
+{{- if .Values.crds.install }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+    {{- include "signoz-operator.crdAnnotations" . | nindent 4 }}
+  name: notificationchannels.resources.signoz.io
+  labels:
+    {{- include "signoz-operator.crdLabels" . | nindent 4 }}
+spec:
+  group: resources.signoz.io
+  names:
+    kind: NotificationChannel
+    listKind: NotificationChannelList
+    plural: notificationchannels
+    singular: notificationchannel
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].reason
+      name: Reason
+      type: string
+    - jsonPath: .status.signozResource.id
+      name: ID
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              interval:
+                description: |-
+                  Interval is the steady-state cadence at which the resource is re-checked
+                  against SigNoz. Omitted, it falls back to the operator-wide default.
+                pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                type: string
+              objectTemplate:
+                maxProperties: 1
+                minProperties: 1
+                properties:
+                  jsonSpec:
+                    minLength: 1
+                    type: string
+                  spec:
+                    properties:
+                      config:
+                        description: The provider kind and its spec.
+                        properties:
+                          kind:
+                            description: The channel provider kind this variant accepts.
+                            enum:
+                            - slack
+                            - email
+                            - webhook
+                            - pagerduty
+                            - opsgenie
+                            - msteams
+                            - googlechat
+                            - jira
+                            - jsmops
+                            - incidentio
+                            - telegram
+                            type: string
+                          spec:
+                            description: The provider-specific configuration for this
+                              kind.
+                            properties:
+                              actions:
+                                description: Attachment buttons; each requires type
+                                  and text plus url or name.
+                                items:
+                                  properties:
+                                    confirm:
+                                      description: A confirmation dialog shown before
+                                        the action runs.
+                                      properties:
+                                        dismissText:
+                                          description: The label of the cancel button.
+                                          type: string
+                                        okText:
+                                          description: The label of the confirm button.
+                                          type: string
+                                        text:
+                                          description: The dialog body.
+                                          minLength: 1
+                                          type: string
+                                        title:
+                                          description: The dialog title.
+                                          type: string
+                                      required:
+                                      - text
+                                      type: object
+                                    name:
+                                      description: The action name Slack posts back
+                                        for a message button; required unless url
+                                        is set.
+                                      type: string
+                                    style:
+                                      description: 'The button style: default, primary
+                                        or danger.'
+                                      type: string
+                                    text:
+                                      description: The button label.
+                                      minLength: 1
+                                      type: string
+                                    type:
+                                      description: The Slack action type, normally
+                                        button.
+                                      minLength: 1
+                                      type: string
+                                    url:
+                                      description: The link the button opens; required
+                                        unless name is set.
+                                      type: string
+                                    value:
+                                      description: The value Slack posts back with
+                                        a message button.
+                                      type: string
+                                  required:
+                                  - text
+                                  - type
+                                  type: object
+                                type: array
+                              apiKey:
+                                type: string
+                              apiToken:
+                                description: The Atlassian API token paired with email.
+                                  A secret; returned by create, update and fetch by
+                                  ID, never by list.
+                                type: string
+                              apiUrl:
+                                type: string
+                              bearerToken:
+                                description: The bearer token sent in the Authorization
+                                  header; cannot be combined with username or password.
+                                type: string
+                              botToken:
+                                type: string
+                              channel:
+                                description: 'The channel or user to post to, such
+                                  as #alerts; empty uses the webhook default.'
+                                type: string
+                              chatId:
+                                format: int64
+                                type: integer
+                              class:
+                                description: The class or type of the event.
+                                type: string
+                              client:
+                                description: Alertmanager template for the client
+                                  identifier; defaults to the Alertmanager PagerDuty
+                                  default.
+                                type: string
+                              clientUrl:
+                                description: Alertmanager template for the client
+                                  URL; defaults to the Alertmanager PagerDuty default.
+                                type: string
+                              color:
+                                description: Alertmanager template for the attachment
+                                  color; defaults to the Alertmanager Slack default.
+                                type: string
+                              component:
+                                description: The component of the source machine that
+                                  is responsible for the event.
+                                type: string
+                              customFields:
+                                description: Extra issue fields keyed by Jira field
+                                  ID. Stored, but not currently included in the issue
+                                  Jira receives.
+                                x-kubernetes-preserve-unknown-fields: true
+                              description:
+                                type: string
+                              details:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              disableNotifications:
+                                type: boolean
+                              email:
+                                description: The Atlassian account email used for
+                                  basic auth.
+                                type: string
+                              fallback:
+                                description: Alertmanager template for the plain-text
+                                  summary shown where attachments cannot render; defaults
+                                  to the Alertmanager Slack default.
+                                type: string
+                              fields:
+                                description: Attachment fields appended to the message;
+                                  each requires title and value.
+                                items:
+                                  properties:
+                                    short:
+                                      description: Render the field side by side with
+                                        other short fields.
+                                      type: boolean
+                                    title:
+                                      description: The field title.
+                                      minLength: 1
+                                      type: string
+                                    value:
+                                      description: The field value; an Alertmanager
+                                        template.
+                                      minLength: 1
+                                      type: string
+                                  required:
+                                  - title
+                                  - value
+                                  type: object
+                                type: array
+                              footer:
+                                description: Alertmanager template for the attachment
+                                  footer; defaults to the Alertmanager Slack default.
+                                type: string
+                              group:
+                                description: The logical grouping of components the
+                                  event belongs to.
+                                type: string
+                              headers:
+                                additionalProperties:
+                                  type: string
+                                description: Extra SMTP headers keyed by canonical
+                                  MIME header name, such as Subject.
+                                type: object
+                              html:
+                                description: Alertmanager template for the HTML body;
+                                  defaults to the Alertmanager email default.
+                                type: string
+                              issueType:
+                                description: The issue type name, such as Bug.
+                                type: string
+                              labels:
+                                description: Labels added to every issue.
+                                items:
+                                  type: string
+                                type: array
+                              message:
+                                type: string
+                              messageThreadId:
+                                format: int64
+                                type: integer
+                              metadata:
+                                additionalProperties:
+                                  type: string
+                                description: Extra event metadata keyed by name, merged
+                                  over the group's common labels; values are Alertmanager
+                                  templates.
+                                type: object
+                              password:
+                                description: The basic auth password; cannot be combined
+                                  with bearerToken.
+                                type: string
+                              pretext:
+                                description: Alertmanager template for the text shown
+                                  above the attachment; defaults to the Alertmanager
+                                  Slack default.
+                                type: string
+                              priority:
+                                type: string
+                              project:
+                                description: The key of the project issues are created
+                                  in.
+                                type: string
+                              reopenDuration:
+                                description: How long after resolution a firing alert
+                                  reopens the issue instead of creating a new one,
+                                  as a Prometheus duration in canonical form such
+                                  as 3d; defaults to 3d.
+                                type: string
+                              reopenTransition:
+                                description: The transition applied when an alert
+                                  fires again on a resolved issue.
+                                type: string
+                              resolveTransition:
+                                description: The transition applied to the issue when
+                                  the alert resolves.
+                                type: string
+                              routingKey:
+                                description: The Events API v2 integration key. A
+                                  secret; returned by create, update and fetch by
+                                  ID, never by list.
+                                type: string
+                              sendResolved:
+                                type: boolean
+                              severity:
+                                description: 'The incident severity: critical, error,
+                                  warning or info.'
+                                type: string
+                              site:
+                                description: The base URL of the Jira Cloud site,
+                                  for example https://example.atlassian.net. Only
+                                  Jira Cloud is supported.
+                                type: string
+                              source:
+                                type: string
+                              summary:
+                                description: Alertmanager template for the issue summary;
+                                  defaults to the SigNoz Jira default.
+                                type: string
+                              tags:
+                                description: Comma-separated tags attached to the
+                                  alert; defaults to signoz.
+                                type: string
+                              text:
+                                type: string
+                              title:
+                                type: string
+                              titleLink:
+                                description: Alertmanager template for the link the
+                                  title opens; defaults to the Alertmanager Slack
+                                  default.
+                                type: string
+                              to:
+                                description: The recipient addresses, comma separated.
+                                type: string
+                              token:
+                                description: The alert source secret token, without
+                                  the Bearer prefix. A secret; returned by create,
+                                  update and fetch by ID, never by list.
+                                type: string
+                              url:
+                                type: string
+                              username:
+                                description: The basic auth user; cannot be combined
+                                  with bearerToken.
+                                type: string
+                              webhookUrl:
+                                type: string
+                              wontFixResolution:
+                                description: The resolution name that stops an issue
+                                  from being reopened.
+                                type: string
+                            type: object
+                        required:
+                        - kind
+                        - spec
+                        type: object
+                        x-kubernetes-validations:
+                        - message: kind slack requires spec.apiUrl
+                          rule: self.kind != 'slack' || has(self.spec.apiUrl)
+                        - message: kind email requires spec.to
+                          rule: self.kind != 'email' || has(self.spec.to)
+                        - message: kind webhook requires spec.url
+                          rule: self.kind != 'webhook' || has(self.spec.url)
+                        - message: kind pagerduty requires spec.routingKey
+                          rule: self.kind != 'pagerduty' || has(self.spec.routingKey)
+                        - message: kind opsgenie requires spec.apiKey
+                          rule: self.kind != 'opsgenie' || has(self.spec.apiKey)
+                        - message: kind msteams requires spec.webhookUrl
+                          rule: self.kind != 'msteams' || has(self.spec.webhookUrl)
+                        - message: kind googlechat requires spec.webhookUrl
+                          rule: self.kind != 'googlechat' || has(self.spec.webhookUrl)
+                        - message: kind jira requires spec.site, spec.project, spec.issueType,
+                            spec.email, spec.apiToken
+                          rule: self.kind != 'jira' || (has(self.spec.site) && has(self.spec.project)
+                            && has(self.spec.issueType) && has(self.spec.email) &&
+                            has(self.spec.apiToken))
+                        - message: kind jsmops requires spec.apiKey
+                          rule: self.kind != 'jsmops' || has(self.spec.apiKey)
+                        - message: kind incidentio requires spec.url, spec.token
+                          rule: self.kind != 'incidentio' || (has(self.spec.url) &&
+                            has(self.spec.token))
+                        - message: kind telegram requires spec.botToken, spec.chatId
+                          rule: self.kind != 'telegram' || (has(self.spec.botToken)
+                            && has(self.spec.chatId))
+                      displayName:
+                        description: The label shown in the UI. Alert rules and routing
+                          policies reference it, not name. Defaults to name; required
+                          when generateName is true.
+                        type: string
+                      name:
+                        description: The immutable DNS-1123 identifier of the channel
+                          (lowercase letters, digits and hyphens, at most 63 characters).
+                          Required unless generateName is true, in which case it must
+                          be empty. Alert rules and routing policies reference displayName,
+                          not name.
+                        type: string
+                    required:
+                    - config
+                    type: object
+                type: object
+              providerConfigRef:
+                description: |-
+                  ProviderConfigRef names the SigNoz backend to write through, resolved in
+                  the resource's own namespace unless its kind is ClusterProviderConfig.
+                properties:
+                  kind:
+                    default: ProviderConfig
+                    enum:
+                    - ProviderConfig
+                    - ClusterProviderConfig
+                    type: string
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+              reclaimPolicy:
+                default: Delete
+                description: |-
+                  ReclaimPolicy controls what happens in SigNoz when this custom resource is
+                  deleted. Defaults to Delete.
+                enum:
+                - Delete
+                - Orphan
+                type: string
+              retryInterval:
+                description: |-
+                  RetryInterval is the cadence at which a Recoverable failure is retried.
+                  Omitted, it falls back to Interval, then to the operator-wide default.
+                pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                type: string
+              suspend:
+                description: |-
+                  Suspend stops reconciling this resource without changing or deleting
+                  anything in SigNoz.
+                type: boolean
+              timeout:
+                description: |-
+                  Timeout bounds a single reconciliation attempt, including the HTTP calls
+                  to SigNoz. Omitted, it falls back to the operator-wide default.
+                pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                type: string
+            required:
+            - objectTemplate
+            - providerConfigRef
+            type: object
+          status:
+            properties:
+              conditions:
+                description: |-
+                  Conditions report the reconcile outcome. The type vocabulary is fixed and
+                  shared across kinds; per-kind detail lives in reason and message.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: ObservedGeneration is the metadata.generation the operator
+                  last reconciled.
+                format: int64
+                type: integer
+              observedHash:
+                description: |-
+                  ObservedHash is a hash of the last body the operator sent to SigNoz. It is
+                  an optimisation that lets a reconcile skip the remote fetch when desired
+                  state is unchanged, never the drift mechanism.
+                type: string
+              reconciledAt:
+                description: |-
+                  ReconciledAt is when the operator last reconciled the resource against
+                  SigNoz.
+                format: date-time
+                type: string
+              signozResource:
+                description: |-
+                  SigNozResource records the object's identity in SigNoz. Its ID is
+                  empty until a create or lookup confirms it. It is a cache, not the source
+                  of truth for identity: if lost, the next reconcile re-discovers it.
+                properties:
+                  id:
+                    description: |-
+                      ID is the identifier SigNoz assigned, set once the operator has created or
+                      adopted the remote object.
+                    type: string
+                type: object
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+{{- end }}
