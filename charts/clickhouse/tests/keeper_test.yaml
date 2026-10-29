@@ -1,0 +1,196 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: keeper_test.yaml
+templates:
+  - templates/keeper/statefulset.yaml
+  - templates/keeper/configmap.yaml
+  - templates/keeper/service.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: should render nothing when keeper.enabled=false (the default)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render one StatefulSet when enabled
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StatefulSet
+
+  - it: should render one ConfigMap when enabled
+    template: templates/keeper/configmap.yaml
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+
+  - it: should render both the headless and the client Service when enabled
+    template: templates/keeper/service.yaml
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  - it: should default to 3 replicas so the quorum tolerates one loss
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+      - equal:
+          path: spec.serviceName
+          value: clickhouse-clickhouse-keeper-headless
+
+  - it: should reuse the ClickHouse image, which already contains clickhouse-keeper
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+      image:
+        registry: docker.io
+        repository: clickhouse/clickhouse-server
+        tag: 24.1.2-alpine
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/clickhouse/clickhouse-server:24.1.2-alpine
+
+  - it: should allow decoupling the keeper image from the ClickHouse image
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+        image:
+          registry: ghcr.io
+          repository: example/clickhouse-keeper
+          tag: "25.1"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/example/clickhouse-keeper:25.1
+
+  - it: should run as the clickhouse uid and not as root
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 101
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 101
+
+  - it: should create a data volumeClaimTemplate when persistence is enabled
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+        persistence:
+          enabled: true
+          size: 8Gi
+          storageClass: gp3
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].metadata.name
+          value: data
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 8Gi
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+          value: gp3
+
+  - it: should fall back to an emptyDir when persistence is disabled
+    template: templates/keeper/statefulset.yaml
+    set:
+      keeper:
+        enabled: true
+        persistence:
+          enabled: false
+    asserts:
+      - isNull:
+          path: spec.volumeClaimTemplates
+      - contains:
+          path: spec.template.spec.volumes
+          count: 1
+          content:
+            name: data
+            emptyDir: {}
+
+  # publishNotReadyAddresses is load-bearing: members must reach each other to
+  # form the initial quorum, and none is Ready until that quorum exists.
+  - it: should publish not-ready addresses on the headless service
+    template: templates/keeper/service.yaml
+    documentIndex: 0
+    set:
+      keeper:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - equal:
+          path: spec.publishNotReadyAddresses
+          value: true
+
+  - it: should list one raft member per replica with ordinal-derived ids
+    template: templates/keeper/configmap.yaml
+    set:
+      keeper:
+        enabled: true
+        replicaCount: 3
+    asserts:
+      - matchRegex:
+          path: data["keeper_config.xml"]
+          pattern: "<id>1</id>\\s*<hostname>clickhouse-clickhouse-keeper-0\\.clickhouse-clickhouse-keeper-headless</hostname>"
+      - matchRegex:
+          path: data["keeper_config.xml"]
+          pattern: "<id>3</id>\\s*<hostname>clickhouse-clickhouse-keeper-2\\.clickhouse-clickhouse-keeper-headless</hostname>"
+      # server_id cannot be templated per-pod, so it comes from the environment.
+      - matchRegex:
+          path: data["keeper_config.xml"]
+          pattern: '<server_id from_env="KEEPER_SERVER_ID" />'
+
+  - it: should scale the raft configuration with replicaCount
+    template: templates/keeper/configmap.yaml
+    set:
+      keeper:
+        enabled: true
+        replicaCount: 5
+    asserts:
+      - matchRegex:
+          path: data["keeper_config.xml"]
+          pattern: "<id>5</id>"
+
+  - it: should omit the prometheus block when metrics are disabled
+    template: templates/keeper/configmap.yaml
+    set:
+      keeper:
+        enabled: true
+        metrics:
+          enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["keeper_config.xml"]
+          pattern: "<prometheus>"
