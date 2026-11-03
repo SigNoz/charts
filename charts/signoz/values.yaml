@@ -1679,7 +1679,7 @@ otelCollector:
           cache_read: signoz.gen_ai.usage.cache_read.input_tokens.cost
           cache_write: signoz.gen_ai.usage.cache_write.input_tokens.cost
           total: signoz.gen_ai.usage.tokens.cost
-      # Logs normalizer, present in signoz-otel-collector 0.144.13 and later. Drop it when pinning an older collector.
+      # Logs normalizer, present in signoz-otel-collector 0.144.15 and later. Drop it when pinning an older collector.
       signozlogsnormalizer: {}
       filter/drop_stale:
         error_mode: ignore
