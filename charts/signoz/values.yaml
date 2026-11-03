@@ -1679,6 +1679,18 @@ otelCollector:
           cache_read: signoz.gen_ai.usage.cache_read.input_tokens.cost
           cache_write: signoz.gen_ai.usage.cache_write.input_tokens.cost
           total: signoz.gen_ai.usage.tokens.cost
+      filter/drop_stale:
+        error_mode: ignore
+        logs:
+          log_record:
+            - time_unix_nano != 0 and time < Now() - Duration("360h")
+            - time_unix_nano == 0 and observed_time_unix_nano != 0 and observed_time < Now() - Duration("360h")
+        metrics:
+          datapoint:
+            - time_unix_nano != 0 and time < Now() - Duration("360h")
+        traces:
+          span:
+            - start_time_unix_nano != 0 and start_time < Now() - Duration("360h")
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -1718,15 +1730,15 @@ otelCollector:
       pipelines:
         traces:
           receivers: [otlp, jaeger]
-          processors: [signozspanmetrics/delta, signozspanmapper, signozllmpricing, batch]
+          processors: [signozspanmetrics/delta, signozspanmapper, signozllmpricing, filter/drop_stale, batch]
           exporters: [clickhousetraces, metadataexporter, signozmeter]
         metrics:
           receivers: [otlp]
-          processors: [batch]
+          processors: [filter/drop_stale, batch]
           exporters: [metadataexporter, signozclickhousemetrics, signozmeter]
         logs:
           receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
-          processors: [batch]
+          processors: [filter/drop_stale, batch]
           exporters: [clickhouselogsexporter, metadataexporter, signozmeter]
         metrics/meter:
           receivers: [signozmeter]
