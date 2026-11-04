@@ -763,8 +763,16 @@ clickhouseOperator:
 
   # ClickHouse Operator configuration files
   configs:
-    # -- ClickHouse Operator confd files
+    # -- Replaces the default ClickHouse Operator root configuration files when set
+    etcFiles: null
+    # -- Adds ClickHouse Operator confd files when set
     confdFiles: null
+    # -- Replaces the default ClickHouse common configuration files when set
+    configdFiles: null
+    # -- Replaces the default ClickHouse installation template files when set
+    templatesdFiles: null
+    # -- Replaces the default ClickHouse user configuration files when set
+    usersdFiles: null
 
   serviceMonitor:
     # serviceMonitor.enabled -- ServiceMonitor Custom resource is created for a [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator)

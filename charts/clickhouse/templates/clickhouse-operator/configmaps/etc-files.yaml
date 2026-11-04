@@ -1,3 +1,4 @@
+{{- $files := dig "configs" "etcFiles" nil .Values.clickhouseOperator -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +7,14 @@ metadata:
   labels:
     {{- include "clickhouseOperator.labels" . | nindent 4 }}
 data:
+{{- if ne $files nil }}
+{{- range $name, $contents := $files }}
+{{- if not (kindIs "string" $contents) }}
+{{- fail (printf "clickhouseOperator.configs.etcFiles.%s must be a string" $name) }}
+{{- end }}
+  {{ $name }}: {{ tpl ($contents | toString) $ | toYaml | nindent 4 }}
+{{- end }}
+{{- else }}
   config.yaml: |
       #
       # Template parameters available:
@@ -286,3 +295,4 @@ data:
         stderrthreshold: ""
         vmodule: ""
         log_backtrace_at: ""
+{{- end }}
