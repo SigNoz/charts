@@ -6,6 +6,7 @@ delete-namespace:
 
 add-repository:
 	helm repo add --force-update signoz https://charts.signoz.io
+	helm repo add --force-update altinity https://helm.altinity.com
 
 update-repository:
 	helm repo update

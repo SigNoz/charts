@@ -1,4 +1,5 @@
-{{- if .Values.installCustomStorageClass -}}
+{{- if .Values.clickhouse.enabled }}
+{{- if .Values.clickhouse.installCustomStorageClass -}}
 
 {{- if hasPrefix "gcp" .Values.global.cloud -}}
 #
@@ -30,4 +31,5 @@ parameters:
 reclaimPolicy: Retain
 allowVolumeExpansion: true
 {{- end -}}
+{{- end }}
 {{- end }}

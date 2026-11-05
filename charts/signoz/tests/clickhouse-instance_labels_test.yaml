@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse-instance_labels_test.yaml
+templates:
+  - templates/clickhouse/clickhouse-instance.yaml
+release:
+  name: clickhouse
+  namespace: signoz
+tests:
+  - it: pod template carries no chart label
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].metadata.labels["helm.sh/chart"]
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+  - it: pod template version label follows the image tag (25.12.5)
+    set:
+      clickhouse.image.tag: 25.12.5
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/version"]
+          value: "25.12.5"
+  - it: pod template version label follows the image tag (24.1.2-alpine)
+    set:
+      clickhouse.image.tag: 24.1.2-alpine
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/version"]
+          value: "24.1.2-alpine"
+  - it: pod template keeps the selector labels
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/name"]
+          value: clickhouse
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/instance"]
+          value: clickhouse
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/component"]
+          value: clickhouse
+  - it: CHI metadata carries the chart label
+    set:
+      clickhouse.image.tag: 25.12.5
+    asserts:
+      - matchRegex:
+          path: metadata.labels["helm.sh/chart"]
+          pattern: ^signoz-
+      - equal:
+          path: metadata.labels["app.kubernetes.io/version"]
+          value: "25.12.5"
+  - it: user podLabels are added
+    set:
+      clickhouse.podLabels:
+        team: db
+    asserts:
+      - isSubset:
+          path: spec.templates.podTemplates[0].metadata.labels
+          content:
+            team: db
