@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: operator-subchart_test.yaml
+templates:
+  - charts/altinity-clickhouse-operator/templates/generated/*.yaml
+release:
+  name: signoz
+  namespace: platform
+tests:
+  - it: should give the operator a namespaced Role under the operator's name
+    template: charts/altinity-clickhouse-operator/templates/generated/Role-clickhouse-operator.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: signoz-clickhouse-operator
+  - it: should not render a ClusterRole for the operator
+    template: charts/altinity-clickhouse-operator/templates/generated/ClusterRole-clickhouse-operator-kube-system.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should keep the operator Deployment name, labels and SigNoz scrape annotations
+    template: charts/altinity-clickhouse-operator/templates/generated/Deployment-clickhouse-operator.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: signoz-clickhouse-operator
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: clickhouse-operator
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: operator
+      - equal:
+          path: spec.template.metadata.annotations["signoz.io/port"]
+          value: "8888"
+      - notExists:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "altinity-clickhouse-operator")].image
+          value: altinity/clickhouse-operator:0.27.4
+  - it: should render no operator objects (Deployment included) when the operator is not installed
+    set:
+      altinity-clickhouse-operator.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -1,0 +1,13 @@
+{{- /*
+Values keys that no longer do anything at these paths (removed, or moved to a new path).
+Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
+*/ -}}
+{{- if hasKey (.Values.clickhouse | default dict) "clickhouseOperator" }}
+{{- fail "`clickhouse.clickhouseOperator` is no longer a supported value. The operator is installed from Altinity's chart; its settings live at `altinity-clickhouse-operator.*` (top level, Altinity's keys); `altinity-clickhouse-operator.enabled: false` skips it." }}
+{{- end }}
+{{- if hasKey (.Values.clickhouse | default dict) "altinity-clickhouse-operator" }}
+{{- fail "operator values moved from `clickhouse.altinity-clickhouse-operator.*` to `altinity-clickhouse-operator.*` (top level)." }}
+{{- end }}
+{{- if hasKey (.Values.clickhouse | default dict) "zookeeper" }}
+{{- fail "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
+{{- end }}
