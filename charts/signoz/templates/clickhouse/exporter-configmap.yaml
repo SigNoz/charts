@@ -1,0 +1,14 @@
+{{- if .Values.clickhouse.enabled }}
+{{- if .Values.clickhouse.logs.system.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouse.fullname" . }}-logs-system-config
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    {{- toYaml .Values.clickhouse.logs.system.config | nindent 4 }}
+{{- end }}
+{{- end }}

@@ -1,16 +1,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: clickhouse-instance_volume_test.yaml
 templates:
-  - templates/clickhouse-instance/clickhouse-instance.yaml
+  - templates/clickhouse/clickhouse-instance.yaml
 release:
   name: clickhouse
   namespace: signoz
 tests:
   - it: should have 3 volumes with persistence.enabled=true
     set:
-      persistence:
-        enabled: true
-        size: 10Gi
+      clickhouse:
+        persistence:
+          enabled: true
+          size: 10Gi
     asserts:
       - contains:
           path: spec.templates.podTemplates[0].spec.volumes
@@ -34,14 +35,15 @@ tests:
               name: clickhouse-scripts
   - it: should have 3 volumes with persistence.enabled=false and templates.volumeClaimTemplates not empty
     set:
-      persistence:
-        enabled: false
-      templates:
-        volumeClaimTemplates:
-          - name: does-not-matter
-            resources:
-              requests:
-                storage: 1Gi
+      clickhouse:
+        persistence:
+          enabled: false
+        templates:
+          volumeClaimTemplates:
+            - name: does-not-matter
+              resources:
+                requests:
+                  storage: 1Gi
     asserts:
       - contains:
           path: spec.templates.podTemplates[0].spec.volumes
@@ -65,9 +67,10 @@ tests:
               name: clickhouse-scripts
   - it: should have data-volumeclaim-template when persistence.enabled=true
     set:
-      persistence:
-        enabled: true
-        size: 10Gi
+      clickhouse:
+        persistence:
+          enabled: true
+          size: 10Gi
     asserts:
       - contains: 
           path: spec.templates.volumeClaimTemplates
@@ -89,13 +92,14 @@ tests:
             mountPath: /var/lib/clickhouse
   - it: should have data-volumeclaim-template when persistence.enabled=true and templates.volumeClaimTemplates is not empty
     set:
-      persistence:
-        enabled: true
-        size: 10Gi
-        storageClass: storage-class
-      templates:
-        volumeClaimTemplates:
-          - name: does-not-matter
+      clickhouse:
+        persistence:
+          enabled: true
+          size: 10Gi
+          storageClass: storage-class
+        templates:
+          volumeClaimTemplates:
+            - name: does-not-matter
     asserts:
       - contains: 
           path: spec.templates.volumeClaimTemplates
@@ -118,20 +122,21 @@ tests:
             mountPath: /var/lib/clickhouse
   - it: should be same as persistence.enabled=false with templates.volumeClaimTemplates and additionalVolumeMounts
     set:
-      persistence:
-        enabled: false
-      templates:
-        volumeClaimTemplates:
-          - name: data-volumeclaim-template
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 10Gi
-            storageClassName: storage-class
-      additionalVolumeMounts:
-        - mountPath: /var/lib/clickhouse
-          name: data-volumeclaim-template
+      clickhouse:
+        persistence:
+          enabled: false
+        templates:
+          volumeClaimTemplates:
+            - name: data-volumeclaim-template
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi
+              storageClassName: storage-class
+        additionalVolumeMounts:
+          - mountPath: /var/lib/clickhouse
+            name: data-volumeclaim-template
     asserts:
       - contains: 
           path: spec.templates.volumeClaimTemplates
@@ -162,24 +167,25 @@ tests:
             name: data-volume
   - it: should have multiple custom templates.volumeClaimTemplates
     set:
-      persistence:
-        enabled: false
-      templates:
-        volumeClaimTemplates:
-          - name: default-0
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 10Gi
-            storageClassName: storage-class-0
-          - name: default-1
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 20Gi
-            storageClassName: storage-class-1
+      clickhouse:
+        persistence:
+          enabled: false
+        templates:
+          volumeClaimTemplates:
+            - name: default-0
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi
+              storageClassName: storage-class-0
+            - name: default-1
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 20Gi
+              storageClassName: storage-class-1
     asserts:
       - contains: 
           path: spec.templates.volumeClaimTemplates
@@ -217,10 +223,11 @@ tests:
             name: data-volume
   - it: should have empty dir when persistence.enabled=false and templates.volumeClaimTemplates is empty
     set:
-      persistence:
-        enabled: false
-      templates:
-        volumeClaimTemplates: []
+      clickhouse:
+        persistence:
+          enabled: false
+        templates:
+          volumeClaimTemplates: []
     asserts:
       - notExists:
           path: spec.templates.volumeClaimTemplates
@@ -238,9 +245,10 @@ tests:
             mountPath: /var/lib/clickhouse
   - it: should have configmap when logs.system.enabled=true
     set:
-      logs:
-        system:
-          enabled: true
+      clickhouse:
+        logs:
+          system:
+            enabled: true
     asserts:
       - contains:
           path: spec.templates.podTemplates[0].spec.volumes

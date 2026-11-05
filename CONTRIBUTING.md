@@ -29,9 +29,8 @@ For substantial changes, please split your contribution into multiple PRs:
 We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). All commits and PRs should include type specifiers (e.g., `feat:`, `fix:`, `docs:`, etc.).
 
 ## How can I contribute to the charts repository?
-There are primarily 3 charts in the SigNoz Helm Charts repository:
-- signoz: signoz, signoz otel collector and schema Migrator
-- clickhouse: clickhouse and zookeeper
+There are primarily 2 charts in the SigNoz Helm Charts repository:
+- signoz: SigNoz, the SigNoz OTel collector, the schema migrator, ClickHouse (with Altinity's clickhouse-operator chart as a dependency) and ZooKeeper
 - k8s-infra: k8s-infra collection agent
 
 
