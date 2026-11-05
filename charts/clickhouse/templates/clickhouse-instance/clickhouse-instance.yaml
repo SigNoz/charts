@@ -197,8 +197,33 @@ spec:
             - name: {{ include "clickhouse.fullname" . }}-udf-init
               image: {{ include "clickhouse.initContainers.udf.image" . }}
               imagePullPolicy: {{ .Values.initContainers.udf.image.pullPolicy }}
+              {{- if .Values.initContainers.udf.env }}
+              env:
+                {{- toYaml .Values.initContainers.udf.env | nindent 16 }}
+              {{- end }}
+              {{- if .Values.initContainers.udf.envFrom }}
+              envFrom:
+                {{- toYaml .Values.initContainers.udf.envFrom | nindent 16 }}
+              {{- end }}
               command:
+                {{- if .Values.initContainers.udf.command }}
                 {{- toYaml .Values.initContainers.udf.command | nindent 16 }}
+                {{- else }}
+                - sh
+                - -c
+                - |
+                  set -e
+                  version="{{ .Values.initContainers.udf.version }}"
+                  node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+                  node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+                  echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+                  cd /tmp
+                  wget -O histogram-quantile.tar.gz "{{ .Values.initContainers.udf.downloadUrl }}"
+                  tar -xzf histogram-quantile.tar.gz
+                  chmod +x histogram-quantile
+                  mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+                  echo "histogram-quantile installed successfully"
+                {{- end }}
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
