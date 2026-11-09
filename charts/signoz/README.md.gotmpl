@@ -156,6 +156,12 @@ kubectl delete namespace platform
 >          key: my-smtp-address-key
 > ```
 
+### ClickHouse operator
+
+The ClickHouse operator comes from Altinity's `altinity-clickhouse-operator` chart, installed as a dependency of this chart.
+Its values live under `altinity-clickhouse-operator.*`, in Altinity's own format, and are not listed in the tables below.
+See [Altinity's chart](https://github.com/Altinity/clickhouse-operator/tree/master/deploy/helm/clickhouse-operator) for the full list.
+
 
 {{ define "chart.valueDefaultColumnRender" }}
 {{- $defaultValue := (default .Default .AutoDefault) -}}

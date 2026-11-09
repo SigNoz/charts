@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: operator-upgrade-hook_test.yaml
+suite: operator_upgrade-hook_test.yaml
 templates:
-  - templates/clickhouse/operator-upgrade-hook/job.yaml
-  - templates/clickhouse/operator-upgrade-hook/role.yaml
-  - templates/clickhouse/operator-upgrade-hook/rolebinding.yaml
-  - templates/clickhouse/operator-upgrade-hook/serviceaccount.yaml
+  - templates/clickhouse/hooks/operator-upgrade/job.yaml
+  - templates/clickhouse/hooks/operator-upgrade/role.yaml
+  - templates/clickhouse/hooks/operator-upgrade/rolebinding.yaml
+  - templates/clickhouse/hooks/operator-upgrade/serviceaccount.yaml
 release:
   name: signoz
   namespace: platform
@@ -23,7 +23,7 @@ tests:
           path: metadata.annotations["helm.sh/hook-delete-policy"]
           value: before-hook-creation,hook-succeeded
   - it: should delete only a Deployment with the pre-Altinity labels
-    template: templates/clickhouse/operator-upgrade-hook/job.yaml
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
@@ -35,7 +35,7 @@ tests:
           path: spec.template.spec.containers[0].args
           content: --ignore-not-found=true
   - it: should use the global image registry when set
-    template: templates/clickhouse/operator-upgrade-hook/job.yaml
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
     set:
       global.imageRegistry: mirror.example.com
     asserts:
