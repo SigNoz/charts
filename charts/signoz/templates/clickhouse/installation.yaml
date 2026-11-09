@@ -305,7 +305,7 @@ spec:
               {{- end }}
             {{- if .Values.clickhouse.logs.system.enabled }}
             - name: logs-system-exporter
-              image: {{ include "logs.system.image" . }}
+              image: {{ include "clickhouse.logs.system.image" . }}
               imagePullPolicy: {{ .Values.clickhouse.logs.system.image.pullPolicy }}
               command:
                 - /signoz-collector
@@ -367,10 +367,10 @@ spec:
           ports:
             - name: http
               port: {{ .httpPort }}
-              {{ include "service.ifClusterIP" .type }}
+              {{ include "clickhouse.service.ifClusterIP" .type }}
             - name: tcp
               port: {{ .tcpPort }}
-              {{ include "service.ifClusterIP" .type -}}
+              {{ include "clickhouse.service.ifClusterIP" .type -}}
         {{- end }}
 
     {{- if and (.Values.clickhouse.persistence.enabled) (not .Values.clickhouse.persistence.existingClaim) }}

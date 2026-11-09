@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: operator-subchart_test.yaml
+suite: operator_subchart_test.yaml
 templates:
   - charts/altinity-clickhouse-operator/templates/generated/*.yaml
 release:
