@@ -76,7 +76,7 @@ clickhouse:
   # The operator stays in the release namespace; to make it manage ClickHouse there, either set `altinity-clickhouse-operator.namespaceOverride`
   # to the same value (operator runs next to ClickHouse, as older chart versions did), or set `altinity-clickhouse-operator.watchNamespaces`
   # to a list with that one namespace as a plain name (no regexp, one entry; two entries or a regexp make the operator watch all namespaces)
-  # and `altinity-clickhouse-operator.rbac.namespaceScoped: false`.
+  # and `altinity-clickhouse-operator.rbac.namespaceScoped: false`. The chart only checks that one of these watch settings (or the watch list in the operator's config file) is set, not its value.
   # @section -- ClickHouse
   # @default -- ""
   namespace: ""
