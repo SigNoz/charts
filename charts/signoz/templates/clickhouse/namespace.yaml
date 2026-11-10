@@ -1,0 +1,10 @@
+{{- if .Values.clickhouse.enabled }}
+{{- if and .Values.clickhouse.namespace (ne .Values.clickhouse.namespace .Release.Namespace) }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+{{- end }}
+{{- end }}

@@ -71,7 +71,12 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- ""
   fullnameOverride: ""
-  # clickhouse.namespace -- The namespace to install ClickHouse and `clickhouse-operator` into (defaults to the chart's installation namespace).
+  # clickhouse.namespace -- The namespace ClickHouse (the ClickHouseInstallation, its ConfigMaps, ServiceAccount and hooks) is installed into.
+  # Defaults to the release namespace. When set to another namespace the chart creates it.
+  # The operator stays in the release namespace; to make it manage ClickHouse there, either set `altinity-clickhouse-operator.namespaceOverride`
+  # to the same value (operator runs next to ClickHouse, as older chart versions did), or set `altinity-clickhouse-operator.watchNamespaces`
+  # to a list with that one namespace as a plain name (no regexp, one entry; two entries or a regexp make the operator watch all namespaces)
+  # and `altinity-clickhouse-operator.rbac.namespaceScoped: false`.
   # @section -- ClickHouse
   # @default -- ""
   namespace: ""
