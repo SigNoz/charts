@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse_namespace_test.yaml
+templates:
+  - templates/clickhouse/namespace.yaml
+  - templates/clickhouse/installation.yaml
+  - templates/validate.yaml
+release:
+  name: signoz
+  namespace: platform
+tests:
+  - it: should not render a Namespace with default values
+    template: templates/clickhouse/namespace.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should not render a Namespace when clickhouse.namespace is the release namespace
+    template: templates/clickhouse/namespace.yaml
+    set:
+      clickhouse.namespace: platform
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should render the Namespace and put the CHI in it when the operator runs next to ClickHouse
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.namespaceOverride: chdata
+    asserts:
+      - template: templates/clickhouse/namespace.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/clickhouse/namespace.yaml
+        isKind:
+          of: Namespace
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.name
+          value: chdata
+      - template: templates/clickhouse/installation.yaml
+        equal:
+          path: metadata.namespace
+          value: chdata
+  - it: should render the Namespace when the operator in the release namespace watches ClickHouse
+    template: templates/clickhouse/namespace.yaml
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.watchNamespaces:
+        - chdata
+      altinity-clickhouse-operator.rbac.namespaceScoped: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: chdata
+  - it: should fail when clickhouse.namespace is set and no operator watches it
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: chdata
+    asserts:
+      - failedTemplate:
+          errorPattern: "no operator in this release will watch it"
+  - it: should render the Namespace without failing when the operator is disabled
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.enabled: false
+    asserts:
+      - template: templates/validate.yaml
+        notFailedTemplate: {}
+      - template: templates/clickhouse/namespace.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.name
+          value: chdata
+  - it: should render nothing and not fail when ClickHouse is disabled
+    set:
+      clickhouse.namespace: chdata
+      clickhouse.enabled: false
+    asserts:
+      - template: templates/validate.yaml
+        notFailedTemplate: {}
+      - template: templates/clickhouse/namespace.yaml
+        hasDocuments:
+          count: 0
