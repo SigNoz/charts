@@ -4,6 +4,7 @@ templates:
   - templates/clickhouse/namespace.yaml
   - templates/clickhouse/installation.yaml
   - templates/validate.yaml
+  - charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
 release:
   name: signoz
   namespace: platform
@@ -58,7 +59,7 @@ tests:
       clickhouse.namespace: chdata
     asserts:
       - failedTemplate:
-          errorPattern: "no operator in this release will watch it"
+          errorPattern: "the operator's watch settings are untouched"
   - it: should render the Namespace without failing when the operator is disabled
     set:
       clickhouse.namespace: chdata
@@ -83,3 +84,53 @@ tests:
       - template: templates/clickhouse/namespace.yaml
         hasDocuments:
           count: 0
+  - it: should render the Namespace without failing when watchNamespaces is a regexp
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.watchNamespaces:
+        - ".*"
+    asserts:
+      - template: templates/validate.yaml
+        notFailedTemplate: {}
+      - template: templates/clickhouse/namespace.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.name
+          value: chdata
+  - it: should render the Namespace without failing when the watch list is set in the operator's config file
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.configs.files:
+        config.yaml:
+          watch:
+            namespaces:
+              include:
+                - chdata
+    asserts:
+      - template: templates/validate.yaml
+        notFailedTemplate: {}
+      - template: templates/clickhouse/namespace.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.name
+          value: chdata
+      # The set value is merged into the default file, not replacing it.
+      - template: charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+        matchRegex:
+          path: data["config.yaml"]
+          pattern: "reconcileCHIsThreadsNumber: 10"
+      - template: charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+        matchRegex:
+          path: data["config.yaml"]
+          pattern: "include:\\n    - chdata"
+  - it: should not fail when namespaceOverride is set to a different namespace
+    set:
+      clickhouse.namespace: chdata
+      altinity-clickhouse-operator.namespaceOverride: other
+    asserts:
+      - template: templates/validate.yaml
+        notFailedTemplate: {}

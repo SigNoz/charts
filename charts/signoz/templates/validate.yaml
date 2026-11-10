@@ -12,17 +12,17 @@ Fail the render instead of ignoring them, so an old values file is caught at `he
 {{- fail "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
 {{- end }}
 {{- /*
-ClickHouse in another namespace with no operator in this release watching it.
-This only catches values that contradict themselves (the CHI would never be reconciled); it does not
-enforce a layout. Any of: operator disabled here, operator moved next to ClickHouse via namespaceOverride,
-or operator kept in the release namespace and pointed at ClickHouse via watchNamespaces + cluster-scoped RBAC.
+ClickHouse in another namespace with none of the operator's watch settings set.
+This check protects installs that set `clickhouse.namespace` under older chart versions, where the operator was
+installed into that namespace. The operator now stays in the release namespace and watches only it unless told
+otherwise, so an unchanged values file would leave the CHI unreconciled.
+It fires only when none of the operator's watch settings (namespaceOverride, watchNamespaces, the watch list in
+the operator's config file) has been set; it never judges their value.
 */ -}}
 {{- if and .Values.clickhouse.enabled .Values.clickhouse.namespace (ne .Values.clickhouse.namespace .Release.Namespace) (eq (include "clickhouse.operatorEnabled" .) "true") }}
 {{- $ns := .Values.clickhouse.namespace }}
 {{- $op := index .Values "altinity-clickhouse-operator" | default dict }}
-{{- $nextToClickHouse := eq ($op.namespaceOverride | default "") $ns }}
-{{- $watchesClickHouse := and (has $ns ($op.watchNamespaces | default list)) (not (dig "rbac" "namespaceScoped" true $op)) }}
-{{- if not (or $nextToClickHouse $watchesClickHouse) }}
-{{- fail (printf "`clickhouse.namespace` is set to `%s` but no operator in this release will watch it, so the ClickHouseInstallation would never be reconciled. Either run the operator next to ClickHouse (`altinity-clickhouse-operator.namespaceOverride: %s`, the layout older chart versions used), or keep the operator in the release namespace and point it at ClickHouse (`altinity-clickhouse-operator.watchNamespaces: [\"%s\"]` plus `altinity-clickhouse-operator.rbac.namespaceScoped: false`)." $ns $ns $ns) }}
+{{- if and (not ($op.namespaceOverride | default "")) (not ($op.watchNamespaces | default list)) (not (dig "configs" "files" "config.yaml" "watch" "namespaces" "include" list $op)) }}
+{{- fail (printf "`clickhouse.namespace` is set to `%s` but the operator's watch settings are untouched, so it would watch only the release namespace and never reconcile the ClickHouseInstallation. Older chart versions installed the operator into that namespace; to keep that layout set `altinity-clickhouse-operator.namespaceOverride: %s`. To keep the operator in the release namespace instead, set `altinity-clickhouse-operator.watchNamespaces: [\"%s\"]` (or the watch list inside `altinity-clickhouse-operator.configs.files.config.yaml`) and `altinity-clickhouse-operator.rbac.namespaceScoped: false` so it has rights there." $ns $ns $ns) }}
 {{- end }}
 {{- end }}
