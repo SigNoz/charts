@@ -1506,7 +1506,7 @@ altinity-clickhouse-operator:
                 <size>1000M</size>
                 <count>10</count>
                 <!-- Default behavior is autodetection (log to console if not daemon mode and is tty) -->
-                <console>true</console>
+                <console>1</console>
             </logger>
         </yandex>
       01-clickhouse-03-query_log.xml: |
