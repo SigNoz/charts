@@ -56,7 +56,7 @@ imagePullSecrets: []
 # @default -- "See values.yaml"
 # @section -- ClickHouse
 clickhouse:
-  # clickhouse.enabled -- Whether to install ClickHouse. If false, `clickhouse.host` must be set.
+  # clickhouse.enabled -- Whether to install ClickHouse. If false, `externalClickhouse.host` must be set.
   # @section -- ClickHouse
   # @default -- true
   enabled: true
@@ -456,7 +456,7 @@ clickhouse:
       # -- Repository of the kubectl image.
       # @section -- ClickHouse
       repository: kubectl
-      # -- Tag of the kubectl im  age. The image publishes no `latest` tag.
+      # -- Tag of the kubectl image. The image publishes no `latest` tag.
       # @section -- ClickHouse
       tag: v1.36.3
       # -- Pull policy of the kubectl image.

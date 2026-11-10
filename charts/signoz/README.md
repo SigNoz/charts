@@ -315,7 +315,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
 </div>
             </td>
-            <td>Whether to install ClickHouse. If false, `clickhouse.host` must be set.</td>
+            <td>Whether to install ClickHouse. If false, `externalClickhouse.host` must be set.</td>
         </tr>
         <tr>
             <td id="clickhouse--name"><a href="./values.yaml#L65">clickhouse.name</a></td>
@@ -884,7 +884,7 @@ enabled: false</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">v1.36.3</pre>
 </div>
             </td>
-            <td>Tag of the kubectl im  age. The image publishes no `latest` tag.</td>
+            <td>Tag of the kubectl image. The image publishes no `latest` tag.</td>
         </tr>
         <tr>
             <td id="clickhouse--operatorUpgradeHook--image--pullPolicy"><a href="./values.yaml#L464">clickhouse.operatorUpgradeHook.image.pullPolicy</a></td>
