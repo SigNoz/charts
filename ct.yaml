@@ -3,7 +3,6 @@ remote: origin
 target-branch: main
 debug: true
 charts:
-  - charts/clickhouse
   - charts/k8s-infra
   - charts/signoz
   - charts/postgresql
@@ -12,3 +11,4 @@ check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:
   - signoz=https://charts.signoz.io
+  - altinity=https://helm.altinity.com

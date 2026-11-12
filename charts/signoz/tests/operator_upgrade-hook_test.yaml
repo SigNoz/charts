@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: operator_upgrade-hook_test.yaml
+templates:
+  - templates/clickhouse/hooks/operator-upgrade/job.yaml
+  - templates/clickhouse/hooks/operator-upgrade/role.yaml
+  - templates/clickhouse/hooks/operator-upgrade/rolebinding.yaml
+  - templates/clickhouse/hooks/operator-upgrade/serviceaccount.yaml
+release:
+  name: signoz
+  namespace: platform
+tests:
+  - it: should render the hook objects under the operator's name on upgrade only
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: signoz-clickhouse-operator-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+  - it: should delete only a Deployment with the pre-Altinity labels
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.k8s.io/kubectl:v1.36.3
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --selector=app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=signoz,app.kubernetes.io/component=operator
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --ignore-not-found=true
+  - it: should use the global image registry when set
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      global.imageRegistry: mirror.example.com
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: mirror.example.com/kubectl:v1.36.3
+  - it: should render nothing when the hook is disabled
+    set:
+      clickhouse.operatorUpgradeHook.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should render nothing when the operator is not installed
+    set:
+      altinity-clickhouse-operator.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
