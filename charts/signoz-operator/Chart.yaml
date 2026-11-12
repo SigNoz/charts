@@ -2,8 +2,8 @@ apiVersion: v2
 name: signoz-operator
 description: Helm chart for the SigNoz Kubernetes operator
 type: application
-version: 0.0.4
-appVersion: "v0.0.4"
+version: 0.0.5
+appVersion: "v0.0.5"
 home: https://signoz.io
 icon: https://signoz.io/img/SigNozLogo-orange.svg
 keywords:

@@ -105,10 +105,6 @@ spec:
                             description: Whether to fire a nodata alert when the query
                               returns no data. Defaults to false.
                             type: boolean
-                          algorithm:
-                            description: 'anomaly_rule only: the anomaly detection
-                              algorithm. The supported value is standard.'
-                            type: string
                           compositeQuery:
                             description: The queries whose result is compared against
                               the thresholds.
@@ -912,14 +908,11 @@ spec:
                           selectedQueryName:
                             description: The name of the query whose result is evaluated,
                               such as A or F1. Must match a query in compositeQuery.
-                              When omitted, F1 is used if present, otherwise the enabled
-                              query with the highest name.
                             minLength: 1
                             type: string
                           thresholds:
                             description: The thresholds to evaluate, as a kind and
-                              spec. Required when schemaVersion is v2alpha1; derived
-                              from op, target and matchType for v1.
+                              spec.
                             properties:
                               kind:
                                 description: The kind of threshold.
@@ -1016,9 +1009,7 @@ spec:
                           neither evaluated nor notifies. Defaults to false.
                         type: boolean
                       evaluation:
-                        description: The evaluation window, as a kind and spec. Required
-                          when schemaVersion is v2alpha1; derived from evalWindow
-                          and frequency for v1.
+                        description: The evaluation window, as a kind and spec.
                         properties:
                           kind:
                             description: The kind of evaluation.
@@ -1100,8 +1091,6 @@ spec:
                         type: object
                       notificationSettings:
                         description: Grouping, re-notification and routing behaviour.
-                          Required when schemaVersion is v2alpha1; derived from the
-                          v1 fields otherwise.
                         properties:
                           groupBy:
                             description: Label names whose values group alerts into
@@ -1147,17 +1136,15 @@ spec:
                         description: 'The evaluation strategy: threshold_rule compares
                           against thresholds, promql_rule evaluates a PromQL expression,
                           anomaly_rule scores deviation from seasonal history. Defaults
-                          to threshold_rule for builder queries and is forced to promql_rule
-                          for promql queries.'
+                          to threshold_rule for builder and clickhouse_sql queries
+                          and is forced to promql_rule for promql queries.'
                         enum:
                         - threshold_rule
                         - promql_rule
                         - anomaly_rule
                         type: string
                       schemaVersion:
-                        description: 'The rule payload schema: v1 (the default when
-                          omitted) uses the flat condition fields, v2alpha1 uses condition.thresholds,
-                          evaluation and notificationSettings.'
+                        description: The rule payload schema.
                         enum:
                         - v2alpha1
                         type: string

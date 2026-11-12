@@ -149,13 +149,31 @@ spec:
                                 type: array
                               apiKey:
                                 type: string
-                              apiToken:
-                                description: The Atlassian API token paired with email.
-                                  A secret; returned by create, update and fetch by
-                                  ID, never by list.
-                                type: string
                               apiUrl:
                                 type: string
+                              auth:
+                                description: 'The credentials: email and apiToken
+                                  when deployment is cloud, pat when deployment is
+                                  selfhosted.'
+                                properties:
+                                  apiToken:
+                                    description: The Atlassian API token paired with
+                                      email. Required when deployment is cloud. A
+                                      secret; returned by create, update and fetch
+                                      by ID, never by list.
+                                    type: string
+                                  email:
+                                    description: The Atlassian account email used
+                                      for basic auth. Required when deployment is
+                                      cloud.
+                                    type: string
+                                  pat:
+                                    description: The Jira personal access token, sent
+                                      as a Bearer header. Required when deployment
+                                      is selfhosted. A secret; returned by create,
+                                      update and fetch by ID, never by list.
+                                    type: string
+                                type: object
                               bearerToken:
                                 description: The bearer token sent in the Authorization
                                   header; cannot be combined with username or password.
@@ -194,6 +212,13 @@ spec:
                                   ID. Stored, but not currently included in the issue
                                   Jira receives.
                                 x-kubernetes-preserve-unknown-fields: true
+                              deployment:
+                                description: 'The Jira edition: cloud for an Atlassian-hosted
+                                  site, selfhosted for Jira Server or Data Center.'
+                                enum:
+                                - cloud
+                                - selfhosted
+                                type: string
                               description:
                                 type: string
                               details:
@@ -202,10 +227,6 @@ spec:
                                 type: object
                               disableNotifications:
                                 type: boolean
-                              email:
-                                description: The Atlassian account email used for
-                                  basic auth.
-                                type: string
                               fallback:
                                 description: Alertmanager template for the plain-text
                                   summary shown where attachments cannot render; defaults
@@ -313,9 +334,8 @@ spec:
                                   warning or info.'
                                 type: string
                               site:
-                                description: The base URL of the Jira Cloud site,
-                                  for example https://example.atlassian.net. Only
-                                  Jira Cloud is supported.
+                                description: The base URL of the Jira site, for example
+                                  https://example.atlassian.net or https://jira.example.com.
                                 type: string
                               source:
                                 type: string
@@ -376,11 +396,11 @@ spec:
                           rule: self.kind != 'msteams' || has(self.spec.webhookUrl)
                         - message: kind googlechat requires spec.webhookUrl
                           rule: self.kind != 'googlechat' || has(self.spec.webhookUrl)
-                        - message: kind jira requires spec.site, spec.project, spec.issueType,
-                            spec.email, spec.apiToken
-                          rule: self.kind != 'jira' || (has(self.spec.site) && has(self.spec.project)
-                            && has(self.spec.issueType) && has(self.spec.email) &&
-                            has(self.spec.apiToken))
+                        - message: kind jira requires spec.deployment, spec.site,
+                            spec.project, spec.issueType, spec.auth
+                          rule: self.kind != 'jira' || (has(self.spec.deployment)
+                            && has(self.spec.site) && has(self.spec.project) && has(self.spec.issueType)
+                            && has(self.spec.auth))
                         - message: kind jsmops requires spec.apiKey
                           rule: self.kind != 'jsmops' || has(self.spec.apiKey)
                         - message: kind incidentio requires spec.url, spec.token

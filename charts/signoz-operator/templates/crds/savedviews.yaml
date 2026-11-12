@@ -866,6 +866,7 @@ spec:
                             - raw_stream
                             - trace
                             - heatmap
+                            - distribution
                             type: string
                           selectedFields:
                             description: 'The columns shown in list panels, each a
