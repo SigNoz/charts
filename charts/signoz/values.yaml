@@ -643,14 +643,18 @@ clickhouse:
       flushInterval: 7500
     # clickhouse.clickhouseOperator.zookeeperLog -- Zookeeper Log table configuration.
     # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
+    # @default -- { enabled: false, ttl: 30, flushInterval: 7500 }
     zookeeperLog:
+      # Enable explicitly to retain this diagnostic log configuration on upgrade.
+      enabled: false
       ttl: 30
       flushInterval: 7500
     # clickhouse.clickhouseOperator.processorsProfileLog -- Processors Profile Log table configuration.
     # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
+    # @default -- { enabled: false, ttl: 7, flushInterval: 7500 }
     processorsProfileLog:
+      # Enable explicitly to retain this diagnostic log configuration on upgrade.
+      enabled: false
       ttl: 7
       flushInterval: 7500
     # clickhouse.clickhouseOperator.podAnnotations -- ClickHouse Operator pod annotations.
