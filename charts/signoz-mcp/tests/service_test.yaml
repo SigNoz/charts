@@ -1,0 +1,95 @@
+suite: Test the Service
+templates:
+  - service.yaml
+  - deployment.yaml
+release:
+  name: signoz-mcp
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should be named after the release in the release namespace
+    template: service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: signoz-mcp
+      - equal:
+          path: metadata.namespace
+          value: platform
+
+  - it: should carry the common labels
+    template: service.yaml
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-0.0.0-test
+
+  - it: should be a ClusterIP Service on port 8000 named http forwarding to the http port by default
+    template: service.yaml
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 8000
+              targetPort: http
+              protocol: TCP
+      - notExists:
+          path: metadata.annotations
+
+  - it: should change the port with service.port and leave targetPort alone
+    template: service.yaml
+    set:
+      service.port: 9000
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 9000
+              targetPort: http
+              protocol: TCP
+
+  - it: should apply service.type and service.annotations
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.annotations:
+        example.com/owner: platform
+    asserts:
+      - equal:
+          path: spec.type
+          value: NodePort
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/owner: platform
+
+  - it: should select the pods the Deployment selects
+    asserts:
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+        template: service.yaml
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+        template: deployment.yaml

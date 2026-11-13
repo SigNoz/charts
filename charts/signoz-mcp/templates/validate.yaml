@@ -1,0 +1,43 @@
+{{- /*
+Install-time checks. This file renders no object.
+
+Check 3 mirrors the startup rule of signoz-mcp-server v0.18.0
+(internal/config/config.go): the server exits when neither SIGNOZ_URL nor
+SIGNOZ_INSTANCE_URL_ALLOWLIST is set. Remove the check if the server stops
+requiring either variable.
+*/ -}}
+
+{{- /* 1. env is a map. It runs first, because the later checks and the env helper read env as a map. A null env is treated as an empty map. */ -}}
+{{- $env := .Values.env -}}
+{{- if and (not (kindIs "invalid" $env)) (not (kindIs "map" $env)) -}}
+{{- fail (printf "env must be a map of NAME: value, for example env: {SIGNOZ_URL: http://...}; got a %s. A list of name/value pairs is not accepted." (kindOf $env)) -}}
+{{- end -}}
+{{- $env = $env | default dict -}}
+
+{{- /* 2. Name length. foundry computes the Service address from the full fullnameOverride, so it is never cut. */ -}}
+{{- $fullnameOverride := .Values.fullnameOverride | default "" | toString -}}
+{{- if gt (len $fullnameOverride) 63 -}}
+{{- fail (printf "fullnameOverride must be at most 63 characters; got %d" (len $fullnameOverride)) -}}
+{{- end -}}
+
+{{- /* 3. Backend, with a hint for each env key that differs from either name only in case. */ -}}
+{{- $urlIsSet := include "signoz-mcp.envIsSet" (index $env "SIGNOZ_URL") -}}
+{{- $allowlistIsSet := include "signoz-mcp.envIsSet" (index $env "SIGNOZ_INSTANCE_URL_ALLOWLIST") -}}
+{{- if not (or $urlIsSet $allowlistIsSet) -}}
+{{- $message := "Set env.SIGNOZ_URL (for example http://<release>-signoz.<namespace>.svc.cluster.local:8080) or env.SIGNOZ_INSTANCE_URL_ALLOWLIST. The server exits at startup without one of them. Names under env are case-sensitive." -}}
+{{- range $key := keys $env | sortAlpha -}}
+{{- range $name := list "SIGNOZ_URL" "SIGNOZ_INSTANCE_URL_ALLOWLIST" -}}
+{{- if and (ne $key $name) (eq (lower $key) (lower $name)) -}}
+{{- $message = printf "%s\nenv.%s is not read by the server; did you mean %s?" $message $key $name -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- fail $message -}}
+{{- end -}}
+
+{{- /* 4. Autoscaling metric. Without one, Kubernetes applies its own CPU default. */ -}}
+{{- if .Values.autoscaling.enabled -}}
+{{- if and (empty .Values.autoscaling.targetCPUUtilizationPercentage) (empty .Values.autoscaling.targetMemoryUtilizationPercentage) -}}
+{{- fail "autoscaling.enabled needs autoscaling.targetCPUUtilizationPercentage or autoscaling.targetMemoryUtilizationPercentage" -}}
+{{- end -}}
+{{- end -}}

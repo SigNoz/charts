@@ -1,0 +1,19 @@
+apiVersion: v2
+name: signoz-mcp
+description: Helm chart for the SigNoz MCP server
+type: application
+version: 0.0.1
+appVersion: "v0.18.0"
+home: https://signoz.io
+icon: https://signoz.io/img/SigNozLogo-orange.svg
+keywords:
+- SigNoz
+- mcp
+- signoz-mcp-server
+- kubernetes
+sources:
+- https://github.com/SigNoz/signoz-mcp-server
+maintainers:
+- name: SigNoz
+  email: hello@signoz.io
+  url: https://signoz.io

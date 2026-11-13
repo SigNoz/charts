@@ -1,0 +1,94 @@
+suite: Test the foundry contract
+# No suite-level set: in helm-unittest an inline setting overrides a values
+# file, so a suite-level address would replace the one in the foundry fixture.
+templates:
+  - validate.yaml
+  - deployment.yaml
+  - service.yaml
+release:
+  name: signoz-mcp
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+tests:
+  - it: should render foundry's values file as the contract guarantees
+    values:
+      - values/foundry.yaml
+    # A release name that does not contain the chart name, so the object names
+    # can only come from fullnameOverride.
+    release:
+      name: foundry
+    asserts:
+      # foundry's file alone passes the install-time checks.
+      - notFailedTemplate: {}
+      - hasDocuments:
+          count: 0
+        template: validate.yaml
+      # The Deployment and Service are named exactly fullnameOverride.
+      - equal:
+          path: metadata.name
+          value: signoz-mcp
+        template: deployment.yaml
+      - equal:
+          path: metadata.name
+          value: signoz-mcp
+        template: service.yaml
+      # The Service listens on port 8000 with port name http.
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 8000
+              targetPort: http
+              protocol: TCP
+        template: service.yaml
+      # image.registry, image.repository and image.tag are separate keys.
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/signoz/signoz-mcp-server:v0.18.0
+        template: deployment.yaml
+      # replicaCount is a top-level number.
+      - equal:
+          path: spec.replicas
+          value: 2
+        template: deployment.yaml
+      # Each plain string becomes that variable unchanged, and TRANSPORT_MODE
+      # and MCP_SERVER_PORT are accepted and appear once each.
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: SIGNOZ_URL
+              value: http://signoz:8080
+            - name: TRANSPORT_MODE
+              value: http
+        template: deployment.yaml
+
+  - it: should render a Secret reference added at /env/SIGNOZ_API_KEY on top of foundry's values file
+    values:
+      - values/foundry.yaml
+    set:
+      env.SIGNOZ_API_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: signoz-mcp
+            key: SIGNOZ_API_KEY
+    asserts:
+      - notFailedTemplate: {}
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: SIGNOZ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: signoz-mcp
+                  key: SIGNOZ_API_KEY
+            - name: SIGNOZ_URL
+              value: http://signoz:8080
+            - name: TRANSPORT_MODE
+              value: http
+        template: deployment.yaml

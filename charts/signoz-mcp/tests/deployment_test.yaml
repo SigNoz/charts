@@ -1,0 +1,203 @@
+suite: Test the Deployment
+templates:
+  - deployment.yaml
+release:
+  name: signoz-mcp
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should be named after the release when the release name contains the chart name
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: signoz-mcp
+      - equal:
+          path: metadata.namespace
+          value: platform
+
+  - it: should be named <release>-signoz-mcp when the release name does not contain the chart name
+    release:
+      name: prod
+    asserts:
+      - equal:
+          path: metadata.name
+          value: prod-signoz-mcp
+
+  - it: should select pods by the name and instance labels only
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+
+  - it: should add podLabels and podAnnotations to the pod template and leave the selector unchanged
+    set:
+      podLabels:
+        team: observability
+      podAnnotations:
+        example.com/owner: platform
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            team: observability
+      - equal:
+          path: spec.template.metadata.annotations
+          value:
+            example.com/owner: platform
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+
+  - it: should build the image from the default registry, repository and the chart appVersion
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/signoz/signoz-mcp-server:v0.0.0-test
+
+  - it: should use an explicit image tag
+    set:
+      image.tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/signoz/signoz-mcp-server:v9.9.9
+
+  - it: should use image.registry
+    set:
+      image.registry: registry.example.com
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/signoz/signoz-mcp-server:v0.0.0-test
+
+  - it: should leave the registry out when image.registry is empty
+    set:
+      image.registry: ""
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: signoz/signoz-mcp-server:v0.0.0-test
+
+  - it: should let global.imageRegistry replace image.registry
+    set:
+      global.imageRegistry: mirror.example.com
+      image.registry: registry.example.com
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: mirror.example.com/signoz/signoz-mcp-server:v0.0.0-test
+
+  - it: should pass imagePullSecrets through
+    set:
+      imagePullSecrets:
+        - name: regcred
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: regcred
+
+  - it: should have one container named mcp
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: mcp
+
+  - it: should expose container port 8000 named http
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+  - it: should probe /livez and /readyz on the http port with the fixed timings
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 5
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+
+  - it: should request 500m CPU and 1024Mi memory with no limits by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+
+  - it: should apply the default security contexts and not mount the ServiceAccount token
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+
+  - it: should set replicas from replicaCount by default
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should leave replicas out when autoscaling is enabled
+    set:
+      autoscaling.enabled: true
+      replicaCount: 3
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: should not name a ServiceAccount
+    asserts:
+      - notExists:
+          path: spec.template.spec.serviceAccountName
+      - notExists:
+          path: spec.template.spec.serviceAccount

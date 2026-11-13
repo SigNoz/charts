@@ -1,0 +1,89 @@
+{{- /*
+Install notes. Presence checks use signoz-mcp.envIsSet and accept every form,
+including valueFrom. Anything printed or parsed is read through
+signoz-mcp.envPlainValue, so an entry given as valueFrom is never printed.
+*/ -}}
+{{- $fullname := include "signoz-mcp.fullname" . -}}
+{{- $namespace := .Release.Namespace -}}
+{{- $version := default .Chart.AppVersion .Values.image.tag | toString -}}
+{{- $env := .Values.env -}}
+{{- if not (kindIs "map" $env) -}}
+{{- $env = dict -}}
+{{- end -}}
+{{- /* Ingress host names. Entries with no host are skipped. */ -}}
+{{- $hosts := list -}}
+{{- $wildcard := false -}}
+{{- range .Values.ingress.hosts -}}
+{{- $host := .host | default "" | toString -}}
+{{- if $host -}}
+{{- $hosts = append $hosts $host -}}
+{{- if hasPrefix "*" $host -}}
+{{- $wildcard = true -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $scheme := "http" -}}
+{{- if .Values.ingress.tls -}}
+{{- $scheme = "https" -}}
+{{- end -}}
+{{- $viaIngress := and .Values.ingress.enabled (gt (len $hosts) 0) -}}
+{{- $clientURL := "http://localhost:8000/mcp" -}}
+{{- if $viaIngress -}}
+{{- $clientURL = printf "%s://%s/mcp" $scheme (index $hosts 0) -}}
+{{- end -}}
+The SigNoz MCP server has been installed as {{ .Release.Name }} in namespace {{ $namespace }}.
+
+Server version: {{ $version }}
+
+In-cluster endpoint:
+
+  http://{{ $fullname }}.{{ $namespace }}.svc:{{ .Values.service.port }}/mcp
+{{ if $viaIngress }}
+The server is reachable through the Ingress at:
+{{ range $hosts }}
+  {{ $scheme }}://{{ . }}/mcp
+{{- end }}
+{{- else }}
+To reach the server from your machine, run:
+
+  kubectl -n {{ $namespace }} port-forward svc/{{ $fullname }} 8000:{{ .Values.service.port }}
+
+and use the URL http://localhost:8000/mcp.
+{{- end }}
+
+Connect Claude Code, sending your own SigNoz API key:
+
+  claude mcp add --transport http signoz {{ $clientURL }} --header "SIGNOZ-API-KEY: <your-key>"
+
+Any MCP client needs the same URL and the SIGNOZ-API-KEY header.
+{{- $signozURL := include "signoz-mcp.envPlainValue" (index $env "SIGNOZ_URL") }}
+{{- if $signozURL }}
+
+To check that SigNoz answers at env.SIGNOZ_URL from inside the cluster, run:
+
+  kubectl -n {{ $namespace }} run signoz-mcp-check --rm -i --restart=Never --image=busybox:1.35 -- wget -qO- '{{ regexReplaceAll "/+$" $signozURL "" }}/api/v1/health?live=1'
+{{- end }}
+{{- if and .Values.ingress.enabled (include "signoz-mcp.envIsSet" (index $env "SIGNOZ_API_KEY")) }}
+
+WARNING: env.SIGNOZ_API_KEY is set and the Ingress is enabled. The server uses
+its own key for any request that carries no key or token, so anyone who can
+reach the Ingress can query SigNoz with the server's key.
+{{- end }}
+{{- $issuer := include "signoz-mcp.envPlainValue" (index $env "OAUTH_ISSUER_URL") }}
+{{- if and .Values.ingress.enabled $issuer (not $wildcard) }}
+{{- /* The host is taken with a pattern match, not urlParse, so a malformed value gives no warning and no error. Port and path are ignored. */}}
+{{- $pattern := `^[A-Za-z][A-Za-z0-9+.-]*://(?:[^/?#@]*@)?([^/?#:@]+)(?::[0-9]*)?(?:[/?#].*)?$` }}
+{{- if regexMatch $pattern $issuer }}
+{{- $issuerHost := regexReplaceAll $pattern $issuer "${1}" | lower }}
+{{- $ingressHosts := list }}
+{{- range $hosts }}
+{{- $ingressHosts = append $ingressHosts (lower .) }}
+{{- end }}
+{{- if not (has $issuerHost $ingressHosts) }}
+
+WARNING: the host in env.OAUTH_ISSUER_URL, {{ $issuerHost }}, is not one of the
+Ingress hosts. OAUTH_ISSUER_URL is not derived from the Ingress; it is normally
+the public address clients use to reach this server.
+{{- end }}
+{{- end }}
+{{- end }}

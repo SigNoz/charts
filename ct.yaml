@@ -8,6 +8,7 @@ charts:
   - charts/signoz
   - charts/postgresql
   - charts/signoz-operator
+  - charts/signoz-mcp
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:

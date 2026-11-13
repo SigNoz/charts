@@ -1,0 +1,181 @@
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "signoz-mcp.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name. Every object the chart renders is
+named with it, with no suffix.
+
+fullnameOverride is used as written and is never cut: foundry computes the
+Service address from the full string, so a cut name would not match it.
+templates/validate.yaml fails rendering when it is longer than 63 characters.
+
+Otherwise the release name is used when it already contains the chart name,
+and <release>-<chart name> when it does not. A name built from the release
+name is cut to 63 characters, the limit of a DNS label, with a trailing "-"
+removed.
+*/}}
+{{- define "signoz-mcp.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Chart name and version, as used by the helm.sh/chart label.
+*/}}
+{{- define "signoz-mcp.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels.
+*/}}
+{{- define "signoz-mcp.labels" -}}
+{{ include "signoz-mcp.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ include "signoz-mcp.chart" . }}
+{{- end }}
+
+{{/*
+Selector labels. These must never change for an existing release: a
+Deployment's selector cannot be edited after creation.
+*/}}
+{{- define "signoz-mcp.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "signoz-mcp.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Image string: registry/repository:tag. The registry comes from
+global.imageRegistry when set, otherwise from image.registry; with neither
+set the result is repository:tag. The tag defaults to the chart's appVersion.
+*/}}
+{{- define "signoz-mcp.image" -}}
+{{- $registry := default .Values.image.registry .Values.global.imageRegistry -}}
+{{- $repository := .Values.image.repository -}}
+{{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
+{{- if $registry -}}
+{{- printf "%s/%s:%s" $registry $repository $tag -}}
+{{- else -}}
+{{- printf "%s:%s" $repository $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Text of one env value. Takes the value of one env entry.
+
+Returns the text of a string, number or bool, given bare or as the "value" of
+a map. Returns an empty string for a valueFrom reference and for anything
+else.
+
+A float64 that is a whole number within the 64-bit integer range is printed
+as plain digits. Helm reads numbers in a values file as float64, so 4194304
+would otherwise print as 4.194304e+06. Any other value uses Helm's default
+text form. The whole-number test follows _shims.asintegral in
+charts/redpanda/templates/_shims.tpl.
+*/}}
+{{- define "signoz-mcp.envPlainValue" -}}
+{{- $value := . -}}
+{{- if kindIs "map" $value -}}
+{{- if hasKey $value "value" -}}
+{{- $value = index $value "value" -}}
+{{- end -}}
+{{- end -}}
+{{- if kindIs "float64" $value -}}
+{{- if and (eq (floor $value) $value) (ge $value -9.223372036854775808e18) (lt $value 9.223372036854775808e18) -}}
+{{- int64 $value -}}
+{{- else -}}
+{{- toString $value -}}
+{{- end -}}
+{{- else if has (kindOf $value) (list "string" "bool" "int" "int64") -}}
+{{- toString $value -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Whether one env value counts as set. Takes the value of one env entry.
+
+Returns "true" for a non-empty string, number or bool, a map with a non-empty
+"value", or a map with "valueFrom", and an empty string otherwise. A number
+or bool counts by its text, so 0 and false are set.
+*/}}
+{{- define "signoz-mcp.envIsSet" -}}
+{{- if ne (include "signoz-mcp.envPlainValue" .) "" -}}
+true
+{{- else if kindIs "map" . -}}
+{{- if hasKey . "valueFrom" -}}
+true
+{{- else if not (empty (index . "value")) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The container's env list. Takes the root context.
+
+- Names are used as written: no case change and no prefix.
+- The chart supplies TRANSPORT_MODE=http and MCP_SERVER_PORT=8000. A user
+  entry with the same name replaces the chart's value. A null user entry is
+  skipped before the merge, so it produces no variable and cannot remove one
+  of the chart's values.
+- A string, number or bool, bare or as a map with exactly "value", renders as
+  a quoted string. A map with exactly "valueFrom" whose content is a map is
+  passed through unchanged. Anything else stops rendering with a message
+  naming the entry.
+- Entries are sorted by name, so a $(VAR) reference resolves only to a name
+  that sorts earlier. One map is built, so no name appears twice.
+- .Values is not modified.
+
+templates/validate.yaml has already checked that env is a map.
+*/}}
+{{- define "signoz-mcp.env" -}}
+{{- $scalarKinds := list "string" "bool" "int" "int64" "float64" -}}
+{{- $entries := dict "TRANSPORT_MODE" "http" "MCP_SERVER_PORT" "8000" -}}
+{{- range $name, $value := .Values.env -}}
+{{- if not (kindIs "invalid" $value) -}}
+{{- $_ := set $entries $name $value -}}
+{{- end -}}
+{{- end -}}
+{{- range $index, $name := keys $entries | sortAlpha -}}
+{{- $value := index $entries $name -}}
+{{- if $index }}{{ "\n" }}{{ end -}}
+{{- if has (kindOf $value) $scalarKinds -}}
+- name: {{ $name | quote }}
+  value: {{ include "signoz-mcp.envPlainValue" $value | quote }}
+{{- else if kindIs "map" $value -}}
+{{- if ne (len $value) 1 -}}
+{{- fail (printf "env.%s: expected a string, number, bool, or a map with exactly one of value or valueFrom" $name) -}}
+{{- else if hasKey $value "value" -}}
+{{- if not (has (kindOf (index $value "value")) $scalarKinds) -}}
+{{- fail (printf "env.%s.value: expected a string, number or bool" $name) -}}
+{{- end -}}
+- name: {{ $name | quote }}
+  value: {{ include "signoz-mcp.envPlainValue" $value | quote }}
+{{- else if hasKey $value "valueFrom" -}}
+{{- if not (kindIs "map" (index $value "valueFrom")) -}}
+{{- fail (printf "env.%s.valueFrom: expected a map" $name) -}}
+{{- end -}}
+- name: {{ $name | quote }}
+  valueFrom:
+    {{- toYaml (index $value "valueFrom") | nindent 4 }}
+{{- else -}}
+{{- fail (printf "env.%s: expected a string, number, bool, or a map with exactly one of value or valueFrom" $name) -}}
+{{- end -}}
+{{- else -}}
+{{- fail (printf "env.%s: expected a string, number, bool, or a map with exactly one of value or valueFrom" $name) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

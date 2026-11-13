@@ -1,0 +1,182 @@
+global:
+  # global.imageRegistry -- Image registry that replaces `image.registry` when set.
+  # @section -- General Configuration
+  imageRegistry: ""
+
+# nameOverride -- String to partially override the fullname template (retains the release name).
+# @section -- General Configuration
+nameOverride: ""
+# fullnameOverride -- String to fully override the fullname template. It is used as the exact
+# name of every object and is never cut; rendering fails when it is longer than 63 characters.
+# @section -- General Configuration
+fullnameOverride: ""
+# replicaCount -- Number of server replicas. Ignored while `autoscaling.enabled` is true.
+# @section -- General Configuration
+replicaCount: 1
+
+image:
+  # image.registry -- Image registry. `global.imageRegistry` replaces it when set. Set it to
+  # an empty string to use the repository without a registry.
+  # @section -- Image Configuration
+  registry: docker.io
+  # image.repository -- Image repository.
+  # @section -- Image Configuration
+  repository: signoz/signoz-mcp-server
+  # image.tag -- Image tag. Defaults to the chart's appVersion when empty.
+  # @section -- Image Configuration
+  tag: ""
+  # image.pullPolicy -- Image pull policy.
+  # @section -- Image Configuration
+  pullPolicy: IfNotPresent
+# imagePullSecrets -- Image pull secrets for the pod, as a list of `{name: ...}` objects.
+# @section -- Image Configuration
+imagePullSecrets: []
+
+# Server settings, as a map of NAME: value. Names are case-sensitive and used
+# exactly as written. `env` must be a map; a list of name/value pairs is not
+# accepted.
+#
+# Each entry is a string, number or bool, a map with exactly `value`, or a map
+# with exactly `valueFrom`. Every value is rendered as a quoted string.
+#
+# The install fails unless SIGNOZ_URL or SIGNOZ_INSTANCE_URL_ALLOWLIST is set.
+#
+# One SigNoz. The SigNoz Service is usually
+# http://<release>-signoz.<namespace>.svc.cluster.local:8080; it is named
+# <release> instead of <release>-signoz when the SigNoz release name already
+# contains "signoz".
+#   env:
+#     SIGNOZ_URL: http://<release>-signoz.<namespace>.svc.cluster.local:8080
+#
+# Several SigNoz instances behind one server (multi-tenant). Leave SIGNOZ_URL
+# unset; each client names its instance, and only the listed hosts are allowed.
+#   env:
+#     SIGNOZ_INSTANCE_URL_ALLOWLIST: signoz-a.example.com,signoz-b.example.com
+#
+# A key or token from a Secret you already have:
+#   env:
+#     SIGNOZ_API_KEY:
+#       valueFrom:
+#         secretKeyRef:
+#           name: signoz-mcp
+#           key: SIGNOZ_API_KEY
+#     OAUTH_TOKEN_SECRET:
+#       valueFrom:
+#         secretKeyRef:
+#           name: signoz-mcp
+#           key: OAUTH_TOKEN_SECRET
+#
+# The chart always supplies TRANSPORT_MODE=http and MCP_SERVER_PORT=8000. An
+# entry here with the same name replaces the chart's value but cannot remove
+# it. The container port and probes stay on 8000, so changing MCP_SERVER_PORT
+# stops the pod from becoming Ready.
+#
+# In a cluster with no outbound access, set SIGNOZ_DOCS_REFRESH_INTERVAL and
+# SIGNOZ_DOCS_FULL_REFRESH_INTERVAL to "0" to turn off the docs index refresh.
+
+# env -- Environment variables for the server, as a map of NAME: value. See the
+# comments above this key in values.yaml for examples.
+# @section -- Environment Configuration
+env: {}
+
+service:
+  # service.type -- Service type.
+  # @section -- Service Configuration
+  type: ClusterIP
+  # service.port -- Port clients connect to. It forwards to the container's `http` port (8000).
+  # @section -- Service Configuration
+  port: 8000
+  # service.annotations -- Annotations for the Service.
+  # @section -- Service Configuration
+  annotations: {}
+
+ingress:
+  # ingress.enabled -- Create an Ingress for the server.
+  # @section -- Ingress Configuration
+  enabled: false
+  # ingress.className -- IngressClass name.
+  # @section -- Ingress Configuration
+  className: ""
+  # ingress.annotations -- Annotations for the Ingress. A tool call can run for up to 600
+  # seconds and the server accepts request bodies up to 4 MiB, so the proxy's read timeout and
+  # body size limit may need raising. The commented examples are for ingress-nginx; other
+  # controllers have their own annotation names.
+  # @section -- Ingress Configuration
+  annotations: {}
+  # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  # nginx.ingress.kubernetes.io/proxy-body-size: 4m
+  # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
+  # port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host.
+  # @section -- Ingress Configuration
+  hosts:
+    - host: mcp.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # ingress.tls -- TLS configuration for the Ingress. Keys travel in a request header, so use TLS.
+  # @section -- Ingress Configuration
+  tls: []
+  #  - secretName: signoz-mcp-tls
+  #    hosts:
+  #      - mcp.example.com
+
+autoscaling:
+  # autoscaling.enabled -- Create a HorizontalPodAutoscaler. While it is enabled the Deployment
+  # leaves `replicas` unset.
+  # @section -- Autoscaling Configuration
+  enabled: false
+  # autoscaling.minReplicas -- Minimum number of replicas.
+  # @section -- Autoscaling Configuration
+  minReplicas: 2
+  # autoscaling.maxReplicas -- Maximum number of replicas.
+  # @section -- Autoscaling Configuration
+  maxReplicas: 10
+  # autoscaling.targetCPUUtilizationPercentage -- Target average CPU utilization. At least one
+  # utilization target must be set while autoscaling is enabled.
+  # @section -- Autoscaling Configuration
+  targetCPUUtilizationPercentage: 60
+  # autoscaling.targetMemoryUtilizationPercentage -- Target average memory utilization.
+  # @section -- Autoscaling Configuration
+  targetMemoryUtilizationPercentage: 60
+  # autoscaling.behavior -- Scaling behavior of the HorizontalPodAutoscaler.
+  # @section -- Autoscaling Configuration
+  behavior: {}
+
+# resources -- Resource requests and limits for the server container.
+# @section -- Pod Configuration
+resources:
+  requests:
+    cpu: 500m
+    memory: 1024Mi
+# podSecurityContext -- Pod-level security settings. 65532 is the `nonroot` user of
+# distroless images.
+# @section -- Pod Configuration
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+# securityContext -- Container-level security settings.
+# @section -- Pod Configuration
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+# podAnnotations -- Additional annotations on the pod.
+# @section -- Pod Configuration
+podAnnotations: {}
+# podLabels -- Additional labels on the pod.
+# @section -- Pod Configuration
+podLabels: {}
+# nodeSelector -- Node selector for the pod.
+# @section -- Pod Configuration
+nodeSelector: {}
+# tolerations -- Tolerations for the pod.
+# @section -- Pod Configuration
+tolerations: []
+# affinity -- Affinity rules for the pod.
+# @section -- Pod Configuration
+affinity: {}
