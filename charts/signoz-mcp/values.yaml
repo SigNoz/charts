@@ -98,7 +98,7 @@ service:
   # service.annotations -- Annotations for the Service.
   # @section -- Service Configuration
   annotations: {}
-  # service.labels -- Additional labels on the Service.
+  # service.labels -- Additional labels on the Service. A key the chart already sets is ignored.
   # @section -- Service Configuration
   labels: {}
 
@@ -117,7 +117,7 @@ ingress:
   annotations: {}
   # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
   # nginx.ingress.kubernetes.io/proxy-body-size: 4m
-  # ingress.labels -- Additional labels on the Ingress.
+  # ingress.labels -- Additional labels on the Ingress. A key the chart already sets is ignored.
   # @section -- Ingress Configuration
   labels: {}
   # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
@@ -195,7 +195,7 @@ securityContext:
 # podAnnotations -- Additional annotations on the pod.
 # @section -- Pod Configuration
 podAnnotations: {}
-# podLabels -- Additional labels on the pod.
+# podLabels -- Additional labels on the pod. A key the chart already sets is ignored.
 # @section -- Pod Configuration
 podLabels: {}
 # nodeSelector -- Node selector for the pod.

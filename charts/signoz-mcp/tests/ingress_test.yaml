@@ -81,12 +81,42 @@ tests:
             helm.sh/chart: signoz-mcp-0.0.0-test
             team: observability
 
+  # helm-unittest parses each rendered document with a decoder that rejects a
+  # duplicate key, so a duplicated label fails the test before any assertion.
+  - it: should keep the common labels when ingress.labels sets one of their keys, and add the other ingress.labels
+    set:
+      ingress.enabled: true
+      ingress.labels:
+        app.kubernetes.io/name: other
+        team: observability
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-0.0.0-test
+            team: observability
+
   - it: should leave ingressClassName out when ingress.className is empty
     set:
       ingress.enabled: true
     asserts:
       - notExists:
           path: spec.ingressClassName
+
+  - it: should render a numeric-looking ingress.className as a string
+    set:
+      ingress.enabled: true
+      ingress.className: 123
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: "123"
 
   - it: should set tls when given
     set:

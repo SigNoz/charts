@@ -16,8 +16,8 @@ spec:
     metadata:
       labels:
         {{- include "signoz-mcp.selectorLabels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
+        {{- with include "signoz-mcp.userLabels" (dict "chart" (include "signoz-mcp.selectorLabels" .) "user" .Values.podLabels) }}
+        {{- . | nindent 8 }}
         {{- end }}
       {{- with .Values.podAnnotations }}
       annotations:
@@ -27,7 +27,7 @@ spec:
       serviceAccountName: {{ include "signoz-mcp.serviceAccountName" . }}
       automountServiceAccountToken: false
       {{- with .Values.priorityClassName }}
-      priorityClassName: {{ . }}
+      priorityClassName: {{ . | quote }}
       {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -40,7 +40,7 @@ spec:
       containers:
         - name: mcp
           image: {{ include "signoz-mcp.image" . | quote }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             {{- include "signoz-mcp.env" . | nindent 12 }}
           ports:

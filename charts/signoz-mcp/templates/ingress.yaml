@@ -7,8 +7,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "signoz-mcp.labels" . | nindent 4 }}
-    {{- with .Values.ingress.labels }}
-    {{- toYaml . | nindent 4 }}
+    {{- with include "signoz-mcp.userLabels" (dict "chart" (include "signoz-mcp.labels" .) "user" .Values.ingress.labels) }}
+    {{- . | nindent 4 }}
     {{- end }}
   {{- with .Values.ingress.annotations }}
   annotations:
@@ -16,7 +16,7 @@ metadata:
   {{- end }}
 spec:
   {{- with .Values.ingress.className }}
-  ingressClassName: {{ . }}
+  ingressClassName: {{ . | quote }}
   {{- end }}
   {{- with .Values.ingress.tls }}
   tls:
@@ -32,8 +32,8 @@ spec:
     {{- end }}
         paths:
           {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType | quote }}
             backend:
               service:
                 name: {{ $fullName }}

@@ -266,7 +266,7 @@ helm uninstall signoz-mcp --namespace signoz
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
-            <td>Additional labels on the Service.</td>
+            <td>Additional labels on the Service. A key the chart already sets is ignored.</td>
         </tr>
     </tbody>
 </table>
@@ -313,7 +313,7 @@ helm uninstall signoz-mcp --namespace signoz
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
-            <td>Additional labels on the Ingress.</td>
+            <td>Additional labels on the Ingress. A key the chart already sets is ignored.</td>
         </tr>
         <tr>
             <td id="ingress--hosts"><a href="./values.yaml#L126">ingress.hosts</a></td>
@@ -503,7 +503,7 @@ readOnlyRootFilesystem: true</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
-            <td>Additional labels on the pod.</td>
+            <td>Additional labels on the pod. A key the chart already sets is ignored.</td>
         </tr>
         <tr>
             <td id="nodeSelector"><a href="./values.yaml#L203">nodeSelector</a></td>

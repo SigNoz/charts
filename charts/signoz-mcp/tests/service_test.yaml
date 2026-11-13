@@ -95,6 +95,27 @@ tests:
             helm.sh/chart: signoz-mcp-0.0.0-test
             team: observability
 
+  # helm-unittest parses each rendered document with a decoder that rejects a
+  # duplicate key, so a duplicated label fails the test before any assertion.
+  - it: should keep the common labels when service.labels sets one of their keys, and add the other service.labels
+    template: service.yaml
+    set:
+      service.labels:
+        app.kubernetes.io/name: other
+        team: observability
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-0.0.0-test
+            team: observability
+
   - it: should set nodePort for a NodePort Service
     template: service.yaml
     set:

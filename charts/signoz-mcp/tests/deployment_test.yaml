@@ -60,6 +60,28 @@ tests:
             app.kubernetes.io/name: signoz-mcp
             app.kubernetes.io/instance: signoz-mcp
 
+  # helm-unittest parses each rendered document with a decoder that rejects a
+  # duplicate key, so a duplicated label fails the test before any assertion.
+  - it: should keep the selector labels on the pod when podLabels sets one of their keys, and add the other podLabels
+    set:
+      podLabels:
+        app.kubernetes.io/name: other
+        team: observability
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            team: observability
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+
   - it: should build the image from the default registry, repository and the chart appVersion
     asserts:
       - equal:
@@ -305,6 +327,14 @@ tests:
       - equal:
           path: spec.template.spec.priorityClassName
           value: high-priority
+
+  - it: should render a numeric-looking priorityClassName as a string
+    set:
+      priorityClassName: 1000
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: "1000"
 
   - it: should run as the ServiceAccount named after the release by default
     asserts:

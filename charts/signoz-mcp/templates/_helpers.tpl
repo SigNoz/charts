@@ -58,6 +58,31 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+User labels with the chart's own labels left out. Takes a dict:
+
+- "chart": the label block the chart renders in the same mapping, as text,
+  for example the output of signoz-mcp.labels.
+- "user": the user's map of labels.
+
+Returns the user's entries whose keys the chart's block does not set, as
+YAML, or nothing when none remain. The chart's labels win, so no key is
+rendered twice and the pod template keeps matching the Deployment's selector.
+The user's map is not modified.
+*/}}
+{{- define "signoz-mcp.userLabels" -}}
+{{- $chartLabels := fromYaml .chart -}}
+{{- $labels := dict -}}
+{{- range $key, $value := .user -}}
+{{- if not (hasKey $chartLabels $key) -}}
+{{- $_ := set $labels $key $value -}}
+{{- end -}}
+{{- end -}}
+{{- with $labels -}}
+{{- toYaml . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Name of the ServiceAccount the pod runs as. When serviceAccount.create is
 true, it is serviceAccount.name, or the fullname when that is empty. When
 create is false, it is serviceAccount.name, or "default" when that is empty.
