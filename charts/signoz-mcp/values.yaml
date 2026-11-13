@@ -39,7 +39,8 @@ imagePullSecrets: []
 # Each entry is a string, number or bool, a map with exactly `value`, or a map
 # with exactly `valueFrom`. Every value is rendered as a quoted string.
 #
-# The install fails unless SIGNOZ_URL or SIGNOZ_INSTANCE_URL_ALLOWLIST is set.
+# The server needs SIGNOZ_URL or SIGNOZ_INSTANCE_URL_ALLOWLIST, and exits at
+# startup without one of them.
 #
 # One SigNoz. The SigNoz Service is usually
 # http://<release>-signoz.<namespace>.svc.cluster.local:8080; it is named

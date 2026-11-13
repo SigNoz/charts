@@ -47,10 +47,10 @@ The install prints the in-cluster endpoint, a port-forward command and the comma
 helm get notes {{ template "chart.name" . }} --namespace platform
 ```
 
-The install stops before creating anything when neither `env.SIGNOZ_URL` nor `env.SIGNOZ_INSTANCE_URL_ALLOWLIST` is set, because the server exits at startup without one of them:
+The server needs `env.SIGNOZ_URL` or `env.SIGNOZ_INSTANCE_URL_ALLOWLIST`. The chart installs without either, but the server then exits at startup, the pod restarts repeatedly, and `kubectl logs` shows this message:
 
 ```text
-Set env.SIGNOZ_URL (for example http://<release>-signoz.<namespace>.svc.cluster.local:8080) or env.SIGNOZ_INSTANCE_URL_ALLOWLIST. The server exits at startup without one of them. Names under env are case-sensitive.
+SIGNOZ_INSTANCE_URL_ALLOWLIST is required for HTTP transport mode when SIGNOZ_URL is not set
 ```
 
 ### Configuring the SigNoz address
@@ -168,7 +168,7 @@ claude mcp add --transport http signoz https://mcp.example.com/mcp
 
 ### Names under `env` are case-sensitive
 
-- Names are case-sensitive and used exactly as written. `env.signoz_url` is a different variable from `SIGNOZ_URL`, and the server does not read it. When the install check fails, its message names any key that differs from `SIGNOZ_URL` or `SIGNOZ_INSTANCE_URL_ALLOWLIST` only in case. Other misspelled names reach the server, which ignores them.
+- Names are case-sensitive and used exactly as written. A lower-case name such as `signoz_url` is a different variable from `SIGNOZ_URL`, and the server does not read it. Other misspelled names also reach the server, which ignores them.
 - `env` is a map of names to values, not a list. Each value is a string, number or bool, a map with exactly `value`, or a map with exactly `valueFrom`. Every value is rendered as a quoted string.
 - The chart sets `TRANSPORT_MODE=http` and `MCP_SERVER_PORT=8000`. An entry with the same name replaces the chart's value. The container port and probes stay on 8000, so changing `MCP_SERVER_PORT` stops the pod from becoming Ready. To change the port clients connect to, set `service.port`.
 - Variables are rendered sorted by name, so a `$(VAR)` reference in a value resolves only to a name that sorts earlier.
@@ -268,7 +268,7 @@ The server keeps no state, so this costs a short outage and no data.
 
 ### Using the chart from foundry
 
-foundry's Helm mode does not deploy the MCP server yet; it stops with an error when MCP is enabled. A values file holding only `fullnameOverride`, `image.registry`, `image.repository`, `image.tag`, `replicaCount` and plain strings under `env` is enough to install the chart, as long as `env` includes `SIGNOZ_URL`. The `TRANSPORT_MODE` and `MCP_SERVER_PORT` entries foundry adds are accepted. The Deployment and Service are named exactly `fullnameOverride`, and the Service listens on port 8000 while `service.port` is left at its default.
+foundry's Helm mode does not deploy the MCP server yet; it stops with an error when MCP is enabled. A values file holding only `fullnameOverride`, `image.registry`, `image.repository`, `image.tag`, `replicaCount` and plain strings under `env` is enough to install the chart. `env` must include `SIGNOZ_URL` for the server to start. The `TRANSPORT_MODE` and `MCP_SERVER_PORT` entries foundry adds are accepted. The Deployment and Service are named exactly `fullnameOverride`, and the Service listens on port 8000 while `service.port` is left at its default.
 
 foundry writes `env` values as plain strings. A Secret reference is added with a patch on the values file foundry writes for this chart:
 
@@ -296,8 +296,25 @@ kubectl -n platform logs deployment/{{ template "chart.name" . }}
 ```
 
 - `env.MCP_SERVER_PORT` set to a port other than 8000, or `env.TRANSPORT_MODE` set to anything other than `http`: the probes on port 8000 never succeed. Remove the entry.
-- The container restarts at startup: the log names the missing setting. With OAuth on, `OAUTH_TOKEN_SECRET` must be at least 32 bytes and `OAUTH_ISSUER_URL` must be set.
+- The container restarts at startup: see "The pod restarts repeatedly" below.
 - The container is killed for memory: a memory limit is set below what the server uses. The server's README recommends at least 512Mi.
+
+#### The pod restarts repeatedly
+
+The server exits at startup when a setting it needs is missing or invalid, so the container restarts over and over. Its log names the setting. Read it with the command below, where `<name>` is the Deployment's name, as described under Installing the Chart:
+
+```bash
+kubectl -n <namespace> logs deploy/<name>
+```
+
+- Neither `env.SIGNOZ_URL` nor `env.SIGNOZ_INSTANCE_URL_ALLOWLIST` is set. The log shows:
+
+  ```text
+  SIGNOZ_INSTANCE_URL_ALLOWLIST is required for HTTP transport mode when SIGNOZ_URL is not set
+  ```
+
+  Set one of them, in upper case, and upgrade the release.
+- OAuth is on: `OAUTH_TOKEN_SECRET` must be at least 32 bytes and `OAUTH_ISSUER_URL` must be set.
 
 #### HTTP 401
 

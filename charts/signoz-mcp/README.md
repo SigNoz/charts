@@ -47,10 +47,10 @@ The install prints the in-cluster endpoint, a port-forward command and the comma
 helm get notes signoz-mcp --namespace platform
 ```
 
-The install stops before creating anything when neither `env.SIGNOZ_URL` nor `env.SIGNOZ_INSTANCE_URL_ALLOWLIST` is set, because the server exits at startup without one of them:
+The server needs `env.SIGNOZ_URL` or `env.SIGNOZ_INSTANCE_URL_ALLOWLIST`. The chart installs without either, but the server then exits at startup, the pod restarts repeatedly, and `kubectl logs` shows this message:
 
 ```text
-Set env.SIGNOZ_URL (for example http://<release>-signoz.<namespace>.svc.cluster.local:8080) or env.SIGNOZ_INSTANCE_URL_ALLOWLIST. The server exits at startup without one of them. Names under env are case-sensitive.
+SIGNOZ_INSTANCE_URL_ALLOWLIST is required for HTTP transport mode when SIGNOZ_URL is not set
 ```
 
 ### Configuring the SigNoz address
@@ -168,7 +168,7 @@ claude mcp add --transport http signoz https://mcp.example.com/mcp
 
 ### Names under `env` are case-sensitive
 
-- Names are case-sensitive and used exactly as written. `env.signoz_url` is a different variable from `SIGNOZ_URL`, and the server does not read it. When the install check fails, its message names any key that differs from `SIGNOZ_URL` or `SIGNOZ_INSTANCE_URL_ALLOWLIST` only in case. Other misspelled names reach the server, which ignores them.
+- Names are case-sensitive and used exactly as written. A lower-case name such as `signoz_url` is a different variable from `SIGNOZ_URL`, and the server does not read it. Other misspelled names also reach the server, which ignores them.
 - `env` is a map of names to values, not a list. Each value is a string, number or bool, a map with exactly `value`, or a map with exactly `valueFrom`. Every value is rendered as a quoted string.
 - The chart sets `TRANSPORT_MODE=http` and `MCP_SERVER_PORT=8000`. An entry with the same name replaces the chart's value. The container port and probes stay on 8000, so changing `MCP_SERVER_PORT` stops the pod from becoming Ready. To change the port clients connect to, set `service.port`.
 - Variables are rendered sorted by name, so a `$(VAR)` reference in a value resolves only to a name that sorts earlier.
@@ -268,7 +268,7 @@ The server keeps no state, so this costs a short outage and no data.
 
 ### Using the chart from foundry
 
-foundry's Helm mode does not deploy the MCP server yet; it stops with an error when MCP is enabled. A values file holding only `fullnameOverride`, `image.registry`, `image.repository`, `image.tag`, `replicaCount` and plain strings under `env` is enough to install the chart, as long as `env` includes `SIGNOZ_URL`. The `TRANSPORT_MODE` and `MCP_SERVER_PORT` entries foundry adds are accepted. The Deployment and Service are named exactly `fullnameOverride`, and the Service listens on port 8000 while `service.port` is left at its default.
+foundry's Helm mode does not deploy the MCP server yet; it stops with an error when MCP is enabled. A values file holding only `fullnameOverride`, `image.registry`, `image.repository`, `image.tag`, `replicaCount` and plain strings under `env` is enough to install the chart. `env` must include `SIGNOZ_URL` for the server to start. The `TRANSPORT_MODE` and `MCP_SERVER_PORT` entries foundry adds are accepted. The Deployment and Service are named exactly `fullnameOverride`, and the Service listens on port 8000 while `service.port` is left at its default.
 
 foundry writes `env` values as plain strings. A Secret reference is added with a patch on the values file foundry writes for this chart:
 
@@ -296,8 +296,25 @@ kubectl -n platform logs deployment/signoz-mcp
 ```
 
 - `env.MCP_SERVER_PORT` set to a port other than 8000, or `env.TRANSPORT_MODE` set to anything other than `http`: the probes on port 8000 never succeed. Remove the entry.
-- The container restarts at startup: the log names the missing setting. With OAuth on, `OAUTH_TOKEN_SECRET` must be at least 32 bytes and `OAUTH_ISSUER_URL` must be set.
+- The container restarts at startup: see "The pod restarts repeatedly" below.
 - The container is killed for memory: a memory limit is set below what the server uses. The server's README recommends at least 512Mi.
+
+#### The pod restarts repeatedly
+
+The server exits at startup when a setting it needs is missing or invalid, so the container restarts over and over. Its log names the setting. Read it with the command below, where `<name>` is the Deployment's name, as described under Installing the Chart:
+
+```bash
+kubectl -n <namespace> logs deploy/<name>
+```
+
+- Neither `env.SIGNOZ_URL` nor `env.SIGNOZ_INSTANCE_URL_ALLOWLIST` is set. The log shows:
+
+  ```text
+  SIGNOZ_INSTANCE_URL_ALLOWLIST is required for HTTP transport mode when SIGNOZ_URL is not set
+  ```
+
+  Set one of them, in upper case, and upgrade the release.
+- OAuth is on: `OAUTH_TOKEN_SECRET` must be at least 32 bytes and `OAUTH_ISSUER_URL` must be set.
 
 #### HTTP 401
 
@@ -452,7 +469,7 @@ This removes the objects the chart created. Secrets you created for it are left 
     </thead>
     <tbody>
         <tr>
-            <td id="env"><a href="./values.yaml#L80">env</a></td>
+            <td id="env"><a href="./values.yaml#L81">env</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -472,7 +489,7 @@ This removes the objects the chart created. Secrets you created for it are left 
     </thead>
     <tbody>
         <tr>
-            <td id="service--type"><a href="./values.yaml#L85">service.type</a></td>
+            <td id="service--type"><a href="./values.yaml#L86">service.type</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
@@ -481,7 +498,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Service type.</td>
         </tr>
         <tr>
-            <td id="service--port"><a href="./values.yaml#L88">service.port</a></td>
+            <td id="service--port"><a href="./values.yaml#L89">service.port</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8000</pre>
@@ -490,7 +507,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Port clients connect to. It forwards to the container's `http` port (8000).</td>
         </tr>
         <tr>
-            <td id="service--annotations"><a href="./values.yaml#L91">service.annotations</a></td>
+            <td id="service--annotations"><a href="./values.yaml#L92">service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -510,7 +527,7 @@ This removes the objects the chart created. Secrets you created for it are left 
     </thead>
     <tbody>
         <tr>
-            <td id="ingress--enabled"><a href="./values.yaml#L96">ingress.enabled</a></td>
+            <td id="ingress--enabled"><a href="./values.yaml#L97">ingress.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -519,7 +536,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Create an Ingress for the server.</td>
         </tr>
         <tr>
-            <td id="ingress--className"><a href="./values.yaml#L99">ingress.className</a></td>
+            <td id="ingress--className"><a href="./values.yaml#L100">ingress.className</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -528,7 +545,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>IngressClass name.</td>
         </tr>
         <tr>
-            <td id="ingress--annotations"><a href="./values.yaml#L105">ingress.annotations</a></td>
+            <td id="ingress--annotations"><a href="./values.yaml#L106">ingress.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -537,7 +554,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Annotations for the Ingress. A tool call can run for up to 600 seconds and the server accepts request bodies up to 4 MiB, so the proxy's read timeout and body size limit may need raising. The commented examples are for ingress-nginx; other controllers have their own annotation names.</td>
         </tr>
         <tr>
-            <td id="ingress--hosts"><a href="./values.yaml#L111">ingress.hosts</a></td>
+            <td id="ingress--hosts"><a href="./values.yaml#L112">ingress.hosts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- host: mcp.example.com
@@ -549,7 +566,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Hosts and paths for the Ingress. Each path routes to the Service's `http` port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host.</td>
         </tr>
         <tr>
-            <td id="ingress--tls"><a href="./values.yaml#L118">ingress.tls</a></td>
+            <td id="ingress--tls"><a href="./values.yaml#L119">ingress.tls</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -569,7 +586,7 @@ This removes the objects the chart created. Secrets you created for it are left 
     </thead>
     <tbody>
         <tr>
-            <td id="autoscaling--enabled"><a href="./values.yaml#L127">autoscaling.enabled</a></td>
+            <td id="autoscaling--enabled"><a href="./values.yaml#L128">autoscaling.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -578,7 +595,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Create a HorizontalPodAutoscaler. While it is enabled the Deployment leaves `replicas` unset.</td>
         </tr>
         <tr>
-            <td id="autoscaling--minReplicas"><a href="./values.yaml#L130">autoscaling.minReplicas</a></td>
+            <td id="autoscaling--minReplicas"><a href="./values.yaml#L131">autoscaling.minReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">2</pre>
@@ -587,7 +604,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Minimum number of replicas.</td>
         </tr>
         <tr>
-            <td id="autoscaling--maxReplicas"><a href="./values.yaml#L133">autoscaling.maxReplicas</a></td>
+            <td id="autoscaling--maxReplicas"><a href="./values.yaml#L134">autoscaling.maxReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -596,7 +613,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Maximum number of replicas.</td>
         </tr>
         <tr>
-            <td id="autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L137">autoscaling.targetCPUUtilizationPercentage</a></td>
+            <td id="autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L138">autoscaling.targetCPUUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">60</pre>
@@ -605,7 +622,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Target average CPU utilization. At least one utilization target must be set while autoscaling is enabled.</td>
         </tr>
         <tr>
-            <td id="autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L140">autoscaling.targetMemoryUtilizationPercentage</a></td>
+            <td id="autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L141">autoscaling.targetMemoryUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">60</pre>
@@ -614,7 +631,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Target average memory utilization.</td>
         </tr>
         <tr>
-            <td id="autoscaling--behavior"><a href="./values.yaml#L143">autoscaling.behavior</a></td>
+            <td id="autoscaling--behavior"><a href="./values.yaml#L144">autoscaling.behavior</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -634,7 +651,7 @@ This removes the objects the chart created. Secrets you created for it are left 
     </thead>
     <tbody>
         <tr>
-            <td id="resources"><a href="./values.yaml#L147">resources</a></td>
+            <td id="resources"><a href="./values.yaml#L148">resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests:
@@ -645,7 +662,7 @@ This removes the objects the chart created. Secrets you created for it are left 
             <td>Resource requests and limits for the server container.</td>
         </tr>
         <tr>
-            <td id="podSecurityContext"><a href="./values.yaml#L154">podSecurityContext</a></td>
+            <td id="podSecurityContext"><a href="./values.yaml#L155">podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">runAsGroup: 65532
@@ -658,7 +675,7 @@ seccompProfile:
             <td>Pod-level security settings. 65532 is the `nonroot` user of distroless images.</td>
         </tr>
         <tr>
-            <td id="securityContext"><a href="./values.yaml#L162">securityContext</a></td>
+            <td id="securityContext"><a href="./values.yaml#L163">securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">allowPrivilegeEscalation: false
@@ -671,7 +688,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Container-level security settings.</td>
         </tr>
         <tr>
-            <td id="podAnnotations"><a href="./values.yaml#L170">podAnnotations</a></td>
+            <td id="podAnnotations"><a href="./values.yaml#L171">podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -680,7 +697,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Additional annotations on the pod.</td>
         </tr>
         <tr>
-            <td id="podLabels"><a href="./values.yaml#L173">podLabels</a></td>
+            <td id="podLabels"><a href="./values.yaml#L174">podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -689,7 +706,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Additional labels on the pod.</td>
         </tr>
         <tr>
-            <td id="nodeSelector"><a href="./values.yaml#L176">nodeSelector</a></td>
+            <td id="nodeSelector"><a href="./values.yaml#L177">nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -698,7 +715,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Node selector for the pod.</td>
         </tr>
         <tr>
-            <td id="tolerations"><a href="./values.yaml#L179">tolerations</a></td>
+            <td id="tolerations"><a href="./values.yaml#L180">tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -707,7 +724,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Tolerations for the pod.</td>
         </tr>
         <tr>
-            <td id="affinity"><a href="./values.yaml#L182">affinity</a></td>
+            <td id="affinity"><a href="./values.yaml#L183">affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
