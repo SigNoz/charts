@@ -1,0 +1,228 @@
+global:
+  # global.imageRegistry -- Image registry that replaces `image.registry` when set.
+  # @section -- General Configuration
+  imageRegistry: ""
+
+# nameOverride -- String to partially override the fullname template (retains the release name).
+# @section -- General Configuration
+nameOverride: ""
+# fullnameOverride -- String to fully override the fullname template. It is used as the exact
+# name of every object and is never cut; rendering fails when it is longer than 63 characters.
+# @section -- General Configuration
+fullnameOverride: ""
+# replicaCount -- Number of server replicas. Ignored while `autoscaling.enabled` is true.
+# @section -- General Configuration
+replicaCount: 1
+
+image:
+  # image.registry -- Image registry. `global.imageRegistry` replaces it when set. Set it to
+  # an empty string to use the repository without a registry.
+  # @section -- Image Configuration
+  registry: docker.io
+  # image.repository -- Image repository.
+  # @section -- Image Configuration
+  repository: signoz/signoz-mcp-server
+  # image.tag -- Image tag. Defaults to the chart's appVersion when empty.
+  # @section -- Image Configuration
+  tag: ""
+  # image.pullPolicy -- Image pull policy.
+  # @section -- Image Configuration
+  pullPolicy: IfNotPresent
+# imagePullSecrets -- Image pull secrets for the pod, as a list of `{name: ...}` objects.
+# @section -- Image Configuration
+imagePullSecrets: []
+
+# env -- Environment variables for the server, as a map of NAME: value. Names
+# are case-sensitive. A value is a string, number or bool, or a map with
+# `value` or `valueFrom`.
+# @section -- Environment Configuration
+env: {}
+  # NAME: plain-value
+  # NAME:
+  #   value: plain-value
+  # NAME:
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: secret-name
+  #       key: secret-key
+
+service:
+  # service.type -- Service type.
+  # @section -- Service Configuration
+  type: ClusterIP
+  # service.port -- Port clients connect to. It forwards to the container's `http` port (8000).
+  # @section -- Service Configuration
+  port: 8000
+  # service.nodePort -- (int) Node port for the Service. Used only when `service.type` is
+  # `NodePort` or `LoadBalancer`. When unset, Kubernetes picks one.
+  # @section -- Service Configuration
+  nodePort: null
+  # service.loadBalancerSourceRanges -- Client IP ranges allowed to reach the Service. Used
+  # only when `service.type` is `LoadBalancer`.
+  # @section -- Service Configuration
+  loadBalancerSourceRanges: []
+  # service.annotations -- Annotations for the Service.
+  # @section -- Service Configuration
+  annotations: {}
+  # service.labels -- Additional labels on the Service. A key the chart already sets is ignored.
+  # @section -- Service Configuration
+  labels: {}
+
+ingress:
+  # ingress.enabled -- Create an Ingress for the server.
+  # @section -- Ingress Configuration
+  enabled: false
+  # ingress.className -- IngressClass name.
+  # @section -- Ingress Configuration
+  className: ""
+  # ingress.annotations -- Annotations for the Ingress. A tool call can run for up to 600
+  # seconds and the server accepts request bodies up to 4 MiB, so the proxy's read timeout and
+  # body size limit may need raising. The commented examples are for ingress-nginx; other
+  # controllers have their own annotation names.
+  # @section -- Ingress Configuration
+  annotations: {}
+  # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  # nginx.ingress.kubernetes.io/proxy-body-size: 4m
+  # ingress.labels -- Additional labels on the Ingress. A key the chart already sets is ignored.
+  # @section -- Ingress Configuration
+  labels: {}
+  # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
+  # port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host. A path
+  # without `pathType` uses `Prefix`.
+  # @section -- Ingress Configuration
+  hosts:
+    - host: mcp.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # ingress.tls -- TLS configuration for the Ingress. Keys travel in a request header, so use TLS.
+  # @section -- Ingress Configuration
+  tls: []
+  #  - secretName: signoz-mcp-server-tls
+  #    hosts:
+  #      - mcp.example.com
+
+autoscaling:
+  # autoscaling.enabled -- Create a HorizontalPodAutoscaler. While it is enabled the Deployment
+  # leaves `replicas` unset.
+  # @section -- Autoscaling Configuration
+  enabled: false
+  # autoscaling.minReplicas -- Minimum number of replicas.
+  # @section -- Autoscaling Configuration
+  minReplicas: 2
+  # autoscaling.maxReplicas -- Maximum number of replicas.
+  # @section -- Autoscaling Configuration
+  maxReplicas: 10
+  # autoscaling.targetCPUUtilizationPercentage -- Target average CPU utilization. At least one
+  # utilization target must be set while autoscaling is enabled.
+  # @section -- Autoscaling Configuration
+  targetCPUUtilizationPercentage: 60
+  # autoscaling.targetMemoryUtilizationPercentage -- Target average memory utilization.
+  # @section -- Autoscaling Configuration
+  targetMemoryUtilizationPercentage: 60
+  # autoscaling.behavior -- Scaling behavior of the HorizontalPodAutoscaler.
+  # @section -- Autoscaling Configuration
+  behavior: {}
+
+serviceAccount:
+  # serviceAccount.create -- Create a ServiceAccount for the pod. The pod does not mount its token.
+  # @section -- ServiceAccount Configuration
+  create: true
+  # serviceAccount.name -- Name of the ServiceAccount the pod runs as. When empty, it is the
+  # fullname if `serviceAccount.create` is true, and `default` if it is false.
+  # @section -- ServiceAccount Configuration
+  name: ""
+  # serviceAccount.annotations -- Annotations for the ServiceAccount.
+  # @section -- ServiceAccount Configuration
+  annotations: {}
+
+# resources -- Resource requests and limits for the server container.
+# @section -- Pod Configuration
+resources:
+  requests:
+    cpu: 500m
+    memory: 1024Mi
+# podSecurityContext -- Pod-level security settings. 65532 is the `nonroot` user of
+# distroless images.
+# @section -- Pod Configuration
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+# securityContext -- Container-level security settings.
+# @section -- Pod Configuration
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+# podAnnotations -- Additional annotations on the pod.
+# @section -- Pod Configuration
+podAnnotations: {}
+# podLabels -- Additional labels on the pod. A key the chart already sets is ignored.
+# @section -- Pod Configuration
+podLabels: {}
+# nodeSelector -- Node selector for the pod.
+# @section -- Pod Configuration
+nodeSelector: {}
+# tolerations -- Tolerations for the pod.
+# @section -- Pod Configuration
+tolerations: []
+# affinity -- Affinity rules for the pod.
+# @section -- Pod Configuration
+affinity: {}
+# topologySpreadConstraints -- Topology spread constraints for the pod.
+# @section -- Pod Configuration
+topologySpreadConstraints: []
+# priorityClassName -- PriorityClass name for the pod.
+# @section -- Pod Configuration
+priorityClassName: ""
+# volumes -- Additional volumes for the pod. See the example below this key in values.yaml.
+# @section -- Pod Configuration
+volumes: []
+# For example, to trust a private CA, mount a CA bundle from a ConfigMap and set
+# SSL_CERT_FILE under `env` to point the server at it:
+#   volumes:
+#     - name: ca-bundle
+#       configMap:
+#         name: ca-bundle
+#   volumeMounts:
+#     - name: ca-bundle
+#       mountPath: /etc/ssl/custom
+#       readOnly: true
+#   env:
+#     SSL_CERT_FILE: /etc/ssl/custom/ca.crt
+# SSL_CERT_FILE replaces the system certificate list, so the bundle must also
+# hold the public root certificates the server still needs, for example for the
+# docs refresh.
+# volumeMounts -- Additional volume mounts for the `mcp` container.
+# @section -- Pod Configuration
+volumeMounts: []
+# livenessProbe -- Liveness probe for the `mcp` container. Helm merges maps, so setting one
+# field, such as `livenessProbe.failureThreshold`, keeps the others.
+# @section -- Pod Configuration
+livenessProbe:
+  httpGet:
+    path: /livez
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 5
+# readinessProbe -- Readiness probe for the `mcp` container. Helm merges maps, so setting one
+# field, such as `readinessProbe.initialDelaySeconds`, keeps the others.
+# @section -- Pod Configuration
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+# startupProbe -- Startup probe for the `mcp` container. Not set by default.
+# @section -- Pod Configuration
+startupProbe: {}

@@ -1,0 +1,169 @@
+suite: Test the install notes
+templates:
+  - NOTES.txt
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+tests:
+  - it: should show the chart's appVersion as the server version by default
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^The SigNoz MCP server v0\.0\.0-test has been installed as signoz-mcp-server in namespace platform\.$'
+
+  - it: should show an overridden image tag as the server version
+    set:
+      image.tag: v9.9.9
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^The SigNoz MCP server v9\.9\.9 has been installed as signoz-mcp-server in namespace platform\.$'
+
+  - it: should show the in-cluster endpoint on the default service.port
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^In-cluster endpoint:\n\n  http://signoz-mcp-server\.platform\.svc:8000/mcp$'
+
+  - it: should use a non-default service.port in the endpoint and the port-forward command
+    set:
+      service.port: 9000
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^  http://signoz-mcp-server\.platform\.svc:9000/mcp$'
+      - matchRegexRaw:
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:9000$'
+
+  - it: should show the port-forward command when the Ingress is off
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^To reach the server from your machine, run:$'
+      - matchRegexRaw:
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:8000$'
+      - matchRegexRaw:
+          pattern: '(?m)^and use the URL http://localhost:8000/mcp\.$'
+      - notMatchRegexRaw:
+          pattern: 'Ingress endpoint'
+
+  - it: should show the host URL with http when the Ingress is on without tls
+    set:
+      ingress.enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp$'
+      - notMatchRegexRaw:
+          pattern: 'https://mcp\.example\.com'
+      - notMatchRegexRaw:
+          pattern: 'port-forward'
+
+  - it: should show the host URL with https when ingress.tls is set
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: signoz-mcp-server-tls
+          hosts:
+            - mcp.example.com
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^  https://mcp\.example\.com/mcp$'
+      - notMatchRegexRaw:
+          pattern: 'http://mcp\.example\.com'
+
+  - it: should show one line per Ingress host
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: a.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: b.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://a\.example\.com/mcp\n  http://b\.example\.com/mcp$'
+
+  - it: should not print a wildcard host
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: "*.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: mcp.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp$'
+      - notMatchRegexRaw:
+          pattern: '\*'
+
+  - it: should fall back to the port-forward command when the only Ingress host is a wildcard
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: "*.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:8000$'
+      - notMatchRegexRaw:
+          pattern: 'Ingress endpoint'
+      - notMatchRegexRaw:
+          pattern: '\*'
+
+  - it: should skip an Ingress entry with no host
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - paths:
+            - path: /
+              pathType: Prefix
+        - host: ""
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: mcp.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp\n\n'
+      - notMatchRegexRaw:
+          pattern: ':///mcp'
+
+  - it: should name the SIGNOZ-API-KEY header and link the server's documentation
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^By default each MCP client sends its own SigNoz API key in the SIGNOZ-API-KEY$'
+      - matchRegexRaw:
+          pattern: '(?m)^  https://signoz\.io/docs/ai/signoz-mcp-server/$'
+
+  - it: should not depend on env, print no warning and print no value or Secret reference from env
+    set:
+      ingress.enabled: true
+      env:
+        SIGNOZ_API_KEY: notes-plain-api-key
+        OAUTH_ISSUER_URL: https://auth.other.example.org
+        OAUTH_TOKEN_SECRET:
+          valueFrom:
+            secretKeyRef:
+              name: notes-token-secret
+              key: notes-token-key
+    asserts:
+      - notMatchRegexRaw:
+          pattern: 'WARNING'
+      - notMatchRegexRaw:
+          pattern: 'notes-plain-api-key'
+      - notMatchRegexRaw:
+          pattern: 'notes-token-secret|notes-token-key'
+      - matchRegexRaw:
+          pattern: '(?m)^  http://mcp\.example\.com/mcp$'

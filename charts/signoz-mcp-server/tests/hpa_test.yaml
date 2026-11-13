@@ -1,0 +1,148 @@
+suite: Test the HorizontalPodAutoscaler
+templates:
+  - hpa.yaml
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should render no HorizontalPodAutoscaler by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should scale the Deployment on memory and CPU utilization when enabled
+    set:
+      autoscaling.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - isAPIVersion:
+          of: autoscaling/v2
+      - equal:
+          path: metadata.name
+          value: signoz-mcp-server
+      - equal:
+          path: metadata.namespace
+          value: platform
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+      - equal:
+          path: spec.scaleTargetRef
+          value:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: signoz-mcp-server
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics
+          value:
+            - type: Resource
+              resource:
+                name: memory
+                target:
+                  type: Utilization
+                  averageUtilization: 60
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: 60
+      - notExists:
+          path: spec.behavior
+
+  - it: should name the HorizontalPodAutoscaler and its target after a release that does not contain the chart name
+    release:
+      name: prod
+    set:
+      autoscaling.enabled: true
+    asserts:
+      - equal:
+          path: metadata.name
+          value: prod-signoz-mcp-server
+      - equal:
+          path: spec.scaleTargetRef.name
+          value: prod-signoz-mcp-server
+
+  - it: should use the replica bounds from values
+    set:
+      autoscaling.enabled: true
+      autoscaling.minReplicas: 3
+      autoscaling.maxReplicas: 7
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 3
+      - equal:
+          path: spec.maxReplicas
+          value: 7
+
+  - it: should drop the CPU metric when its target is cleared with null
+    set:
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: null
+    asserts:
+      - equal:
+          path: spec.metrics
+          value:
+            - type: Resource
+              resource:
+                name: memory
+                target:
+                  type: Utilization
+                  averageUtilization: 60
+
+  - it: should drop the memory metric when its target is cleared with 0
+    set:
+      autoscaling.enabled: true
+      autoscaling.targetMemoryUtilizationPercentage: 0
+      autoscaling.targetCPUUtilizationPercentage: 75
+    asserts:
+      - equal:
+          path: spec.metrics
+          value:
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: 75
+
+  - it: should pass autoscaling.behavior through
+    set:
+      autoscaling.enabled: true
+      autoscaling.behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 60
+    asserts:
+      - equal:
+          path: spec.behavior
+          value:
+            scaleDown:
+              stabilizationWindowSeconds: 300
+              policies:
+                - type: Pods
+                  value: 1
+                  periodSeconds: 60

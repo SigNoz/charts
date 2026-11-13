@@ -1,0 +1,9 @@
+# Numbers written bare, as a user would write them in a values file. Helm reads
+# them as floating point, which is the case the env helper's whole-number rule
+# exists for.
+env:
+  SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+  MCP_MAX_REQUEST_BYTES: 4194304
+  WHOLE_IN_MAP:
+    value: 4194304
+  NOT_WHOLE: 1.5

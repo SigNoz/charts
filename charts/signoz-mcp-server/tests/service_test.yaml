@@ -1,0 +1,194 @@
+suite: Test the Service
+templates:
+  - service.yaml
+  - deployment.yaml
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should be named after the release in the release namespace
+    template: service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: signoz-mcp-server
+      - equal:
+          path: metadata.namespace
+          value: platform
+
+  - it: should carry the common labels
+    template: service.yaml
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+
+  - it: should be a ClusterIP Service on port 8000 named http forwarding to the http port by default
+    template: service.yaml
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 8000
+              targetPort: http
+              protocol: TCP
+      - notExists:
+          path: metadata.annotations
+
+  - it: should change the port with service.port and leave targetPort alone
+    template: service.yaml
+    set:
+      service.port: 9000
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 9000
+              targetPort: http
+              protocol: TCP
+
+  - it: should apply service.type and service.annotations
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.annotations:
+        example.com/owner: platform
+    asserts:
+      - equal:
+          path: spec.type
+          value: NodePort
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/owner: platform
+
+  - it: should add service.labels after the common labels
+    template: service.yaml
+    set:
+      service.labels:
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+            team: observability
+
+  # helm-unittest parses each rendered document with a decoder that rejects a
+  # duplicate key, so a duplicated label fails the test before any assertion.
+  - it: should keep the common labels when service.labels sets one of their keys, and add the other service.labels
+    template: service.yaml
+    set:
+      service.labels:
+        app.kubernetes.io/name: other
+        team: observability
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+            team: observability
+
+  - it: should set nodePort for a NodePort Service
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 8000
+              targetPort: http
+              protocol: TCP
+              nodePort: 30080
+
+  - it: should set nodePort for a LoadBalancer Service
+    template: service.yaml
+    set:
+      service.type: LoadBalancer
+      service.nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30080
+
+  - it: should leave nodePort and loadBalancerSourceRanges out of a ClusterIP Service
+    template: service.yaml
+    set:
+      service.nodePort: 30080
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - notExists:
+          path: spec.ports[0].nodePort
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+
+  - it: should set loadBalancerSourceRanges for a LoadBalancer Service
+    template: service.yaml
+    set:
+      service.type: LoadBalancer
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - 10.0.0.0/8
+
+  - it: should leave loadBalancerSourceRanges out of a NodePort Service
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+
+  - it: should select the pods the Deployment selects
+    asserts:
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+        template: service.yaml
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+        template: deployment.yaml

@@ -1,0 +1,151 @@
+
+# SigNoz MCP Server
+
+{{ template "chart.badgesSection" . }}
+
+This chart installs the [SigNoz MCP server](https://github.com/SigNoz/signoz-mcp-server) in HTTP mode, as a Deployment, a ServiceAccount and a ClusterIP Service on port 8000, with an optional Ingress and HorizontalPodAutoscaler. The server's documentation is at [signoz.io/docs/ai/signoz-mcp-server](https://signoz.io/docs/ai/signoz-mcp-server/). SigNoz itself is installed separately.
+
+### Prerequisites
+
+Helm 3, and Kubernetes 1.19 or later (1.23 or later when `autoscaling.enabled` is true).
+
+### Installing the Chart
+
+```bash
+helm repo add signoz https://charts.signoz.io
+helm install {{ template "chart.name" . }} signoz/{{ template "chart.name" . }} --namespace signoz --create-namespace \
+  --set env.SIGNOZ_URL=http://signoz:8080
+```
+
+`env.SIGNOZ_URL` is the address of the SigNoz API as seen from the pod; `http://signoz:8080` is an example. The server needs `SIGNOZ_URL` or `SIGNOZ_INSTANCE_URL_ALLOWLIST` to start. See [Environment Variables](https://github.com/SigNoz/signoz-mcp-server#environment-variables) for what each one means.
+
+### Configuration
+
+Server settings go in the `env` map, one entry per environment variable. An entry is a plain value or a `valueFrom` reference:
+
+```yaml
+env:
+  SIGNOZ_URL: http://signoz:8080
+  SIGNOZ_API_KEY:
+    valueFrom:
+      secretKeyRef:
+        name: signoz-mcp-server
+        key: SIGNOZ_API_KEY
+```
+
+- Names are case-sensitive and used as written.
+- `env` must be a map. A list of `name`/`value` pairs is rejected.
+- The chart sets `TRANSPORT_MODE=http` and `MCP_SERVER_PORT=8000`. An entry in `env` with the same name replaces the chart's value.
+- The container port and probes stay on 8000, so changing `MCP_SERVER_PORT` stops the pod from becoming Ready.
+
+For the list of variables, including the multi-tenant allowlist, the docs refresh intervals and the server's own telemetry, see [Environment Variables](https://github.com/SigNoz/signoz-mcp-server#environment-variables). For the authentication modes (a key sent by each client, a key held by the server, or OAuth), see [HTTP Mode](https://github.com/SigNoz/signoz-mcp-server#http-mode).
+
+### Reaching the Server
+
+Forward the Service port to your machine:
+
+```bash
+kubectl --namespace signoz port-forward svc/{{ template "chart.name" . }} 8000:8000
+```
+
+The MCP endpoint is then `http://localhost:8000/mcp`. For example, to add it to Claude Code with a key sent by the client:
+
+```bash
+claude mcp add --transport http signoz http://localhost:8000/mcp --header "SIGNOZ-API-KEY: <your-key>"
+```
+
+For other clients, see [Connect to SigNoz's MCP server](https://signoz.io/docs/ai/signoz-mcp-server/#connect-to-signozs-mcp-server).
+
+To reach the server from outside the cluster, enable the Ingress:
+
+```yaml
+ingress:
+  enabled: true
+  hosts:
+    - host: mcp.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: mcp-example-com-tls
+      hosts:
+        - mcp.example.com
+```
+
+Clients then use `https://mcp.example.com/mcp`. Keep the path `/`, because the OAuth endpoints sit at the root of the host. When the server holds a `SIGNOZ_API_KEY`, anyone who can reach the Ingress can query SigNoz with that key.
+
+### Uninstalling the chart
+
+```bash
+helm uninstall {{ template "chart.name" . }} --namespace signoz
+```
+
+
+{{ define "chart.valueDefaultColumnRender" }}
+{{- $defaultValue := (default .Default .AutoDefault) -}}
+{{- if (and (hasPrefix "" $defaultValue) (hasSuffix "" $defaultValue) ) -}}
+{{- $defaultValue = (toYaml (fromJson (trimAll "`" $defaultValue) ) ) -}}
+{{- end -}}
+<pre lang="yaml">{{ $defaultValue }}</pre>
+{{ end }}
+
+{{ define "chart.valuesTableHtml" }}
+{{/* Handle explicitly defined sections */}}
+{{- range .Sections.Sections }}
+<h3>{{- .SectionName }}</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+    {{- range .SectionItems }}
+        <tr>
+            <td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+            <td>{{.Type}}</td>
+            <td>
+                <div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+            </td>
+            <td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+        </tr>
+    {{- end }}
+    </tbody>
+</table>
+{{- end }}
+
+{{/* Handle the default section for any un-annotated values */}}
+{{ if .Sections.DefaultSection.SectionItems }}
+<h3>{{- .Sections.DefaultSection.SectionName }}</h3>
+<table>
+	<thead>
+		<th>Key</th>
+		<th>Type</th>
+		<th>Default</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+	{{- range .Sections.DefaultSection.SectionItems }}
+	<tr>
+		<td id="{{ .Key | replace "." "--" }}"><a href="./values.yaml#L{{ .LineNumber }}">{{ .Key }}</a></td>
+		<td>{{ .Type }}</td>
+		<td>
+			<div style="max-width: 300px;">{{ template "chart.valueDefaultColumnRender" . }}</div>
+		</td>
+		<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+	</tr>
+	{{- end }}
+	</tbody>
+</table>
+{{ end }}
+{{ end }}
+
+{{ define "chart.valuesSectionHtml" }}
+{{ if .Sections }}
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTableHtml" . }}
+{{ end }}
+{{ end }}
+
+{{ template "chart.valuesSectionHtml" . }}

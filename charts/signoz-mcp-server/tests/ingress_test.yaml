@@ -1,0 +1,180 @@
+suite: Test the Ingress
+templates:
+  - ingress.yaml
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should render no Ingress by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should route / with Prefix to the Service's http port when enabled
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.annotations:
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: signoz-mcp-server
+      - equal:
+          path: metadata.namespace
+          value: platform
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+      - equal:
+          path: metadata.annotations
+          value:
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+      - equal:
+          path: spec.rules
+          value:
+            - host: mcp.example.com
+              http:
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: signoz-mcp-server
+                        port:
+                          name: http
+      - notExists:
+          path: spec.tls
+
+  - it: should add ingress.labels after the common labels
+    set:
+      ingress.enabled: true
+      ingress.labels:
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+            team: observability
+
+  # helm-unittest parses each rendered document with a decoder that rejects a
+  # duplicate key, so a duplicated label fails the test before any assertion.
+  - it: should keep the common labels when ingress.labels sets one of their keys, and add the other ingress.labels
+    set:
+      ingress.enabled: true
+      ingress.labels:
+        app.kubernetes.io/name: other
+        team: observability
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
+            team: observability
+
+  - it: should leave ingressClassName out when ingress.className is empty
+    set:
+      ingress.enabled: true
+    asserts:
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: should render a numeric-looking ingress.className as a string
+    set:
+      ingress.enabled: true
+      ingress.className: 123
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: "123"
+
+  - it: should set tls when given
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: signoz-mcp-server-tls
+          hosts:
+            - mcp.example.com
+    asserts:
+      - equal:
+          path: spec.tls
+          value:
+            - secretName: signoz-mcp-server-tls
+              hosts:
+                - mcp.example.com
+
+  - it: should render a rule with no host key for an entry with no host
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: spec.rules
+          value:
+            - http:
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: signoz-mcp-server
+                        port:
+                          name: http
+
+  - it: should default pathType to Prefix for a path entry without pathType
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: a.example.com
+          paths:
+            - path: /
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Prefix
+
+  - it: should keep an explicit pathType
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: a.example.com
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: ImplementationSpecific

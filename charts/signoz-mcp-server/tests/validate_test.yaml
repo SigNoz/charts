@@ -1,0 +1,75 @@
+suite: Test the install-time checks
+templates:
+  - validate.yaml
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+tests:
+  - it: should fail when env is a list
+    set:
+      env:
+        - name: SIGNOZ_URL
+          value: http://signoz.platform.svc.cluster.local:8080
+    asserts:
+      - failedTemplate:
+          errorMessage: "env must be a map of NAME: value, for example env: {SIGNOZ_URL: http://...}; got a slice. A list of name/value pairs is not accepted."
+
+  - it: should fail when env is a string
+    set:
+      env: SIGNOZ_URL=http://signoz.platform.svc.cluster.local:8080
+    asserts:
+      - failedTemplate:
+          errorMessage: "env must be a map of NAME: value, for example env: {SIGNOZ_URL: http://...}; got a string. A list of name/value pairs is not accepted."
+
+  - it: should pass with default values, where env is empty, and render no object
+    asserts:
+      - notFailedTemplate: {}
+      - hasDocuments:
+          count: 0
+
+  - it: should fail with a 64-character fullnameOverride
+    set:
+      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+      fullnameOverride: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    asserts:
+      - failedTemplate:
+          errorMessage: "fullnameOverride must be at most 63 characters; got 64"
+
+  - it: should pass with a 63-character fullnameOverride
+    set:
+      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+      fullnameOverride: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should fail when autoscaling is enabled and both utilization targets are cleared with null
+    set:
+      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: null
+      autoscaling.targetMemoryUtilizationPercentage: null
+    asserts:
+      - failedTemplate:
+          errorMessage: "autoscaling.enabled needs autoscaling.targetCPUUtilizationPercentage or autoscaling.targetMemoryUtilizationPercentage"
+
+  - it: should fail when autoscaling is enabled and both utilization targets are cleared with 0
+    set:
+      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: 0
+      autoscaling.targetMemoryUtilizationPercentage: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "autoscaling.enabled needs autoscaling.targetCPUUtilizationPercentage or autoscaling.targetMemoryUtilizationPercentage"
+
+  - it: should pass when autoscaling is enabled and one utilization target is set
+    set:
+      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: null
+      autoscaling.targetMemoryUtilizationPercentage: 60
+    asserts:
+      - notFailedTemplate: {}

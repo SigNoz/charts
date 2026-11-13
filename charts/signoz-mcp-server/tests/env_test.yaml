@@ -1,0 +1,270 @@
+suite: Test the env helper
+templates:
+  - deployment.yaml
+release:
+  name: signoz-mcp-server
+  namespace: platform
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
+set:
+  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+tests:
+  - it: should supply TRANSPORT_MODE=http and MCP_SERVER_PORT=8000
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: SIGNOZ_URL
+              value: http://signoz.platform.svc.cluster.local:8080
+            - name: TRANSPORT_MODE
+              value: http
+
+  - it: should render a string as a quoted string
+    set:
+      env.LOG_LEVEL: debug
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: debug
+
+  - it: should render a number as a quoted string
+    set:
+      env.SIGNOZ_DOCS_REFRESH_INTERVAL: 0
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_DOCS_REFRESH_INTERVAL
+            value: "0"
+
+  - it: should render a bool as a quoted string
+    set:
+      env.FEATURE_ON: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FEATURE_ON
+            value: "true"
+
+  - it: should render {value} maps holding text, a number and a bool as quoted strings
+    set:
+      env:
+        AS_TEXT:
+          value: some text
+        AS_NUMBER:
+          value: 8000
+        AS_BOOL:
+          value: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AS_TEXT
+            value: some text
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AS_NUMBER
+            value: "8000"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AS_BOOL
+            value: "true"
+
+  - it: should pass a {valueFrom} map through unchanged
+    set:
+      env:
+        SIGNOZ_API_KEY:
+          valueFrom:
+            secretKeyRef:
+              name: signoz-mcp-server
+              key: SIGNOZ_API_KEY
+              optional: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: signoz-mcp-server
+                key: SIGNOZ_API_KEY
+                optional: true
+
+  - it: should render whole numbers from a values file as plain digits and other numbers in their text form
+    values:
+      - values/numbers.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_MAX_REQUEST_BYTES
+            value: "4194304"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WHOLE_IN_MAP
+            value: "4194304"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NOT_WHOLE
+            value: "1.5"
+
+  - it: should render a whole number outside the 64-bit integer range in its default text form
+    set:
+      env.TOO_LARGE: 1e20
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TOO_LARGE
+            value: "1e+20"
+
+  - it: should keep a lower-case name as written
+    set:
+      env.log_level: debug
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: log_level
+            value: debug
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+          any: true
+
+  - it: should produce no variable for a null entry and keep the chart defaults
+    set:
+      env:
+        UNSET_ME: null
+        TRANSPORT_MODE: null
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: SIGNOZ_URL
+              value: http://signoz.platform.svc.cluster.local:8080
+            - name: TRANSPORT_MODE
+              value: http
+
+  - it: should let a user TRANSPORT_MODE and MCP_SERVER_PORT replace the defaults, each appearing once
+    set:
+      env:
+        TRANSPORT_MODE: stdio
+        MCP_SERVER_PORT: 9000
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "9000"
+            - name: SIGNOZ_URL
+              value: http://signoz.platform.svc.cluster.local:8080
+            - name: TRANSPORT_MODE
+              value: stdio
+
+  - it: should sort entries by name
+    set:
+      env:
+        ZZ_LAST: z
+        log_level: debug
+        AA_FIRST: a
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: AA_FIRST
+              value: a
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: SIGNOZ_URL
+              value: http://signoz.platform.svc.cluster.local:8080
+            - name: TRANSPORT_MODE
+              value: http
+            - name: ZZ_LAST
+              value: z
+            - name: log_level
+              value: debug
+
+  - it: should fail with message (A) for a list value
+    set:
+      env.BAD:
+        - a
+        - b
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD: expected a string, number, bool, or a map with exactly one of value or valueFrom"
+
+  - it: should fail with message (A) for a map with both value and valueFrom
+    set:
+      env.BAD:
+        value: text
+        valueFrom:
+          secretKeyRef:
+            name: signoz-mcp-server
+            key: BAD
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD: expected a string, number, bool, or a map with exactly one of value or valueFrom"
+
+  - it: should fail with message (A) for a map with an unknown key
+    set:
+      env.BAD:
+        secretKeyRef:
+          name: signoz-mcp-server
+          key: BAD
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD: expected a string, number, bool, or a map with exactly one of value or valueFrom"
+
+  - it: should fail with message (A) for an empty map
+    set:
+      env.BAD: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD: expected a string, number, bool, or a map with exactly one of value or valueFrom"
+
+  - it: "should fail with message (B) for {value: null}"
+    set:
+      env.BAD:
+        value: null
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD.value: expected a string, number or bool"
+
+  - it: "should fail with message (B) for {value: [a list]}"
+    set:
+      env.BAD:
+        value:
+          - a
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD.value: expected a string, number or bool"
+
+  - it: "should fail with message (C) for {valueFrom: null}"
+    set:
+      env.BAD:
+        valueFrom: null
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD.valueFrom: expected a map"
+
+  - it: "should fail with message (C) for {valueFrom: a string}"
+    set:
+      env.BAD:
+        valueFrom: a string
+    asserts:
+      - failedTemplate:
+          errorMessage: "env.BAD.valueFrom: expected a map"

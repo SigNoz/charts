@@ -1,0 +1,27 @@
+{{- /*
+Install-time checks on the shape of the chart's own values. This file renders
+no object.
+
+1. env is a map.
+2. fullnameOverride is at most 63 characters.
+3. autoscaling.enabled has a utilization target.
+*/ -}}
+
+{{- /* 1. env is a map. The env helper reads env as a map. A null env is treated as an empty map. */ -}}
+{{- $env := .Values.env -}}
+{{- if and (not (kindIs "invalid" $env)) (not (kindIs "map" $env)) -}}
+{{- fail (printf "env must be a map of NAME: value, for example env: {SIGNOZ_URL: http://...}; got a %s. A list of name/value pairs is not accepted." (kindOf $env)) -}}
+{{- end -}}
+
+{{- /* 2. Name length. foundry computes the Service address from the full fullnameOverride, so it is never cut. */ -}}
+{{- $fullnameOverride := .Values.fullnameOverride | default "" | toString -}}
+{{- if gt (len $fullnameOverride) 63 -}}
+{{- fail (printf "fullnameOverride must be at most 63 characters; got %d" (len $fullnameOverride)) -}}
+{{- end -}}
+
+{{- /* 3. Autoscaling metric. Without one, Kubernetes applies its own CPU default. */ -}}
+{{- if .Values.autoscaling.enabled -}}
+{{- if and (empty .Values.autoscaling.targetCPUUtilizationPercentage) (empty .Values.autoscaling.targetMemoryUtilizationPercentage) -}}
+{{- fail "autoscaling.enabled needs autoscaling.targetCPUUtilizationPercentage or autoscaling.targetMemoryUtilizationPercentage" -}}
+{{- end -}}
+{{- end -}}
