@@ -32,53 +32,19 @@ image:
 # @section -- Image Configuration
 imagePullSecrets: []
 
-# Server settings, as a map of NAME: value. Names are case-sensitive and used
-# exactly as written. `env` must be a map; a list of name/value pairs is not
-# accepted.
-#
-# Each entry is a string, number or bool, a map with exactly `value`, or a map
-# with exactly `valueFrom`. Every value is rendered as a quoted string.
-#
-# The server needs SIGNOZ_URL or SIGNOZ_INSTANCE_URL_ALLOWLIST, and exits at
-# startup without one of them.
-#
-# One SigNoz. The SigNoz Service is usually
-# http://<release>-signoz.<namespace>.svc.cluster.local:8080; it is named
-# <release> instead of <release>-signoz when the SigNoz release name already
-# contains "signoz".
-#   env:
-#     SIGNOZ_URL: http://<release>-signoz.<namespace>.svc.cluster.local:8080
-#
-# Several SigNoz instances behind one server (multi-tenant). Leave SIGNOZ_URL
-# unset; each client names its instance, and only the listed hosts are allowed.
-#   env:
-#     SIGNOZ_INSTANCE_URL_ALLOWLIST: signoz-a.example.com,signoz-b.example.com
-#
-# A key or token from a Secret you already have:
-#   env:
-#     SIGNOZ_API_KEY:
-#       valueFrom:
-#         secretKeyRef:
-#           name: signoz-mcp-server
-#           key: SIGNOZ_API_KEY
-#     OAUTH_TOKEN_SECRET:
-#       valueFrom:
-#         secretKeyRef:
-#           name: signoz-mcp-server
-#           key: OAUTH_TOKEN_SECRET
-#
-# The chart always supplies TRANSPORT_MODE=http and MCP_SERVER_PORT=8000. An
-# entry here with the same name replaces the chart's value but cannot remove
-# it. The container port and probes stay on 8000, so changing MCP_SERVER_PORT
-# stops the pod from becoming Ready.
-#
-# In a cluster with no outbound access, set SIGNOZ_DOCS_REFRESH_INTERVAL and
-# SIGNOZ_DOCS_FULL_REFRESH_INTERVAL to "0" to turn off the docs index refresh.
-
-# env -- Environment variables for the server, as a map of NAME: value. See the
-# comments above this key in values.yaml for examples.
+# env -- Environment variables for the server, as a map of NAME: value. Names
+# are case-sensitive. A value is a string, number or bool, or a map with
+# `value` or `valueFrom`.
 # @section -- Environment Configuration
 env: {}
+  # NAME: plain-value
+  # NAME:
+  #   value: plain-value
+  # NAME:
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: secret-name
+  #       key: secret-key
 
 service:
   # service.type -- Service type.
