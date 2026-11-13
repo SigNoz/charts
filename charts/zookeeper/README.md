@@ -65,7 +65,7 @@ The command removes all the Kubernetes components associated with the chart and 
 | `kubeVersion`            | Override Kubernetes version                                                                  | `""`            |
 | `nameOverride`           | String to partially override common.names.fullname template (will maintain the release name) | `""`            |
 | `fullnameOverride`       | String to fully override common.names.fullname template                                      | `""`            |
-| `clusterDomain`          | Kubernetes Cluster Domain                                                                    | `cluster.local` |
+| `clusterDomain`          | Kubernetes Cluster Domain (falls back to `global.clusterDomain`, then `cluster.local`)       | `""`            |
 | `extraDeploy`            | Extra objects to deploy (evaluated as a template)                                            | `[]`            |
 | `commonLabels`           | Add labels to all the deployed resources                                                     | `{}`            |
 | `commonAnnotations`      | Add annotations to all the deployed resources                                                | `{}`            |
