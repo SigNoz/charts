@@ -270,6 +270,7 @@ spec:
                                           - signoz/ListPanel
                                           - signoz/TextPanel
                                           - signoz/HeatmapPanel
+                                          - signoz/ScatterPlotPanel
                                           type: string
                                         spec:
                                           description: The options for this panel
@@ -293,20 +294,79 @@ spec:
                                                     it still extends the axis. Null
                                                     fits the data.
                                                   type: number
-                                                "y":
-                                                  description: The bucket axis.
+                                                x:
+                                                  description: The axis dimensions.x
+                                                    is plotted along.
                                                   properties:
+                                                    label:
+                                                      description: Axis title. Empty
+                                                        draws none; the tooltip still
+                                                        names the column.
+                                                      type: string
                                                     scale:
-                                                      description: 'How bucket bounds
-                                                        are spaced on the axis: auto
-                                                        (default), linear, log or
-                                                        symlog.'
+                                                      description: auto (default)
+                                                        uses log, or symlog when values
+                                                        include zero or negatives,
+                                                        when that spreads the dots
+                                                        clearly more than linear does;
+                                                        otherwise linear. log cannot
+                                                        place a value at or below
+                                                        zero and leaves that dot out;
+                                                        symlog is log-like but places
+                                                        it.
                                                       enum:
                                                       - auto
                                                       - linear
                                                       - log
                                                       - symlog
                                                       type: string
+                                                    softMax:
+                                                      description: The highest value
+                                                        the axis always shows; data
+                                                        above it still extends the
+                                                        axis, as does a threshold
+                                                        on it. Null fits the data.
+                                                      type: number
+                                                    softMin:
+                                                      description: The lowest value
+                                                        the axis always shows; data
+                                                        below it still extends the
+                                                        axis, as does a threshold
+                                                        on it. Null fits the data.
+                                                        A log axis ignores a bound
+                                                        at or below zero.
+                                                      type: number
+                                                  type: object
+                                                "y":
+                                                  properties:
+                                                    label:
+                                                      description: Axis title. Empty
+                                                        draws none; the tooltip still
+                                                        names the column.
+                                                      type: string
+                                                    scale:
+                                                      enum:
+                                                      - auto
+                                                      - linear
+                                                      - log
+                                                      - symlog
+                                                      type: string
+                                                    softMax:
+                                                      description: The highest value
+                                                        the axis always shows; data
+                                                        above it still extends the
+                                                        axis, as does a threshold
+                                                        on it. Null fits the data.
+                                                      type: number
+                                                    softMin:
+                                                      description: The lowest value
+                                                        the axis always shows; data
+                                                        below it still extends the
+                                                        axis, as does a threshold
+                                                        on it. Null fits the data.
+                                                        A log axis ignores a bound
+                                                        at or below zero.
+                                                      type: number
                                                   type: object
                                               type: object
                                             chartAppearance:
@@ -402,6 +462,36 @@ spec:
                                                   - solid
                                                   - dashed
                                                   type: string
+                                                points:
+                                                  description: Dot size and opacity.
+                                                  properties:
+                                                    maxSize:
+                                                      description: Diameter of the
+                                                        largest dot when dimensions.sizeBy
+                                                        is set, in CSS pixels from
+                                                        2 to 40. Null means 24.
+                                                      format: int64
+                                                      type: integer
+                                                    minSize:
+                                                      description: Diameter of the
+                                                        smallest dot when dimensions.sizeBy
+                                                        is set, in CSS pixels from
+                                                        2 to 40. Null means 4.
+                                                      format: int64
+                                                      type: integer
+                                                    opacity:
+                                                      description: Fill opacity of
+                                                        every dot, from 0.1 to 1.
+                                                        Null means 0.7.
+                                                      type: number
+                                                    size:
+                                                      description: Diameter of every
+                                                        dot when dimensions.sizeBy
+                                                        is unset, in CSS pixels from
+                                                        2 to 40. Null means 6.
+                                                      format: int64
+                                                      type: integer
+                                                  type: object
                                                 showPoints:
                                                   description: Whether each data point
                                                     is marked on the line.
@@ -428,6 +518,44 @@ spec:
                                                         fillLessThan are connected.
                                                       type: boolean
                                                   type: object
+                                              type: object
+                                            dimensions:
+                                              description: 'Which result columns place,
+                                                size and color the dots. Each dot
+                                                is one row of the joined scalar result:
+                                                one group.'
+                                              properties:
+                                                colorBy:
+                                                  description: Group-by label names
+                                                    (e.g. k8s.namespace.name) whose
+                                                    combined values color the dots
+                                                    and drive the legend. Empty colors
+                                                    by every group-by label.
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                sizeBy:
+                                                  description: Value column key that
+                                                    scales each dot's area between
+                                                    chartAppearance.points.minSize
+                                                    and maxSize. Empty draws every
+                                                    dot at chartAppearance.points.size,
+                                                    as does a dot with no value.
+                                                  type: string
+                                                x:
+                                                  description: Value column key (queryName,
+                                                    or queryName.expression for a
+                                                    multi-aggregation query) plotted
+                                                    on the x axis. Empty, or a key
+                                                    the result lacks, uses the first
+                                                    value column.
+                                                  type: string
+                                                "y":
+                                                  description: Value column key plotted
+                                                    on the y axis. Empty, or a key
+                                                    the result lacks, uses the first
+                                                    value column x does not use.
+                                                  type: string
                                               type: object
                                             formatting:
                                               properties:
@@ -626,6 +754,17 @@ spec:
                                             thresholds:
                                               items:
                                                 properties:
+                                                  axis:
+                                                    description: 'The axis the line
+                                                      marks: y (default) draws it
+                                                      horizontally, x vertically.
+                                                      Unit converts against that axis''s
+                                                      column unit, and the axis extends
+                                                      to keep the line in view.'
+                                                    enum:
+                                                    - x
+                                                    - "y"
+                                                    type: string
                                                   color:
                                                     minLength: 1
                                                     type: string
@@ -754,6 +893,7 @@ spec:
                                             - raw_stream
                                             - trace
                                             - heatmap
+                                            - distribution
                                             type: string
                                           spec:
                                             description: 'The query content: an optional
