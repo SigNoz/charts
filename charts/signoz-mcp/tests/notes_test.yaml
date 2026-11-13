@@ -7,35 +7,23 @@ release:
 chart:
   version: 0.0.0-test
   appVersion: v0.0.0-test
-set:
-  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
 tests:
-  - it: should show the server version, the in-cluster endpoint, the client command and the header name
+  - it: should show the chart's appVersion as the server version by default
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^Server version: v0\.0\.0-test$'
-      - matchRegexRaw:
-          pattern: '(?m)^  http://signoz-mcp\.platform\.svc:8000/mcp$'
-      - matchRegexRaw:
-          pattern: '(?m)^  claude mcp add --transport http signoz http://localhost:8000/mcp --header "SIGNOZ-API-KEY: <your-key>"$'
-      - matchRegexRaw:
-          pattern: '(?m)^Any MCP client needs the same URL and the SIGNOZ-API-KEY header\.$'
+          pattern: '(?m)^The SigNoz MCP server v0\.0\.0-test has been installed as signoz-mcp in namespace platform\.$'
 
   - it: should show an overridden image tag as the server version
     set:
       image.tag: v9.9.9
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^Server version: v9\.9\.9$'
+          pattern: '(?m)^The SigNoz MCP server v9\.9\.9 has been installed as signoz-mcp in namespace platform\.$'
 
-  - it: should show the port-forward command when the Ingress is off
+  - it: should show the in-cluster endpoint on the default service.port
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:8000$'
-      - matchRegexRaw:
-          pattern: '(?m)^and use the URL http://localhost:8000/mcp\.$'
-      - notMatchRegexRaw:
-          pattern: 'reachable through the Ingress'
+          pattern: '(?m)^In-cluster endpoint:\n\n  http://signoz-mcp\.platform\.svc:8000/mcp$'
 
   - it: should use a non-default service.port in the endpoint and the port-forward command
     set:
@@ -45,21 +33,28 @@ tests:
           pattern: '(?m)^  http://signoz-mcp\.platform\.svc:9000/mcp$'
       - matchRegexRaw:
           pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:9000$'
+
+  - it: should show the port-forward command when the Ingress is off
+    asserts:
       - matchRegexRaw:
-          pattern: '(?m)^  claude mcp add --transport http signoz http://localhost:8000/mcp --header "SIGNOZ-API-KEY: <your-key>"$'
+          pattern: '(?m)^To reach the server from your machine, run:$'
+      - matchRegexRaw:
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:8000$'
+      - matchRegexRaw:
+          pattern: '(?m)^and use the URL http://localhost:8000/mcp\.$'
+      - notMatchRegexRaw:
+          pattern: 'Ingress endpoint'
 
   - it: should show the host URL with http when the Ingress is on without tls
     set:
       ingress.enabled: true
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^  http://mcp\.example\.com/mcp$'
-      - matchRegexRaw:
-          pattern: '(?m)^  claude mcp add --transport http signoz http://mcp\.example\.com/mcp --header "SIGNOZ-API-KEY: <your-key>"$'
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp$'
+      - notMatchRegexRaw:
+          pattern: 'https://mcp\.example\.com'
       - notMatchRegexRaw:
           pattern: 'port-forward'
-      - notMatchRegexRaw:
-          pattern: 'https://'
 
   - it: should show the host URL with https when ingress.tls is set
     set:
@@ -71,112 +66,26 @@ tests:
     asserts:
       - matchRegexRaw:
           pattern: '(?m)^  https://mcp\.example\.com/mcp$'
-      - matchRegexRaw:
-          pattern: '(?m)^  claude mcp add --transport http signoz https://mcp\.example\.com/mcp --header "SIGNOZ-API-KEY: <your-key>"$'
       - notMatchRegexRaw:
           pattern: 'http://mcp\.example\.com'
 
-  - it: should show the SigNoz address test when SIGNOZ_URL is a plain value, with a trailing / trimmed
-    set:
-      env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080/
-    asserts:
-      - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform run signoz-mcp-check --rm -i --restart=Never --image=busybox:1\.35 -- wget -qO- ''http://signoz\.platform\.svc\.cluster\.local:8080/api/v1/health\?live=1''$'
-
-  - it: should show the SigNoz address test when SIGNOZ_URL is a {value} map
-    set:
-      env.SIGNOZ_URL:
-        value: http://signoz.platform.svc.cluster.local:8080
-    asserts:
-      - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform run signoz-mcp-check --rm -i --restart=Never --image=busybox:1\.35 -- wget -qO- ''http://signoz\.platform\.svc\.cluster\.local:8080/api/v1/health\?live=1''$'
-
-  - it: should hide the SigNoz address test when SIGNOZ_URL is a valueFrom entry
-    set:
-      env.SIGNOZ_URL:
-        valueFrom:
-          secretKeyRef:
-            name: notes-url-secret
-            key: notes-url-key
-    asserts:
-      - notMatchRegexRaw:
-          pattern: 'signoz-mcp-check'
-      - notMatchRegexRaw:
-          pattern: 'notes-url-secret'
-      - notMatchRegexRaw:
-          pattern: 'notes-url-key'
-
-  - it: should warn when the Ingress is on and SIGNOZ_API_KEY is a plain value
+  - it: should show one line per Ingress host
     set:
       ingress.enabled: true
-      env.SIGNOZ_API_KEY: notes-plain-api-key
+      ingress.hosts:
+        - host: a.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: b.example.com
+          paths:
+            - path: /
+              pathType: Prefix
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^WARNING: env\.SIGNOZ_API_KEY is set and the Ingress is enabled\. '
+          pattern: '(?m)^Ingress endpoint:\n\n  http://a\.example\.com/mcp\n  http://b\.example\.com/mcp$'
 
-  - it: should warn when the Ingress is on and SIGNOZ_API_KEY is a valueFrom entry
-    set:
-      ingress.enabled: true
-      env.SIGNOZ_API_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: notes-key-secret
-            key: notes-key-key
-    asserts:
-      - matchRegexRaw:
-          pattern: '(?m)^WARNING: env\.SIGNOZ_API_KEY is set and the Ingress is enabled\. '
-      - notMatchRegexRaw:
-          pattern: 'notes-key-secret'
-      - notMatchRegexRaw:
-          pattern: 'notes-key-key'
-
-  - it: should not warn about SIGNOZ_API_KEY when the Ingress is off
-    set:
-      env.SIGNOZ_API_KEY: notes-plain-api-key
-    asserts:
-      - notMatchRegexRaw:
-          pattern: 'WARNING'
-
-  - it: should warn when the Ingress is on and the host in OAUTH_ISSUER_URL is not an Ingress host
-    set:
-      ingress.enabled: true
-      env.OAUTH_ISSUER_URL: https://auth.example.com
-    asserts:
-      - matchRegexRaw:
-          pattern: '(?m)^WARNING: the host in env\.OAUTH_ISSUER_URL, auth\.example\.com, is not one of the$'
-
-  - it: should name the issuer host without port or path, in lower case, when it is not an Ingress host
-    set:
-      ingress.enabled: true
-      env.OAUTH_ISSUER_URL: https://Auth.Example.com:8443/oauth/issuer
-    asserts:
-      - matchRegexRaw:
-          pattern: '(?m)^WARNING: the host in env\.OAUTH_ISSUER_URL, auth\.example\.com, is not one of the$'
-
-  - it: should not warn when the issuer host matches an Ingress host and the URL carries a port and a path
-    set:
-      ingress.enabled: true
-      env.OAUTH_ISSUER_URL: https://mcp.example.com:8443/oauth/issuer
-    asserts:
-      - notMatchRegexRaw:
-          pattern: 'WARNING'
-
-  - it: should not warn when the issuer host differs from an Ingress host only in letter case
-    set:
-      ingress.enabled: true
-      env.OAUTH_ISSUER_URL: https://MCP.Example.COM
-    asserts:
-      - notMatchRegexRaw:
-          pattern: 'WARNING'
-
-  - it: should not warn about the issuer host when the Ingress is off
-    set:
-      env.OAUTH_ISSUER_URL: https://auth.example.com
-    asserts:
-      - notMatchRegexRaw:
-          pattern: 'WARNING'
-
-  - it: should not warn about the issuer host when an Ingress host is a wildcard
+  - it: should not print a wildcard host
     set:
       ingress.enabled: true
       ingress.hosts:
@@ -184,47 +93,77 @@ tests:
           paths:
             - path: /
               pathType: Prefix
-      env.OAUTH_ISSUER_URL: https://auth.other.example.org
+        - host: mcp.example.com
+          paths:
+            - path: /
+              pathType: Prefix
     asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp$'
       - notMatchRegexRaw:
-          pattern: 'WARNING'
+          pattern: '\*'
 
-  - it: should render without error and without a warning when the issuer URL is malformed
+  - it: should fall back to the port-forward command when the only Ingress host is a wildcard
     set:
       ingress.enabled: true
-      env.OAUTH_ISSUER_URL: http://[::1
+      ingress.hosts:
+        - host: "*.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
     asserts:
-      - notFailedTemplate: {}
+      - matchRegexRaw:
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:8000$'
       - notMatchRegexRaw:
-          pattern: 'WARNING'
+          pattern: 'Ingress endpoint'
+      - notMatchRegexRaw:
+          pattern: '\*'
 
-  - it: should not print the Secret name or key of any valueFrom entry
+  - it: should skip an Ingress entry with no host
     set:
       ingress.enabled: true
-      ingress.tls:
-        - secretName: signoz-mcp-tls
-          hosts:
-            - mcp.example.com
+      ingress.hosts:
+        - paths:
+            - path: /
+              pathType: Prefix
+        - host: ""
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: mcp.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^Ingress endpoint:\n\n  http://mcp\.example\.com/mcp\n\n'
+      - notMatchRegexRaw:
+          pattern: ':///mcp'
+
+  - it: should name the SIGNOZ-API-KEY header and link the server's documentation
+    asserts:
+      - matchRegexRaw:
+          pattern: '(?m)^By default each MCP client sends its own SigNoz API key in the SIGNOZ-API-KEY$'
+      - matchRegexRaw:
+          pattern: '(?m)^  https://signoz\.io/docs/ai/signoz-mcp-server/$'
+
+  - it: should not depend on env, print no warning and print no value or Secret reference from env
+    set:
+      ingress.enabled: true
       env:
-        SIGNOZ_URL:
+        SIGNOZ_API_KEY: notes-plain-api-key
+        OAUTH_ISSUER_URL: https://auth.other.example.org
+        OAUTH_TOKEN_SECRET:
           valueFrom:
             secretKeyRef:
-              name: notes-url-secret
-              key: notes-url-key
-        SIGNOZ_API_KEY:
-          valueFrom:
-            secretKeyRef:
-              name: notes-key-secret
-              key: notes-key-key
-        OAUTH_ISSUER_URL:
-          valueFrom:
-            configMapKeyRef:
-              name: notes-issuer-configmap
-              key: notes-issuer-key
+              name: notes-token-secret
+              key: notes-token-key
     asserts:
       - notMatchRegexRaw:
-          pattern: 'notes-url-secret|notes-url-key'
+          pattern: 'WARNING'
       - notMatchRegexRaw:
-          pattern: 'notes-key-secret|notes-key-key'
+          pattern: 'notes-plain-api-key'
       - notMatchRegexRaw:
-          pattern: 'notes-issuer-configmap|notes-issuer-key'
+          pattern: 'notes-token-secret|notes-token-key'
+      - matchRegexRaw:
+          pattern: '(?m)^  http://mcp\.example\.com/mcp$'

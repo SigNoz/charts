@@ -105,25 +105,6 @@ charts/redpanda/templates/_shims.tpl.
 {{- end -}}
 
 {{/*
-Whether one env value counts as set. Takes the value of one env entry.
-
-Returns "true" for a non-empty string, number or bool, a map with a non-empty
-"value", or a map with "valueFrom", and an empty string otherwise. A number
-or bool counts by its text, so 0 and false are set.
-*/}}
-{{- define "signoz-mcp.envIsSet" -}}
-{{- if ne (include "signoz-mcp.envPlainValue" .) "" -}}
-true
-{{- else if kindIs "map" . -}}
-{{- if hasKey . "valueFrom" -}}
-true
-{{- else if not (empty (index . "value")) -}}
-true
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 The container's env list. Takes the root context.
 
 - Names are used as written: no case change and no prefix.
