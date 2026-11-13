@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "signoz-mcp.fullname" . }}
+  name: {{ include "signoz-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "signoz-mcp.labels" . | nindent 4 }}
-    {{- with include "signoz-mcp.userLabels" (dict "chart" (include "signoz-mcp.labels" .) "user" .Values.service.labels) }}
+    {{- include "signoz-mcp-server.labels" . | nindent 4 }}
+    {{- with include "signoz-mcp-server.userLabels" (dict "chart" (include "signoz-mcp-server.labels" .) "user" .Values.service.labels) }}
     {{- . | nindent 4 }}
     {{- end }}
   {{- with .Values.service.annotations }}
@@ -27,4 +27,4 @@ spec:
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
   selector:
-    {{- include "signoz-mcp.selectorLabels" . | nindent 4 }}
+    {{- include "signoz-mcp-server.selectorLabels" . | nindent 4 }}

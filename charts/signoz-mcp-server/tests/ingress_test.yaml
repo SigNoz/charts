@@ -2,7 +2,7 @@ suite: Test the Ingress
 templates:
   - ingress.yaml
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test
@@ -30,18 +30,18 @@ tests:
           of: networking.k8s.io/v1
       - equal:
           path: metadata.name
-          value: signoz-mcp
+          value: signoz-mcp-server
       - equal:
           path: metadata.namespace
           value: platform
       - equal:
           path: metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             app.kubernetes.io/version: v0.0.0-test
             app.kubernetes.io/managed-by: Helm
-            helm.sh/chart: signoz-mcp-0.0.0-test
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
       - equal:
           path: metadata.annotations
           value:
@@ -59,7 +59,7 @@ tests:
                     pathType: Prefix
                     backend:
                       service:
-                        name: signoz-mcp
+                        name: signoz-mcp-server
                         port:
                           name: http
       - notExists:
@@ -74,11 +74,11 @@ tests:
       - equal:
           path: metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             app.kubernetes.io/version: v0.0.0-test
             app.kubernetes.io/managed-by: Helm
-            helm.sh/chart: signoz-mcp-0.0.0-test
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
             team: observability
 
   # helm-unittest parses each rendered document with a decoder that rejects a
@@ -95,11 +95,11 @@ tests:
       - equal:
           path: metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             app.kubernetes.io/version: v0.0.0-test
             app.kubernetes.io/managed-by: Helm
-            helm.sh/chart: signoz-mcp-0.0.0-test
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
             team: observability
 
   - it: should leave ingressClassName out when ingress.className is empty
@@ -122,14 +122,14 @@ tests:
     set:
       ingress.enabled: true
       ingress.tls:
-        - secretName: signoz-mcp-tls
+        - secretName: signoz-mcp-server-tls
           hosts:
             - mcp.example.com
     asserts:
       - equal:
           path: spec.tls
           value:
-            - secretName: signoz-mcp-tls
+            - secretName: signoz-mcp-server-tls
               hosts:
                 - mcp.example.com
 
@@ -150,6 +150,6 @@ tests:
                     pathType: Prefix
                     backend:
                       service:
-                        name: signoz-mcp
+                        name: signoz-mcp-server
                         port:
                           name: http

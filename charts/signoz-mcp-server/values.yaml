@@ -59,12 +59,12 @@ imagePullSecrets: []
 #     SIGNOZ_API_KEY:
 #       valueFrom:
 #         secretKeyRef:
-#           name: signoz-mcp
+#           name: signoz-mcp-server
 #           key: SIGNOZ_API_KEY
 #     OAUTH_TOKEN_SECRET:
 #       valueFrom:
 #         secretKeyRef:
-#           name: signoz-mcp
+#           name: signoz-mcp-server
 #           key: OAUTH_TOKEN_SECRET
 #
 # The chart always supplies TRANSPORT_MODE=http and MCP_SERVER_PORT=8000. An
@@ -131,7 +131,7 @@ ingress:
   # ingress.tls -- TLS configuration for the Ingress. Keys travel in a request header, so use TLS.
   # @section -- Ingress Configuration
   tls: []
-  #  - secretName: signoz-mcp-tls
+  #  - secretName: signoz-mcp-server-tls
   #    hosts:
   #      - mcp.example.com
 

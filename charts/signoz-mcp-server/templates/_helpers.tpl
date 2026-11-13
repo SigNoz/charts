@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "signoz-mcp.name" -}}
+{{- define "signoz-mcp-server.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -18,7 +18,7 @@ and <release>-<chart name> when it does not. A name built from the release
 name is cut to 63 characters, the limit of a DNS label, with a trailing "-"
 removed.
 */}}
-{{- define "signoz-mcp.fullname" -}}
+{{- define "signoz-mcp-server.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride }}
 {{- else }}
@@ -34,26 +34,26 @@ removed.
 {{/*
 Chart name and version, as used by the helm.sh/chart label.
 */}}
-{{- define "signoz-mcp.chart" -}}
+{{- define "signoz-mcp-server.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels.
 */}}
-{{- define "signoz-mcp.labels" -}}
-{{ include "signoz-mcp.selectorLabels" . }}
+{{- define "signoz-mcp-server.labels" -}}
+{{ include "signoz-mcp-server.selectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-helm.sh/chart: {{ include "signoz-mcp.chart" . }}
+helm.sh/chart: {{ include "signoz-mcp-server.chart" . }}
 {{- end }}
 
 {{/*
 Selector labels. These must never change for an existing release: a
 Deployment's selector cannot be edited after creation.
 */}}
-{{- define "signoz-mcp.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "signoz-mcp.name" . }}
+{{- define "signoz-mcp-server.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "signoz-mcp-server.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
@@ -61,7 +61,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 User labels with the chart's own labels left out. Takes a dict:
 
 - "chart": the label block the chart renders in the same mapping, as text,
-  for example the output of signoz-mcp.labels.
+  for example the output of signoz-mcp-server.labels.
 - "user": the user's map of labels.
 
 Returns the user's entries whose keys the chart's block does not set, as
@@ -69,7 +69,7 @@ YAML, or nothing when none remain. The chart's labels win, so no key is
 rendered twice and the pod template keeps matching the Deployment's selector.
 The user's map is not modified.
 */}}
-{{- define "signoz-mcp.userLabels" -}}
+{{- define "signoz-mcp-server.userLabels" -}}
 {{- $chartLabels := fromYaml .chart -}}
 {{- $labels := dict -}}
 {{- range $key, $value := .user -}}
@@ -87,9 +87,9 @@ Name of the ServiceAccount the pod runs as. When serviceAccount.create is
 true, it is serviceAccount.name, or the fullname when that is empty. When
 create is false, it is serviceAccount.name, or "default" when that is empty.
 */}}
-{{- define "signoz-mcp.serviceAccountName" -}}
+{{- define "signoz-mcp-server.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "signoz-mcp.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "signoz-mcp-server.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -100,7 +100,7 @@ Image string: registry/repository:tag. The registry comes from
 global.imageRegistry when set, otherwise from image.registry; with neither
 set the result is repository:tag. The tag defaults to the chart's appVersion.
 */}}
-{{- define "signoz-mcp.image" -}}
+{{- define "signoz-mcp-server.image" -}}
 {{- $registry := default .Values.image.registry .Values.global.imageRegistry -}}
 {{- $repository := .Values.image.repository -}}
 {{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
@@ -124,7 +124,7 @@ would otherwise print as 4.194304e+06. Any other value uses Helm's default
 text form. The whole-number test follows _shims.asintegral in
 charts/redpanda/templates/_shims.tpl.
 */}}
-{{- define "signoz-mcp.envPlainValue" -}}
+{{- define "signoz-mcp-server.envPlainValue" -}}
 {{- $value := . -}}
 {{- if kindIs "map" $value -}}
 {{- if hasKey $value "value" -}}
@@ -160,7 +160,7 @@ The container's env list. Takes the root context.
 
 templates/validate.yaml has already checked that env is a map.
 */}}
-{{- define "signoz-mcp.env" -}}
+{{- define "signoz-mcp-server.env" -}}
 {{- $scalarKinds := list "string" "bool" "int" "int64" "float64" -}}
 {{- $entries := dict "TRANSPORT_MODE" "http" "MCP_SERVER_PORT" "8000" -}}
 {{- range $name, $value := .Values.env -}}
@@ -173,7 +173,7 @@ templates/validate.yaml has already checked that env is a map.
 {{- if $index }}{{ "\n" }}{{ end -}}
 {{- if has (kindOf $value) $scalarKinds -}}
 - name: {{ $name | quote }}
-  value: {{ include "signoz-mcp.envPlainValue" $value | quote }}
+  value: {{ include "signoz-mcp-server.envPlainValue" $value | quote }}
 {{- else if kindIs "map" $value -}}
 {{- if ne (len $value) 1 -}}
 {{- fail (printf "env.%s: expected a string, number, bool, or a map with exactly one of value or valueFrom" $name) -}}
@@ -182,7 +182,7 @@ templates/validate.yaml has already checked that env is a map.
 {{- fail (printf "env.%s.value: expected a string, number or bool" $name) -}}
 {{- end -}}
 - name: {{ $name | quote }}
-  value: {{ include "signoz-mcp.envPlainValue" $value | quote }}
+  value: {{ include "signoz-mcp-server.envPlainValue" $value | quote }}
 {{- else if hasKey $value "valueFrom" -}}
 {{- if not (kindIs "map" (index $value "valueFrom")) -}}
 {{- fail (printf "env.%s.valueFrom: expected a map" $name) -}}

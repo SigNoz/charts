@@ -2,7 +2,7 @@ suite: Test the env helper
 templates:
   - deployment.yaml
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test
@@ -84,7 +84,7 @@ tests:
         SIGNOZ_API_KEY:
           valueFrom:
             secretKeyRef:
-              name: signoz-mcp
+              name: signoz-mcp-server
               key: SIGNOZ_API_KEY
               optional: true
     asserts:
@@ -94,7 +94,7 @@ tests:
             name: SIGNOZ_API_KEY
             valueFrom:
               secretKeyRef:
-                name: signoz-mcp
+                name: signoz-mcp-server
                 key: SIGNOZ_API_KEY
                 optional: true
 
@@ -213,7 +213,7 @@ tests:
         value: text
         valueFrom:
           secretKeyRef:
-            name: signoz-mcp
+            name: signoz-mcp-server
             key: BAD
     asserts:
       - failedTemplate:
@@ -223,7 +223,7 @@ tests:
     set:
       env.BAD:
         secretKeyRef:
-          name: signoz-mcp
+          name: signoz-mcp-server
           key: BAD
     asserts:
       - failedTemplate:

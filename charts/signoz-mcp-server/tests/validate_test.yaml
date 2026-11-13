@@ -2,7 +2,7 @@ suite: Test the install-time checks
 templates:
   - validate.yaml
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test

@@ -2,7 +2,7 @@ suite: Test the Deployment
 templates:
   - deployment.yaml
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test
@@ -16,26 +16,26 @@ tests:
           of: Deployment
       - equal:
           path: metadata.name
-          value: signoz-mcp
+          value: signoz-mcp-server
       - equal:
           path: metadata.namespace
           value: platform
 
-  - it: should be named <release>-signoz-mcp when the release name does not contain the chart name
+  - it: should be named <release>-signoz-mcp-server when the release name does not contain the chart name
     release:
       name: prod
     asserts:
       - equal:
           path: metadata.name
-          value: prod-signoz-mcp
+          value: prod-signoz-mcp-server
 
   - it: should select pods by the name and instance labels only
     asserts:
       - equal:
           path: spec.selector.matchLabels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
 
   - it: should add podLabels and podAnnotations to the pod template and leave the selector unchanged
     set:
@@ -47,8 +47,8 @@ tests:
       - equal:
           path: spec.template.metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             team: observability
       - equal:
           path: spec.template.metadata.annotations
@@ -57,8 +57,8 @@ tests:
       - equal:
           path: spec.selector.matchLabels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
 
   # helm-unittest parses each rendered document with a decoder that rejects a
   # duplicate key, so a duplicated label fails the test before any assertion.
@@ -73,14 +73,14 @@ tests:
       - equal:
           path: spec.template.metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             team: observability
       - equal:
           path: spec.selector.matchLabels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
 
   - it: should build the image from the default registry, repository and the chart appVersion
     asserts:
@@ -308,7 +308,7 @@ tests:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: signoz-mcp
+              app.kubernetes.io/name: signoz-mcp-server
     asserts:
       - equal:
           path: spec.template.spec.topologySpreadConstraints
@@ -318,7 +318,7 @@ tests:
               whenUnsatisfiable: ScheduleAnyway
               labelSelector:
                 matchLabels:
-                  app.kubernetes.io/name: signoz-mcp
+                  app.kubernetes.io/name: signoz-mcp-server
 
   - it: should set priorityClassName
     set:
@@ -340,7 +340,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.serviceAccountName
-          value: signoz-mcp
+          value: signoz-mcp-server
       - notExists:
           path: spec.template.spec.serviceAccount
 

@@ -2,7 +2,7 @@ suite: Test the HorizontalPodAutoscaler
 templates:
   - hpa.yaml
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test
@@ -27,24 +27,24 @@ tests:
           of: autoscaling/v2
       - equal:
           path: metadata.name
-          value: signoz-mcp
+          value: signoz-mcp-server
       - equal:
           path: metadata.namespace
           value: platform
       - equal:
           path: metadata.labels
           value:
-            app.kubernetes.io/name: signoz-mcp
-            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/name: signoz-mcp-server
+            app.kubernetes.io/instance: signoz-mcp-server
             app.kubernetes.io/version: v0.0.0-test
             app.kubernetes.io/managed-by: Helm
-            helm.sh/chart: signoz-mcp-0.0.0-test
+            helm.sh/chart: signoz-mcp-server-0.0.0-test
       - equal:
           path: spec.scaleTargetRef
           value:
             apiVersion: apps/v1
             kind: Deployment
-            name: signoz-mcp
+            name: signoz-mcp-server
       - equal:
           path: spec.minReplicas
           value: 2
@@ -77,10 +77,10 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: prod-signoz-mcp
+          value: prod-signoz-mcp-server
       - equal:
           path: spec.scaleTargetRef.name
-          value: prod-signoz-mcp
+          value: prod-signoz-mcp-server
 
   - it: should use the replica bounds from values
     set:

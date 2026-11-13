@@ -1,13 +1,13 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "signoz-mcp.fullname" . -}}
+{{- $fullName := include "signoz-mcp-server.fullname" . -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "signoz-mcp.labels" . | nindent 4 }}
-    {{- with include "signoz-mcp.userLabels" (dict "chart" (include "signoz-mcp.labels" .) "user" .Values.ingress.labels) }}
+    {{- include "signoz-mcp-server.labels" . | nindent 4 }}
+    {{- with include "signoz-mcp-server.userLabels" (dict "chart" (include "signoz-mcp-server.labels" .) "user" .Values.ingress.labels) }}
     {{- . | nindent 4 }}
     {{- end }}
   {{- with .Values.ingress.annotations }}

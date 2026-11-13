@@ -47,7 +47,7 @@ $ helm repo add signoz https://charts.signoz.io
 
 See the [README of SigNoz helm chart](./charts/signoz/README.md).
 
-To let AI clients query SigNoz through MCP, install the optional [SigNoz MCP server chart](./charts/signoz-mcp/README.md) after SigNoz.
+To let AI clients query SigNoz through MCP, install the optional [SigNoz MCP server chart](./charts/signoz-mcp-server/README.md) after SigNoz.
 
 ### Contribute the Chart
 

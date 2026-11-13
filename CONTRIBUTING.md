@@ -33,7 +33,7 @@ There are primarily 4 charts in the SigNoz Helm Charts repository:
 - signoz: signoz, signoz otel collector and schema Migrator
 - clickhouse: clickhouse and zookeeper
 - k8s-infra: k8s-infra collection agent
-- signoz-mcp: SigNoz MCP server
+- signoz-mcp-server: SigNoz MCP server
 
 
 ## Where do I go from here? 

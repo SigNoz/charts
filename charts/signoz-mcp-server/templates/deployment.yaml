@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "signoz-mcp.fullname" . }}
+  name: {{ include "signoz-mcp-server.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "signoz-mcp.labels" . | nindent 4 }}
+    {{- include "signoz-mcp-server.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "signoz-mcp.selectorLabels" . | nindent 6 }}
+      {{- include "signoz-mcp-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "signoz-mcp.selectorLabels" . | nindent 8 }}
-        {{- with include "signoz-mcp.userLabels" (dict "chart" (include "signoz-mcp.selectorLabels" .) "user" .Values.podLabels) }}
+        {{- include "signoz-mcp-server.selectorLabels" . | nindent 8 }}
+        {{- with include "signoz-mcp-server.userLabels" (dict "chart" (include "signoz-mcp-server.selectorLabels" .) "user" .Values.podLabels) }}
         {{- . | nindent 8 }}
         {{- end }}
       {{- with .Values.podAnnotations }}
@@ -24,7 +24,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: {{ include "signoz-mcp.serviceAccountName" . }}
+      serviceAccountName: {{ include "signoz-mcp-server.serviceAccountName" . }}
       automountServiceAccountToken: false
       {{- with .Values.priorityClassName }}
       priorityClassName: {{ . | quote }}
@@ -39,10 +39,10 @@ spec:
       {{- end }}
       containers:
         - name: mcp
-          image: {{ include "signoz-mcp.image" . | quote }}
+          image: {{ include "signoz-mcp-server.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
-            {{- include "signoz-mcp.env" . | nindent 12 }}
+            {{- include "signoz-mcp-server.env" . | nindent 12 }}
           ports:
             - name: http
               containerPort: 8000

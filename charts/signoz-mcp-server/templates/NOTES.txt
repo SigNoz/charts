@@ -1,4 +1,4 @@
-{{- $fullname := include "signoz-mcp.fullname" . -}}
+{{- $fullname := include "signoz-mcp-server.fullname" . -}}
 {{- /* Ingress hosts usable as a URL: entries with no host and wildcard hosts are skipped. */ -}}
 {{- $hosts := list -}}
 {{- range .Values.ingress.hosts -}}

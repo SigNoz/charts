@@ -2,7 +2,7 @@ suite: Test the install notes
 templates:
   - NOTES.txt
 release:
-  name: signoz-mcp
+  name: signoz-mcp-server
   namespace: platform
 chart:
   version: 0.0.0-test
@@ -11,35 +11,35 @@ tests:
   - it: should show the chart's appVersion as the server version by default
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^The SigNoz MCP server v0\.0\.0-test has been installed as signoz-mcp in namespace platform\.$'
+          pattern: '(?m)^The SigNoz MCP server v0\.0\.0-test has been installed as signoz-mcp-server in namespace platform\.$'
 
   - it: should show an overridden image tag as the server version
     set:
       image.tag: v9.9.9
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^The SigNoz MCP server v9\.9\.9 has been installed as signoz-mcp in namespace platform\.$'
+          pattern: '(?m)^The SigNoz MCP server v9\.9\.9 has been installed as signoz-mcp-server in namespace platform\.$'
 
   - it: should show the in-cluster endpoint on the default service.port
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^In-cluster endpoint:\n\n  http://signoz-mcp\.platform\.svc:8000/mcp$'
+          pattern: '(?m)^In-cluster endpoint:\n\n  http://signoz-mcp-server\.platform\.svc:8000/mcp$'
 
   - it: should use a non-default service.port in the endpoint and the port-forward command
     set:
       service.port: 9000
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^  http://signoz-mcp\.platform\.svc:9000/mcp$'
+          pattern: '(?m)^  http://signoz-mcp-server\.platform\.svc:9000/mcp$'
       - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:9000$'
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:9000$'
 
   - it: should show the port-forward command when the Ingress is off
     asserts:
       - matchRegexRaw:
           pattern: '(?m)^To reach the server from your machine, run:$'
       - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:8000$'
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:8000$'
       - matchRegexRaw:
           pattern: '(?m)^and use the URL http://localhost:8000/mcp\.$'
       - notMatchRegexRaw:
@@ -60,7 +60,7 @@ tests:
     set:
       ingress.enabled: true
       ingress.tls:
-        - secretName: signoz-mcp-tls
+        - secretName: signoz-mcp-server-tls
           hosts:
             - mcp.example.com
     asserts:
@@ -113,7 +113,7 @@ tests:
               pathType: Prefix
     asserts:
       - matchRegexRaw:
-          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp 8000:8000$'
+          pattern: '(?m)^  kubectl -n platform port-forward svc/signoz-mcp-server 8000:8000$'
       - notMatchRegexRaw:
           pattern: 'Ingress endpoint'
       - notMatchRegexRaw:

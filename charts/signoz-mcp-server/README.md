@@ -13,7 +13,7 @@ Helm 3, and Kubernetes 1.19 or later (1.23 or later when `autoscaling.enabled` i
 
 ```bash
 helm repo add signoz https://charts.signoz.io
-helm install signoz-mcp signoz/signoz-mcp --namespace signoz --create-namespace \
+helm install signoz-mcp-server signoz/signoz-mcp-server --namespace signoz --create-namespace \
   --set env.SIGNOZ_URL=http://signoz:8080
 ```
 
@@ -29,7 +29,7 @@ env:
   SIGNOZ_API_KEY:
     valueFrom:
       secretKeyRef:
-        name: signoz-mcp
+        name: signoz-mcp-server
         key: SIGNOZ_API_KEY
 ```
 
@@ -45,7 +45,7 @@ For the list of variables, including the multi-tenant allowlist, the docs refres
 Forward the Service port to your machine:
 
 ```bash
-kubectl --namespace signoz port-forward svc/signoz-mcp 8000:8000
+kubectl --namespace signoz port-forward svc/signoz-mcp-server 8000:8000
 ```
 
 The MCP endpoint is then `http://localhost:8000/mcp`. For example, to add it to Claude Code with a key sent by the client:
@@ -77,7 +77,7 @@ Clients then use `https://mcp.example.com/mcp`. Keep the path `/`, because the O
 ### Uninstalling the chart
 
 ```bash
-helm uninstall signoz-mcp --namespace signoz
+helm uninstall signoz-mcp-server --namespace signoz
 ```
 
 ## Values
