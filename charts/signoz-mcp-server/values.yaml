@@ -121,7 +121,8 @@ ingress:
   # @section -- Ingress Configuration
   labels: {}
   # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
-  # port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host.
+  # port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host. A path
+  # without `pathType` uses `Prefix`.
   # @section -- Ingress Configuration
   hosts:
     - host: mcp.example.com
