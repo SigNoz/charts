@@ -27,6 +27,7 @@ rules:
   - authdomains
   - clusterproviderconfigs
   - dashboards
+  - notificationchannels
   - plannedmaintenances
   - providerconfigs
   - roles
@@ -49,6 +50,7 @@ rules:
   - authdomains/finalizers
   - clusterproviderconfigs/finalizers
   - dashboards/finalizers
+  - notificationchannels/finalizers
   - plannedmaintenances/finalizers
   - providerconfigs/finalizers
   - roles/finalizers
@@ -65,6 +67,7 @@ rules:
   - authdomains/status
   - clusterproviderconfigs/status
   - dashboards/status
+  - notificationchannels/status
   - plannedmaintenances/status
   - providerconfigs/status
   - roles/status
