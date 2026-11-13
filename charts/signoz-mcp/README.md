@@ -3,7 +3,7 @@
 
 ![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.18.0](https://img.shields.io/badge/AppVersion-v0.18.0-informational?style=flat-square)
 
-This chart installs the [SigNoz MCP server](https://github.com/SigNoz/signoz-mcp-server) in HTTP mode, as a Deployment and a ClusterIP Service on port 8000, with an optional Ingress and HorizontalPodAutoscaler. The server's documentation is at [signoz.io/docs/ai/signoz-mcp-server](https://signoz.io/docs/ai/signoz-mcp-server/). SigNoz itself is installed separately.
+This chart installs the [SigNoz MCP server](https://github.com/SigNoz/signoz-mcp-server) in HTTP mode, as a Deployment, a ServiceAccount and a ClusterIP Service on port 8000, with an optional Ingress and HorizontalPodAutoscaler. The server's documentation is at [signoz.io/docs/ai/signoz-mcp-server](https://signoz.io/docs/ai/signoz-mcp-server/). SigNoz itself is installed separately.
 
 ### Prerequisites
 
@@ -233,13 +233,40 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Port clients connect to. It forwards to the container's `http` port (8000).</td>
         </tr>
         <tr>
-            <td id="service--annotations"><a href="./values.yaml#L92">service.annotations</a></td>
+            <td id="service--nodePort"><a href="./values.yaml#L93">service.nodePort</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Node port for the Service. Used only when `service.type` is `NodePort` or `LoadBalancer`. When unset, Kubernetes picks one.</td>
+        </tr>
+        <tr>
+            <td id="service--loadBalancerSourceRanges"><a href="./values.yaml#L97">service.loadBalancerSourceRanges</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Client IP ranges allowed to reach the Service. Used only when `service.type` is `LoadBalancer`.</td>
+        </tr>
+        <tr>
+            <td id="service--annotations"><a href="./values.yaml#L100">service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
             <td>Annotations for the Service.</td>
+        </tr>
+        <tr>
+            <td id="service--labels"><a href="./values.yaml#L103">service.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Additional labels on the Service.</td>
         </tr>
     </tbody>
 </table>
@@ -253,7 +280,7 @@ helm uninstall signoz-mcp --namespace signoz
     </thead>
     <tbody>
         <tr>
-            <td id="ingress--enabled"><a href="./values.yaml#L97">ingress.enabled</a></td>
+            <td id="ingress--enabled"><a href="./values.yaml#L108">ingress.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -262,7 +289,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Create an Ingress for the server.</td>
         </tr>
         <tr>
-            <td id="ingress--className"><a href="./values.yaml#L100">ingress.className</a></td>
+            <td id="ingress--className"><a href="./values.yaml#L111">ingress.className</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -271,7 +298,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>IngressClass name.</td>
         </tr>
         <tr>
-            <td id="ingress--annotations"><a href="./values.yaml#L106">ingress.annotations</a></td>
+            <td id="ingress--annotations"><a href="./values.yaml#L117">ingress.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -280,7 +307,16 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Annotations for the Ingress. A tool call can run for up to 600 seconds and the server accepts request bodies up to 4 MiB, so the proxy's read timeout and body size limit may need raising. The commented examples are for ingress-nginx; other controllers have their own annotation names.</td>
         </tr>
         <tr>
-            <td id="ingress--hosts"><a href="./values.yaml#L112">ingress.hosts</a></td>
+            <td id="ingress--labels"><a href="./values.yaml#L122">ingress.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Additional labels on the Ingress.</td>
+        </tr>
+        <tr>
+            <td id="ingress--hosts"><a href="./values.yaml#L126">ingress.hosts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- host: mcp.example.com
@@ -292,7 +328,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Hosts and paths for the Ingress. Each path routes to the Service's `http` port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host.</td>
         </tr>
         <tr>
-            <td id="ingress--tls"><a href="./values.yaml#L119">ingress.tls</a></td>
+            <td id="ingress--tls"><a href="./values.yaml#L133">ingress.tls</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -312,7 +348,7 @@ helm uninstall signoz-mcp --namespace signoz
     </thead>
     <tbody>
         <tr>
-            <td id="autoscaling--enabled"><a href="./values.yaml#L128">autoscaling.enabled</a></td>
+            <td id="autoscaling--enabled"><a href="./values.yaml#L142">autoscaling.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -321,7 +357,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Create a HorizontalPodAutoscaler. While it is enabled the Deployment leaves `replicas` unset.</td>
         </tr>
         <tr>
-            <td id="autoscaling--minReplicas"><a href="./values.yaml#L131">autoscaling.minReplicas</a></td>
+            <td id="autoscaling--minReplicas"><a href="./values.yaml#L145">autoscaling.minReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">2</pre>
@@ -330,7 +366,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Minimum number of replicas.</td>
         </tr>
         <tr>
-            <td id="autoscaling--maxReplicas"><a href="./values.yaml#L134">autoscaling.maxReplicas</a></td>
+            <td id="autoscaling--maxReplicas"><a href="./values.yaml#L148">autoscaling.maxReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -339,7 +375,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Maximum number of replicas.</td>
         </tr>
         <tr>
-            <td id="autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L138">autoscaling.targetCPUUtilizationPercentage</a></td>
+            <td id="autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L152">autoscaling.targetCPUUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">60</pre>
@@ -348,7 +384,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Target average CPU utilization. At least one utilization target must be set while autoscaling is enabled.</td>
         </tr>
         <tr>
-            <td id="autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L141">autoscaling.targetMemoryUtilizationPercentage</a></td>
+            <td id="autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L155">autoscaling.targetMemoryUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">60</pre>
@@ -357,13 +393,51 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Target average memory utilization.</td>
         </tr>
         <tr>
-            <td id="autoscaling--behavior"><a href="./values.yaml#L144">autoscaling.behavior</a></td>
+            <td id="autoscaling--behavior"><a href="./values.yaml#L158">autoscaling.behavior</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
             <td>Scaling behavior of the HorizontalPodAutoscaler.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>ServiceAccount Configuration</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="serviceAccount--create"><a href="./values.yaml#L163">serviceAccount.create</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Create a ServiceAccount for the pod. The pod does not mount its token.</td>
+        </tr>
+        <tr>
+            <td id="serviceAccount--name"><a href="./values.yaml#L167">serviceAccount.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Name of the ServiceAccount the pod runs as. When empty, it is the fullname if `serviceAccount.create` is true, and `default` if it is false.</td>
+        </tr>
+        <tr>
+            <td id="serviceAccount--annotations"><a href="./values.yaml#L170">serviceAccount.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for the ServiceAccount.</td>
         </tr>
     </tbody>
 </table>
@@ -377,7 +451,7 @@ helm uninstall signoz-mcp --namespace signoz
     </thead>
     <tbody>
         <tr>
-            <td id="resources"><a href="./values.yaml#L148">resources</a></td>
+            <td id="resources"><a href="./values.yaml#L174">resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests:
@@ -388,7 +462,7 @@ helm uninstall signoz-mcp --namespace signoz
             <td>Resource requests and limits for the server container.</td>
         </tr>
         <tr>
-            <td id="podSecurityContext"><a href="./values.yaml#L155">podSecurityContext</a></td>
+            <td id="podSecurityContext"><a href="./values.yaml#L181">podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">runAsGroup: 65532
@@ -401,7 +475,7 @@ seccompProfile:
             <td>Pod-level security settings. 65532 is the `nonroot` user of distroless images.</td>
         </tr>
         <tr>
-            <td id="securityContext"><a href="./values.yaml#L163">securityContext</a></td>
+            <td id="securityContext"><a href="./values.yaml#L189">securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">allowPrivilegeEscalation: false
@@ -414,7 +488,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Container-level security settings.</td>
         </tr>
         <tr>
-            <td id="podAnnotations"><a href="./values.yaml#L171">podAnnotations</a></td>
+            <td id="podAnnotations"><a href="./values.yaml#L197">podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -423,7 +497,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Additional annotations on the pod.</td>
         </tr>
         <tr>
-            <td id="podLabels"><a href="./values.yaml#L174">podLabels</a></td>
+            <td id="podLabels"><a href="./values.yaml#L200">podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -432,7 +506,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Additional labels on the pod.</td>
         </tr>
         <tr>
-            <td id="nodeSelector"><a href="./values.yaml#L177">nodeSelector</a></td>
+            <td id="nodeSelector"><a href="./values.yaml#L203">nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -441,7 +515,7 @@ readOnlyRootFilesystem: true</pre>
             <td>Node selector for the pod.</td>
         </tr>
         <tr>
-            <td id="tolerations"><a href="./values.yaml#L180">tolerations</a></td>
+            <td id="tolerations"><a href="./values.yaml#L206">tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -450,13 +524,88 @@ readOnlyRootFilesystem: true</pre>
             <td>Tolerations for the pod.</td>
         </tr>
         <tr>
-            <td id="affinity"><a href="./values.yaml#L183">affinity</a></td>
+            <td id="affinity"><a href="./values.yaml#L209">affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
             <td>Affinity rules for the pod.</td>
+        </tr>
+        <tr>
+            <td id="topologySpreadConstraints"><a href="./values.yaml#L212">topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for the pod.</td>
+        </tr>
+        <tr>
+            <td id="priorityClassName"><a href="./values.yaml#L215">priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>PriorityClass name for the pod.</td>
+        </tr>
+        <tr>
+            <td id="volumes"><a href="./values.yaml#L218">volumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volumes for the pod. See the example below this key in values.yaml.</td>
+        </tr>
+        <tr>
+            <td id="volumeMounts"><a href="./values.yaml#L236">volumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volume mounts for the `mcp` container.</td>
+        </tr>
+        <tr>
+            <td id="livenessProbe"><a href="./values.yaml#L240">livenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">failureThreshold: 5
+httpGet:
+    path: /livez
+    port: http
+initialDelaySeconds: 10
+periodSeconds: 10
+timeoutSeconds: 1</pre>
+</div>
+            </td>
+            <td>Liveness probe for the `mcp` container. Helm merges maps, so setting one field, such as `livenessProbe.failureThreshold`, keeps the others.</td>
+        </tr>
+        <tr>
+            <td id="readinessProbe"><a href="./values.yaml#L251">readinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">failureThreshold: 3
+httpGet:
+    path: /readyz
+    port: http
+initialDelaySeconds: 10
+periodSeconds: 10
+timeoutSeconds: 1</pre>
+</div>
+            </td>
+            <td>Readiness probe for the `mcp` container. Helm merges maps, so setting one field, such as `readinessProbe.initialDelaySeconds`, keeps the others.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe"><a href="./values.yaml#L261">startupProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Startup probe for the `mcp` container. Not set by default.</td>
         </tr>
     </tbody>
 </table>

@@ -127,7 +127,7 @@ tests:
               containerPort: 8000
               protocol: TCP
 
-  - it: should probe /livez and /readyz on the http port with the fixed timings
+  - it: should probe /livez and /readyz on the http port with the default timings
     asserts:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe
@@ -195,9 +195,146 @@ tests:
       - notExists:
           path: spec.replicas
 
-  - it: should not name a ServiceAccount
+  - it: should keep the other probe fields when one field is overridden
+    set:
+      readinessProbe.initialDelaySeconds: 30
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 5
+
+  - it: should set no startup probe by default
     asserts:
       - notExists:
+          path: spec.template.spec.containers[0].startupProbe
+
+  - it: should pass startupProbe through when set
+    set:
+      startupProbe:
+        httpGet:
+          path: /livez
+          port: http
+        periodSeconds: 5
+        failureThreshold: 30
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe
+          value:
+            httpGet:
+              path: /livez
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+
+  - it: should set no volumes, volume mounts, topology spread constraints or priority class by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+      - notExists:
+          path: spec.template.spec.topologySpreadConstraints
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: should pass volumes to the pod and volumeMounts to the mcp container
+    set:
+      volumes:
+        - name: ca-bundle
+          configMap:
+            name: ca-bundle
+      volumeMounts:
+        - name: ca-bundle
+          mountPath: /etc/ssl/custom
+          readOnly: true
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: ca-bundle
+              configMap:
+                name: ca-bundle
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: ca-bundle
+              mountPath: /etc/ssl/custom
+              readOnly: true
+
+  - it: should pass topologySpreadConstraints through
+    set:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: signoz-mcp
+    asserts:
+      - equal:
+          path: spec.template.spec.topologySpreadConstraints
+          value:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: signoz-mcp
+
+  - it: should set priorityClassName
+    set:
+      priorityClassName: high-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: high-priority
+
+  - it: should run as the ServiceAccount named after the release by default
+    asserts:
+      - equal:
           path: spec.template.spec.serviceAccountName
+          value: signoz-mcp
       - notExists:
           path: spec.template.spec.serviceAccount
+
+  - it: should run as serviceAccount.name when it is set
+    set:
+      serviceAccount.name: custom
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: custom
+
+  - it: should run as the default ServiceAccount when serviceAccount.create is false and no name is set
+    set:
+      serviceAccount.create: false
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+
+  - it: should run as an existing ServiceAccount when serviceAccount.create is false and a name is set
+    set:
+      serviceAccount.create: false
+      serviceAccount.name: existing
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: existing

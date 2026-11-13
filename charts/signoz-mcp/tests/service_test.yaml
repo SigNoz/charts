@@ -79,6 +79,84 @@ tests:
           value:
             example.com/owner: platform
 
+  - it: should add service.labels after the common labels
+    template: service.yaml
+    set:
+      service.labels:
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-0.0.0-test
+            team: observability
+
+  - it: should set nodePort for a NodePort Service
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 8000
+              targetPort: http
+              protocol: TCP
+              nodePort: 30080
+
+  - it: should set nodePort for a LoadBalancer Service
+    template: service.yaml
+    set:
+      service.type: LoadBalancer
+      service.nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30080
+
+  - it: should leave nodePort and loadBalancerSourceRanges out of a ClusterIP Service
+    template: service.yaml
+    set:
+      service.nodePort: 30080
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - notExists:
+          path: spec.ports[0].nodePort
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+
+  - it: should set loadBalancerSourceRanges for a LoadBalancer Service
+    template: service.yaml
+    set:
+      service.type: LoadBalancer
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - 10.0.0.0/8
+
+  - it: should leave loadBalancerSourceRanges out of a NodePort Service
+    template: service.yaml
+    set:
+      service.type: NodePort
+      service.loadBalancerSourceRanges:
+        - 10.0.0.0/8
+    asserts:
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+
   - it: should select the pods the Deployment selects
     asserts:
       - equal:

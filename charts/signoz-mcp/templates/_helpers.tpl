@@ -58,6 +58,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Name of the ServiceAccount the pod runs as. When serviceAccount.create is
+true, it is serviceAccount.name, or the fullname when that is empty. When
+create is false, it is serviceAccount.name, or "default" when that is empty.
+*/}}
+{{- define "signoz-mcp.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "signoz-mcp.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
 Image string: registry/repository:tag. The registry comes from
 global.imageRegistry when set, otherwise from image.registry; with neither
 set the result is repository:tag. The tag defaults to the chart's appVersion.

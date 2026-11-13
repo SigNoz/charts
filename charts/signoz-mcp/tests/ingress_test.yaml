@@ -65,6 +65,22 @@ tests:
       - notExists:
           path: spec.tls
 
+  - it: should add ingress.labels after the common labels
+    set:
+      ingress.enabled: true
+      ingress.labels:
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/name: signoz-mcp
+            app.kubernetes.io/instance: signoz-mcp
+            app.kubernetes.io/version: v0.0.0-test
+            app.kubernetes.io/managed-by: Helm
+            helm.sh/chart: signoz-mcp-0.0.0-test
+            team: observability
+
   - it: should leave ingressClassName out when ingress.className is empty
     set:
       ingress.enabled: true

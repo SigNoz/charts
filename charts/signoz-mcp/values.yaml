@@ -87,9 +87,20 @@ service:
   # service.port -- Port clients connect to. It forwards to the container's `http` port (8000).
   # @section -- Service Configuration
   port: 8000
+  # service.nodePort -- (int) Node port for the Service. Used only when `service.type` is
+  # `NodePort` or `LoadBalancer`. When unset, Kubernetes picks one.
+  # @section -- Service Configuration
+  nodePort: null
+  # service.loadBalancerSourceRanges -- Client IP ranges allowed to reach the Service. Used
+  # only when `service.type` is `LoadBalancer`.
+  # @section -- Service Configuration
+  loadBalancerSourceRanges: []
   # service.annotations -- Annotations for the Service.
   # @section -- Service Configuration
   annotations: {}
+  # service.labels -- Additional labels on the Service.
+  # @section -- Service Configuration
+  labels: {}
 
 ingress:
   # ingress.enabled -- Create an Ingress for the server.
@@ -106,6 +117,9 @@ ingress:
   annotations: {}
   # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
   # nginx.ingress.kubernetes.io/proxy-body-size: 4m
+  # ingress.labels -- Additional labels on the Ingress.
+  # @section -- Ingress Configuration
+  labels: {}
   # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
   # port. Keep the path `/` for OAuth, whose endpoints sit at the root of the host.
   # @section -- Ingress Configuration
@@ -142,6 +156,18 @@ autoscaling:
   # autoscaling.behavior -- Scaling behavior of the HorizontalPodAutoscaler.
   # @section -- Autoscaling Configuration
   behavior: {}
+
+serviceAccount:
+  # serviceAccount.create -- Create a ServiceAccount for the pod. The pod does not mount its token.
+  # @section -- ServiceAccount Configuration
+  create: true
+  # serviceAccount.name -- Name of the ServiceAccount the pod runs as. When empty, it is the
+  # fullname if `serviceAccount.create` is true, and `default` if it is false.
+  # @section -- ServiceAccount Configuration
+  name: ""
+  # serviceAccount.annotations -- Annotations for the ServiceAccount.
+  # @section -- ServiceAccount Configuration
+  annotations: {}
 
 # resources -- Resource requests and limits for the server container.
 # @section -- Pod Configuration
@@ -181,3 +207,55 @@ tolerations: []
 # affinity -- Affinity rules for the pod.
 # @section -- Pod Configuration
 affinity: {}
+# topologySpreadConstraints -- Topology spread constraints for the pod.
+# @section -- Pod Configuration
+topologySpreadConstraints: []
+# priorityClassName -- PriorityClass name for the pod.
+# @section -- Pod Configuration
+priorityClassName: ""
+# volumes -- Additional volumes for the pod. See the example below this key in values.yaml.
+# @section -- Pod Configuration
+volumes: []
+# For example, to trust a private CA, mount a CA bundle from a ConfigMap and set
+# SSL_CERT_FILE under `env` to point the server at it:
+#   volumes:
+#     - name: ca-bundle
+#       configMap:
+#         name: ca-bundle
+#   volumeMounts:
+#     - name: ca-bundle
+#       mountPath: /etc/ssl/custom
+#       readOnly: true
+#   env:
+#     SSL_CERT_FILE: /etc/ssl/custom/ca.crt
+# SSL_CERT_FILE replaces the system certificate list, so the bundle must also
+# hold the public root certificates the server still needs, for example for the
+# docs refresh.
+# volumeMounts -- Additional volume mounts for the `mcp` container.
+# @section -- Pod Configuration
+volumeMounts: []
+# livenessProbe -- Liveness probe for the `mcp` container. Helm merges maps, so setting one
+# field, such as `livenessProbe.failureThreshold`, keeps the others.
+# @section -- Pod Configuration
+livenessProbe:
+  httpGet:
+    path: /livez
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 5
+# readinessProbe -- Readiness probe for the `mcp` container. Helm merges maps, so setting one
+# field, such as `readinessProbe.initialDelaySeconds`, keeps the others.
+# @section -- Pod Configuration
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+# startupProbe -- Startup probe for the `mcp` container. Not set by default.
+# @section -- Pod Configuration
+startupProbe: {}
