@@ -118,6 +118,14 @@ spec:
       nodes:
       {{- if .Values.externalZookeeper }}
         {{- toYaml .Values.externalZookeeper.servers | nindent 8 }}
+      {{- else if .Values.keeper.enabled }}
+        {{- $keeperSvc := include "clickhouse.keeper.servicename" . }}
+        {{- $keeperSuffix := include "clickhouse.keeper.headlessSvcSuffix" . }}
+        {{- $keeperPort := .Values.keeper.service.port }}
+        {{- range $i := until (int .Values.keeper.replicaCount) }}
+        - host: {{ printf "%s-%d.%s" $keeperSvc $i $keeperSuffix }}
+          port: {{ $keeperPort }}
+        {{- end }}
       {{- else }}
         {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
         {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
