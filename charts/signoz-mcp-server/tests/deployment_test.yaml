@@ -29,6 +29,14 @@ tests:
           path: metadata.name
           value: prod-signoz-mcp-server
 
+  - it: should cut a fullnameOverride longer than 63 characters to 63
+    set:
+      fullnameOverride: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    asserts:
+      - equal:
+          path: metadata.name
+          value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
   - it: should select pods by the name and instance labels only
     asserts:
       - equal:
@@ -60,33 +68,11 @@ tests:
             app.kubernetes.io/name: signoz-mcp-server
             app.kubernetes.io/instance: signoz-mcp-server
 
-  # helm-unittest parses each rendered document with a decoder that rejects a
-  # duplicate key, so a duplicated label fails the test before any assertion.
-  - it: should keep the selector labels on the pod when podLabels sets one of their keys, and add the other podLabels
-    set:
-      podLabels:
-        app.kubernetes.io/name: other
-        team: observability
-    asserts:
-      - isKind:
-          of: Deployment
-      - equal:
-          path: spec.template.metadata.labels
-          value:
-            app.kubernetes.io/name: signoz-mcp-server
-            app.kubernetes.io/instance: signoz-mcp-server
-            team: observability
-      - equal:
-          path: spec.selector.matchLabels
-          value:
-            app.kubernetes.io/name: signoz-mcp-server
-            app.kubernetes.io/instance: signoz-mcp-server
-
-  - it: should build the image from the default registry, repository and the chart appVersion
+  - it: should build the image from the repository and the chart appVersion
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: docker.io/signoz/signoz-mcp-server:v0.0.0-test
+          value: signoz/signoz-mcp-server:v0.0.0-test
 
   - it: should use an explicit image tag
     set:
@@ -94,32 +80,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: docker.io/signoz/signoz-mcp-server:v9.9.9
-
-  - it: should use image.registry
-    set:
-      image.registry: registry.example.com
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].image
-          value: registry.example.com/signoz/signoz-mcp-server:v0.0.0-test
-
-  - it: should leave the registry out when image.registry is empty
-    set:
-      image.registry: ""
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].image
-          value: signoz/signoz-mcp-server:v0.0.0-test
-
-  - it: should let global.imageRegistry replace image.registry
-    set:
-      global.imageRegistry: mirror.example.com
-      image.registry: registry.example.com
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].image
-          value: mirror.example.com/signoz/signoz-mcp-server:v0.0.0-test
+          value: signoz/signoz-mcp-server:v9.9.9
 
   - it: should pass imagePullSecrets through
     set:

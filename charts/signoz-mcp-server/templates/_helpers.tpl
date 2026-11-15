@@ -6,21 +6,14 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Create a default fully qualified app name. Every object the chart renders is
-named with it, with no suffix.
-
-fullnameOverride is used as written and is never cut: foundry computes the
-Service address from the full string, so a cut name would not match it.
-templates/validate.yaml fails rendering when it is longer than 63 characters.
-
-Otherwise the release name is used when it already contains the chart name,
-and <release>-<chart name> when it does not. A name built from the release
-name is cut to 63 characters, the limit of a DNS label, with a trailing "-"
-removed.
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this
+(by the DNS naming spec). If the release name contains the chart name it is
+used as the full name.
 */}}
 {{- define "signoz-mcp-server.fullname" -}}
 {{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
 {{- if contains $name .Release.Name }}
@@ -32,20 +25,13 @@ removed.
 {{- end }}
 
 {{/*
-Chart name and version, as used by the helm.sh/chart label.
-*/}}
-{{- define "signoz-mcp-server.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Common labels.
 */}}
 {{- define "signoz-mcp-server.labels" -}}
 {{ include "signoz-mcp-server.selectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-helm.sh/chart: {{ include "signoz-mcp-server.chart" . }}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
 {{- end }}
 
 {{/*
@@ -56,31 +42,6 @@ Deployment's selector cannot be edited after creation.
 app.kubernetes.io/name: {{ include "signoz-mcp-server.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-User labels with the chart's own labels left out. Takes a dict:
-
-- "chart": the label block the chart renders in the same mapping, as text,
-  for example the output of signoz-mcp-server.labels.
-- "user": the user's map of labels.
-
-Returns the user's entries whose keys the chart's block does not set, as
-YAML, or nothing when none remain. The chart's labels win, so no key is
-rendered twice and the pod template keeps matching the Deployment's selector.
-The user's map is not modified.
-*/}}
-{{- define "signoz-mcp-server.userLabels" -}}
-{{- $chartLabels := fromYaml .chart -}}
-{{- $labels := dict -}}
-{{- range $key, $value := .user -}}
-{{- if not (hasKey $chartLabels $key) -}}
-{{- $_ := set $labels $key $value -}}
-{{- end -}}
-{{- end -}}
-{{- with $labels -}}
-{{- toYaml . -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Name of the ServiceAccount the pod runs as. When serviceAccount.create is
@@ -94,22 +55,6 @@ create is false, it is serviceAccount.name, or "default" when that is empty.
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
-
-{{/*
-Image string: registry/repository:tag. The registry comes from
-global.imageRegistry when set, otherwise from image.registry; with neither
-set the result is repository:tag. The tag defaults to the chart's appVersion.
-*/}}
-{{- define "signoz-mcp-server.image" -}}
-{{- $registry := default .Values.image.registry .Values.global.imageRegistry -}}
-{{- $repository := .Values.image.repository -}}
-{{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
-{{- if $registry -}}
-{{- printf "%s/%s:%s" $registry $repository $tag -}}
-{{- else -}}
-{{- printf "%s:%s" $repository $tag -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Text of one env value. Takes the value of one env entry.

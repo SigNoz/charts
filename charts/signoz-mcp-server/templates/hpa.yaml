@@ -13,6 +13,7 @@ spec:
     name: {{ include "signoz-mcp-server.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  {{- if or .Values.autoscaling.targetMemoryUtilizationPercentage .Values.autoscaling.targetCPUUtilizationPercentage }}
   metrics:
     {{- with .Values.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
@@ -30,6 +31,7 @@ spec:
           type: Utilization
           averageUtilization: {{ . }}
     {{- end }}
+  {{- end }}
   {{- with .Values.autoscaling.behavior }}
   behavior:
     {{- toYaml . | nindent 4 }}

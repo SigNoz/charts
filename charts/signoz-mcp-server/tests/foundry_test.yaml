@@ -43,7 +43,7 @@ tests:
               targetPort: http
               protocol: TCP
         template: service.yaml
-      # image.registry, image.repository and image.tag are separate keys.
+      # image.repository includes the registry, and image.tag is a separate key.
       - equal:
           path: spec.template.spec.containers[0].image
           value: registry.example.com/signoz/signoz-mcp-server:v0.18.0

@@ -1,13 +1,7 @@
-global:
-  # global.imageRegistry -- Image registry that replaces `image.registry` when set.
-  # @section -- General Configuration
-  imageRegistry: ""
-
 # nameOverride -- String to partially override the fullname template (retains the release name).
 # @section -- General Configuration
 nameOverride: ""
-# fullnameOverride -- String to fully override the fullname template. It is used as the exact
-# name of every object and is never cut; rendering fails when it is longer than 63 characters.
+# fullnameOverride -- String to fully override the fullname template.
 # @section -- General Configuration
 fullnameOverride: ""
 # replicaCount -- Number of server replicas. Ignored while `autoscaling.enabled` is true.
@@ -15,10 +9,6 @@ fullnameOverride: ""
 replicaCount: 1
 
 image:
-  # image.registry -- Image registry. `global.imageRegistry` replaces it when set. Set it to
-  # an empty string to use the repository without a registry.
-  # @section -- Image Configuration
-  registry: docker.io
   # image.repository -- Image repository.
   # @section -- Image Configuration
   repository: signoz/signoz-mcp-server
@@ -64,7 +54,7 @@ service:
   # service.annotations -- Annotations for the Service.
   # @section -- Service Configuration
   annotations: {}
-  # service.labels -- Additional labels on the Service. A key the chart already sets is ignored.
+  # service.labels -- Additional labels on the Service.
   # @section -- Service Configuration
   labels: {}
 
@@ -83,7 +73,7 @@ ingress:
   annotations: {}
   # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
   # nginx.ingress.kubernetes.io/proxy-body-size: 4m
-  # ingress.labels -- Additional labels on the Ingress. A key the chart already sets is ignored.
+  # ingress.labels -- Additional labels on the Ingress.
   # @section -- Ingress Configuration
   labels: {}
   # ingress.hosts -- Hosts and paths for the Ingress. Each path routes to the Service's `http`
@@ -113,8 +103,7 @@ autoscaling:
   # autoscaling.maxReplicas -- Maximum number of replicas.
   # @section -- Autoscaling Configuration
   maxReplicas: 10
-  # autoscaling.targetCPUUtilizationPercentage -- Target average CPU utilization. At least one
-  # utilization target must be set while autoscaling is enabled.
+  # autoscaling.targetCPUUtilizationPercentage -- Target average CPU utilization.
   # @section -- Autoscaling Configuration
   targetCPUUtilizationPercentage: 60
   # autoscaling.targetMemoryUtilizationPercentage -- Target average memory utilization.
@@ -162,7 +151,7 @@ securityContext:
 # podAnnotations -- Additional annotations on the pod.
 # @section -- Pod Configuration
 podAnnotations: {}
-# podLabels -- Additional labels on the pod. A key the chart already sets is ignored.
+# podLabels -- Additional labels on the pod.
 # @section -- Pod Configuration
 podLabels: {}
 # nodeSelector -- Node selector for the pod.

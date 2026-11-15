@@ -16,8 +16,8 @@ spec:
     metadata:
       labels:
         {{- include "signoz-mcp-server.selectorLabels" . | nindent 8 }}
-        {{- with include "signoz-mcp-server.userLabels" (dict "chart" (include "signoz-mcp-server.selectorLabels" .) "user" .Values.podLabels) }}
-        {{- . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- with .Values.podAnnotations }}
       annotations:
@@ -39,7 +39,7 @@ spec:
       {{- end }}
       containers:
         - name: mcp
-          image: {{ include "signoz-mcp-server.image" . | quote }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             {{- include "signoz-mcp-server.env" . | nindent 12 }}

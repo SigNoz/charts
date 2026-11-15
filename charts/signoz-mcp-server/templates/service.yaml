@@ -5,8 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "signoz-mcp-server.labels" . | nindent 4 }}
-    {{- with include "signoz-mcp-server.userLabels" (dict "chart" (include "signoz-mcp-server.labels" .) "user" .Values.service.labels) }}
-    {{- . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- with .Values.service.annotations }}
   annotations:
