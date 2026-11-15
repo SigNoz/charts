@@ -117,17 +117,7 @@ spec:
 
     zookeeper:
       nodes:
-      {{- if .Values.clickhouse.externalZookeeper }}
-        {{- toYaml .Values.clickhouse.externalZookeeper.servers | nindent 8 }}
-      {{- else }}
-        {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) }}
-        {{- $svcName := (include "clickhouse.zookeeper.servicename" .) }}
-        {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) }}
-        {{- range $replicaIndex := until $replicaCount }}
-        - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
-          port: {{ include "clickhouse.zookeeper.port" . }}
-        {{- end }}
-      {{- end }}
+        {{- include "clickhouse.coordinationHosts" . | nindent 8 }}
 
   templates:
     podTemplates:
@@ -147,7 +137,7 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- include "clickhouse.imagePullSecrets" . | indent 10 }}
+          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 10 }}
           serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
           priorityClassName: {{ .Values.clickhouse.priorityClassName | quote }}
           {{- if .Values.clickhouse.affinity }}
@@ -162,8 +152,8 @@ spec:
           {{- with .Values.clickhouse.topologySpreadConstraints }}
           topologySpreadConstraints: {{ toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.clickhouse.securityContext.enabled }}
-          securityContext: {{- omit .Values.clickhouse.securityContext "enabled" | toYaml | nindent 12 }}
+          {{- with .Values.clickhouse.podSecurityContext }}
+          securityContext: {{ toYaml . | nindent 12 }}
           {{- end }}
 
           volumes:
@@ -188,15 +178,15 @@ spec:
               configMap:
                 name: {{ include "clickhouse.fullname" . }}-logs-system-config
           {{- end }}
-          {{- if .Values.clickhouse.additionalVolumes }}
-            {{- toYaml .Values.clickhouse.additionalVolumes | nindent 12 }}
+          {{- if .Values.clickhouse.extraVolumes }}
+            {{- toYaml .Values.clickhouse.extraVolumes | nindent 12 }}
           {{- end }}
 
           {{- if .Values.clickhouse.initContainers.enabled }}
           initContainers:
             {{- if .Values.clickhouse.initContainers.udf.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-udf-init
-              image: {{ include "clickhouse.initContainers.udf.image" . }}
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.initContainers.udf.image "name" "clickhouse.initContainers.udf.image") }}
               imagePullPolicy: {{ .Values.clickhouse.initContainers.udf.image.pullPolicy }}
               command:
                 {{- toYaml .Values.clickhouse.initContainers.udf.command | nindent 16 }}
@@ -206,7 +196,7 @@ spec:
             {{- end }}
             {{- if .Values.clickhouse.initContainers.init.enabled }}
             - name: {{ include "clickhouse.fullname" . }}-init
-              image: {{ include "clickhouse.initContainers.init.image" . }}
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.initContainers.init.image "name" "clickhouse.initContainers.init.image") }}
               imagePullPolicy: {{ .Values.clickhouse.initContainers.init.image.pullPolicy }}
               command:
                 {{- toYaml .Values.clickhouse.initContainers.init.command | nindent 16 }}
@@ -216,7 +206,7 @@ spec:
             - name: clickhouse
               # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
               # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
-              image: {{ template "clickhouse.image" . }}
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.image "name" "clickhouse.image") }}
               imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
               command:
                 - /bin/bash
@@ -230,47 +220,14 @@ spec:
                 - name: interserver
                   containerPort: 9009
               
-              {{- if .Values.clickhouse.startupProbe.enabled }}
-              startupProbe:
-                httpGet:
-                  port: {{ .Values.clickhouse.startupProbe.port }}
-                  path: {{ .Values.clickhouse.startupProbe.path }}
-                initialDelaySeconds: {{ .Values.clickhouse.startupProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.clickhouse.startupProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.clickhouse.startupProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.clickhouse.startupProbe.successThreshold }}
-                failureThreshold: {{ .Values.clickhouse.startupProbe.failureThreshold }}
-              {{- else if .Values.clickhouse.customStartupProbe }}
-              startupProbe:
-                {{- toYaml .Values.clickhouse.customStartupProbe | nindent 16 }}
+              {{- with .Values.clickhouse.startupProbe }}
+              startupProbe: {{ toYaml . | nindent 16 }}
               {{- end }}
-              {{- if .Values.clickhouse.livenessProbe.enabled }}
-              livenessProbe:
-                httpGet:
-                  port: {{ .Values.clickhouse.livenessProbe.port }}
-                  path: {{ .Values.clickhouse.livenessProbe.path }}
-                initialDelaySeconds: {{ .Values.clickhouse.livenessProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.clickhouse.livenessProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.clickhouse.livenessProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.clickhouse.livenessProbe.successThreshold }}
-                failureThreshold: {{ .Values.clickhouse.livenessProbe.failureThreshold }}
-              {{- else if .Values.clickhouse.customLivenessProbe }}
-              livenessProbe:
-                {{- toYaml .Values.clickhouse.customLivenessProbe | nindent 16 }}
+              {{- with .Values.clickhouse.livenessProbe }}
+              livenessProbe: {{ toYaml . | nindent 16 }}
               {{- end }}
-              {{- if .Values.clickhouse.readinessProbe.enabled }}
-              readinessProbe:
-                httpGet:
-                  port: {{ .Values.clickhouse.readinessProbe.port }}
-                  path: {{ .Values.clickhouse.readinessProbe.path }}
-                initialDelaySeconds: {{ .Values.clickhouse.readinessProbe.initialDelaySeconds }}
-                periodSeconds: {{ .Values.clickhouse.readinessProbe.periodSeconds }}
-                timeoutSeconds: {{ .Values.clickhouse.readinessProbe.timeoutSeconds }}
-                successThreshold: {{ .Values.clickhouse.readinessProbe.successThreshold }}
-                failureThreshold: {{ .Values.clickhouse.readinessProbe.failureThreshold }}
-              {{- else if .Values.clickhouse.customReadinessProbe }}
-              readinessProbe:
-                {{- toYaml .Values.clickhouse.customReadinessProbe | nindent 16 }}
+              {{- with .Values.clickhouse.readinessProbe }}
+              readinessProbe: {{ toYaml . | nindent 16 }}
               {{- end }}
 
               volumeMounts:
@@ -291,8 +248,8 @@ spec:
                 - name: data-volumeclaim-template
                   mountPath: /var/lib/clickhouse
               {{- end }}
-              {{- if .Values.clickhouse.additionalVolumeMounts }}
-                {{- toYaml .Values.clickhouse.additionalVolumeMounts | nindent 16 }}
+              {{- if .Values.clickhouse.extraVolumeMounts }}
+                {{- toYaml .Values.clickhouse.extraVolumeMounts | nindent 16 }}
               {{- end }}
               {{- if .Values.clickhouse.resources }}
               resources: {{ toYaml .Values.clickhouse.resources | nindent 16 }}
@@ -305,38 +262,14 @@ spec:
               {{- end }}
             {{- if .Values.clickhouse.logs.system.enabled }}
             - name: logs-system-exporter
-              image: {{ include "clickhouse.logs.system.image" . }}
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.logs.system.image "name" "clickhouse.logs.system.image") }}
               imagePullPolicy: {{ .Values.clickhouse.logs.system.image.pullPolicy }}
               command:
                 - /signoz-collector
               args:
                 - --config=/conf/config.yaml
               env:
-                - name: K8S_NODE_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: spec.nodeName
-                - name: K8S_POD_IP
-                  valueFrom:
-                    fieldRef:
-                      apiVersion: v1
-                      fieldPath: status.podIP
-                - name: K8S_HOST_IP
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: status.hostIP
-                - name: K8S_POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: K8S_POD_UID
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.uid
-                - name: K8S_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.namespace
+                {{- include "snippet.k8s-env" . | nindent 16 }}
                 - name: OTEL_RESOURCE_ATTRIBUTES
                   value: "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)"
               {{- if .Values.clickhouse.logs.system.resources }}
@@ -367,10 +300,10 @@ spec:
           ports:
             - name: http
               port: {{ .httpPort }}
-              {{ include "clickhouse.service.ifClusterIP" .type }}
+              {{ if eq .type "ClusterIP" }}nodePort: null{{- end }}
             - name: tcp
               port: {{ .tcpPort }}
-              {{ include "clickhouse.service.ifClusterIP" .type -}}
+              {{ if eq .type "ClusterIP" }}nodePort: null{{- end -}}
         {{- end }}
 
     {{- if and (.Values.clickhouse.persistence.enabled) (not .Values.clickhouse.persistence.existingClaim) }}

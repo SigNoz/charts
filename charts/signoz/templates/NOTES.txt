@@ -60,6 +60,9 @@ Generates deprecation notices for NOTES.txt
 {{- if (dig "initContainers" "init" nil .Values.otelCollector) -}}
   {{- $messages = append $messages "The '.Values.otelCollector.initContainers.init' has been removed as it is no longer required. Please remove it from your values overrides." }}
 {{- end }}
+{{- if (dig "logs" "system" "image" "pullSecrets" nil .Values.clickhouse) -}}
+  {{- $messages = append $messages "The '.Values.clickhouse.logs.system.image.pullSecrets' key is not read by the chart and has been removed. ClickHouse pods use '.Values.clickhouse.imagePullSecrets'; please remove the old key from your values overrides." }}
+{{- end }}
 {{- if not (empty $messages) -}}
 DEPRECATION NOTICE:
 {{- range $messages }}

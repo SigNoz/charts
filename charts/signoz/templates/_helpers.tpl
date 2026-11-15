@@ -119,77 +119,18 @@ Common K8s environment variables used by SigNoz OtelCollector.
 
 {{/*
 Common ClickHouse ENV variables and helpers used by SigNoz
+Shim for clickhouse.env; it remains until its callers in other components are rewritten.
 */}}
 {{- define "snippet.clickhouse-env" }}
-{{- include "snippet.clickhouse-credentials" . }}
-{{- if .Values.clickhouse.enabled }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
-- name: CLICKHOUSE_TRACE_DATABASE
-  value: {{ default "signoz_traces" .Values.clickhouse.traceDatabase | quote }}
-- name: CLICKHOUSE_LOG_DATABASE
-  value: {{ default "signoz_logs" .Values.clickhouse.logDatabase | quote }}
-- name: CLICKHOUSE_METER_DATABASE
-  value: {{ default "signoz_meter" .Values.clickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_VERIFY
-  value: {{ .Values.clickhouse.verify | quote }}
-{{- else }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}
-- name: CLICKHOUSE_TRACE_DATABASE
-  value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
-- name: CLICKHOUSE_LOG_DATABASE
-  value: {{ default "signoz_logs" .Values.externalClickhouse.logDatabase | quote }}
-- name: CLICKHOUSE_METER_DATABASE
-  value: {{ default "signoz_meter" .Values.externalClickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_VERIFY
-  value: {{ .Values.externalClickhouse.verify | quote }}
-{{- end }}
+{{- include "clickhouse.env" . }}
 {{- end }}
 
 {{/*
 Minimized ClickHouse ENV variables for user credentials
+Shim for clickhouse.credentialsEnv; it remains until its callers in other components are rewritten.
 */}}
 {{- define "snippet.clickhouse-credentials" }}
-{{ if .Values.clickhouse.enabled -}}
-- name: CLICKHOUSE_HOST
-  value: {{ include "clickhouse.servicename" . }}
-- name: CLICKHOUSE_PORT
-  value: {{ include "clickhouse.tcpPort" . | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ include "clickhouse.httpPort" . | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.clickhouse.cluster | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.clickhouse.user | quote }}
-- name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.clickhouse.password | quote }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.clickhouse.secure | quote }}
-{{- else -}}
-- name: CLICKHOUSE_HOST
-  value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
-- name: CLICKHOUSE_PORT
-  value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.externalClickhouse.user | quote }}
-{{- if .Values.externalClickhouse.existingSecret }}
-- name: CLICKHOUSE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "clickhouse.secretName" . }}
-      key: {{ include "clickhouse.secretPasswordKey" . }}
-{{- else }}
-- name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.externalClickhouse.password | quote }}
-{{- end }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.externalClickhouse.secure | quote }}
-{{- end }}
+{{- include "clickhouse.credentialsEnv" . }}
 {{- end }}
 
 {{/*

@@ -187,6 +187,7 @@ clickhouse:
   # @default -- "admin"
   user: admin
   # clickhouse.password -- ClickHouse password.
+  # Rendered as given, in plain text, into the ClickHouseInstallation and into the `CLICKHOUSE_PASSWORD` env of the components that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
@@ -212,6 +213,8 @@ clickhouse:
     - "198.18.0.0/15"
     - "192.168.0.0/16"
   # clickhouse.externalZookeeper -- Configuration for an external Zookeeper.
+  # When set, its `servers` list (one `host` and `port` per entry) is used as the installation's ZooKeeper nodes instead of the bundled ZooKeeper's pods.
+  # The bundled ZooKeeper is still installed unless `zookeeper.enabled` is false.
   # @section -- ClickHouse
   # @default -- {}
   externalZookeeper: {}
@@ -310,6 +313,9 @@ clickhouse:
   # This is only used when persistence.enabled is false
   # @section -- ClickHouse
   templates:
+    # clickhouse.templates.volumeClaimTemplates -- Volume claim templates added to the installation when `persistence.enabled` is false; each entry is read for `name`, `accessModes`, `resources.requests.storage` and `storageClassName`.
+    # @default -- []
+    # @section -- ClickHouse
     volumeClaimTemplates: []
 
   # clickhouse.podDistribution -- Topologies for distributing the ClickHouse pods.
@@ -349,10 +355,12 @@ clickhouse:
     # @section -- ClickHouse
     endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
     # clickhouse.coldStorage.accessKey -- Access Key ID for S3 or GCS.
+    # Used for `gcs`, and for `s3` when `role.enabled` is false.
     # @default -- "<access_key_id>"
     # @section -- ClickHouse
     accessKey: <access_key_id>
     # clickhouse.coldStorage.secretAccess -- Secret Access Key for S3 or GCS.
+    # Used for `gcs`, and for `s3` when `role.enabled` is false.
     # @default -- "<secret_access_key>"
     # @section -- ClickHouse
     secretAccess: <secret_access_key>
@@ -360,10 +368,12 @@ clickhouse:
     # @section -- ClickHouse
     role:
       # clickhouse.coldStorage.role.enabled -- Whether to enable using an AWS IAM ARN role.
+      # Used only for `s3`: ClickHouse then takes credentials from the environment instead of `accessKey` and `secretAccess`.
       # @default -- false
       # @section -- ClickHouse
       enabled: false
       # clickhouse.coldStorage.role.annotations -- Annotations for the service account to assume the AWS role.
+      # Added to the ClickHouse ServiceAccount when `coldStorage.enabled` and `role.enabled` are both true.
       # @section -- ClickHouse
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
@@ -376,11 +386,22 @@ clickhouse:
       # @section -- ClickHouse
       enabled: false
       image:
+        # clickhouse.logs.system.image.registry -- Registry of the system logs sidecar image. `global.imageRegistry` takes precedence when set.
+        # @default -- "docker.io"
+        # @section -- ClickHouse
         registry: docker.io
+        # clickhouse.logs.system.image.repository -- Repository of the system logs sidecar image.
+        # @default -- "signoz/signoz-otel-collector"
+        # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
+        # clickhouse.logs.system.image.tag -- Tag of the system logs sidecar image.
+        # @default -- "0.111.16"
+        # @section -- ClickHouse
         tag: 0.111.16
+        # clickhouse.logs.system.image.pullPolicy -- Pull policy of the system logs sidecar image.
+        # @default -- "IfNotPresent"
+        # @section -- ClickHouse
         pullPolicy: IfNotPresent
-        pullSecrets: []
       # -- Config of the opentelemetry collector
       # @section -- ClickHouse
       # @default -- "See values.yaml"
@@ -433,6 +454,8 @@ clickhouse:
               exporters:
                 - otlp
   # clickhouse.installCustomStorageClass -- When enabled with `cloud` as `gcp` or `aws`, creates a custom storage class with volume expansion permission.
+  # The StorageClass (`gp2-resizable` for `aws`, `gce-resizable` for `gcp`) renders only when `clickhouse.enabled` and this key are both true and `global.cloud` starts with `aws` or `gcp`.
+  # The chart does not select it for any volume; set `clickhouse.persistence.storageClass` to its name to use it.
   # @section -- ClickHouse
   # @default -- false
   installCustomStorageClass: false
@@ -472,14 +495,35 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- "See values.yaml"
   initContainers:
+    # clickhouse.initContainers.enabled -- Renders the init containers of the ClickHouse pod; when false, neither `udf` nor `init` runs.
+    # @default -- true
+    # @section -- ClickHouse
     enabled: true
     udf:
+      # clickhouse.initContainers.udf.enabled -- Adds the init container that downloads the histogramQuantile binary from GitHub into the ClickHouse user scripts volume.
+      # @default -- true
+      # @section -- ClickHouse
       enabled: true
       image:
+        # clickhouse.initContainers.udf.image.registry -- Registry of the `udf` init container image. `global.imageRegistry` takes precedence when set.
+        # @default -- "docker.io"
+        # @section -- ClickHouse
         registry: docker.io
+        # clickhouse.initContainers.udf.image.repository -- Repository of the `udf` init container image.
+        # @default -- "alpine"
+        # @section -- ClickHouse
         repository: alpine
+        # clickhouse.initContainers.udf.image.tag -- Tag of the `udf` init container image.
+        # @default -- "3.18.2"
+        # @section -- ClickHouse
         tag: 3.18.2
+        # clickhouse.initContainers.udf.image.pullPolicy -- Pull policy of the `udf` init container image.
+        # @default -- "IfNotPresent"
+        # @section -- ClickHouse
         pullPolicy: IfNotPresent
+      # clickhouse.initContainers.udf.command -- Command of the `udf` init container; by default it downloads the histogramQuantile binary for the node's OS and architecture.
+      # @default -- "See values.yaml"
+      # @section -- ClickHouse
       command:
         - sh
         - -c
@@ -496,12 +540,30 @@ clickhouse:
           mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
           echo "histogram-quantile installed successfully"
     init:
+      # clickhouse.initContainers.init.enabled -- Adds an init container that runs `clickhouse.initContainers.init.command`.
+      # @default -- false
+      # @section -- ClickHouse
       enabled: false
       image:
+        # clickhouse.initContainers.init.image.registry -- Registry of the `init` container image. `global.imageRegistry` takes precedence when set.
+        # @default -- "docker.io"
+        # @section -- ClickHouse
         registry: docker.io
+        # clickhouse.initContainers.init.image.repository -- Repository of the `init` container image.
+        # @default -- "busybox"
+        # @section -- ClickHouse
         repository: busybox
+        # clickhouse.initContainers.init.image.tag -- Tag of the `init` container image.
+        # @default -- 1.35
+        # @section -- ClickHouse
         tag: 1.35
+        # clickhouse.initContainers.init.image.pullPolicy -- Pull policy of the `init` container image.
+        # @default -- "IfNotPresent"
+        # @section -- ClickHouse
         pullPolicy: IfNotPresent
+      # clickhouse.initContainers.init.command -- Command of the `init` container; by default a loop that runs `curl` against `http://signoz-clickhouse:8123/` until it succeeds.
+      # @default -- "See values.yaml"
+      # @section -- ClickHouse
       command:
         - /bin/sh
         - -c
@@ -517,53 +579,42 @@ clickhouse:
   ## Configure liveness and readiness probes.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   ##
-  # -- Startup probe of the ClickHouse container (HTTP GET on `path`). When `enabled` is false, `customStartupProbe` is used if set.
+  # clickhouse.startupProbe -- Startup probe of the ClickHouse container, a Kubernetes probe object (`httpGet`, `exec`, `tcpSocket` or `grpc`, with its timing fields), rendered as given. Set to `null` to render no probe. To use `exec`, `tcpSocket` or `grpc`, also set `httpGet: null`, because Helm merges a user's map over the default map and a probe may have only one handler.
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   startupProbe:
-    enabled: true
-    port: http
-    path: /ping
+    httpGet:
+      port: http
+      path: /ping
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 30
     successThreshold: 1
-  # -- Liveness probe of the ClickHouse container (HTTP GET on `path`). When `enabled` is false, `customLivenessProbe` is used if set.
+  # clickhouse.livenessProbe -- Liveness probe of the ClickHouse container, a Kubernetes probe object (`httpGet`, `exec`, `tcpSocket` or `grpc`, with its timing fields), rendered as given. Set to `null` to render no probe. To use `exec`, `tcpSocket` or `grpc`, also set `httpGet: null`, because Helm merges a user's map over the default map and a probe may have only one handler.
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   livenessProbe:
-    enabled: true
-    port: http
-    path: /ping
+    httpGet:
+      port: http
+      path: /ping
     initialDelaySeconds: 60
     periodSeconds: 3
     timeoutSeconds: 1
     failureThreshold: 10
     successThreshold: 1
-  # -- Readiness probe of the ClickHouse container (HTTP GET on `path`). When `enabled` is false, `customReadinessProbe` is used if set.
+  # clickhouse.readinessProbe -- Readiness probe of the ClickHouse container, a Kubernetes probe object (`httpGet`, `exec`, `tcpSocket` or `grpc`, with its timing fields), rendered as given. Set to `null` to render no probe. To use `exec`, `tcpSocket` or `grpc`, also set `httpGet: null`, because Helm merges a user's map over the default map and a probe may have only one handler.
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   readinessProbe:
-    enabled: true
-    port: http
-    path: /ping
+    httpGet:
+      port: http
+      path: /ping
     initialDelaySeconds: 10
     periodSeconds: 3
     timeoutSeconds: 1
     failureThreshold: 3
     successThreshold: 1
-
-  ## Custom startup, liveness and readiness probes
-  # -- Custom startup probe of the ClickHouse container, used when `startupProbe.enabled` is false.
-  # @section -- ClickHouse
-  customStartupProbe: {}
-  # -- Custom liveness probe of the ClickHouse container, used when `livenessProbe.enabled` is false.
-  # @section -- ClickHouse
-  customLivenessProbe: {}
-  # -- Custom readiness probe of the ClickHouse container, used when `readinessProbe.enabled` is false.
-  # @section -- ClickHouse
-  customReadinessProbe: {}
 
   # clickhouse.resources -- Configure resource requests and limits. Update according to your use case.
   # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -576,15 +627,15 @@ clickhouse:
   #     cpu: 2000m
   #     memory: 4Gi
 
-  # clickhouse.securityContext -- Security context for the ClickHouse node.
+  # clickhouse.podSecurityContext -- Pod security context of the ClickHouse pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
   # @section -- ClickHouse
-  securityContext:
-    enabled: true
+  podSecurityContext:
     runAsUser: 101
     runAsGroup: 101
     fsGroup: 101
     fsGroupChangePolicy: OnRootMismatch
-  # -- Clickhouse priority class name
+  # -- Clickhouse priority class name.
+  # Rendered into the ClickHouse pod template as given; an empty value sets no priority class.
   # @section -- ClickHouse
   priorityClassName: ""
   # clickhouse.nodeSelector -- Node selector for assigning the ClickHouse pod.
@@ -627,12 +678,12 @@ clickhouse:
     # @default -- "20Gi"
     # @section -- ClickHouse
     size: 20Gi
-  # -- Additional volumes for ClickHouse pod
+  # clickhouse.extraVolumes -- Extra volumes for the ClickHouse pod, a list of Kubernetes Volume objects.
   # @section -- ClickHouse
-  additionalVolumes: []
-  # -- Additional volume mounts for ClickHouse pod
+  extraVolumes: []
+  # clickhouse.extraVolumeMounts -- Extra volume mounts for the ClickHouse container, a list of Kubernetes VolumeMount objects.
   # @section -- ClickHouse
-  additionalVolumeMounts: []
+  extraVolumeMounts: []
 
 # zookeeper -- Zookeeper default values.
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
@@ -1008,58 +1059,72 @@ altinity-clickhouse-operator:
 # @section -- External ClickHouse
 externalClickhouse:
   # externalClickhouse.host -- Host of the external ClickHouse cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- null
   # @section -- External ClickHouse
   host:
   # externalClickhouse.cluster -- Name of the external cluster to run DDL queries on.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "cluster"
   # @section -- External ClickHouse
   cluster: cluster
   # externalClickhouse.database -- Database name for the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_metrics"
   # @section -- External ClickHouse
   database: signoz_metrics
   # externalClickhouse.traceDatabase -- Database name for SigNoz Traces on the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_traces"
   # @section -- External ClickHouse
   traceDatabase: signoz_traces
   # externalClickhouse.logDatabase -- Database name for SigNoz Logs on the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_logs"
   # @section -- External ClickHouse
   logDatabase: signoz_logs
   # externalClickhouse.meterDatabase -- Database name for SigNoz Meter on the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_meter"
   # @section -- External ClickHouse
   meterDatabase: signoz_meter
   # externalClickhouse.user -- Username to connect to the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- ""
   # @section -- External ClickHouse
   user: ""
   # externalClickhouse.password -- Password for the external cluster. Ignored if `externalClickhouse.existingSecret` is set.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- ""
   # @section -- External ClickHouse
   password: ""
   # externalClickhouse.existingSecret -- Name of an existing Kubernetes secret containing the password.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- null
   # @section -- External ClickHouse
   existingSecret:
   # externalClickhouse.existingSecretPasswordKey -- Key in the existing secret that contains the password.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- null
   # @section -- External ClickHouse
   existingSecretPasswordKey:
   # externalClickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- false
   # @section -- External ClickHouse
   secure: false
   # externalClickhouse.verify -- Whether to verify the TLS certificate on connection to ClickHouse.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- false
   # @section -- External ClickHouse
   verify: false
   # externalClickhouse.httpPort -- HTTP port of the external ClickHouse instance.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- 8123
   # @section -- External ClickHouse
   httpPort: 8123
   # externalClickhouse.tcpPort -- TCP port of the external ClickHouse instance.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- 9000
   # @section -- External ClickHouse
   tcpPort: 9000

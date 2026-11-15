@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse_storageclass_test.yaml
+templates:
+  - templates/clickhouse/storageclass.yaml
+release:
+  name: golden
+  namespace: platform
+tests:
+  - it: renders the AWS EBS StorageClass on global.cloud aws
+    set:
+      global.cloud: aws
+      clickhouse.installCustomStorageClass: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StorageClass
+      - equal:
+          path: metadata.name
+          value: gp2-resizable
+      - equal:
+          path: provisioner
+          value: kubernetes.io/aws-ebs
+  - it: renders the GCE PD StorageClass on global.cloud gcp
+    set:
+      global.cloud: gcp
+      clickhouse.installCustomStorageClass: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StorageClass
+      - equal:
+          path: metadata.name
+          value: gce-resizable
+      - equal:
+          path: provisioner
+          value: kubernetes.io/gce-pd
+  - it: renders nothing without clickhouse.installCustomStorageClass
+    set:
+      global.cloud: aws
+      clickhouse.installCustomStorageClass: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: renders nothing on another cloud
+    set:
+      global.cloud: other
+      clickhouse.installCustomStorageClass: true
+    asserts:
+      - hasDocuments:
+          count: 0

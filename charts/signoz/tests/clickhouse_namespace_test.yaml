@@ -2,7 +2,7 @@
 suite: clickhouse_namespace_test.yaml
 templates:
   - templates/clickhouse/namespace.yaml
-  - templates/clickhouse/installation.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
   - templates/validate.yaml
   - charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
 release:
@@ -36,7 +36,7 @@ tests:
         equal:
           path: metadata.name
           value: chdata
-      - template: templates/clickhouse/installation.yaml
+      - template: templates/clickhouse/clickhouseinstallation.yaml
         equal:
           path: metadata.namespace
           value: chdata

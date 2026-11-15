@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+# signoz.lib.fullname through clickhouse.fullname (the CHI name and the generateName of its
+# Service) and clickhouse.servicename (CLICKHOUSE_HOST, which SigNoz connects to).
+suite: lib_fullname_test.yaml
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/signoz/statefulset.yaml
+release:
+  name: golden
+  namespace: platform
+tests:
+  - it: is <release>-clickhouse under release name golden
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.name
+          value: golden-clickhouse
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[0].generateName
+          value: golden-clickhouse
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: golden-clickhouse
+  - it: is the release name alone under release name clickhouse
+    release:
+      name: clickhouse
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.name
+          value: clickhouse
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[0].generateName
+          value: clickhouse
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: clickhouse
+  - it: is the release name alone under release name my-clickhouse-prod
+    release:
+      name: my-clickhouse-prod
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.name
+          value: my-clickhouse-prod
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[0].generateName
+          value: my-clickhouse-prod
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: my-clickhouse-prod
+  - it: is <release>-<nameOverride> with clickhouse.nameOverride
+    set:
+      clickhouse.nameOverride: chnm
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.name
+          value: golden-chnm
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[0].generateName
+          value: golden-chnm
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: golden-chnm
+  - it: is the fullnameOverride with clickhouse.fullnameOverride
+    set:
+      clickhouse.fullnameOverride: chfnm
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.name
+          value: chfnm
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[0].generateName
+          value: chfnm
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: chfnm

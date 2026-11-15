@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+# The startup, liveness and readiness probes of the ClickHouse container, rendered from their probe objects.
+suite: clickhouse_probes_test.yaml
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+release:
+  name: golden
+  namespace: platform
+tests:
+  - it: renders the startup probe from clickhouse.startupProbe
+    set:
+      clickhouse.startupProbe:
+        httpGet:
+          port: http
+          path: /ping
+        initialDelaySeconds: 31
+        periodSeconds: 11
+        timeoutSeconds: 6
+        successThreshold: 1
+        failureThreshold: 29
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].startupProbe
+          value:
+            httpGet:
+              port: http
+              path: /ping
+            initialDelaySeconds: 31
+            periodSeconds: 11
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 29
+  - it: renders the liveness probe from clickhouse.livenessProbe
+    set:
+      clickhouse.livenessProbe:
+        httpGet:
+          port: 8123
+          path: /live
+        initialDelaySeconds: 61
+        periodSeconds: 4
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 11
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              port: 8123
+              path: /live
+            initialDelaySeconds: 61
+            periodSeconds: 4
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 11
+  - it: renders the readiness probe from clickhouse.readinessProbe
+    set:
+      clickhouse.readinessProbe:
+        httpGet:
+          port: http
+          path: /ready
+        initialDelaySeconds: 12
+        periodSeconds: 5
+        timeoutSeconds: 3
+        successThreshold: 2
+        failureThreshold: 4
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              port: http
+              path: /ready
+            initialDelaySeconds: 12
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 2
+            failureThreshold: 4
+  - it: renders no probe when each probe is null
+    set:
+      clickhouse.startupProbe: null
+      clickhouse.livenessProbe: null
+      clickhouse.readinessProbe: null
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].startupProbe
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].readinessProbe
+  - it: renders a probe object with exec as given, with httpGet set to null so it has a single handler
+    set:
+      clickhouse.startupProbe:
+        httpGet: null
+        exec:
+          command: ["sh", "-c", "true"]
+        failureThreshold: 60
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].startupProbe.httpGet
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].startupProbe
+          value:
+            exec:
+              command: ["sh", "-c", "true"]
+            failureThreshold: 60
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1

@@ -12,6 +12,41 @@ Fail the render instead of ignoring them, so an old values file is caught at `he
 {{- fail "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
 {{- end }}
 {{- /*
+ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
+An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails on the presence of any of those keys.
+*/ -}}
+{{- $ch := .Values.clickhouse | default dict }}
+{{- if dig "securityContext" dict $ch }}
+{{- fail "`clickhouse.securityContext` has moved to `clickhouse.podSecurityContext`, a pod security context object without the enabled flag." }}
+{{- end }}
+{{- if dig "customStartupProbe" dict $ch }}
+{{- fail "`clickhouse.customStartupProbe` has been removed; set `clickhouse.startupProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "customLivenessProbe" dict $ch }}
+{{- fail "`clickhouse.customLivenessProbe` has been removed; set `clickhouse.livenessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "customReadinessProbe" dict $ch }}
+{{- fail "`clickhouse.customReadinessProbe` has been removed; set `clickhouse.readinessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "additionalVolumes" list $ch }}
+{{- fail "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`, the same list of Kubernetes Volume objects." }}
+{{- end }}
+{{- if dig "additionalVolumeMounts" list $ch }}
+{{- fail "`clickhouse.additionalVolumeMounts` has moved to `clickhouse.extraVolumeMounts`, the same list of Kubernetes VolumeMount objects." }}
+{{- end }}
+{{- $startupProbe := dig "startupProbe" dict $ch | default dict }}
+{{- if or (hasKey $startupProbe "enabled") (hasKey $startupProbe "port") (hasKey $startupProbe "path") }}
+{{- fail "`clickhouse.startupProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- $livenessProbe := dig "livenessProbe" dict $ch | default dict }}
+{{- if or (hasKey $livenessProbe "enabled") (hasKey $livenessProbe "port") (hasKey $livenessProbe "path") }}
+{{- fail "`clickhouse.livenessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- $readinessProbe := dig "readinessProbe" dict $ch | default dict }}
+{{- if or (hasKey $readinessProbe "enabled") (hasKey $readinessProbe "port") (hasKey $readinessProbe "path") }}
+{{- fail "`clickhouse.readinessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- /*
 ClickHouse in another namespace with none of the operator's watch settings set.
 This check protects installs that set `clickhouse.namespace` under older chart versions, where the operator was
 installed into that namespace. The operator now stays in the release namespace and watches only it unless told

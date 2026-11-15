@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+# ClickHouse values that took the Kubernetes shape: each old key fails in validate.yaml with a message naming its replacement.
+suite: clickhouse_values-migration_test.yaml
+templates:
+  - templates/validate.yaml
+release:
+  name: golden
+  namespace: platform
+tests:
+  - it: fails on clickhouse.securityContext
+    set:
+      clickhouse.securityContext:
+        enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.securityContext` has moved to `clickhouse.podSecurityContext`, a pod security context object without the enabled flag."
+  - it: fails on clickhouse.customStartupProbe
+    set:
+      clickhouse.customStartupProbe:
+        exec:
+          command: ["true"]
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.customStartupProbe` has been removed; set `clickhouse.startupProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`."
+  - it: fails on clickhouse.customLivenessProbe
+    set:
+      clickhouse.customLivenessProbe:
+        tcpSocket:
+          port: 9000
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.customLivenessProbe` has been removed; set `clickhouse.livenessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`."
+  - it: fails on clickhouse.customReadinessProbe
+    set:
+      clickhouse.customReadinessProbe:
+        httpGet:
+          port: http
+          path: /ping
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.customReadinessProbe` has been removed; set `clickhouse.readinessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`."
+  - it: fails on clickhouse.additionalVolumes
+    set:
+      clickhouse.additionalVolumes:
+        - name: x
+          emptyDir: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`, the same list of Kubernetes Volume objects."
+  - it: fails on clickhouse.additionalVolumeMounts
+    set:
+      clickhouse.additionalVolumeMounts:
+        - name: x
+          mountPath: /x
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.additionalVolumeMounts` has moved to `clickhouse.extraVolumeMounts`, the same list of Kubernetes VolumeMount objects."
+  - it: fails on clickhouse.startupProbe in the enabled/port/path shape (enabled)
+    set:
+      clickhouse.startupProbe.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.startupProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read."
+  - it: fails on clickhouse.livenessProbe in the enabled/port/path shape (port)
+    set:
+      clickhouse.livenessProbe.port: 8123
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.livenessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read."
+  - it: fails on clickhouse.readinessProbe in the enabled/port/path shape (path)
+    set:
+      clickhouse.readinessProbe.path: /ready
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.readinessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read."
+  - it: renders without error when every new key is set
+    set:
+      clickhouse.podSecurityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      clickhouse.startupProbe:
+        httpGet:
+          port: http
+          path: /ping
+        failureThreshold: 60
+      clickhouse.livenessProbe:
+        httpGet:
+          port: http
+          path: /ping
+        periodSeconds: 5
+      clickhouse.readinessProbe:
+        httpGet:
+          port: http
+          path: /ping
+        periodSeconds: 5
+      clickhouse.extraVolumes:
+        - name: x
+          emptyDir: {}
+      clickhouse.extraVolumeMounts:
+        - name: x
+          mountPath: /x
+    asserts:
+      - notFailedTemplate: {}
+      - hasDocuments:
+          count: 0

@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: clickhouse_labels_test.yaml
 templates:
-  - templates/clickhouse/installation.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
 release:
   name: clickhouse
   namespace: signoz

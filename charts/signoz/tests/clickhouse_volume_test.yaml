@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: clickhouse_volume_test.yaml
 templates:
-  - templates/clickhouse/installation.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
 release:
   name: clickhouse
   namespace: signoz
@@ -120,7 +120,7 @@ tests:
           content:
             name: data-volumeclaim-template
             mountPath: /var/lib/clickhouse
-  - it: should be same as persistence.enabled=false with templates.volumeClaimTemplates and additionalVolumeMounts
+  - it: should be same as persistence.enabled=false with templates.volumeClaimTemplates and extraVolumeMounts
     set:
       clickhouse:
         persistence:
@@ -134,7 +134,7 @@ tests:
                 requests:
                   storage: 10Gi
               storageClassName: storage-class
-        additionalVolumeMounts:
+        extraVolumeMounts:
           - mountPath: /var/lib/clickhouse
             name: data-volumeclaim-template
     asserts:
