@@ -1,0 +1,32 @@
+{{- $fullname := include "signoz-mcp-server.fullname" . -}}
+{{- /* Ingress hosts usable as a URL: entries with no host and wildcard hosts are skipped. */ -}}
+{{- $hosts := list -}}
+{{- range .Values.ingress.hosts -}}
+{{- if and .host (not (hasPrefix "*" .host)) -}}
+{{- $hosts = append $hosts .host -}}
+{{- end -}}
+{{- end -}}
+The SigNoz MCP server {{ default .Chart.AppVersion .Values.image.tag }} has been installed as {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+In-cluster endpoint:
+
+  http://{{ $fullname }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}/mcp
+
+{{ if and .Values.ingress.enabled $hosts -}}
+Ingress endpoint:
+{{ range $hosts }}
+  {{ if $.Values.ingress.tls }}https{{ else }}http{{ end }}://{{ . }}/mcp
+{{- end }}
+{{- else -}}
+To reach the server from your machine, run:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ $fullname }} 8000:{{ .Values.service.port }}
+
+and use the URL http://localhost:8000/mcp.
+{{- end }}
+
+By default each MCP client sends its own SigNoz API key in the SIGNOZ-API-KEY
+header. For client setup and authentication modes, see the server's
+documentation:
+
+  https://signoz.io/docs/ai/signoz-mcp-server/
