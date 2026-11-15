@@ -9,7 +9,9 @@ chart:
   version: 0.0.0-test
   appVersion: v0.0.0-test
 set:
-  env.SIGNOZ_URL: http://signoz.platform.svc.cluster.local:8080
+  env:
+    - name: SIGNOZ_URL
+      value: http://signoz.platform.svc.cluster.local:8080
 tests:
   - it: should be named after the release in the release namespace
     template: service.yaml

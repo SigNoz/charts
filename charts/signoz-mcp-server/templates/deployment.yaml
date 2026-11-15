@@ -42,7 +42,13 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
-            {{- include "signoz-mcp-server.env" . | nindent 12 }}
+            - name: TRANSPORT_MODE
+              value: http
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 8000

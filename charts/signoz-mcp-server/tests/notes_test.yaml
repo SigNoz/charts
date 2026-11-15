@@ -151,9 +151,11 @@ tests:
     set:
       ingress.enabled: true
       env:
-        SIGNOZ_API_KEY: notes-plain-api-key
-        OAUTH_ISSUER_URL: https://auth.other.example.org
-        OAUTH_TOKEN_SECRET:
+        - name: SIGNOZ_API_KEY
+          value: notes-plain-api-key
+        - name: OAUTH_ISSUER_URL
+          value: https://auth.other.example.org
+        - name: OAUTH_TOKEN_SECRET
           valueFrom:
             secretKeyRef:
               name: notes-token-secret

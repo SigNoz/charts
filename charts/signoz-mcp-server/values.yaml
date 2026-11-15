@@ -22,15 +22,13 @@ image:
 # @section -- Image Configuration
 imagePullSecrets: []
 
-# env -- Environment variables for the server, as a map of NAME: value. Names
-# are case-sensitive. A value is a string, number or bool, or a map with
-# `value` or `valueFrom`.
+# env -- Additional environment variables for the server, as a list of
+# Kubernetes EnvVar entries.
 # @section -- Environment Configuration
-env: {}
-  # NAME: plain-value
-  # NAME:
+env: []
+  # - name: NAME
   #   value: plain-value
-  # NAME:
+  # - name: NAME
   #   valueFrom:
   #     secretKeyRef:
   #       name: secret-name
@@ -183,7 +181,8 @@ volumes: []
 #       mountPath: /etc/ssl/custom
 #       readOnly: true
 #   env:
-#     SSL_CERT_FILE: /etc/ssl/custom/ca.crt
+#     - name: SSL_CERT_FILE
+#       value: /etc/ssl/custom/ca.crt
 # SSL_CERT_FILE replaces the system certificate list, so the bundle must also
 # hold the public root certificates the server still needs, for example for the
 # docs refresh.
