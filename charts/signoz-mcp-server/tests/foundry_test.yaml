@@ -49,15 +49,12 @@ tests:
           path: spec.replicas
           value: 2
         template: deployment.yaml
-      # The chart's TRANSPORT_MODE and MCP_SERVER_PORT come first, then
-      # foundry's entries unchanged, in the order written.
+      # foundry sets TRANSPORT_MODE and MCP_SERVER_PORT itself, so the chart
+      # adds neither: the env is foundry's entries unchanged, each name once,
+      # in the order written.
       - equal:
           path: spec.template.spec.containers[0].env
           value:
-            - name: TRANSPORT_MODE
-              value: http
-            - name: MCP_SERVER_PORT
-              value: "8000"
             - name: TRANSPORT_MODE
               value: http
             - name: MCP_SERVER_PORT
@@ -89,10 +86,6 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env
           value:
-            - name: TRANSPORT_MODE
-              value: http
-            - name: MCP_SERVER_PORT
-              value: "8000"
             - name: TRANSPORT_MODE
               value: http
             - name: MCP_SERVER_PORT

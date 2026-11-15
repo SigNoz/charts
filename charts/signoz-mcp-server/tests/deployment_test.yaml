@@ -164,6 +164,34 @@ tests:
                   key: SIGNOZ_API_KEY
                   optional: true
 
+  - it: should render a user TRANSPORT_MODE entry once with its value and still set MCP_SERVER_PORT
+    set:
+      env:
+        - name: TRANSPORT_MODE
+          value: stdio
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: MCP_SERVER_PORT
+              value: "8000"
+            - name: TRANSPORT_MODE
+              value: stdio
+
+  - it: should render a user MCP_SERVER_PORT entry once with its value and still set TRANSPORT_MODE
+    set:
+      env:
+        - name: MCP_SERVER_PORT
+          value: "9000"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: TRANSPORT_MODE
+              value: http
+            - name: MCP_SERVER_PORT
+              value: "9000"
+
   - it: should probe /livez and /readyz on the http port with the default timings
     asserts:
       - equal:

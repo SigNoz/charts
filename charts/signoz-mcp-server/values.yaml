@@ -23,7 +23,8 @@ image:
 imagePullSecrets: []
 
 # env -- Additional environment variables for the server, as a list of
-# Kubernetes EnvVar entries.
+# Kubernetes EnvVar entries. The chart sets `TRANSPORT_MODE` and
+# `MCP_SERVER_PORT` unless the list has an entry with the same name.
 # @section -- Environment Configuration
 env: []
   # - name: NAME

@@ -55,3 +55,24 @@ create is false, it is serviceAccount.name, or "default" when that is empty.
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Environment variables of the mcp container. TRANSPORT_MODE=http and
+MCP_SERVER_PORT=8000 are added only when env has no entry with the same name,
+so no name is rendered twice. The entries in env follow, as written and in the
+order written.
+*/}}
+{{- define "signoz-mcp-server.env" -}}
+{{- $names := list }}
+{{- range .Values.env }}
+{{- $names = append $names .name }}
+{{- end }}
+{{- $env := list }}
+{{- if not (has "TRANSPORT_MODE" $names) }}
+{{- $env = append $env (dict "name" "TRANSPORT_MODE" "value" "http") }}
+{{- end }}
+{{- if not (has "MCP_SERVER_PORT" $names) }}
+{{- $env = append $env (dict "name" "MCP_SERVER_PORT" "value" "8000") }}
+{{- end }}
+{{- concat $env (.Values.env | default list) | toYaml }}
+{{- end }}

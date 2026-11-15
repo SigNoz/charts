@@ -35,7 +35,7 @@ env:
 ```
 
 - Names are case-sensitive and used as written.
-- The chart sets `TRANSPORT_MODE=http` and `MCP_SERVER_PORT=8000`.
+- The chart sets `TRANSPORT_MODE=http` and `MCP_SERVER_PORT=8000`. An entry in `env` with the same name is used instead.
 - The container port and probes stay on 8000, so changing `MCP_SERVER_PORT` stops the pod from becoming Ready.
 
 For the list of variables, including the multi-tenant allowlist, the docs refresh intervals and the server's own telemetry, see [Environment Variables](https://github.com/SigNoz/signoz-mcp-server#environment-variables). For the authentication modes (a key sent by each client, a key held by the server, or OAuth), see [HTTP Mode](https://github.com/SigNoz/signoz-mcp-server#http-mode).
