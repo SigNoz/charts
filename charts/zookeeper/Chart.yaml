@@ -1,7 +1,8 @@
 apiVersion: v2
 name: zookeeper
-description: Bitnami Helm chart for Zookeeper
-version: 0.0.1
+description: Deprecated. The signoz chart's ClickHouse Keeper (`keeper.*`) replaces this chart, which is kept for installs that have not migrated.
+version: 0.0.2
+deprecated: true
 appVersion: 3.8.1
 icon: https://bitnami.com/assets/stacks/zookeeper/img/zookeeper-stack-220x234.png
 sources:
