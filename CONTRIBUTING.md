@@ -29,10 +29,11 @@ For substantial changes, please split your contribution into multiple PRs:
 We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). All commits and PRs should include type specifiers (e.g., `feat:`, `fix:`, `docs:`, etc.).
 
 ## How can I contribute to the charts repository?
-There are primarily 3 charts in the SigNoz Helm Charts repository:
+There are primarily 4 charts in the SigNoz Helm Charts repository:
 - signoz: signoz, signoz otel collector and schema Migrator
 - clickhouse: clickhouse and zookeeper
 - k8s-infra: k8s-infra collection agent
+- signoz-mcp-server: SigNoz MCP server
 
 
 ## Where do I go from here? 
