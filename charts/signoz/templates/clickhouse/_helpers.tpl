@@ -173,14 +173,13 @@ Return suffix part of the headless service
 {{- end }}
 
 {{/*
-The coordination (ZooKeeper) nodes of the ClickHouseInstallation: clickhouse.externalZookeeper.servers
-when set, else one node per bundled ZooKeeper replica on its headless Service. A YAML list with
-no leading newline; include it with nindent.
+The coordination nodes of the ClickHouseInstallation: clickhouse.externalZookeeper.servers when set, else one node per ZooKeeper replica
+when zookeeper.enabled, else the Keeper client Service when keeper.enabled, else the render fails. A YAML list with no leading newline; include it with nindent.
 */}}
 {{- define "clickhouse.coordinationHosts" -}}
 {{- if .Values.clickhouse.externalZookeeper -}}
   {{- toYaml .Values.clickhouse.externalZookeeper.servers -}}
-{{- else -}}
+{{- else if .Values.zookeeper.enabled -}}
   {{- $replicaCount := default 1 (.Values.zookeeper.replicaCount | int) -}}
   {{- $svcName := (include "clickhouse.zookeeper.servicename" .) -}}
   {{- $headlessSuffix := (include "clickhouse.zookeeper.headlessSvcSuffix" .) -}}
@@ -191,6 +190,11 @@ no leading newline; include it with nindent.
 - host: {{ printf "%s-%s.%s" $svcName ($replicaIndex | toString) $headlessSuffix }}
   port: {{ include "clickhouse.zookeeper.port" . }}
   {{- end -}}
+{{- else if .Values.keeper.enabled -}}
+- host: {{ include "keeper.clientHost" . }}
+  port: 2181
+{{- else -}}
+  {{- fail "no coordination store for ClickHouse: set `clickhouse.externalZookeeper.servers`, `zookeeper.enabled: true` or `keeper.enabled: true`." -}}
 {{- end -}}
 {{- end -}}
 
