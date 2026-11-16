@@ -164,7 +164,7 @@ See [Altinity's chart](https://github.com/Altinity/clickhouse-operator/tree/mast
 
 ## Values
 
-<h3>Global</h3>
+<h3>Global Settings</h3>
 <table>
     <thead>
         <th>Key</th>
@@ -1750,163 +1750,6 @@ verify: false</pre>
         </tr>
     </tbody>
 </table>
-<h3>Telemetry Store Migrator</h3>
-<table>
-    <thead>
-        <th>Key</th>
-        <th>Type</th>
-        <th>Default</th>
-        <th>Description</th>
-    </thead>
-    <tbody>
-        <tr>
-            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1134">telemetryStoreMigrator</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Default values for the Telemetry Store Migrator.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1138">telemetryStoreMigrator.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Enable the Telemetry Store Migrator component.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1142">telemetryStoreMigrator.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">signoz-telemetrystore-migrator</pre>
-</div>
-            </td>
-            <td>The name of the Telemetry Store Migrator component.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--upgradeHelmHooks"><a href="./values.yaml#L1146">telemetryStoreMigrator.upgradeHelmHooks</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1149">telemetryStoreMigrator.serviceAccount</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
-create: true
-name: null</pre>
-</div>
-            </td>
-            <td>Service Account configuration for the Telemetry Store Migrator.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--create"><a href="./values.yaml#L1153">telemetryStoreMigrator.serviceAccount.create</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Specifies whether a service account should be created.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--annotations"><a href="./values.yaml#L1157">telemetryStoreMigrator.serviceAccount.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations to add to the service account.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--name"><a href="./values.yaml#L1161">telemetryStoreMigrator.serviceAccount.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>The name of the service account to use. If not set and `create` is true, a name is generated.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1165">telemetryStoreMigrator.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations for the Telemetry Store Migrator job.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1169">telemetryStoreMigrator.enableReplication</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable replication for the Telemetry Store Migrator.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1173">telemetryStoreMigrator.timeout</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">10m</pre>
-</div>
-            </td>
-            <td>Timeout for the migration.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1177">telemetryStoreMigrator.resources</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Resource requests and limits for all migrator containers.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1181">telemetryStoreMigrator.nodeSelector</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Node selector for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1185">telemetryStoreMigrator.tolerations</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Tolerations for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1189">telemetryStoreMigrator.affinity</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Affinity settings for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1193">telemetryStoreMigrator.topologySpreadConstraints</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Topology spread constraints for pod distribution.</td>
-        </tr>
-    </tbody>
-</table>
 <h3>SigNoz</h3>
 <table>
     <thead>
@@ -1917,16 +1760,16 @@ name: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz"><a href="./values.yaml#L1197">signoz</a></td>
+            <td id="signoz"><a href="./values.yaml#L1134">signoz</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
             <td>Default values for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--name"><a href="./values.yaml#L1201">signoz.name</a></td>
+            <td id="signoz--name"><a href="./values.yaml#L1138">signoz.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
@@ -1935,7 +1778,16 @@ name: null</pre>
             <td>The name of the SigNoz component.</td>
         </tr>
         <tr>
-            <td id="signoz--image"><a href="./values.yaml#L1204">signoz.image</a></td>
+            <td id="signoz--replicaCount"><a href="./values.yaml#L1142">signoz.replicaCount</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>The number of pod replicas for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--image"><a href="./values.yaml#L1145">signoz.image</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
@@ -1947,43 +1799,7 @@ tag: v0.151.0</pre>
             <td>Image configuration for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--image--registry"><a href="./values.yaml#L1208">signoz.image.registry</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">docker.io</pre>
-</div>
-            </td>
-            <td>The container image registry.</td>
-        </tr>
-        <tr>
-            <td id="signoz--image--repository"><a href="./values.yaml#L1212">signoz.image.repository</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">signoz/signoz</pre>
-</div>
-            </td>
-            <td>The container image repository.</td>
-        </tr>
-        <tr>
-            <td id="signoz--image--tag"><a href="./values.yaml#L1215">signoz.image.tag</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">v0.149.0</pre>
-</div>
-            </td>
-            <td>The container image tag.</td>
-        </tr>
-        <tr>
-            <td id="signoz--image--pullPolicy"><a href="./values.yaml#L1219">signoz.image.pullPolicy</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
-</div>
-            </td>
-            <td>The image pull policy.</td>
-        </tr>
-        <tr>
-            <td id="signoz--imagePullSecrets"><a href="./values.yaml#L1224">signoz.imagePullSecrets</a></td>
+            <td id="signoz--imagePullSecrets"><a href="./values.yaml#L1163">signoz.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1992,16 +1808,7 @@ tag: v0.151.0</pre>
             <td>Image pull secrets for SigNoz. This has higher precedence than the root level or global value.</td>
         </tr>
         <tr>
-            <td id="signoz--replicaCount"><a href="./values.yaml#L1228">signoz.replicaCount</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
-</div>
-            </td>
-            <td>The number of pod replicas for SigNoz.</td>
-        </tr>
-        <tr>
-            <td id="signoz--serviceAccount"><a href="./values.yaml#L1231">signoz.serviceAccount</a></td>
+            <td id="signoz--serviceAccount"><a href="./values.yaml#L1166">signoz.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2012,34 +1819,7 @@ name: null</pre>
             <td>Service Account configuration for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--serviceAccount--create"><a href="./values.yaml#L1235">signoz.serviceAccount.create</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Specifies whether a service account should be created.</td>
-        </tr>
-        <tr>
-            <td id="signoz--serviceAccount--annotations"><a href="./values.yaml#L1239">signoz.serviceAccount.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations to add to the service account.</td>
-        </tr>
-        <tr>
-            <td id="signoz--serviceAccount--name"><a href="./values.yaml#L1243">signoz.serviceAccount.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>The name of the service account to use. If not set and `create` is true, a name is generated.</td>
-        </tr>
-        <tr>
-            <td id="signoz--annotations"><a href="./values.yaml#L1247">signoz.annotations</a></td>
+            <td id="signoz--annotations"><a href="./values.yaml#L1210">signoz.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2048,7 +1828,38 @@ name: null</pre>
             <td>Annotations for the SigNoz pod.</td>
         </tr>
         <tr>
-            <td id="signoz--podAnnotations"><a href="./values.yaml#L1251">signoz.podAnnotations</a></td>
+            <td id="signoz--additionalArgs"><a href="./values.yaml#L1214">signoz.additionalArgs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional command-line arguments for SigNoz.</td>
+        </tr>
+        <tr>
+            <td id="signoz--env"><a href="./values.yaml#L1238">signoz.env</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz_alertmanager_provider: signoz
+signoz_alertmanager_signoz_external__url: http://localhost:8080
+signoz_emailing_enabled: false
+signoz_prometheus_active__query__tracker_enabled: false
+signoz_telemetrystore_provider: clickhouse</pre>
+</div>
+            </td>
+            <td>Environment variables for SigNoz. Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml Note on Variable Naming: Environment variables are derived from the YAML configuration. For example, a key `provider` under the `telemetry_store` section becomes `signoz_telemetrystore_provider`.</td>
+        </tr>
+        <tr>
+            <td id="signoz--podSecurityContext"><a href="./values.yaml#L1255">signoz.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Pod-level security context.</td>
+        </tr>
+        <tr>
+            <td id="signoz--podAnnotations"><a href="./values.yaml#L1261">signoz.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2057,7 +1868,149 @@ name: null</pre>
             <td>Annotations for the SigNoz pod.</td>
         </tr>
         <tr>
-            <td id="signoz--service"><a href="./values.yaml#L1255">signoz.service</a></td>
+            <td id="signoz--securityContext"><a href="./values.yaml#L1265">signoz.securityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Container-level security context.</td>
+        </tr>
+        <tr>
+            <td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L1276">signoz.additionalVolumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volume mounts for the SigNoz container.</td>
+        </tr>
+        <tr>
+            <td id="signoz--additionalVolumes"><a href="./values.yaml#L1280">signoz.additionalVolumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volumes for the SigNoz pod.</td>
+        </tr>
+        <tr>
+            <td id="signoz--livenessProbe"><a href="./values.yaml#L1284">signoz.livenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Liveness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="signoz--readinessProbe"><a href="./values.yaml#L1296">signoz.readinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Readiness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="signoz--customLivenessProbe"><a href="./values.yaml#L1308">signoz.customLivenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom liveness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="signoz--customReadinessProbe"><a href="./values.yaml#L1312">signoz.customReadinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom readiness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="signoz--resources"><a href="./values.yaml#L1347">signoz.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
+        </tr>
+        <tr>
+            <td id="signoz--priorityClassName"><a href="./values.yaml#L1358">signoz.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Priority class for the SigNoz pods.</td>
+        </tr>
+        <tr>
+            <td id="signoz--nodeSelector"><a href="./values.yaml#L1362">signoz.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--tolerations"><a href="./values.yaml#L1366">signoz.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--affinity"><a href="./values.yaml#L1370">signoz.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1374">signoz.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="signoz--persistence"><a href="./values.yaml#L1377">signoz.persistence</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">accessModes:
+    - ReadWriteOnce
+enabled: true
+existingClaim: ""
+size: 1Gi
+storageClass: null</pre>
+</div>
+            </td>
+            <td>Persistence configuration for the internal SQLite database.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>SigNoz Networking</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="signoz--service"><a href="./values.yaml#L1179">signoz.service</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2074,88 +2027,7 @@ type: ClusterIP</pre>
             <td>Service configuration for SigNoz. This allows you to configure how SigNoz is exposed within the Kubernetes cluster.</td>
         </tr>
         <tr>
-            <td id="signoz--service--annotations"><a href="./values.yaml#L1259">signoz.service.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations for the SigNoz service object.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--labels"><a href="./values.yaml#L1263">signoz.service.labels</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Labels for the SigNoz service object.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--type"><a href="./values.yaml#L1267">signoz.service.type</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
-</div>
-            </td>
-            <td>The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--port"><a href="./values.yaml#L1271">signoz.service.port</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8080</pre>
-</div>
-            </td>
-            <td>The external HTTP port for SigNoz.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--internalPort"><a href="./values.yaml#L1275">signoz.service.internalPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8085</pre>
-</div>
-            </td>
-            <td>The internal gRPC port for SigNoz.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--opampPort"><a href="./values.yaml#L1279">signoz.service.opampPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">4320</pre>
-</div>
-            </td>
-            <td>The internal OpAMP port for SigNoz.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--nodePort"><a href="./values.yaml#L1283">signoz.service.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>Manually specify the nodePort for HTTP when `service.type` is `NodePort`.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--internalNodePort"><a href="./values.yaml#L1287">signoz.service.internalNodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>Manually specify the nodePort for the internal port when `service.type` is `NodePort`.</td>
-        </tr>
-        <tr>
-            <td id="signoz--service--opampInternalNodePort"><a href="./values.yaml#L1291">signoz.service.opampInternalNodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.</td>
-        </tr>
-        <tr>
-            <td id="signoz--ingress"><a href="./values.yaml#L1294">signoz.ingress</a></td>
+            <td id="signoz--ingress"><a href="./values.yaml#L1315">signoz.ingress</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2172,267 +2044,9 @@ tls: []</pre>
             </td>
             <td>Ingress configuration for SigNoz.</td>
         </tr>
-        <tr>
-            <td id="signoz--ingress--enabled"><a href="./values.yaml#L1298">signoz.ingress.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Enable ingress controller resource.</td>
-        </tr>
-        <tr>
-            <td id="signoz--ingress--className"><a href="./values.yaml#L1302">signoz.ingress.className</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Ingress class name.</td>
-        </tr>
-        <tr>
-            <td id="signoz--ingress--annotations"><a href="./values.yaml#L1306">signoz.ingress.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations for the ingress resource.</td>
-        </tr>
-        <tr>
-            <td id="signoz--ingress--hosts"><a href="./values.yaml#L1312">signoz.ingress.hosts</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">- host: signoz.domain.com
-  paths:
-    - path: /
-      pathType: ImplementationSpecific
-      port: 8080</pre>
-</div>
-            </td>
-            <td>Hostname and path configurations for the ingress.</td>
-        </tr>
-        <tr>
-            <td id="signoz--ingress--tls"><a href="./values.yaml#L1321">signoz.ingress.tls</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>TLS configuration for the ingress.</td>
-        </tr>
-        <tr>
-            <td id="signoz--additionalArgs"><a href="./values.yaml#L1328">signoz.additionalArgs</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Additional command-line arguments for SigNoz.</td>
-        </tr>
-        <tr>
-            <td id="signoz--env"><a href="./values.yaml#L1352">signoz.env</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">signoz_alertmanager_provider: signoz
-signoz_alertmanager_signoz_external__url: http://localhost:8080
-signoz_emailing_enabled: false
-signoz_prometheus_active__query__tracker_enabled: false
-signoz_telemetrystore_provider: clickhouse</pre>
-</div>
-            </td>
-            <td>Environment variables for SigNoz. Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml Note on Variable Naming: Environment variables are derived from the YAML configuration. For example, a key `provider` under the `telemetry_store` section becomes `signoz_telemetrystore_provider`.</td>
-        </tr>
-        <tr>
-            <td id="signoz--livenessProbe"><a href="./values.yaml#L1369">signoz.livenessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Liveness probe configuration.</td>
-        </tr>
-        <tr>
-            <td id="signoz--readinessProbe"><a href="./values.yaml#L1381">signoz.readinessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Readiness probe configuration.</td>
-        </tr>
-        <tr>
-            <td id="signoz--customLivenessProbe"><a href="./values.yaml#L1393">signoz.customLivenessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Custom liveness probe to override the default.</td>
-        </tr>
-        <tr>
-            <td id="signoz--customReadinessProbe"><a href="./values.yaml#L1397">signoz.customReadinessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Custom readiness probe to override the default.</td>
-        </tr>
-        <tr>
-            <td id="signoz--resources"><a href="./values.yaml#L1401">signoz.resources</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">requests:
-    cpu: 100m
-    memory: 100Mi</pre>
-</div>
-            </td>
-            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
-        </tr>
-        <tr>
-            <td id="signoz--podSecurityContext"><a href="./values.yaml#L1412">signoz.podSecurityContext</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Pod-level security context.</td>
-        </tr>
-        <tr>
-            <td id="signoz--securityContext"><a href="./values.yaml#L1418">signoz.securityContext</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Container-level security context.</td>
-        </tr>
-        <tr>
-            <td id="signoz--priorityClassName"><a href="./values.yaml#L1429">signoz.priorityClassName</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Priority class for the SigNoz pods.</td>
-        </tr>
-        <tr>
-            <td id="signoz--nodeSelector"><a href="./values.yaml#L1433">signoz.nodeSelector</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Node selector for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="signoz--tolerations"><a href="./values.yaml#L1437">signoz.tolerations</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Tolerations for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="signoz--affinity"><a href="./values.yaml#L1441">signoz.affinity</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Affinity settings for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1445">signoz.topologySpreadConstraints</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Topology spread constraints for pod distribution.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence"><a href="./values.yaml#L1448">signoz.persistence</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">accessModes:
-    - ReadWriteOnce
-enabled: true
-existingClaim: ""
-size: 1Gi
-storageClass: null</pre>
-</div>
-            </td>
-            <td>Persistence configuration for the internal SQLite database.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence--enabled"><a href="./values.yaml#L1452">signoz.persistence.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Enable data persistence using a PVC.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence--existingClaim"><a href="./values.yaml#L1456">signoz.persistence.existingClaim</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Use a manually managed PVC.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence--storageClass"><a href="./values.yaml#L1460">signoz.persistence.storageClass</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>The storage class for the PVC. If "-", disables dynamic provisioning.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence--accessModes"><a href="./values.yaml#L1464">signoz.persistence.accessModes</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
-</div>
-            </td>
-            <td>Access modes for the persistent volume.</td>
-        </tr>
-        <tr>
-            <td id="signoz--persistence--size"><a href="./values.yaml#L1469">signoz.persistence.size</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1Gi</pre>
-</div>
-            </td>
-            <td>The size of the persistent volume.</td>
-        </tr>
-        <tr>
-            <td id="signoz--additionalVolumes"><a href="./values.yaml#L1473">signoz.additionalVolumes</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Additional volumes for the SigNoz pod.</td>
-        </tr>
-        <tr>
-            <td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L1477">signoz.additionalVolumeMounts</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Additional volume mounts for the SigNoz container.</td>
-        </tr>
     </tbody>
 </table>
-<h3>OTel Collector</h3>
+<h3>Telemetry Store Migrator</h3>
 <table>
     <thead>
         <th>Key</th>
@@ -2442,16 +2056,146 @@ storageClass: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector"><a href="./values.yaml#L1482">otelCollector</a></td>
+            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1397">telemetryStoreMigrator</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Default values for the Telemetry Store Migrator.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1401">telemetryStoreMigrator.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable the Telemetry Store Migrator component.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1405">telemetryStoreMigrator.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz-telemetrystore-migrator</pre>
+</div>
+            </td>
+            <td>The name of the Telemetry Store Migrator component.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1409">telemetryStoreMigrator.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for the Telemetry Store Migrator job.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--upgradeHelmHooks"><a href="./values.yaml#L1413">telemetryStoreMigrator.upgradeHelmHooks</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1417">telemetryStoreMigrator.enableReplication</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Whether to enable replication for the Telemetry Store Migrator.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1421">telemetryStoreMigrator.timeout</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">10m</pre>
+</div>
+            </td>
+            <td>Timeout for the migration.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1425">telemetryStoreMigrator.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1429">telemetryStoreMigrator.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1433">telemetryStoreMigrator.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1437">telemetryStoreMigrator.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1441">telemetryStoreMigrator.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Resource requests and limits for all migrator containers.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1444">telemetryStoreMigrator.serviceAccount</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
+create: true
+name: null</pre>
+</div>
+            </td>
+            <td>Service Account configuration for the Telemetry Store Migrator.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector"><a href="./values.yaml#L1458">otelCollector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
             <td>Default values for the OpenTelemetry Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--name"><a href="./values.yaml#L1486">otelCollector.name</a></td>
+            <td id="otelCollector--name"><a href="./values.yaml#L1462">otelCollector.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">otel-collector</pre>
@@ -2460,55 +2204,16 @@ storageClass: null</pre>
             <td>The name of the Otel Collector component.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image"><a href="./values.yaml#L1489">otelCollector.image</a></td>
+            <td id="otelCollector--image"><a href="./values.yaml#L1466">otelCollector.image</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
-registry: docker.io
-repository: signoz/signoz-otel-collector
-tag: v0.144.15</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
             <td>Image configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image--registry"><a href="./values.yaml#L1493">otelCollector.image.registry</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">docker.io</pre>
-</div>
-            </td>
-            <td>The container image registry.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--image--repository"><a href="./values.yaml#L1497">otelCollector.image.repository</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">signoz/signoz-otel-collector</pre>
-</div>
-            </td>
-            <td>The container image repository.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--image--tag"><a href="./values.yaml#L1500">otelCollector.image.tag</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">v0.144.15</pre>
-</div>
-            </td>
-            <td>The container image tag.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--image--pullPolicy"><a href="./values.yaml#L1504">otelCollector.image.pullPolicy</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
-</div>
-            </td>
-            <td>The image pull policy.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1509">otelCollector.imagePullSecrets</a></td>
+            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1483">otelCollector.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2517,16 +2222,7 @@ tag: v0.144.15</pre>
             <td>Image pull secrets for the Otel Collector. This has higher precedence than the root level or global value.</td>
         </tr>
         <tr>
-            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1513">otelCollector.replicaCount</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
-</div>
-            </td>
-            <td>The number of pod replicas for the Otel Collector.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--strategy"><a href="./values.yaml#L1517">otelCollector.strategy</a></td>
+            <td id="otelCollector--strategy"><a href="./values.yaml#L1487">otelCollector.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -2535,25 +2231,26 @@ tag: v0.144.15</pre>
             <td>Deployment strategy to use</td>
         </tr>
         <tr>
-            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1521">otelCollector.minReadySeconds</a></td>
-            <td>int</td>
+            <td id="otelCollector--command"><a href="./values.yaml#L1490">otelCollector.command</a></td>
+            <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">extraArgs: null
+name: /signoz-otel-collector</pre>
 </div>
             </td>
-            <td>Minimum number of seconds for a new pod to be ready.</td>
+            <td>Configuration for the Otel Collector executable.</td>
         </tr>
         <tr>
-            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1525">otelCollector.progressDeadlineSeconds</a></td>
-            <td>int</td>
+            <td id="otelCollector--configMap"><a href="./values.yaml#L1498">otelCollector.configMap</a></td>
+            <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">600</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">create: true</pre>
 </div>
             </td>
-            <td>Maximum time in seconds for a deployment to make progress before it is considered failed.</td>
+            <td>ConfigMap settings.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount"><a href="./values.yaml#L1528">otelCollector.serviceAccount</a></td>
+            <td id="otelCollector--serviceAccount"><a href="./values.yaml#L1504">otelCollector.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2564,107 +2261,7 @@ name: null</pre>
             <td>Service Account configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount--create"><a href="./values.yaml#L1532">otelCollector.serviceAccount.create</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Specifies whether a service account should be created.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--serviceAccount--annotations"><a href="./values.yaml#L1536">otelCollector.serviceAccount.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations to add to the service account.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--serviceAccount--name"><a href="./values.yaml#L1540">otelCollector.serviceAccount.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>The name of the service account to use. If not set and `create` is true, a name is generated.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole"><a href="./values.yaml#L1544">otelCollector.clusterRole</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>RBAC ClusterRole configuration for the Otel Collector.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--create"><a href="./values.yaml#L1548">otelCollector.clusterRole.create</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Specifies whether a ClusterRole should be created.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--annotations"><a href="./values.yaml#L1552">otelCollector.clusterRole.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations to add to the ClusterRole.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--name"><a href="./values.yaml#L1556">otelCollector.clusterRole.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>The name of the ClusterRole to use. If not set, a name is generated.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--rules"><a href="./values.yaml#L1561">otelCollector.clusterRole.rules</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>A set of RBAC rules. Required for the k8sattributes processor. ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--clusterRoleBinding"><a href="./values.yaml#L1576">otelCollector.clusterRole.clusterRoleBinding</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
-name: ""</pre>
-</div>
-            </td>
-            <td>ClusterRoleBinding configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--clusterRoleBinding--annotations"><a href="./values.yaml#L1580">otelCollector.clusterRole.clusterRoleBinding.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations to add to the ClusterRoleBinding.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--clusterRole--clusterRoleBinding--name"><a href="./values.yaml#L1584">otelCollector.clusterRole.clusterRoleBinding.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>The name of the ClusterRoleBinding to use. If not set, a name is generated.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--annotations"><a href="./values.yaml#L1588">otelCollector.annotations</a></td>
+            <td id="otelCollector--annotations"><a href="./values.yaml#L1532">otelCollector.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2673,7 +2270,16 @@ name: ""</pre>
             <td>Annotations for the Otel Collector Deployment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--podLabels"><a href="./values.yaml#L1592">otelCollector.podLabels</a></td>
+            <td id="otelCollector--podAnnotations"><a href="./values.yaml#L1536">otelCollector.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Annotations for the Otel Collector pod(s).</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--podLabels"><a href="./values.yaml#L1542">otelCollector.podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2682,17 +2288,222 @@ name: ""</pre>
             <td>Labels for the Otel Collector pod(s).</td>
         </tr>
         <tr>
-            <td id="otelCollector--podAnnotations"><a href="./values.yaml#L1595">otelCollector.podAnnotations</a></td>
+            <td id="otelCollector--additionalEnvs"><a href="./values.yaml#L1546">otelCollector.additionalEnvs</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">signoz.io/port: "8888"
-signoz.io/scrape: "true"</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
 </div>
             </td>
-            <td>Annotations for the Otel Collector pod(s).</td>
+            <td>Additional environment variables for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--service"><a href="./values.yaml#L1600">otelCollector.service</a></td>
+            <td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L1552">otelCollector.lowCardinalityExceptionGrouping</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1556">otelCollector.minReadySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Minimum number of seconds for a new pod to be ready.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1560">otelCollector.progressDeadlineSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">600</pre>
+</div>
+            </td>
+            <td>Maximum time in seconds for a deployment to make progress before it is considered failed.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1564">otelCollector.replicaCount</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>The number of pod replicas for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--clusterRole"><a href="./values.yaml#L1568">otelCollector.clusterRole</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>RBAC ClusterRole configuration for the Otel Collector.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L1811">otelCollector.livenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Liveness probe configuration. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L1823">otelCollector.readinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Readiness probe configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L1835">otelCollector.customLivenessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom liveness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L1839">otelCollector.customReadinessProbe</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Custom readiness probe to override the default.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L1843">otelCollector.extraVolumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Extra volume mounts for the Otel Collector pod.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L1847">otelCollector.extraVolumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Extra volumes for the Otel Collector pod.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--resources"><a href="./values.yaml#L1884">otelCollector.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L1895">otelCollector.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Priority class for the Otel Collector pods.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L1899">otelCollector.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--tolerations"><a href="./values.yaml#L1903">otelCollector.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--affinity"><a href="./values.yaml#L1907">otelCollector.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity settings for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L1911">otelCollector.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for pod distribution.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L1921">otelCollector.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Pod-level security context.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--securityContext"><a href="./values.yaml#L1927">otelCollector.securityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Container-level security context.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--autoscaling"><a href="./values.yaml#L1938">otelCollector.autoscaling</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
+</div>
+            </td>
+            <td>Autoscaling configuration (HPA).</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--autoscaling--keda"><a href="./values.yaml#L1975">otelCollector.autoscaling.keda</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">annotations: null
+cooldownPeriod: "300"
+enabled: false
+maxReplicaCount: "5"
+minReplicaCount: "1"
+pollingInterval: "30"
+triggers: []</pre>
+</div>
+            </td>
+            <td>KEDA-based autoscaling configuration.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Networking</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector--service"><a href="./values.yaml#L1516">otelCollector.service</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2704,690 +2515,7 @@ type: ClusterIP</pre>
             <td>Service configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--service--annotations"><a href="./values.yaml#L1604">otelCollector.service.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations for the Otel Collector service object.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--service--labels"><a href="./values.yaml#L1608">otelCollector.service.labels</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Labels for the Otel Collector service object.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--service--type"><a href="./values.yaml#L1612">otelCollector.service.type</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
-</div>
-            </td>
-            <td>The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--service--loadBalancerSourceRanges"><a href="./values.yaml#L1616">otelCollector.service.loadBalancerSourceRanges</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Allowed source ranges when service type is `LoadBalancer`.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports"><a href="./values.yaml#L1620">otelCollector.ports</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Port configurations for the Otel Collector.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp"><a href="./values.yaml#L1623">otelCollector.ports.otlp</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4317
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 4317</pre>
-</div>
-            </td>
-            <td>OTLP gRPC port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp--enabled"><a href="./values.yaml#L1627">otelCollector.ports.otlp.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for OTLP gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp--containerPort"><a href="./values.yaml#L1631">otelCollector.ports.otlp.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">4317</pre>
-</div>
-            </td>
-            <td>Container port for OTLP gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp--servicePort"><a href="./values.yaml#L1635">otelCollector.ports.otlp.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">4317</pre>
-</div>
-            </td>
-            <td>Service port for OTLP gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp--nodePort"><a href="./values.yaml#L1639">otelCollector.ports.otlp.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for OTLP gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp--protocol"><a href="./values.yaml#L1643">otelCollector.ports.otlp.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for OTLP gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http"><a href="./values.yaml#L1646">otelCollector.ports.otlp-http</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4318
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 4318</pre>
-</div>
-            </td>
-            <td>OTLP HTTP port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http--enabled"><a href="./values.yaml#L1650">otelCollector.ports.otlp-http.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for OTLP HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http--containerPort"><a href="./values.yaml#L1654">otelCollector.ports.otlp-http.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">4318</pre>
-</div>
-            </td>
-            <td>Container port for OTLP HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http--servicePort"><a href="./values.yaml#L1658">otelCollector.ports.otlp-http.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">4318</pre>
-</div>
-            </td>
-            <td>Service port for OTLP HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http--nodePort"><a href="./values.yaml#L1662">otelCollector.ports.otlp-http.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for OTLP HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--otlp-http--protocol"><a href="./values.yaml#L1666">otelCollector.ports.otlp-http.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for OTLP HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact"><a href="./values.yaml#L1669">otelCollector.ports.jaeger-compact</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 6831
-enabled: false
-nodePort: ""
-protocol: UDP
-servicePort: 6831</pre>
-</div>
-            </td>
-            <td>Jaeger Compact port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact--enabled"><a href="./values.yaml#L1673">otelCollector.ports.jaeger-compact.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for Jaeger Compact.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact--containerPort"><a href="./values.yaml#L1677">otelCollector.ports.jaeger-compact.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">6831</pre>
-</div>
-            </td>
-            <td>Container port for Jaeger Compact.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact--servicePort"><a href="./values.yaml#L1681">otelCollector.ports.jaeger-compact.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">6831</pre>
-</div>
-            </td>
-            <td>Service port for Jaeger Compact.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact--nodePort"><a href="./values.yaml#L1685">otelCollector.ports.jaeger-compact.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for Jaeger Compact.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-compact--protocol"><a href="./values.yaml#L1689">otelCollector.ports.jaeger-compact.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">UDP</pre>
-</div>
-            </td>
-            <td>Protocol for Jaeger Compact.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift"><a href="./values.yaml#L1692">otelCollector.ports.jaeger-thrift</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14268
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 14268</pre>
-</div>
-            </td>
-            <td>Jaeger Thrift port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift--enabled"><a href="./values.yaml#L1696">otelCollector.ports.jaeger-thrift.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for Jaeger Thrift HTTP.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift--containerPort"><a href="./values.yaml#L1700">otelCollector.ports.jaeger-thrift.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">14268</pre>
-</div>
-            </td>
-            <td>Container port for Jaeger Thrift.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift--servicePort"><a href="./values.yaml#L1704">otelCollector.ports.jaeger-thrift.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">14268</pre>
-</div>
-            </td>
-            <td>Service port for Jaeger Thrift.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift--nodePort"><a href="./values.yaml#L1708">otelCollector.ports.jaeger-thrift.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for Jaeger Thrift.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-thrift--protocol"><a href="./values.yaml#L1712">otelCollector.ports.jaeger-thrift.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for Jaeger Thrift.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc"><a href="./values.yaml#L1715">otelCollector.ports.jaeger-grpc</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14250
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 14250</pre>
-</div>
-            </td>
-            <td>Jaeger gRPC port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc--enabled"><a href="./values.yaml#L1719">otelCollector.ports.jaeger-grpc.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for Jaeger gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc--containerPort"><a href="./values.yaml#L1723">otelCollector.ports.jaeger-grpc.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">14250</pre>
-</div>
-            </td>
-            <td>Container port for Jaeger gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc--servicePort"><a href="./values.yaml#L1727">otelCollector.ports.jaeger-grpc.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">14250</pre>
-</div>
-            </td>
-            <td>Service port for Jaeger gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc--nodePort"><a href="./values.yaml#L1731">otelCollector.ports.jaeger-grpc.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for Jaeger gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--jaeger-grpc--protocol"><a href="./values.yaml#L1735">otelCollector.ports.jaeger-grpc.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for Jaeger gRPC.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin"><a href="./values.yaml#L1738">otelCollector.ports.zipkin</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 9411
-enabled: false
-nodePort: ""
-protocol: TCP
-servicePort: 9411</pre>
-</div>
-            </td>
-            <td>Zipkin port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin--enabled"><a href="./values.yaml#L1742">otelCollector.ports.zipkin.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for Zipkin.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin--containerPort"><a href="./values.yaml#L1746">otelCollector.ports.zipkin.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">9411</pre>
-</div>
-            </td>
-            <td>Container port for Zipkin.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin--servicePort"><a href="./values.yaml#L1750">otelCollector.ports.zipkin.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">9411</pre>
-</div>
-            </td>
-            <td>Service port for Zipkin.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin--nodePort"><a href="./values.yaml#L1754">otelCollector.ports.zipkin.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for Zipkin.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zipkin--protocol"><a href="./values.yaml#L1758">otelCollector.ports.zipkin.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for Zipkin.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics"><a href="./values.yaml#L1761">otelCollector.ports.metrics</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8888
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 8888</pre>
-</div>
-            </td>
-            <td>Internal metrics port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics--enabled"><a href="./values.yaml#L1765">otelCollector.ports.metrics.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for internal metrics.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics--containerPort"><a href="./values.yaml#L1769">otelCollector.ports.metrics.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8888</pre>
-</div>
-            </td>
-            <td>Container port for internal metrics.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics--servicePort"><a href="./values.yaml#L1773">otelCollector.ports.metrics.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8888</pre>
-</div>
-            </td>
-            <td>Service port for internal metrics.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics--nodePort"><a href="./values.yaml#L1777">otelCollector.ports.metrics.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for internal metrics.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--metrics--protocol"><a href="./values.yaml#L1781">otelCollector.ports.metrics.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for internal metrics.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages"><a href="./values.yaml#L1784">otelCollector.ports.zpages</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 55679
-enabled: false
-nodePort: ""
-protocol: TCP
-servicePort: 55679</pre>
-</div>
-            </td>
-            <td>ZPages port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages--enabled"><a href="./values.yaml#L1788">otelCollector.ports.zpages.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for ZPages.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages--containerPort"><a href="./values.yaml#L1792">otelCollector.ports.zpages.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">55679</pre>
-</div>
-            </td>
-            <td>Container port for ZPages.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages--servicePort"><a href="./values.yaml#L1796">otelCollector.ports.zpages.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">55679</pre>
-</div>
-            </td>
-            <td>Service port for ZPages.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages--nodePort"><a href="./values.yaml#L1800">otelCollector.ports.zpages.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for ZPages.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--zpages--protocol"><a href="./values.yaml#L1804">otelCollector.ports.zpages.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for ZPages.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof"><a href="./values.yaml#L1807">otelCollector.ports.pprof</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 1777
-enabled: false
-nodePort: ""
-protocol: TCP
-servicePort: 1777</pre>
-</div>
-            </td>
-            <td>pprof port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof--enabled"><a href="./values.yaml#L1811">otelCollector.ports.pprof.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for pprof.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof--containerPort"><a href="./values.yaml#L1815">otelCollector.ports.pprof.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1777</pre>
-</div>
-            </td>
-            <td>Container port for pprof.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof--servicePort"><a href="./values.yaml#L1819">otelCollector.ports.pprof.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1777</pre>
-</div>
-            </td>
-            <td>Service port for pprof.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof--nodePort"><a href="./values.yaml#L1823">otelCollector.ports.pprof.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for pprof.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--pprof--protocol"><a href="./values.yaml#L1827">otelCollector.ports.pprof.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for pprof.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku"><a href="./values.yaml#L1830">otelCollector.ports.logsheroku</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8081
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 8081</pre>
-</div>
-            </td>
-            <td>Heroku logs port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku--enabled"><a href="./values.yaml#L1834">otelCollector.ports.logsheroku.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for Heroku logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku--containerPort"><a href="./values.yaml#L1838">otelCollector.ports.logsheroku.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8081</pre>
-</div>
-            </td>
-            <td>Container port for Heroku logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku--servicePort"><a href="./values.yaml#L1842">otelCollector.ports.logsheroku.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8081</pre>
-</div>
-            </td>
-            <td>Service port for Heroku logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku--nodePort"><a href="./values.yaml#L1846">otelCollector.ports.logsheroku.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for Heroku logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsheroku--protocol"><a href="./values.yaml#L1850">otelCollector.ports.logsheroku.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for Heroku logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson"><a href="./values.yaml#L1853">otelCollector.ports.logsjson</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8082
-enabled: true
-nodePort: ""
-protocol: TCP
-servicePort: 8082</pre>
-</div>
-            </td>
-            <td>JSON logs port configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson--enabled"><a href="./values.yaml#L1857">otelCollector.ports.logsjson.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Whether to enable the service port for JSON logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson--containerPort"><a href="./values.yaml#L1861">otelCollector.ports.logsjson.containerPort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8082</pre>
-</div>
-            </td>
-            <td>Container port for JSON logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson--servicePort"><a href="./values.yaml#L1865">otelCollector.ports.logsjson.servicePort</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">8082</pre>
-</div>
-            </td>
-            <td>Service port for JSON logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson--nodePort"><a href="./values.yaml#L1869">otelCollector.ports.logsjson.nodePort</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Node port for JSON logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ports--logsjson--protocol"><a href="./values.yaml#L1873">otelCollector.ports.logsjson.protocol</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
-</div>
-            </td>
-            <td>Protocol for JSON logs.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ingress"><a href="./values.yaml#L1876">otelCollector.ingress</a></td>
+            <td id="otelCollector--ingress"><a href="./values.yaml#L1850">otelCollector.ingress</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -3405,409 +2533,196 @@ tls: []</pre>
             <td>Ingress configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--enabled"><a href="./values.yaml#L1880">otelCollector.ingress.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Enable ingress controller resource.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ingress--className"><a href="./values.yaml#L1884">otelCollector.ingress.className</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Ingress class name.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ingress--annotations"><a href="./values.yaml#L1888">otelCollector.ingress.annotations</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Annotations for the ingress resource.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1896">otelCollector.ingress.hosts</a></td>
+            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1868">otelCollector.ingress.hosts</a></td>
             <td>list</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">- host: otelcollector.domain.com
-  paths:
-    - path: /
-      pathType: ImplementationSpecific
-      port: 4318</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
             <td>Hostname and path configurations for the ingress.</td>
         </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Ports</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
         <tr>
-            <td id="otelCollector--ingress--tls"><a href="./values.yaml#L1905">otelCollector.ingress.tls</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>TLS configuration for the ingress.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--command"><a href="./values.yaml#L1911">otelCollector.command</a></td>
+            <td id="otelCollector--ports"><a href="./values.yaml#L1608">otelCollector.ports</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">extraArgs: null
-name: /signoz-otel-collector</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
-            <td>Configuration for the Otel Collector executable.</td>
+            <td>Port configurations for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--command--name"><a href="./values.yaml#L1915">otelCollector.command.name</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">/signoz-otel-collector</pre>
-</div>
-            </td>
-            <td>Otel Collector command name.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--command--extraArgs"><a href="./values.yaml#L1918">otelCollector.command.extraArgs</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>Extra command-line arguments for the Otel Collector.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--configMap"><a href="./values.yaml#L1921">otelCollector.configMap</a></td>
+            <td id="otelCollector--ports--otlp"><a href="./values.yaml#L1611">otelCollector.ports.otlp</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">create: true</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4317
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 4317</pre>
 </div>
             </td>
-            <td>ConfigMap settings.</td>
+            <td>OTLP gRPC port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--configMap--create"><a href="./values.yaml#L1925">otelCollector.configMap.create</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Specifies whether a ConfigMap should be created.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--config"><a href="./values.yaml#L1929">otelCollector.config</a></td>
+            <td id="otelCollector--ports--otlp-http"><a href="./values.yaml#L1629">otelCollector.ports.otlp-http</a></td>
             <td>object</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4318
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 4318</pre>
+</div>
+            </td>
+            <td>OTLP HTTP port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-compact"><a href="./values.yaml#L1647">otelCollector.ports.jaeger-compact</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 6831
+enabled: false
+nodePort: ""
+protocol: UDP
+servicePort: 6831</pre>
+</div>
+            </td>
+            <td>Jaeger Compact port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-thrift"><a href="./values.yaml#L1665">otelCollector.ports.jaeger-thrift</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14268
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 14268</pre>
+</div>
+            </td>
+            <td>Jaeger Thrift port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--jaeger-grpc"><a href="./values.yaml#L1683">otelCollector.ports.jaeger-grpc</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14250
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 14250</pre>
+</div>
+            </td>
+            <td>Jaeger gRPC port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--zipkin"><a href="./values.yaml#L1701">otelCollector.ports.zipkin</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 9411
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 9411</pre>
+</div>
+            </td>
+            <td>Zipkin port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--metrics"><a href="./values.yaml#L1719">otelCollector.ports.metrics</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8888
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8888</pre>
+</div>
+            </td>
+            <td>Internal metrics port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--zpages"><a href="./values.yaml#L1737">otelCollector.ports.zpages</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 55679
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 55679</pre>
+</div>
+            </td>
+            <td>ZPages port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--pprof"><a href="./values.yaml#L1755">otelCollector.ports.pprof</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 1777
+enabled: false
+nodePort: ""
+protocol: TCP
+servicePort: 1777</pre>
+</div>
+            </td>
+            <td>pprof port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--logsheroku"><a href="./values.yaml#L1773">otelCollector.ports.logsheroku</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8081
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8081</pre>
+</div>
+            </td>
+            <td>Heroku logs port configuration.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--ports--logsjson"><a href="./values.yaml#L1791">otelCollector.ports.logsjson</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8082
+enabled: true
+nodePort: ""
+protocol: TCP
+servicePort: 8082</pre>
+</div>
+            </td>
+            <td>JSON logs port configuration.</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Otel Collector Configuration</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="otelCollector--config"><a href="./values.yaml#L2000">otelCollector.config</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
 </div>
             </td>
             <td>Main configuration for the OpenTelemetry Collector pipelines.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L2068">otelCollector.lowCardinalityExceptionGrouping</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling"><a href="./values.yaml#L2072">otelCollector.autoscaling</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Autoscaling configuration (HPA).</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--enabled"><a href="./values.yaml#L2076">otelCollector.autoscaling.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Enable Horizontal Pod Autoscaler.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--minReplicas"><a href="./values.yaml#L2080">otelCollector.autoscaling.minReplicas</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
-</div>
-            </td>
-            <td>Minimum number of replicas.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--maxReplicas"><a href="./values.yaml#L2084">otelCollector.autoscaling.maxReplicas</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">11</pre>
-</div>
-            </td>
-            <td>Maximum number of replicas.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L2088">otelCollector.autoscaling.targetCPUUtilizationPercentage</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">50</pre>
-</div>
-            </td>
-            <td>Target CPU utilization percentage.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L2092">otelCollector.autoscaling.targetMemoryUtilizationPercentage</a></td>
-            <td>int</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">50</pre>
-</div>
-            </td>
-            <td>Target memory utilization percentage.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--behavior"><a href="./values.yaml#L2096">otelCollector.autoscaling.behavior</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Scaling behavior policies.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--autoscalingTemplate"><a href="./values.yaml#L2113">otelCollector.autoscaling.autoscalingTemplate</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Template for autoscaling.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda"><a href="./values.yaml#L2116">otelCollector.autoscaling.keda</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">annotations: null
-cooldownPeriod: "300"
-enabled: false
-maxReplicaCount: "5"
-minReplicaCount: "1"
-pollingInterval: "30"
-triggers: []</pre>
-</div>
-            </td>
-            <td>KEDA-based autoscaling configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--annotations"><a href="./values.yaml#L2120">otelCollector.autoscaling.keda.annotations</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
-</div>
-            </td>
-            <td>Annotations for the KEDA ScaledObject.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--enabled"><a href="./values.yaml#L2124">otelCollector.autoscaling.keda.enabled</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
-</div>
-            </td>
-            <td>Enable KEDA autoscaling.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--pollingInterval"><a href="./values.yaml#L2128">otelCollector.autoscaling.keda.pollingInterval</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">"30"</pre>
-</div>
-            </td>
-            <td>Polling interval for metrics data (in seconds).</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--cooldownPeriod"><a href="./values.yaml#L2132">otelCollector.autoscaling.keda.cooldownPeriod</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">"300"</pre>
-</div>
-            </td>
-            <td>Cooldown period before downscaling (in seconds).</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--minReplicaCount"><a href="./values.yaml#L2136">otelCollector.autoscaling.keda.minReplicaCount</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">"1"</pre>
-</div>
-            </td>
-            <td>Minimum replica count for KEDA.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--maxReplicaCount"><a href="./values.yaml#L2140">otelCollector.autoscaling.keda.maxReplicaCount</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">"5"</pre>
-</div>
-            </td>
-            <td>Maximum replica count for KEDA.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--autoscaling--keda--triggers"><a href="./values.yaml#L2144">otelCollector.autoscaling.keda.triggers</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>KEDA trigger configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--additionalEnvs"><a href="./values.yaml#L2148">otelCollector.additionalEnvs</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Additional environment variables for the Otel Collector.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L2155">otelCollector.livenessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Liveness probe configuration. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L2167">otelCollector.readinessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
-</div>
-            </td>
-            <td>Readiness probe configuration.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L2179">otelCollector.customLivenessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Custom liveness probe to override the default.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L2183">otelCollector.customReadinessProbe</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Custom readiness probe to override the default.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--resources"><a href="./values.yaml#L2187">otelCollector.resources</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">requests:
-    cpu: 100m
-    memory: 200Mi</pre>
-</div>
-            </td>
-            <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L2198">otelCollector.podSecurityContext</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Pod-level security context.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--securityContext"><a href="./values.yaml#L2204">otelCollector.securityContext</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Container-level security context.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L2215">otelCollector.priorityClassName</a></td>
-            <td>string</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
-</div>
-            </td>
-            <td>Priority class for the Otel Collector pods.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L2219">otelCollector.nodeSelector</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Node selector for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--tolerations"><a href="./values.yaml#L2223">otelCollector.tolerations</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Tolerations for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--affinity"><a href="./values.yaml#L2227">otelCollector.affinity</a></td>
-            <td>object</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
-</div>
-            </td>
-            <td>Affinity settings for pod assignment.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L2230">otelCollector.topologySpreadConstraints</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">- labelSelector:
-    matchLabels:
-        app.kubernetes.io/component: otel-collector
-  maxSkew: 1
-  topologyKey: kubernetes.io/hostname
-  whenUnsatisfiable: ScheduleAnyway</pre>
-</div>
-            </td>
-            <td>Topology spread constraints for pod distribution.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L2240">otelCollector.extraVolumes</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Extra volumes for the Otel Collector pod.</td>
-        </tr>
-        <tr>
-            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L2244">otelCollector.extraVolumeMounts</a></td>
-            <td>list</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
-</div>
-            </td>
-            <td>Extra volume mounts for the Otel Collector pod.</td>
         </tr>
     </tbody>
 </table>
@@ -3821,7 +2736,7 @@ triggers: []</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="postgresql--enabled"><a href="./values.yaml#L2251">postgresql.enabled</a></td>
+            <td id="postgresql--enabled"><a href="./values.yaml#L2142">postgresql.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3831,7 +2746,7 @@ triggers: []</pre>
         </tr>
     </tbody>
 </table>
-<h3>OTel Gateway</h3>
+<h3>Otel Gateway Settings</h3>
 <table>
     <thead>
         <th>Key</th>
@@ -3841,7 +2756,7 @@ triggers: []</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2254">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2145">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -3850,8 +2765,19 @@ strategy: ""</pre>
             </td>
             <td>This component is configurable with licensed version of SigNoz.</td>
         </tr>
+    </tbody>
+</table>
+<h3>signoz-otel-gateway</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2261">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2152">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -3871,7 +2797,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2474">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2365">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
