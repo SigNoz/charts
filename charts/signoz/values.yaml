@@ -33,21 +33,21 @@ global:
   # @section -- Global Settings
   cloud: other
 # -- Override the default chart name.
-# @section -- General
+# @section -- General Settings
 # @default -- ""
 nameOverride: ""
 # -- Override the default full chart name.
-# @section -- General
+# @section -- General Settings
 # @default -- ""
 fullnameOverride: ""
 # -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach to telemetry data.
-# @section -- General
+# @section -- General Settings
 # @default -- ""
 clusterName: ""
 # -- Image Registry Secret Names for all SigNoz components.
 # If `global.imagePullSecrets` is set, it will be merged with this list.
 # This has lower precedence than `imagePullSecrets` at the individual component level.
-# @section -- General
+# @section -- General Settings
 # @default -- []
 imagePullSecrets: []
 # - "signoz-pull-secret"
@@ -2133,12 +2133,12 @@ otelCollector:
           receivers: [signozmeter]
           processors: [batch/meter]
           exporters: [signozclickhousemeter]
-# @section -- PostgreSQL
+# @section -- Postgres
 postgresql:
   # postgresql.enabled -- Enable or disable the PostgreSQL for signoz.
   # For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql
   # @default -- false
-  # @section -- PostgreSQL
+  # @section -- Postgres
   enabled: false
 # -- This component is configurable with licensed version of SigNoz.
 # @section -- Otel Gateway Settings
@@ -2361,7 +2361,7 @@ signoz-otel-gateway:
         protocol: TCP
     type: NodePort
 # -- This component is configurable with licensed version of SigNoz.
-# @section -- Redpanda
+# @section -- Redpanda Settings
 redpanda:
   enabled: false
   # @ignored

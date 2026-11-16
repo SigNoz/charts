@@ -243,7 +243,7 @@ storageClass: null</pre>
         </tr>
     </tbody>
 </table>
-<h3>General</h3>
+<h3>General Settings</h3>
 <table>
     <thead>
         <th>Key</th>
@@ -2726,7 +2726,7 @@ servicePort: 8082</pre>
         </tr>
     </tbody>
 </table>
-<h3>PostgreSQL</h3>
+<h3>Postgres</h3>
 <table>
     <thead>
         <th>Key</th>
@@ -2787,7 +2787,7 @@ strategy: ""</pre>
         </tr>
     </tbody>
 </table>
-<h3>Redpanda</h3>
+<h3>Redpanda Settings</h3>
 <table>
     <thead>
         <th>Key</th>
