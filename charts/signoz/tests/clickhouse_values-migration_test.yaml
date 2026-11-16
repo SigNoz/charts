@@ -73,6 +73,30 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "`clickhouse.readinessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read."
+  - it: fails on clickhouse.image.registry
+    set:
+      clickhouse.image.registry: docker.io
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.image.registry` has been removed; put the registry in front of `clickhouse.image.repository` (for example `my.registry/clickhouse/clickhouse-server`), or set `global.imageRegistry`."
+  - it: fails on clickhouse.logs.system.image.registry
+    set:
+      clickhouse.logs.system.image.registry: docker.io
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.logs.system.image.registry` has been removed; put the registry in front of `clickhouse.logs.system.image.repository` (for example `my.registry/signoz/signoz-otel-collector`), or set `global.imageRegistry`."
+  - it: fails on clickhouse.initContainers.udf.image.registry
+    set:
+      clickhouse.initContainers.udf.image.registry: docker.io
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.initContainers.udf.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.udf.image.repository` (for example `my.registry/alpine`), or set `global.imageRegistry`."
+  - it: fails on clickhouse.initContainers.init.image.registry
+    set:
+      clickhouse.initContainers.init.image.registry: docker.io
+    asserts:
+      - failedTemplate:
+          errorMessage: "`clickhouse.initContainers.init.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.init.image.repository` (for example `my.registry/busybox`), or set `global.imageRegistry`."
   - it: renders without error when every new key is set
     set:
       clickhouse.podSecurityContext:

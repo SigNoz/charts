@@ -83,11 +83,7 @@ clickhouse:
   # clickhouse.image -- ClickHouse image configuration.
   # @section -- ClickHouse
   image:
-    # clickhouse.image.registry -- ClickHouse image registry to use.
-    # @default -- "docker.io"
-    # @section -- ClickHouse
-    registry: docker.io
-    # clickhouse.image.repository -- ClickHouse image repository to use.
+    # clickhouse.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
     # @default -- "clickhouse/clickhouse-server"
     # @section -- ClickHouse
     repository: clickhouse/clickhouse-server
@@ -386,11 +382,7 @@ clickhouse:
       # @section -- ClickHouse
       enabled: false
       image:
-        # clickhouse.logs.system.image.registry -- Registry of the system logs sidecar image. `global.imageRegistry` takes precedence when set.
-        # @default -- "docker.io"
-        # @section -- ClickHouse
-        registry: docker.io
-        # clickhouse.logs.system.image.repository -- Repository of the system logs sidecar image.
+        # clickhouse.logs.system.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
         # @default -- "signoz/signoz-otel-collector"
         # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
@@ -473,12 +465,9 @@ clickhouse:
     # @section -- ClickHouse
     enabled: true
     image:
-      # -- Registry of the kubectl image. `global.imageRegistry` takes precedence when set.
+      # -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
       # @section -- ClickHouse
-      registry: registry.k8s.io
-      # -- Repository of the kubectl image.
-      # @section -- ClickHouse
-      repository: kubectl
+      repository: registry.k8s.io/kubectl
       # -- Tag of the kubectl image. The image publishes no `latest` tag.
       # @section -- ClickHouse
       tag: v1.36.3
@@ -505,11 +494,7 @@ clickhouse:
       # @section -- ClickHouse
       enabled: true
       image:
-        # clickhouse.initContainers.udf.image.registry -- Registry of the `udf` init container image. `global.imageRegistry` takes precedence when set.
-        # @default -- "docker.io"
-        # @section -- ClickHouse
-        registry: docker.io
-        # clickhouse.initContainers.udf.image.repository -- Repository of the `udf` init container image.
+        # clickhouse.initContainers.udf.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
         # @default -- "alpine"
         # @section -- ClickHouse
         repository: alpine
@@ -545,11 +530,7 @@ clickhouse:
       # @section -- ClickHouse
       enabled: false
       image:
-        # clickhouse.initContainers.init.image.registry -- Registry of the `init` container image. `global.imageRegistry` takes precedence when set.
-        # @default -- "docker.io"
-        # @section -- ClickHouse
-        registry: docker.io
-        # clickhouse.initContainers.init.image.repository -- Repository of the `init` container image.
+        # clickhouse.initContainers.init.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
         # @default -- "busybox"
         # @section -- ClickHouse
         repository: busybox

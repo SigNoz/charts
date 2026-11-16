@@ -145,3 +145,34 @@ clickhouse:
 Each old key (`clickhouse.securityContext`, the three `custom*Probe` keys, `clickhouse.additionalVolumes`, `clickhouse.additionalVolumeMounts`, and a probe that still has `enabled`, `port` or `path`) makes the install fail with a message naming its replacement.
 
 **Removed key:** `clickhouse.logs.system.image.pullSecrets` has been removed. No template read it; ClickHouse pods take their pull secrets from `clickhouse.imagePullSecrets`. If the old key is still set, the install goes ahead and the notes printed after it ask you to remove the key.
+
+## ClickHouse image keys
+
+The five image blocks under `clickhouse` take the `repository`, `tag` and `pullPolicy` shape. The `registry` key is gone from each.
+
+**Removed keys:** `clickhouse.image.registry`, `clickhouse.logs.system.image.registry`, `clickhouse.initContainers.udf.image.registry`, `clickhouse.initContainers.init.image.registry` and `clickhouse.operatorUpgradeHook.image.registry`.
+
+**Repository carries the registry:** when an image needs a registry, it is part of the repository, as in `registry.k8s.io/kubectl`. Images pulled from Docker Hub name no registry, as in `clickhouse/clickhouse-server`.
+
+Before:
+
+```yaml
+clickhouse:
+  image:
+    registry: my.registry
+    repository: clickhouse/clickhouse-server
+```
+
+After:
+
+```yaml
+clickhouse:
+  image:
+    repository: my.registry/clickhouse/clickhouse-server
+```
+
+**Mirrors:** `global.imageRegistry` replaces a registry found at the front of the repository, so a mirrored install keeps the defaults unchanged and sets only `global.imageRegistry`. With `global.imageRegistry: my.registry`, the operator upgrade hook pulls `my.registry/kubectl`, not `my.registry/registry.k8s.io/kubectl`.
+
+Each of the four keys that existed before this release, when set to a non-empty value, makes the install fail with a message naming the replacement. The operator upgrade hook block is new in this release, so it has no old key to reject.
+
+**ClickHouse pods:** the rendered ClickHouse pod template changes from `docker.io/clickhouse/clickhouse-server:<tag>` to `clickhouse/clickhouse-server:<tag>`. This is the same image, but the pod template changes, so the ClickHouse pods roll once on this upgrade. The label change in this release already rolls them, so the upgrade adds no extra restart.
