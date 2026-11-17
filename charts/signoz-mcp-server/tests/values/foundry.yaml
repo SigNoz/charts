@@ -1,0 +1,15 @@
+# A values file in the shape foundry writes for this chart. Every env entry has a
+# plain string value, as foundry's MCP molding writes them, and SIGNOZ_URL has the
+# http://<name>:8080 form foundry builds from the SigNoz apiserver address.
+fullnameOverride: signoz-mcp
+image:
+  repository: registry.example.com/signoz/signoz-mcp-server
+  tag: v0.18.0
+replicaCount: 2
+env:
+  - name: TRANSPORT_MODE
+    value: http
+  - name: MCP_SERVER_PORT
+    value: "8000"
+  - name: SIGNOZ_URL
+    value: http://signoz:8080
