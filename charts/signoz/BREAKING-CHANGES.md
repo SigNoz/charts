@@ -25,7 +25,7 @@ The `signoz` chart now depends on `altinity-clickhouse-operator` 0.27.4 from `ht
 
 ### What happens to objects on the upgrade
 
-- **Operator Deployment.** Its selector changed, and a Deployment selector cannot be changed in place. A pre-upgrade hook Job deletes `<release>-clickhouse-operator`, and Helm creates it again with the same name. Expect a few seconds without an operator. ClickHouse keeps serving. On later upgrades the Job finds nothing to delete.
+- **Operator Deployment.** Its selector changed, and a Deployment selector cannot be changed in place. A pre-upgrade hook Job deletes the operator Deployment the old chart created (`<release>-clickhouse-operator`, or `<release>-clickhouse-<name>` when `clickhouse.clickhouseOperator.name` was set), and Helm creates `<release>-clickhouse-operator`. Expect a few seconds without an operator. ClickHouse keeps serving. On later upgrades the Job finds nothing to delete.
 - **Hook turned off.** If `clickhouse.operatorUpgradeHook.enabled: false` is set, delete the Deployment by hand right before the upgrade:
 
   ```sh

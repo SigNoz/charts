@@ -30,10 +30,18 @@ tests:
           value: registry.k8s.io/kubectl:v1.36.3
       - contains:
           path: spec.template.spec.containers[0].args
-          content: --selector=app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=signoz,app.kubernetes.io/component=operator
+          content: --selector=app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=signoz,app.kubernetes.io/component
       - contains:
           path: spec.template.spec.containers[0].args
           content: --ignore-not-found=true
+  - it: should match the pre-Altinity Deployment under clickhouse.nameOverride
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      clickhouse.nameOverride: ch
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --selector=app.kubernetes.io/name=ch,app.kubernetes.io/instance=signoz,app.kubernetes.io/component
   - it: should use the global image registry when set
     template: templates/clickhouse/hooks/operator-upgrade/job.yaml
     set:
