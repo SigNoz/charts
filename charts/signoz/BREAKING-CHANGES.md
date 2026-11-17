@@ -247,7 +247,7 @@ This guide starts from a release that has already been upgraded to chart version
 - `keeper.replicaCount` is 1 or unset.
 - The chart's ZooKeeper is 3.7; the converter needs 3.4 or later.
 
-If the release has not been upgraded yet, do that first, with `zookeeper.enabled: true`, and come back here.
+If the release has not been upgraded yet, do that first, in one of the two ways described in "ClickHouse Keeper replaces ZooKeeper" above, and come back here.
 
 **What to know**
 
@@ -859,7 +859,7 @@ The last query returns `0`. Run this on every ClickHouse pod that reports read-o
 
 #### If you upgraded without `zookeeper.enabled: true`
 
-An existing install upgraded to this chart version with values that never set `zookeeper.enabled` gets Keeper with an empty tree. Helm has removed the ZooKeeper StatefulSet and Services, the claim `data-<release>-zookeeper-0` is retained, and every replicated table is read-only. No data is lost.
+An install that already has the Keeper CRD and is upgraded with values that drop `zookeeper.enabled` without migrating gets Keeper with an empty tree. Helm has removed the ZooKeeper StatefulSet and Services, the claim `data-<release>-zookeeper-0` is retained, and every replicated table is read-only. No data is lost.
 
 The way back is to turn ZooKeeper on again. In your values file:
 
