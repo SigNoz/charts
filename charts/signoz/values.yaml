@@ -843,6 +843,7 @@ clickhouse:
 keeper:
   # keeper.enabled -- Install ClickHouse Keeper.
   # Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false.
+  # On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper
   # @default -- true
   # @section -- ClickHouse Keeper
   enabled: true
@@ -978,7 +979,7 @@ keeper:
 # @section -- ZooKeeper
 zookeeper:
   # zookeeper.enabled -- Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off.
-  # An existing install that runs ZooKeeper sets this to true for the upgrade and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper
+  # An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper
   # @default -- false
   # @section -- ZooKeeper
   enabled: false

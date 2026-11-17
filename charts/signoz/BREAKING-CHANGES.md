@@ -201,9 +201,17 @@ Each of the four keys that existed before this release, when set to a non-empty 
 
 ClickHouse Keeper is now the default coordination store: `keeper.enabled: true` renders a ClickHouseKeeperInstallation that the ClickHouse operator manages. The bundled ZooKeeper is off by default (`zookeeper.enabled: false`) and deprecated. It is kept for installs that have not migrated yet.
 
-- **Installs that run ZooKeeper:** set `zookeeper.enabled: true` for this upgrade, and keep it until the install has migrated to Keeper.
-- **Values that never set `zookeeper.enabled`:** the upgrade brings up Keeper with an empty tree and removes the ZooKeeper StatefulSet and Services. The claim `data-<release>-zookeeper-0` is retained, every replicated table goes read-only, and no data is lost. To recover, set `zookeeper.enabled: true` again, upgrade without hooks and delete the ClickHouse pods, as shown in "If you upgraded without `zookeeper.enabled: true`" below.
+- **First upgrade of an existing install:** the upgrade needs one of these two. Either way, keep `zookeeper.enabled: true` until the install has migrated to Keeper.
+  - **Stay on ZooKeeper for now:** set `zookeeper.enabled: true` and `keeper.enabled: false`. The upgrade goes through, and its CRD hook adds the Keeper CRD anyway, but no Keeper object is created. When you migrate, step 2 of the guide below turns Keeper on with `keeper.enabled: true`.
+  - **Prepare Keeper in the same upgrade:** apply Altinity's Keeper CRD first, then upgrade with `zookeeper.enabled: true`. Keeper comes up idle beside ZooKeeper, and ClickHouse stays on ZooKeeper. When you migrate, step 2 of the guide below only checks Keeper.
+
+    ```bash
+    kubectl apply -f https://github.com/Altinity/clickhouse-operator/raw/release-0.27.4/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhousekeeperinstallations.clickhouse-keeper.altinity.com.yaml
+    ```
+
+- **Why:** Helm checks every object the chart renders against the cluster before it runs any hook, so the Keeper CRD must already exist or the ClickHouseKeeperInstallation must not be rendered. The CRD hook adds the Keeper CRD only after that check. An upgrade with neither, such as values that never set these keys or that set only `zookeeper.enabled: true`, is refused with `no matches for kind "ClickHouseKeeperInstallation"`, and nothing on the cluster changes. Add one of the two above and run the upgrade again.
 - **ZooKeeper pod:** on installs that keep ZooKeeper, the upgrade restarts the ZooKeeper pod once, because the deprecated ZooKeeper chart has a new version and its `helm.sh/chart` label is on the pod template. ClickHouse reconnects once.
+- **Dropping ZooKeeper without migrating:** the read-only state described in "If you upgraded without `zookeeper.enabled: true`" below applies only once the Keeper CRD exists and an upgrade drops `zookeeper.enabled` without migrating.
 
 ### Migrating from ZooKeeper to ClickHouse Keeper
 
@@ -234,7 +242,7 @@ This guide starts from a release that has already been upgraded to chart version
 
 - ClickHouse still runs on ZooKeeper, because the chart prefers ZooKeeper while both stores are on.
 - That upgrade restarted the ZooKeeper pod once (the chart's deprecation bump changes its pod template), so ClickHouse reconnected once; by the time you start here `system.zookeeper_connection` shows `is_expired` 0 and no table is read-only. Step 1 checks the connection and step 4 the read-only count.
-- Keeper is either on (`keeper.enabled: true`, the chart default), running idle beside ZooKeeper with an empty tree, or off (`keeper.enabled: false`), for installs that deferred it. Both are fine. Step 2 turns it on if it is off, and checks it.
+- Keeper is in one of the two states the first upgrade leaves it in, as described in "ClickHouse Keeper replaces ZooKeeper" above: off (`keeper.enabled: false`) if the release stayed on ZooKeeper, or on (`keeper.enabled: true`, the chart default) and running idle beside ZooKeeper with an empty tree if the Keeper CRD was applied before the upgrade. Both are fine. Step 2 turns it on if it is off, and checks it.
 - ZooKeeper values live at `zookeeper.*`, not `clickhouse.zookeeper.*`.
 - `keeper.replicaCount` is 1 or unset.
 - The chart's ZooKeeper is 3.7; the converter needs 3.4 or later.
