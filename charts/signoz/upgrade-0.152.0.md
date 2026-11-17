@@ -11,6 +11,7 @@ Chart 0.152.0 folds `charts/clickhouse` into `charts/signoz`, renders ClickHouse
 | Set `clickhouse.clickhouseOperator.*` in your values | [3. Operator values](#3-operator-values) |
 | Set a system log table's `ttl` or `flushInterval` in your values | [4. System log tables](#4-system-log-tables) |
 | Set any key from the moved-keys table in your values | [5. Moved keys](#5-moved-keys) |
+| Set `clickhouse.logs.system.enabled: true` in your values | [5. Moved keys](#5-moved-keys) |
 | Set `clickhouse.fullnameOverride`, `clickhouse.nameOverride` or `clickhouse.namespace` in your values, or use a release name that contains `clickhouse` | [6. Names and namespaces](#6-names-and-namespaces) |
 | Have something outside the chart that names, selects or watches chart objects | [7. Objects](#7-objects) |
 | Set `global.imageRegistry` or `global.imagePullSecrets` | [8. Registry and pull secrets](#8-registry-and-pull-secrets) |
@@ -47,7 +48,7 @@ Helm maps every rendered object against the cluster before any hook runs, so an 
 
 During the upgrade, a pre-upgrade hook replaces the old operator Deployment with the 0.27.4 one, and Altinity's CRD hook adds the Keeper CRD ([section 9](#9-hooks-and-deployers)).
 
-The ClickHouse pods roll once, because their pod template now carries only the selector labels and names the image `clickhouse/clickhouse-server` instead of `docker.io/clickhouse/clickhouse-server`. The ZooKeeper pod rolls once, because its pod template carries the ZooKeeper chart's new version `0.0.2`.
+The ClickHouse pods roll once, because their pod template now carries only the selector labels, names the image `clickhouse/clickhouse-server` instead of `docker.io/clickhouse/clickhouse-server`, runs the `<clickhouse.fullname>-udf-init` init container on that image instead of `docker.io/alpine:3.18.2`, and has no `scripts` volume or `/scripts` mount; with `clickhouse.logs.system.enabled: true`, it also has no `lifecycle.postStart` hook and runs the sidecar as `signoz/signoz-otel-collector:v0.144.15` with the command `/signoz-otel-collector`, instead of `docker.io/signoz/signoz-otel-collector:0.111.16` with `/signoz-collector`. The ZooKeeper pod rolls once, because its pod template carries the ZooKeeper chart's new version `0.0.2`.
 
 ### You must
 
@@ -281,11 +282,16 @@ ClickHouse values take the Kubernetes shape and are rendered as given:
 - The pod and container security contexts are two keys.
 - Extra volumes are `extraVolumes` and `extraVolumeMounts`.
 - An image block is `repository`, `tag` and `pullPolicy`, with any registry at the front of `repository`.
+- Your own init containers are `clickhouse.extraInitContainers`, a list of Container objects.
 
 `zookeeper.enabled` unset now means no ZooKeeper. Keys under `clickhouse.zookeeper` are in [section 2](#2-zookeeper-values), and keys under `clickhouse.clickhouseOperator` are in [sections 3](#3-operator-values) and [4](#4-system-log-tables).
 
 > [!NOTE]
 > A probe or security context set to `null` renders none, while an empty map keeps the defaults, because Helm merges maps. A probe has one handler, so a non-HTTP probe also sets `httpGet: null`.
+
+The histogramQuantile download is `clickhouse.udf`, and it runs on the ClickHouse image. Its init container, `<clickhouse.fullname>-udf-init`, mounts the user scripts volume `shared-binary-volume` at `/var/lib/clickhouse/user_scripts`. Entries in `clickhouse.extraInitContainers` run after it and mount only the volumes they list. Any key under `clickhouse.initContainers` fails the render with a message naming `clickhouse.udf` and `clickhouse.extraInitContainers`.
+
+The system logs sidecar (`clickhouse.logs.system`, off by default) runs `signoz/signoz-otel-collector:v0.144.15` with the command `/signoz-otel-collector`. Its default config has no `service.telemetry.metrics` block, because `v0.144.15` rejects that block's `address` key. Overrides of existing keys under `clickhouse.logs.system.config`, such as an exporter endpoint or a batch size, merge as before. With the default config, the sidecar logs one warning on start: `"otlp" alias is deprecated; use "otlp_grpc" instead`.
 
 | Old key | New key | What to write | If you keep the old key |
 | --- | --- | --- | --- |
@@ -298,9 +304,13 @@ ClickHouse values take the Kubernetes shape and are rendered as given:
 | `clickhouse.additionalVolumeMounts` | `clickhouse.extraVolumeMounts` | The same list | Fails the render when set |
 | `clickhouse.image.registry` | None | The registry at the front of `clickhouse.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
 | `clickhouse.logs.system.image.registry` | None | The registry at the front of `clickhouse.logs.system.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
-| `clickhouse.initContainers.udf.image.registry` | None | The registry at the front of `clickhouse.initContainers.udf.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
-| `clickhouse.initContainers.init.image.registry` | None | The registry at the front of `clickhouse.initContainers.init.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
+| `clickhouse.initContainers.enabled` | `clickhouse.udf.enabled` | `clickhouse.udf.enabled: false` for `enabled: false` | Fails the render when present |
+| `clickhouse.initContainers.udf.*` | `clickhouse.udf.enabled`, `clickhouse.udf.command` | `enabled` and `command`, unchanged; no `image`, because the container runs `clickhouse.image`, so a replaced `command` runs there too; [section 8](#8-registry-and-pull-secrets) has examples for a cluster without GitHub access | Fails the render when present |
+| `clickhouse.initContainers.init.*` | `clickhouse.extraInitContainers` | A replaced `command` as an entry with its own `name`, `image`, `command` and any `volumeMounts` it needs; nothing for the shipped `command`, which calls `curl` on `busybox:1.35`, an image without `curl` | Fails the render when present |
 | `clickhouse.logs.system.image.pullSecrets` | None | Nothing; ClickHouse pods take `clickhouse.imagePullSecrets` | Goes through; the notes after the upgrade ask you to remove it |
+| `clickhouse.logs.system.image.tag`, default `0.111.16` | `clickhouse.logs.system.image.tag`, default `v0.144.15` | Nothing; the sidecar's command is now `/signoz-otel-collector`, the binary `v0.144.15` ships | Goes through silently |
+| `clickhouse.logs.system.config.service.telemetry.metrics.address` | None | Nothing; `v0.144.15` rejects the key | Goes through; the sidecar fails at start with `'service.telemetry.metrics' decoding failed ... has invalid keys: address` |
+| Components under `clickhouse.logs.system.config` from `ballastextension`, `carbonexporter`, `clickhousemetricsexporter`, `clickhousemetricsexporterv2`, `loggingexporter`, `opencensusexporter`, `opencensusreceiver`, `routingprocessor` or `sapmreceiver` | None | Nothing; `v0.144.15` no longer has these components | Goes through; the sidecar fails at start |
 | `clickhouse.replicasCount`, `clickhouse.shardsCount` | `clickhouse.layout.replicasCount`, `clickhouse.layout.shardsCount` | Nothing; `clickhouse.layout.*` was already the key in use | Goes through silently |
 | `clickhouse.global.*` | `global.*` | Nothing; `global.*` was already the key in use | Goes through silently |
 | `zookeeper.enabled`, unset (was `clickhouse.zookeeper.enabled`, default `true`) | `zookeeper.enabled`, default `false` | `true` while ClickHouse runs on the bundled ZooKeeper ([section 1](#1-the-first-upgrade)) | Goes through and renders no ZooKeeper |
@@ -346,6 +356,16 @@ helm template <release> signoz/signoz --version 0.152.0 -n <namespace> -f values
 ```
 
 It prints nothing and exits 0.
+
+With `clickhouse.logs.system.enabled: true`, after the upgrade:
+
+```bash
+kubectl get pods -n <namespace> -l clickhouse.altinity.com/chi=<clickhouse.fullname> -o jsonpath='{.items[0].spec.containers[1].image}'
+```
+
+```text
+signoz/signoz-otel-collector:v0.144.15
+```
 
 ## 6. Names and namespaces
 
@@ -416,7 +436,7 @@ Something outside the chart (a NetworkPolicy, PodMonitor, ServiceMonitor, admiss
 
 ### What changes
 
-The table lists every chart object whose name, labels, ports, namespace or management changes. In an old name, `operator` is `clickhouse.clickhouseOperator.name` when your values set it. To keep an operator name, see [section 6](#6-names-and-namespaces).
+The table lists every chart object whose name, labels, containers, ports, namespace or management changes. In an old name, `operator` is `clickhouse.clickhouseOperator.name` when your values set it. To keep an operator name, see [section 6](#6-names-and-namespaces).
 
 The operator renames the ClickHouse PodDisruptionBudget from `<clickhouse.fullname>-<clickhouse.cluster>` to `chi-<clickhouse.fullname>-<clickhouse.cluster>`.
 
@@ -431,8 +451,11 @@ The operator renames the ClickHouse PodDisruptionBudget from `<clickhouse.fullna
 | Operator ServiceMonitor, when enabled | `<clickhouse.fullname>-operator-metrics`, endpoint port `<clickhouse.fullname>-operator-metrics` | `<release>-clickhouse-operator-clickhouse-metrics`, endpoint ports `ch-metrics` and `op-metrics` | Rules and dashboards keyed on the job or endpoint |
 | Operator objects' namespace, with `clickhouse.namespace` set | `clickhouse.namespace`, the Secret in the release namespace | With `namespaceOverride`, `clickhouse.namespace` for all, the Secret included; with `watchNamespaces`, the release namespace for all, and a ClusterRole and ClusterRoleBinding `<release>-clickhouse-operator` in place of the Role and RoleBinding | NetworkPolicies and RBAC that assume the old namespace |
 | Hook objects | None | `<release>-clickhouse-operator-upgrade` Job, ServiceAccount, Role and RoleBinding (`pre-upgrade`); `<release>-clickhouse-operator-crd-install` Job, ServiceAccount, ClusterRole, ClusterRoleBinding and ConfigMaps `-crds-1` to `-crds-4` (`pre-install`, `pre-upgrade`) | Admission policies: the image `registry.k8s.io/kubectl:v1.36.3` and a ClusterRole for the CRD hook |
-| ClickHouseInstallation, its ConfigMaps `<clickhouse.fullname>-custom-functions` and `-scripts`, its ServiceAccount, and the Service from its template | Labels `helm.sh/chart: clickhouse-24.1.18`, `app.kubernetes.io/version: 24.1.2` | Labels `helm.sh/chart: signoz-<chart version>`, `app.kubernetes.io/version: <clickhouse.image.tag>`; names unchanged | Selectors on `helm.sh/chart` or `app.kubernetes.io/version` |
+| ClickHouseInstallation, its ConfigMap `<clickhouse.fullname>-custom-functions`, its ServiceAccount, and the Service from its template | Labels `helm.sh/chart: clickhouse-24.1.18`, `app.kubernetes.io/version: 24.1.2` | Labels `helm.sh/chart: signoz-<chart version>`, `app.kubernetes.io/version: <clickhouse.image.tag>`; names unchanged | Selectors on `helm.sh/chart` or `app.kubernetes.io/version` |
 | ClickHouse pod template labels | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`, `helm.sh/chart`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by` | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component` | Selectors, affinity and topology spread rules on `helm.sh/chart`, `app.kubernetes.io/version` or `app.kubernetes.io/managed-by` |
+| ClickHouse init container `<clickhouse.fullname>-udf-init` | Image `docker.io/alpine:3.18.2` | Same name; image `clickhouse.image`, `clickhouse/clickhouse-server:25.12.5` by default | Admission policies: the init container image |
+| ClickHouse container | Mount `/scripts` from the pod volume `scripts`; with `clickhouse.logs.system.enabled: true`, a `lifecycle.postStart` hook running `/scripts/wait-until-ready.sh` | No `/scripts` mount, no `scripts` volume and no `lifecycle.postStart` | Anything that runs `/scripts/wait-until-ready.sh` or expects the mount |
+| ConfigMap `<clickhouse.fullname>-scripts` | Holds `wait-until-ready.sh`, mounted at `/scripts` | None | Anything that names it |
 | ClickHouse claims the operator stops tracking | Deleted by the operator's cleanup | Kept (`reconciling.cleanup.unknownObjects.pvc: Retain` on the ClickHouseInstallation) | Delete such claims by hand when the data is no longer wanted |
 | ClickHouseKeeperInstallation | None | `<keeper.fullname>` in `<namespace>`, labels `app.kubernetes.io/name: keeper`, `app.kubernetes.io/component: keeper`, claims kept when the installation or a replica is removed | NetworkPolicies that let ClickHouse reach `keeper-<keeper.fullname>` on port 2181, and backups of its claims |
 | ZooKeeper StatefulSet, Services and ConfigMap | Rendered by default; pod template `helm.sh/chart: zookeeper-0.0.1` | Rendered only with `zookeeper.enabled: true`; annotation `signoz.io/deprecated: "true"`; pod template `helm.sh/chart: zookeeper-0.0.2` | Nothing; see step 3 of [section 1](#1-the-first-upgrade) |
@@ -456,6 +479,14 @@ kubectl get pods -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,ap
 
 It lists the one operator pod, `2/2` `Running`.
 
+For the download init container:
+
+```bash
+kubectl get pods -n <namespace> -l clickhouse.altinity.com/chi=<clickhouse.fullname> -o jsonpath='{.items[0].spec.initContainers[*].image}'
+```
+
+It prints the ClickHouse image, `clickhouse/clickhouse-server:25.12.5` with default values.
+
 ## 8. Registry and pull secrets
 
 ### Applies to
@@ -467,6 +498,8 @@ You set `global.imageRegistry` or `global.imagePullSecrets`.
 The operator, metrics-exporter and CRD hook images, and the operator pod's pull secrets, come from Altinity's chart. That chart reads its own keys under `altinity-clickhouse-operator` and no `global.*` value.
 
 The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, because `global.imageRegistry` replaces the registry at the front of its repository, `registry.k8s.io/kubectl`. The hook's ServiceAccount carries `global.imagePullSecrets` and `clickhouse.imagePullSecrets`.
+
+The histogramQuantile download (`clickhouse.udf`) runs the ClickHouse container's image, so there is no `alpine` image to mirror. It downloads the binary from GitHub.
 
 ### You must
 
@@ -490,6 +523,48 @@ The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, becaus
    ```
 
 2. For the operator upgrade hook, mirror `registry.k8s.io/kubectl:v1.36.3` to `<global.imageRegistry>/kubectl:v1.36.3`.
+
+3. If ClickHouse cannot reach GitHub, bring the histogramQuantile binary one of two ways:
+
+   - **From your own image.** Turn the download off and copy the binary in with an init container that mounts `shared-binary-volume`, the user scripts volume, at `/var/lib/clickhouse/user_scripts`. In this example, `my.registry/histogram-quantile:v0.0.1` is an image you build with the binary from SigNoz/signoz's `histogram-quantile/v0.0.1` release, for your nodes' architecture, at `/histogramQuantile`:
+
+     ```yaml
+     clickhouse:
+       udf:
+         enabled: false
+       extraInitContainers:
+         - name: histogram-quantile
+           image: my.registry/histogram-quantile:v0.0.1
+           command: ["cp", "/histogramQuantile", "/var/lib/clickhouse/user_scripts/histogramQuantile"]
+           volumeMounts:
+             - name: shared-binary-volume
+               mountPath: /var/lib/clickhouse/user_scripts
+     ```
+
+   - **From a mirror.** Keep the download and point it at your mirror. Copy the default `clickhouse.udf.command` from the chart's `values.yaml` and change its `wget` line. `clickhouse.udf.env` and `clickhouse.udf.envFrom` reach the download container, for a proxy setting or a mirror credential from a Secret:
+
+     ```yaml
+     clickhouse:
+       udf:
+         envFrom:
+           - secretRef:
+               name: my-mirror-credentials   # holds MIRROR_TOKEN
+         command:
+           - sh
+           - -c
+           - |
+             set -e
+             version="v0.0.1"
+             node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+             node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+             echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+             cd /tmp
+             wget --header "Authorization: Bearer ${MIRROR_TOKEN}" -O histogram-quantile.tar.gz "https://my.mirror/histogram-quantile/${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+             tar -xzf histogram-quantile.tar.gz
+             chmod +x histogram-quantile
+             mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+             echo "histogram-quantile installed successfully"
+     ```
 
 ### You will see
 
