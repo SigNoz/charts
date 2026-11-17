@@ -75,7 +75,7 @@ spec:
               {{- with .Values.keeper.resources }}
               resources: {{ toYaml . | nindent 16 }}
               {{- end }}
-              {{- with .Values.keeper.securityContext }}
+              {{- with .Values.keeper.containerSecurityContext }}
               securityContext: {{ toYaml . | nindent 16 }}
               {{- end }}
     volumeClaimTemplates:

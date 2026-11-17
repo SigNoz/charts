@@ -26,7 +26,7 @@ tests:
       - notContains:
           path: spec.configuration.zookeeper.nodes
           content:
-            host: keeper-signoz-clickhouse-keeper
+            host: keeper-signoz-keeper
             port: 2181
   - it: uses the ZooKeeper headless Service when zookeeper.enabled
     template: templates/clickhouse/clickhouseinstallation.yaml
@@ -70,7 +70,7 @@ tests:
       - equal:
           path: spec.configuration.zookeeper.nodes
           value:
-            - host: keeper-signoz-clickhouse-keeper
+            - host: keeper-signoz-keeper
               port: 2181
   - it: renames the Keeper installation and the host together with keeper.fullnameOverride
     set:
