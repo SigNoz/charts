@@ -1468,7 +1468,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
 </div>
             </td>
-            <td>Install ClickHouse Keeper. Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false. On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper</td>
+            <td>Install ClickHouse Keeper. Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false. On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade</td>
         </tr>
         <tr>
             <td id="keeper--name"><a href="./values.yaml#L853">keeper.name</a></td>
@@ -1749,7 +1749,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
 </div>
             </td>
-            <td>Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off. An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper</td>
+            <td>Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off. An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade</td>
         </tr>
         <tr>
             <td id="zookeeper--commonAnnotations"><a href="./values.yaml#L989">zookeeper.commonAnnotations</a></td>

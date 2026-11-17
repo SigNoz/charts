@@ -49,6 +49,6 @@ ClickHouse coordinates through ClickHouse Keeper at {{ include "keeper.clientHos
 {{- if .Values.zookeeper.enabled }}
 
 ZooKeeper is deprecated and ClickHouse Keeper replaces it. Keep zookeeper.enabled: true until you migrate; the guide is at
-https://github.com/SigNoz/charts/blob/main/charts/signoz/BREAKING-CHANGES.md#clickhouse-keeper-replaces-zookeeper
+https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#11-zookeeper-to-clickhouse-keeper
 {{- end }}
 Docs: https://signoz.io/docs/install/kubernetes/
