@@ -1,0 +1,1429 @@
+# Upgrade the SigNoz chart to 0.152.0
+
+Chart 0.152.0 folds `charts/clickhouse` into `charts/signoz`, renders ClickHouse from `charts/signoz`, and installs the ClickHouse Operator as a dependency from Altinity's chart `altinity-clickhouse-operator` 0.27.4 ([#948](https://github.com/SigNoz/charts/pull/948)). ClickHouse Keeper replaces ZooKeeper as ClickHouse's coordination store ([#956](https://github.com/SigNoz/charts/pull/956)). [#958](https://github.com/SigNoz/charts/issues/958) and [#959](https://github.com/SigNoz/charts/issues/959) explain why.
+
+## Find your sections
+
+| If you | Read |
+| --- | --- |
+| Upgrade from 0.151.0 or earlier (every install) | [1. The first upgrade](#1-the-first-upgrade) |
+| Set `clickhouse.zookeeper.*` in your values | [2. ZooKeeper values](#2-zookeeper-values) |
+| Set `clickhouse.clickhouseOperator.*` in your values | [3. Operator values](#3-operator-values) |
+| Set a system log table's `ttl` or `flushInterval` in your values | [4. System log tables](#4-system-log-tables) |
+| Set any key from the moved-keys table in your values | [5. Moved keys](#5-moved-keys) |
+| Set `clickhouse.fullnameOverride`, `clickhouse.nameOverride` or `clickhouse.namespace` in your values, or use a release name that contains `clickhouse` | [6. Names and namespaces](#6-names-and-namespaces) |
+| Have something outside the chart that names, selects or watches chart objects | [7. Objects](#7-objects) |
+| Set `global.imageRegistry` or `global.imagePullSecrets` | [8. Registry and pull secrets](#8-registry-and-pull-secrets) |
+| Run the operator yourself, turn a hook off, or deploy through Argo CD or Terraform | [9. Hooks and deployers](#9-hooks-and-deployers) |
+| Run an external ZooKeeper | [10. External ZooKeeper](#10-external-zookeeper) |
+| Plan to move from ZooKeeper to ClickHouse Keeper | [11. ZooKeeper to ClickHouse Keeper](#11-zookeeper-to-clickhouse-keeper) |
+| Plan to uninstall or roll back | [12. Uninstall and rollback](#12-uninstall-and-rollback) |
+
+Commands in this guide use these placeholders:
+
+- `<release>`: your release name.
+- `<namespace>`: the namespace the object lives in. This is the release namespace, or `clickhouse.namespace` when you set it.
+- `<clickhouse.name>`: `clickhouse.nameOverride`, or `clickhouse` when that is unset.
+- `<clickhouse.fullname>`: the name of your ClickHouseInstallation, `<release>-clickhouse` by default.
+- `<keeper.fullname>`: the name of your ClickHouseKeeperInstallation, `<release>-keeper` by default.
+
+To list both installations with their names, run:
+
+```bash
+kubectl get chi,chk -n <namespace> -l app.kubernetes.io/instance=<release>
+```
+
+## 1. The first upgrade
+
+### Applies to
+
+Every install upgrading from 0.151.0 or earlier.
+
+### What changes
+
+The chart installs ClickHouse Keeper unless `keeper.enabled: false`, and installs the bundled ZooKeeper only with `zookeeper.enabled: true`.
+
+Helm maps every rendered object against the cluster before any hook runs, so an existing install's first upgrade is refused while the chart renders a ClickHouseKeeperInstallation and the Keeper CRD is missing.
+
+During the upgrade, a pre-upgrade hook replaces the old operator Deployment with the 0.27.4 one, and Altinity's CRD hook adds the Keeper CRD ([section 9](#9-hooks-and-deployers)).
+
+The ClickHouse pods roll once, because their pod template now carries only the selector labels and names the image `clickhouse/clickhouse-server` instead of `docker.io/clickhouse/clickhouse-server`. The ZooKeeper pod rolls once, because its pod template carries the ZooKeeper chart's new version `0.0.2`.
+
+### You must
+
+1. Pick one of two routes for this upgrade and write it into your values file. If you run an external ZooKeeper, do [section 10](#10-external-zookeeper) instead of this step.
+
+   - **Stay on ZooKeeper with Keeper off.** Set:
+
+     ```yaml
+     zookeeper:
+       enabled: true
+     keeper:
+       enabled: false
+     ```
+
+   - **Prepare Keeper beside ZooKeeper.** Apply Altinity's Keeper CRD, then upgrade with ZooKeeper on. Keeper comes up idle, and ClickHouse stays on ZooKeeper.
+
+     ```bash
+     kubectl apply -f https://github.com/Altinity/clickhouse-operator/raw/release-0.27.4/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhousekeeperinstallations.clickhouse-keeper.altinity.com.yaml
+     ```
+
+     ```yaml
+     zookeeper:
+       enabled: true
+     ```
+
+2. After you finish every other section that applies to you, upgrade:
+
+   ```bash
+   helm upgrade <release> signoz/signoz --version 0.152.0 -n <namespace> -f values.yaml
+   ```
+
+3. Keep `zookeeper.enabled: true` in your values until [section 11](#11-zookeeper-to-clickhouse-keeper) is done.
+
+> [!WARNING]
+> Once the Keeper CRD exists, an upgrade without `zookeeper.enabled: true` and with Keeper on points ClickHouse at an empty Keeper, and every replicated table goes read-only. The way back is in section 11, under [If you upgraded without `zookeeper.enabled: true`](#if-you-upgraded-without-zookeeperenabled-true).
+
+### You will see
+
+- Without either route, `helm upgrade` stops with `no matches for kind "ClickHouseKeeperInstallation" in version "clickhouse-keeper.altinity.com/v1"`. The release stays at its old revision, with its pods untouched. `helm upgrade --no-hooks` stops the same way.
+- During the upgrade, the operator hook logs `deployment.apps "<old operator Deployment>" deleted from <namespace> namespace`.
+- During the upgrade, the CRD hook logs `serverside-applied` for four CRDs, `clickhousekeeperinstallations.clickhouse-keeper.altinity.com` among them.
+- The ClickHouse, ZooKeeper, signoz and otel-collector pods are each recreated once. Every pod is Ready about 3 minutes after `helm upgrade` returns.
+- A table seeded with 1000 rows before the upgrade holds the same 1000 rows after it, and no replica is read-only.
+- The notes printed after the upgrade say `3. ClickHouse coordinates through ZooKeeper.` and end with the ZooKeeper deprecation notice.
+- With Keeper on beside ZooKeeper, the ClickHouseKeeperInstallation reports `Completed` about a minute after `helm upgrade` returns. Keeper holds 4 znodes, no other pod restarts, and ClickHouse stays on ZooKeeper.
+
+### Verify
+
+```bash
+kubectl get chi -n <namespace> -l app.kubernetes.io/instance=<release>
+```
+
+`STATUS` is `Completed` and `VERSION` is `0.27.4`.
+
+## 2. ZooKeeper values
+
+### Applies to
+
+Your values set any key under `clickhouse.zookeeper`.
+
+### What changes
+
+The bundled ZooKeeper is a dependency of `charts/signoz` itself, so its values live at the top-level `zookeeper` key, under the same names as before. Any key under `clickhouse.zookeeper` fails the render with a message naming `zookeeper.*`. ClickHouse's coordination hosts render as before.
+
+### You must
+
+1. Move every key under `clickhouse.zookeeper` to the top-level `zookeeper` key, unchanged.
+2. Delete `clickhouse.zookeeper.enabled: false` instead of moving it. ZooKeeper is off while `zookeeper.enabled` is unset. For an external ZooKeeper, see [section 10](#10-external-zookeeper).
+3. Plan the move to ClickHouse Keeper in [section 11](#11-zookeeper-to-clickhouse-keeper). The bundled ZooKeeper chart is deprecated, and a later release removes it. [#958](https://github.com/SigNoz/charts/issues/958) announces when.
+
+### You will see
+
+A release on 0.149.0 with `clickhouse.zookeeper.replicaCount: 3`, upgraded with `zookeeper.replicaCount: 3`, kept its three ZooKeeper pods, its three `data-<release>-zookeeper-<n>` claims and the same three coordination hosts in its ClickHouseInstallation.
+
+### Verify
+
+```bash
+kubectl get chi -n <namespace> -l app.kubernetes.io/instance=<release> -o jsonpath='{.items[0].spec.configuration.zookeeper}'
+```
+
+It prints one host per ZooKeeper replica, as before the upgrade:
+
+```text
+{"nodes":[{"host":"<release>-zookeeper-0.<release>-zookeeper-headless","port":2181}]}
+```
+
+## 3. Operator values
+
+### Applies to
+
+Your values set any key under `clickhouse.clickhouseOperator`.
+
+### What changes
+
+The operator comes from Altinity's chart `altinity-clickhouse-operator` 0.27.4. It takes its settings under the top-level `altinity-clickhouse-operator` key, in Altinity's key names. Any key under `clickhouse.clickhouseOperator` fails the render with a message naming `altinity-clickhouse-operator.*`. The operator and metrics-exporter images are `0.27.4`.
+
+The pre-upgrade hook deletes the old operator Deployment. It selects that Deployment by the presence of its `app.kubernetes.io/component` label, whatever value `clickhouse.clickhouseOperator.name` gave it.
+
+### You must
+
+1. Move each key under `altinity-clickhouse-operator`, as this table shows:
+
+   | Old key under `clickhouse.clickhouseOperator` | New key under `altinity-clickhouse-operator` | Notes |
+   | --- | --- | --- |
+   | `image.registry` | `operator.image.registry` | |
+   | `image.repository` | `operator.image.repository` | |
+   | `image.pullPolicy` | `operator.image.pullPolicy` | |
+   | `image.tag`, `metricsExporter.image.tag`, `version` | None | Leave them out so both images run `0.27.4` |
+   | `imagePullSecrets` | `imagePullSecrets` | As Kubernetes objects (`- name: <secret>`) |
+   | `env` | `operator.env` | |
+   | `metricsExporter.image.registry` | `metrics.image.registry` | |
+   | `metricsExporter.image.repository` | `metrics.image.repository` | |
+   | `metricsExporter.image.pullPolicy` | `metrics.image.pullPolicy` | |
+   | `metricsExporter.env` | `metrics.env` | |
+   | `metricsExporter.name`, `metricsExporter.service.type`, `metricsExporter.service.annotations`, `metricsExporter.service.port`, `service.enabled` | None | [Section 7](#7-objects) describes the metrics Service |
+   | `serviceAccount.*`, `secret.*`, `podLabels`, `podAnnotations`, `nodeSelector`, `tolerations`, `affinity`, `topologySpreadConstraints`, `podSecurityContext` | The same names | |
+   | `priorityClassName` | `operator.priorityClassName` | |
+   | `labels` | `commonLabels` | Reaches every operator object |
+   | `annotations` | `commonAnnotations` | Reaches every operator object |
+   | `serviceMonitor.enabled`, `serviceMonitor.additionalLabels` | The same names | |
+   | `serviceMonitor.interval`, `serviceMonitor.scrapeTimeout`, `serviceMonitor.relabelings`, `serviceMonitor.metricRelabelings` | `serviceMonitor.clickhouseMetrics.*` and `serviceMonitor.operatorMetrics.*` | One block per endpoint |
+   | `configs.confdFiles` | `configs.confdFiles` | |
+   | `logger.*`, and the system log tables' `ttl` and `flushInterval` | See [section 4](#4-system-log-tables) | |
+   | `name` | None | To keep a custom value on the pod, set `podLabels."app.kubernetes.io/component"`. [Section 6](#6-names-and-namespaces) says how to keep the object names |
+
+2. Delete the `clickhouse.clickhouseOperator` block.
+
+### You will see
+
+The operator pod runs two containers, `altinity/clickhouse-operator:0.27.4` and `altinity/metrics-exporter:0.27.4`, and reports `2/2 Running`.
+
+### Verify
+
+```bash
+kubectl get deployment -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release> -o jsonpath='{.items[0].spec.template.spec.containers[*].image}'
+```
+
+```text
+altinity/clickhouse-operator:0.27.4 altinity/metrics-exporter:0.27.4
+```
+
+## 4. System log tables
+
+### Applies to
+
+Your values set `ttl` or `flushInterval` for a system log table under `clickhouse.clickhouseOperator`, or a key under `clickhouse.clickhouseOperator.logger`.
+
+### What changes
+
+The fourteen `clickhouse.clickhouseOperator.<table>.ttl` and `.flushInterval` pairs, and the `logger` keys, have no replacement keys. Each table's configuration is a whole file: a value under `altinity-clickhouse-operator.configs.configdFiles.<file>`, written as the operator reads it. The default files carry the same TTLs and flush intervals as the old defaults. A file set to `null` leaves that table unconfigured.
+
+### You must
+
+1. For each table you tuned, copy its default file from the chart's `values.yaml` into your values. Write your TTL, in days, into the `engine` line, and your flush interval, in milliseconds, into `flush_interval_milliseconds`. Each old key has one file:
+
+   | Old key | File |
+   | --- | --- |
+   | `logger` | `01-clickhouse-02-logger.xml` |
+   | `queryLog` | `01-clickhouse-03-query_log.xml` |
+   | `partLog` | `01-clickhouse-04-part_log.xml` |
+   | `traceLog` | `01-clickhouse-05-trace_log.xml` |
+   | `asynchronousInsertLog` | `01-clickhouse-06-asynchronous_insert_log.xml` |
+   | `asynchronousMetricLog` | `01-clickhouse-07-asynchronous_metric_log.xml` |
+   | `backupLog` | `01-clickhouse-08-backup_log.xml` |
+   | `blobStorageLog` | `01-clickhouse-09-blob_storage_log.xml` |
+   | `crashLog` | `01-clickhouse-10-crash_log.xml` |
+   | `metricLog` | `01-clickhouse-11-metric_log.xml` |
+   | `queryThreadLog` | `01-clickhouse-12-query_thread_log.xml` |
+   | `queryViewsLog` | `01-clickhouse-13-query_views_log.xml` |
+   | `sessionLog` | `01-clickhouse-14-session_log.xml` |
+   | `zookeeperLog` | `01-clickhouse-15-zookeeper_log.xml` |
+   | `processorsProfileLog` | `01-clickhouse-16-processors_profile_log.xml` |
+
+   The default for `01-clickhouse-04-part_log.xml` is in Altinity's chart. To see it, run:
+
+   ```bash
+   helm show values altinity-clickhouse-operator --repo https://helm.altinity.com --version 0.27.4
+   ```
+
+   For example, `clickhouse.clickhouseOperator.zookeeperLog.ttl: 1` becomes:
+
+   ```yaml
+   altinity-clickhouse-operator:
+     configs:
+       configdFiles:
+         01-clickhouse-15-zookeeper_log.xml: |
+           <yandex>
+               <zookeeper_log replace="1">
+                   <database>system</database>
+                   <table>zookeeper_log</table>
+                   <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 1 day</engine>
+                   <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+               </zookeeper_log>
+           </yandex>
+   ```
+
+2. To leave a table unconfigured, set its file to `null`:
+
+   ```yaml
+   altinity-clickhouse-operator:
+     configs:
+       configdFiles:
+         01-clickhouse-15-zookeeper_log.xml: null
+   ```
+
+3. Delete the `ttl`, `flushInterval` and `logger` keys from `clickhouse.clickhouseOperator`.
+
+### You will see
+
+The kind runs kept the default files. The Verify command shows the files the operator received.
+
+### Verify
+
+```bash
+kubectl get configmap -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release> -o yaml | grep 'TTL event_date'
+```
+
+It prints one `engine` line per configured table, fourteen with the defaults, each with the TTL you wrote.
+
+## 5. Moved keys
+
+### Applies to
+
+Your values set a key in the table below.
+
+### What changes
+
+ClickHouse values take the Kubernetes shape and are rendered as given:
+
+- Probes are probe objects.
+- The pod and container security contexts are two keys.
+- Extra volumes are `extraVolumes` and `extraVolumeMounts`.
+- An image block is `repository`, `tag` and `pullPolicy`, with any registry at the front of `repository`.
+
+`zookeeper.enabled` unset now means no ZooKeeper. Keys under `clickhouse.zookeeper` are in [section 2](#2-zookeeper-values), and keys under `clickhouse.clickhouseOperator` are in [sections 3](#3-operator-values) and [4](#4-system-log-tables).
+
+> [!NOTE]
+> A probe or security context set to `null` renders none, while an empty map keeps the defaults, because Helm merges maps. A probe has one handler, so a non-HTTP probe also sets `httpGet: null`.
+
+| Old key | New key | What to write | If you keep the old key |
+| --- | --- | --- | --- |
+| `clickhouse.securityContext` | `clickhouse.podSecurityContext`, `clickhouse.containerSecurityContext` | The pod fields, without `enabled`, under `podSecurityContext`; the container fields under `containerSecurityContext` | Fails the render when set |
+| `clickhouse.startupProbe.enabled`, `.port`, `.path` | `clickhouse.startupProbe.httpGet.port`, `.httpGet.path` | The probe object; `clickhouse.startupProbe: null` for `enabled: false` | Fails the render when any of the three is present |
+| `clickhouse.livenessProbe.enabled`, `.port`, `.path` | `clickhouse.livenessProbe.httpGet.port`, `.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
+| `clickhouse.readinessProbe.enabled`, `.port`, `.path` | `clickhouse.readinessProbe.httpGet.port`, `.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
+| `clickhouse.customStartupProbe`, `clickhouse.customLivenessProbe`, `clickhouse.customReadinessProbe` | `clickhouse.startupProbe`, `clickhouse.livenessProbe`, `clickhouse.readinessProbe` | The probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe | Fails the render when set |
+| `clickhouse.additionalVolumes` | `clickhouse.extraVolumes` | The same list | Fails the render when set |
+| `clickhouse.additionalVolumeMounts` | `clickhouse.extraVolumeMounts` | The same list | Fails the render when set |
+| `clickhouse.image.registry` | None | The registry at the front of `clickhouse.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
+| `clickhouse.logs.system.image.registry` | None | The registry at the front of `clickhouse.logs.system.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
+| `clickhouse.initContainers.udf.image.registry` | None | The registry at the front of `clickhouse.initContainers.udf.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
+| `clickhouse.initContainers.init.image.registry` | None | The registry at the front of `clickhouse.initContainers.init.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
+| `clickhouse.logs.system.image.pullSecrets` | None | Nothing; ClickHouse pods take `clickhouse.imagePullSecrets` | Goes through; the notes after the upgrade ask you to remove it |
+| `clickhouse.replicasCount`, `clickhouse.shardsCount` | `clickhouse.layout.replicasCount`, `clickhouse.layout.shardsCount` | Nothing; `clickhouse.layout.*` was already the key in use | Goes through silently |
+| `clickhouse.global.*` | `global.*` | Nothing; `global.*` was already the key in use | Goes through silently |
+| `zookeeper.enabled`, unset (was `clickhouse.zookeeper.enabled`, default `true`) | `zookeeper.enabled`, default `false` | `true` while ClickHouse runs on the bundled ZooKeeper ([section 1](#1-the-first-upgrade)) | Goes through and renders no ZooKeeper |
+
+For example:
+
+```yaml
+clickhouse:
+  podSecurityContext:            # was securityContext, without enabled
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+    fsGroupChangePolicy: OnRootMismatch
+  livenessProbe:                 # was enabled, port and path
+    httpGet:
+      port: http
+      path: /ping
+    initialDelaySeconds: 60
+  readinessProbe: null           # was enabled: false
+  startupProbe:                  # was customStartupProbe
+    httpGet: null
+    tcpSocket:
+      port: 9000
+  image:
+    repository: my.registry/clickhouse/clickhouse-server   # was registry: my.registry
+```
+
+### You must
+
+1. Rewrite each old key in your values as the table says.
+2. Delete every old key in the table, including those that go through.
+
+### You will see
+
+- An old key stops the render with `Error: execution error at (signoz/templates/validate.yaml:...)` and a message naming its new key.
+- With `clickhouse.containerSecurityContext` set to `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `runAsNonRoot: true` and `seccompProfile.type: RuntimeDefault`, the block reached the ClickHouseInstallation, the StatefulSet and the pod. ClickHouse ran as uid 101 with every replica writable.
+- Setting `clickhouse.containerSecurityContext` to `null` removed the block and rolled the pod once.
+
+### Verify
+
+```bash
+helm template <release> signoz/signoz --version 0.152.0 -n <namespace> -f values.yaml > /dev/null
+```
+
+It prints nothing and exits 0.
+
+## 6. Names and namespaces
+
+### Applies to
+
+Your values set `clickhouse.fullnameOverride`, `clickhouse.nameOverride` or `clickhouse.namespace`, or your release name contains `clickhouse`.
+
+### What changes
+
+- Operator objects were named `<clickhouse.fullname>-operator`. From this release on they are named `<release>-clickhouse-operator`, whatever `clickhouse.*` said.
+- If you keep the current name (step 1 below), the other operator objects are patched in place. Otherwise they are recreated under the new name.
+- The ConfigMaps take new names either way.
+- The operator pod's labels change either way: `app.kubernetes.io/name` becomes `clickhouse-operator`, and `app.kubernetes.io/component` leaves the Deployment's selector.
+- With `clickhouse.namespace` set to another namespace, the operator stays in the release namespace, and the render fails until one of the operator's watch settings is set.
+- With `clickhouse.namespace` set to another namespace and `clickhouse.fullnameOverride` also set, `CLICKHOUSE_HOST` becomes `<clickhouse.fullnameOverride>.<clickhouse.namespace>.svc.<global.clusterDomain>`.
+- ClickHouse objects keep their names.
+- The render fails when `<clickhouse.fullname>` or `<keeper.fullname>` is longer than 34 characters.
+
+### You must
+
+1. To keep the current operator name, read it before the upgrade and set it as `altinity-clickhouse-operator.fullnameOverride`. To take the new name, skip this step.
+
+   ```bash
+   kubectl get deployment -n <namespace> -l app.kubernetes.io/name=<clickhouse.name>,app.kubernetes.io/instance=<release>,app.kubernetes.io/component -o name
+   ```
+
+   ```yaml
+   altinity-clickhouse-operator:
+     fullnameOverride: <the name after deployment.apps/>
+   ```
+
+2. If `clickhouse.namespace` is set to a namespace other than the release's, set one of the two:
+   - **The old layout.** The operator runs beside ClickHouse:
+
+     ```yaml
+     altinity-clickhouse-operator:
+       namespaceOverride: <clickhouse.namespace>
+     ```
+
+   - **The operator in the release namespace.** It watches ClickHouse's namespace, and its Role and RoleBinding become a ClusterRole and ClusterRoleBinding:
+
+     ```yaml
+     altinity-clickhouse-operator:
+       watchNamespaces: ["<clickhouse.namespace>"]
+       rbac:
+         namespaceScoped: false
+     ```
+
+3. If the render fails on a Keeper name longer than 34 characters, set `keeper.fullnameOverride` to a shorter name.
+
+### You will see
+
+A release named `signoz-pi69ex7kr4` installs with `signoz-pi69ex7kr4-clickhouse` and `signoz-pi69ex7kr4-keeper`. The longest name the operator derives from them is 53 characters.
+
+### Verify
+
+```bash
+kubectl get deployment -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release> -o name
+```
+
+It prints `deployment.apps/` followed by the name you kept, or by `<release>-clickhouse-operator`.
+
+## 7. Objects
+
+### Applies to
+
+Something outside the chart (a NetworkPolicy, PodMonitor, ServiceMonitor, admission policy, dashboard, alert, script or GitOps diff) names, selects or watches chart objects.
+
+### What changes
+
+The table lists every chart object whose name, labels, ports, namespace or management changes. In an old name, `operator` is `clickhouse.clickhouseOperator.name` when your values set it. To keep an operator name, see [section 6](#6-names-and-namespaces).
+
+The operator renames the ClickHouse PodDisruptionBudget from `<clickhouse.fullname>-<clickhouse.cluster>` to `chi-<clickhouse.fullname>-<clickhouse.cluster>`.
+
+| Object | Old | New | Update outside the chart |
+| --- | --- | --- | --- |
+| Operator Deployment | `<clickhouse.fullname>-operator` (`<release>-clickhouse-operator` by default); selector `app.kubernetes.io/name: <clickhouse.name>`, `app.kubernetes.io/instance`, `app.kubernetes.io/component: operator` | `<release>-clickhouse-operator`; selector `app.kubernetes.io/name: clickhouse-operator`, `app.kubernetes.io/instance`; deleted and created again in this upgrade | Anything that names it or patches it |
+| Operator pod labels | `app.kubernetes.io/name: <clickhouse.name>`, `app.kubernetes.io/instance`, `app.kubernetes.io/component: operator` | `app.kubernetes.io/name: clickhouse-operator`, `app.kubernetes.io/instance`, `app.kubernetes.io/component: operator`, `helm.sh/chart`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by` | Selectors, NetworkPolicies, PodMonitors, and dashboard or alert filters on the old `app.kubernetes.io/name` |
+| Labels on the operator Deployment, ServiceAccount, Secret, Role, RoleBinding, ConfigMaps and metrics Service | `app.kubernetes.io/name: <clickhouse.name>`, `app.kubernetes.io/component: operator`, `clickhouse.altinity.com/chop: 0.21.2`, `helm.sh/chart: clickhouse-24.1.18` | `app.kubernetes.io/name: clickhouse-operator`, `app.kubernetes.io/version: 0.27.4`, `helm.sh/chart: altinity-clickhouse-operator-0.27.4`; no `component` or `clickhouse.altinity.com/chop` label | Selectors on these objects |
+| Operator ServiceAccount, Secret, Role, RoleBinding | `<clickhouse.fullname>-operator` | `<release>-clickhouse-operator`; patched in place when the name is the same, created under the new name otherwise | Anything that names them |
+| Operator ConfigMaps | `<clickhouse.fullname>-operator-etc-files`, `-etc-confd-files`, `-etc-configd-files`, `-etc-templatesd-files`, `-etc-usersd-files` | `<release>-clickhouse-operator-files`, `-confd-files`, `-configd-files`, `-templatesd-files`, `-usersd-files`, and new `-keeper-confd-files`, `-keeper-configd-files`, `-keeper-templatesd-files`, `-keeper-usersd-files` | Anything that names them |
+| Operator metrics Service | `<clickhouse.fullname>-operator-metrics`, `type: ClusterIP`, port 8888 named `<clickhouse.fullname>-operator-metrics`, selector as the old Deployment | `<release>-clickhouse-operator-metrics`, ClusterIP with no type setting, ports 8888 `ch-metrics` and 9999 `op-metrics` (9999 alone with `altinity-clickhouse-operator.metrics.enabled: false`), selector as the new Deployment, annotations from `altinity-clickhouse-operator.commonAnnotations` | Scrape configs by port name, and anything that set its type or annotations |
+| Operator ServiceMonitor, when enabled | `<clickhouse.fullname>-operator-metrics`, endpoint port `<clickhouse.fullname>-operator-metrics` | `<release>-clickhouse-operator-clickhouse-metrics`, endpoint ports `ch-metrics` and `op-metrics` | Rules and dashboards keyed on the job or endpoint |
+| Operator objects' namespace, with `clickhouse.namespace` set | `clickhouse.namespace`, the Secret in the release namespace | With `namespaceOverride`, `clickhouse.namespace` for all, the Secret included; with `watchNamespaces`, the release namespace for all, and a ClusterRole and ClusterRoleBinding `<release>-clickhouse-operator` in place of the Role and RoleBinding | NetworkPolicies and RBAC that assume the old namespace |
+| Hook objects | None | `<release>-clickhouse-operator-upgrade` Job, ServiceAccount, Role and RoleBinding (`pre-upgrade`); `<release>-clickhouse-operator-crd-install` Job, ServiceAccount, ClusterRole, ClusterRoleBinding and ConfigMaps `-crds-1` to `-crds-4` (`pre-install`, `pre-upgrade`) | Admission policies: the image `registry.k8s.io/kubectl:v1.36.3` and a ClusterRole for the CRD hook |
+| ClickHouseInstallation, its ConfigMaps `<clickhouse.fullname>-custom-functions` and `-scripts`, its ServiceAccount, and the Service from its template | Labels `helm.sh/chart: clickhouse-24.1.18`, `app.kubernetes.io/version: 24.1.2` | Labels `helm.sh/chart: signoz-<chart version>`, `app.kubernetes.io/version: <clickhouse.image.tag>`; names unchanged | Selectors on `helm.sh/chart` or `app.kubernetes.io/version` |
+| ClickHouse pod template labels | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`, `helm.sh/chart`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by` | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component` | Selectors, affinity and topology spread rules on `helm.sh/chart`, `app.kubernetes.io/version` or `app.kubernetes.io/managed-by` |
+| ClickHouse claims the operator stops tracking | Deleted by the operator's cleanup | Kept (`reconciling.cleanup.unknownObjects.pvc: Retain` on the ClickHouseInstallation) | Delete such claims by hand when the data is no longer wanted |
+| ClickHouseKeeperInstallation | None | `<keeper.fullname>` in `<namespace>`, labels `app.kubernetes.io/name: keeper`, `app.kubernetes.io/component: keeper`, claims kept when the installation or a replica is removed | NetworkPolicies that let ClickHouse reach `keeper-<keeper.fullname>` on port 2181, and backups of its claims |
+| ZooKeeper StatefulSet, Services and ConfigMap | Rendered by default; pod template `helm.sh/chart: zookeeper-0.0.1` | Rendered only with `zookeeper.enabled: true`; annotation `signoz.io/deprecated: "true"`; pod template `helm.sh/chart: zookeeper-0.0.2` | Nothing; see step 3 of [section 1](#1-the-first-upgrade) |
+
+### You must
+
+1. For each row that something outside the chart depends on, adopt the new name, label, port or namespace.
+2. Point anything that names the ClickHouse PodDisruptionBudget at `chi-<clickhouse.fullname>-<clickhouse.cluster>`.
+
+### You will see
+
+- During the first upgrade, both PodDisruptionBudgets exist and the ClickHouse pod reports `MultiplePodDisruptionBudgets` warnings. Afterwards only `chi-<clickhouse.fullname>-<clickhouse.cluster>` is left.
+- The operator metrics Service shows `8888/TCP,9999/TCP` and selects `app.kubernetes.io/instance=<release>,app.kubernetes.io/name=clickhouse-operator`.
+- A Keeper installation brings the StatefulSet `chk-<keeper.fullname>-cluster-0-0`, the Services `keeper-<keeper.fullname>`, `chk-<keeper.fullname>-cluster-0-0` and `chk-<keeper.fullname>-cluster-0-0-client`, and the claim `default-chk-<keeper.fullname>-cluster-0-0-0`.
+
+### Verify
+
+```bash
+kubectl get pods -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release>
+```
+
+It lists the one operator pod, `2/2` `Running`.
+
+## 8. Registry and pull secrets
+
+### Applies to
+
+You set `global.imageRegistry` or `global.imagePullSecrets`.
+
+### What changes
+
+The operator, metrics-exporter and CRD hook images, and the operator pod's pull secrets, come from Altinity's chart. That chart reads its own keys under `altinity-clickhouse-operator` and no `global.*` value.
+
+The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, because `global.imageRegistry` replaces the registry at the front of its repository, `registry.k8s.io/kubectl`. The hook's ServiceAccount carries `global.imagePullSecrets` and `clickhouse.imagePullSecrets`.
+
+### You must
+
+1. Set the operator's registry and pull secrets:
+
+   ```yaml
+   altinity-clickhouse-operator:
+     operator:
+       image:
+         registry: my.registry
+     metrics:
+       image:
+         registry: my.registry
+     crdHook:
+       image:
+         repository: my.registry/kubectl
+       imagePullSecrets:
+         - name: my-pull-secret
+     imagePullSecrets:
+       - name: my-pull-secret
+   ```
+
+2. For the operator upgrade hook, mirror `registry.k8s.io/kubectl:v1.36.3` to `<global.imageRegistry>/kubectl:v1.36.3`.
+
+### You will see
+
+With default values, both hook Jobs pull `registry.k8s.io/kubectl:v1.36.3`.
+
+### Verify
+
+```bash
+kubectl get deployment -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release> -o jsonpath='{.items[0].spec.template.spec.containers[*].image}'
+```
+
+```text
+my.registry/altinity/clickhouse-operator:0.27.4 my.registry/altinity/metrics-exporter:0.27.4
+```
+
+## 9. Hooks and deployers
+
+### Applies to
+
+You run the ClickHouse operator yourself, turn a hook off, upgrade with `--no-hooks`, or deploy through Argo CD or Terraform.
+
+### What changes
+
+Two hooks carry this upgrade:
+
+- The chart's `pre-upgrade` Job `<release>-clickhouse-operator-upgrade` deletes the old operator Deployment, whose selector cannot change in place. Its settings are under `clickhouse.operatorUpgradeHook`.
+- Altinity's `pre-install` and `pre-upgrade` Job `<release>-clickhouse-operator-crd-install` applies the four CRDs with server-side apply on every install and upgrade, with a ClusterRole. Its settings are under `altinity-clickhouse-operator.crdHook`.
+
+With `altinity-clickhouse-operator.enabled: false`, the chart renders no operator and neither hook, and the upgrade removes the chart's operator objects.
+
+Argo CD runs `pre-install` and `pre-upgrade` hooks as `PreSync` hooks on every sync. Terraform's `helm_release` runs them unless `disable_webhooks = true`, which is `--no-hooks`.
+
+### You must
+
+1. When the operator upgrade hook does not run (`clickhouse.operatorUpgradeHook.enabled: false`, `--no-hooks` or `disable_webhooks = true`), delete the old operator Deployment right before the upgrade, with the hook's own selector. Later upgrades need no delete.
+
+   ```bash
+   kubectl delete deployment -n <namespace> -l app.kubernetes.io/name=<clickhouse.name>,app.kubernetes.io/instance=<release>,app.kubernetes.io/component
+   ```
+
+2. When the CRD hook does not run (`altinity-clickhouse-operator.crdHook.enabled: false`, `--no-hooks` or `disable_webhooks = true`), apply the CRDs by hand before the upgrade, and again whenever the `altinity-clickhouse-operator` version changes:
+
+   ```bash
+   helm pull altinity-clickhouse-operator --repo https://helm.altinity.com --version 0.27.4 --untar --untardir ./altinity
+   kubectl apply --server-side --force-conflicts -f ./altinity/altinity-clickhouse-operator/crds/
+   ```
+
+3. When you run the operator yourself, set `altinity-clickhouse-operator.enabled: false`. Your operator must have the four CRDs, `clickhousekeeperinstallations.clickhouse-keeper.altinity.com` included, and reconcile ClickHouseInstallations and ClickHouseKeeperInstallations in `<namespace>`.
+
+### You will see
+
+On every upgrade, both hook Jobs run and complete within seconds. On an upgrade with nothing to delete, the operator pod keeps running.
+
+### Verify
+
+```bash
+kubectl get crd | grep altinity
+```
+
+It lists four CRDs: `clickhouseinstallations.clickhouse.altinity.com`, `clickhouseinstallationtemplates.clickhouse.altinity.com`, `clickhousekeeperinstallations.clickhouse-keeper.altinity.com` and `clickhouseoperatorconfigurations.clickhouse.altinity.com`.
+
+## 10. External ZooKeeper
+
+### Applies to
+
+Your values set `clickhouse.externalZookeeper.servers`.
+
+### What changes
+
+ClickHouse takes `clickhouse.externalZookeeper.servers` over the bundled ZooKeeper and Keeper, and its coordination hosts render as before. Keeper is installed while `keeper.enabled` is true, and ClickHouse leaves it idle.
+
+### You must
+
+1. Set `keeper.enabled: false`.
+
+### You will see
+
+With `keeper.enabled: false`, the CRD hook still adds the Keeper CRD, and the upgrade creates no ClickHouseKeeperInstallation.
+
+### Verify
+
+```bash
+kubectl get chi -n <namespace> -l app.kubernetes.io/instance=<release> -o jsonpath='{.items[0].spec.configuration.zookeeper}'
+```
+
+It prints your `clickhouse.externalZookeeper.servers` as `nodes`.
+
+## 11. ZooKeeper to ClickHouse Keeper
+
+### Applies to
+
+Your release runs the bundled ZooKeeper (`zookeeper.enabled: true`), and you move ClickHouse to ClickHouse Keeper.
+
+### What changes
+
+The procedure converts the ZooKeeper coordination tree into a Keeper snapshot with `clickhouse keeper-converter`. It then repoints ClickHouse by patching its ClickHouseInstallation (CHI) and restarting its pods, and then removes ZooKeeper from the release.
+
+Keeper swapped in without converting leaves every `ReplicatedMergeTree` table read-only (`TABLE_IS_READ_ONLY`) against an empty tree.
+
+The procedure is written for one Keeper replica, the chart default. Raise `keeper.replicaCount` after step 11.
+
+### You must
+
+#### Before you start
+
+**Access**
+
+- Permission to `kubectl exec` into the release namespace.
+- Permission to create Jobs, to scale StatefulSets and Deployments, and to patch the ClickHouseInstallation.
+- Permission to run `helm upgrade` on the release.
+- Permission to run ClickHouse `SYSTEM` commands as the chart's admin user.
+- For Argo CD, permission to turn auto-sync off for the application.
+
+**Tools**
+
+- `kubectl` and `helm`.
+- `clickhouse-client`, which is in the ClickHouse server image.
+
+**Starting point**
+
+This procedure starts from a release already upgraded to `0.152.0` or later, with `zookeeper.enabled: true` in its values ([section 1](#1-the-first-upgrade)). After that upgrade:
+
+- ClickHouse still runs on ZooKeeper, because the chart prefers ZooKeeper while both stores are on.
+- `system.zookeeper_connection` shows `is_expired` 0, and no table is read-only. Step 1 checks the connection, and step 4 checks the read-only count.
+- Keeper is in one of the two states the first upgrade leaves it in ([section 1](#1-the-first-upgrade)). Both are fine. Step 2 turns Keeper on if it is off, and checks it.
+  - Off (`keeper.enabled: false`), if the release stayed on ZooKeeper.
+  - On (`keeper.enabled: true`, the chart default) and running idle beside ZooKeeper with an empty tree, if the Keeper CRD was applied before the upgrade.
+- ZooKeeper values live at `zookeeper.*` ([section 2](#2-zookeeper-values)).
+- `keeper.replicaCount` is 1 or unset.
+- `zookeeper.dataLogDir` is unset (the chart's default), so snapshots and transaction logs share the claim `data-<release>-zookeeper-<n>`.
+  - If it is set, the transaction logs live under `<dataLogDir>/version-2` on `data-log-<release>-zookeeper-<n>`, for the same ordinal as `ZK_LEADER_PVC`. Mount that claim in the step 7 Job as well, and point `--zookeeper-logs-dir` at it. Otherwise the converter replays nothing and the converted tree is stale.
+- The chart's ZooKeeper is 3.7. The converter needs 3.4 or later.
+
+If the release has not taken 0.152.0 yet, do [section 1](#1-the-first-upgrade) first and come back here.
+
+**What to know**
+
+- The converter is an offline, file-to-file translation between ZooKeeper's snapshot format and Keeper's. Nothing connects to ZooKeeper or to Keeper while it runs. Both are stopped. It moves the replication metadata (which parts exist, which replica holds what, queues, in-flight mutations), never the parts themselves.
+- The output is one snapshot file that Keeper loads at startup, so seeding has to happen before Keeper first runs with real data.
+- ACLs and ephemeral nodes do not carry over. Ephemerals are session state and are recreated when clients reconnect. The chart uses no ACLs.
+- Repointing ClickHouse is a config change. ClickHouse hot-reloads it, but it does not move its live session. You restart the ClickHouse pods by hand in step 9.
+
+#### Variables
+
+```bash
+export NS="<namespace>"
+export RELEASE="<release>"
+
+export ZK_STS="<zookeeper-statefulset>"                # default $RELEASE-zookeeper
+export ZK_REPLICAS="<zookeeper-replica-count>"          # zookeeper.replicaCount, default 1
+export ZK_LEADER_PVC="data-$ZK_STS-<n>"                 # set in step 1
+
+export KEEPER_NAME="<keeper.fullname>"                  # keeper.fullnameOverride, default $RELEASE-keeper
+export CHK_STS="chk-$KEEPER_NAME-cluster-0-0"
+export CHK_PVC="default-chk-$KEEPER_NAME-cluster-0-0-0"
+export KEEPER_HOST="keeper-$KEEPER_NAME"
+
+export CHI_NAME="$(kubectl -n "$NS" get chi -l app.kubernetes.io/instance="$RELEASE" -o jsonpath='{.items[0].metadata.name}')"
+export CH_PODS="$(kubectl -n "$NS" get pods -l clickhouse.altinity.com/chi="$CHI_NAME" -o name | sed 's|pod/||' | tr '\n' ' ')"
+export CH_POD="$(echo $CH_PODS | cut -d' ' -f1)"
+export CH_USER="<clickhouse.user>"                     # default admin
+export CH_PASSWORD="<clickhouse.password>"
+
+export COLLECTOR_DEPLOY="<collector-deployment>"       # kubectl -n $NS get deploy | grep otel-collector
+export COLLECTOR_REPLICAS="<collector-replica-count>"
+export CONVERTER_IMAGE="clickhouse/clickhouse-server:<clickhouse.image.tag>"   # the keeper image has no converter
+
+chc() { kubectl -n "$NS" exec "$CH_POD" -c clickhouse -- clickhouse-client --user "$CH_USER" --password "$CH_PASSWORD" -q "$1"; }
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `ZK_LEADER_PVC` | Claim of the ZooKeeper leader, set in step 1. The leader holds the most current snapshot and log; the conversion reads this volume. With one ZooKeeper replica it is `data-$ZK_STS-0`. |
+| `CHK_STS`, `CHK_PVC`, `KEEPER_HOST` | Named by the operator from the ClickHouseKeeperInstallation `$KEEPER_NAME`. Confirm them in step 2. |
+| `CH_PODS` | Every ClickHouse pod. All of them are deleted in step 9 and come back under the same names, so the variable stays valid. |
+| `COLLECTOR_DEPLOY` | The collector Deployment. Its name depends on the release name, so read it from `kubectl get deploy`. |
+| `CONVERTER_IMAGE` | The server image at the version the cluster runs. The slim `clickhouse-keeper` image does not carry the converter. |
+
+#### Steps
+
+Steps 6 through 9 are the outage window. No `helm upgrade` runs inside it.
+
+> [!IMPORTANT]
+> If you deploy through Argo CD, turn auto-sync off before step 2 and turn it back on after step 11. Otherwise Argo CD reverts the scale-downs and the CHI patch mid-migration. Where this section says `helm upgrade`, commit the values change and sync by hand.
+
+##### Step 1: Confirm ZooKeeper and collect information
+
+**Purpose:** Confirm that ZooKeeper is what the release runs on, and identify the volume and the leader node the conversion reads from.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" get statefulset
+kubectl -n "$NS" get pvc
+
+for i in $(seq 0 $((ZK_REPLICAS - 1))); do
+  echo -n "$ZK_STS-$i: "
+  kubectl -n "$NS" exec "$ZK_STS-$i" -- sh -c 'echo srvr | nc 127.0.0.1 2181' | grep Mode
+done
+```
+
+**Expect:**
+
+```text
+NAME                                READY   AGE
+chi-signoz-clickhouse-cluster-0-0   1/1     6m50s
+chk-signoz-keeper-cluster-0-0       1/1     3m31s
+signoz                              1/1     19m
+signoz-zookeeper                    1/1     19m
+
+NAME                                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-signoz-zookeeper-0                                         Bound    pvc-1fc40997-cf3d-4329-8752-88f23c84241d   8Gi        RWO            standard       <unset>                 19m
+data-volumeclaim-template-chi-signoz-clickhouse-cluster-0-0-0   Bound    pvc-773ce07a-b66b-4fb3-b95a-6d998368edc4   20Gi       RWO            standard       <unset>                 17m
+default-chk-signoz-keeper-cluster-0-0-0                         Bound    pvc-e784fd28-2a2e-418e-a1ba-679055aa9667   10Gi       RWO            standard       <unset>                 3m31s
+signoz-db-signoz-0                                              Bound    pvc-e9aad854-14b8-43ae-bcbf-97cde69b7ff8   1Gi        RWO            standard       <unset>                 19m
+
+signoz-zookeeper-0: Mode: standalone
+```
+
+A single-node ZooKeeper reports `Mode: standalone`, and that node is the one to convert from. With three nodes, one reports `leader`. Set `ZK_LEADER_PVC` to the `data-` claim bound to that pod.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" get pvc "$ZK_LEADER_PVC"
+chc "SELECT host, port, is_expired FROM system.zookeeper_connection"
+```
+
+`host` is the ZooKeeper service and `is_expired` is `0`.
+
+**If it fails:** If there is no ZooKeeper StatefulSet, or `system.zookeeper_connection` already shows `$KEEPER_HOST`, this section does not apply.
+
+##### Step 2: Enable and validate ClickHouse Keeper
+
+**Purpose:** Turn Keeper on if the release deferred it. Confirm that the Keeper StatefulSet, Services and volume are in place and healthy, so the target volume exists before the outage window opens.
+
+**Run:**
+
+If `keeper.enabled` is `false`, set it in your values file and upgrade. If Keeper is already on, there is nothing to run here.
+
+```yaml
+keeper:
+  enabled: true
+```
+
+```bash
+helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml
+```
+
+ZooKeeper is still live and every table is writable, so the upgrade runs with its hooks. Argo CD users: commit the values change and sync by hand.
+
+Wait for the ClickHouseKeeperInstallation (CHK) to report `Completed`, then list what it created:
+
+```bash
+kubectl -n "$NS" get chk
+kubectl -n "$NS" get pvc | grep -E 'zookeeper|keeper'
+kubectl -n "$NS" get svc | grep -E 'zookeeper|keeper'
+```
+
+**Expect:**
+
+```text
+NAME            STATUS      CLUSTERS   HOSTS   HOSTS-COMPLETED   AGE    SUSPEND
+signoz-keeper   Completed   1          1                         4m8s
+
+data-signoz-zookeeper-0                                         Bound    pvc-1fc40997-cf3d-4329-8752-88f23c84241d   8Gi        RWO            standard       <unset>                 19m
+default-chk-signoz-keeper-cluster-0-0-0                         Bound    pvc-e784fd28-2a2e-418e-a1ba-679055aa9667   10Gi       RWO            standard       <unset>                 3m37s
+
+chk-signoz-keeper-cluster-0-0          ClusterIP   None            <none>        2181/TCP,9444/TCP                                                  3m37s
+chk-signoz-keeper-cluster-0-0-client   ClusterIP   None            <none>        2181/TCP                                                           3m37s
+keeper-signoz-keeper                   ClusterIP   None            <none>        2181/TCP,9444/TCP                                                  2m22s
+signoz-zookeeper                       ClusterIP   10.96.180.26    <none>        2181/TCP,2888/TCP,3888/TCP                                         19m
+signoz-zookeeper-headless              ClusterIP   None            <none>        2181/TCP,2888/TCP,3888/TCP                                         19m
+signoz-zookeeper-metrics               ClusterIP   10.96.254.85    <none>        9141/TCP                                                           19m
+```
+
+Confirm `CHK_STS`, `CHK_PVC` and `KEEPER_HOST` against this output.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo ruok | nc 127.0.0.1 2181'
+```
+
+```text
+imok
+```
+
+**If it fails:** If the Keeper pod is not running, check node taints, and check that the Keeper claim landed in the same zone as the ZooKeeper claim. The converter Job must mount both. Then run step 2 again.
+
+##### Step 3: Stop ingestion and merges
+
+**Purpose:** Freeze the coordination state, so nothing is written to ZooKeeper between the conversion and the swap.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" scale deployment "$COLLECTOR_DEPLOY" --replicas=0
+kubectl -n "$NS" get pods | grep otel-collector
+
+chc "SYSTEM STOP MERGES"
+```
+
+**Expect:**
+
+```text
+deployment.apps/signoz-otel-collector scaled
+signoz-otel-collector-59fbb9b588-c4fjj        1/1     Terminating   0          8m7s
+```
+
+`SYSTEM STOP MERGES` prints nothing. The collector pod can still be listed for a few seconds after the scale-down. A second `get pods` shows it gone.
+
+> [!NOTE]
+> Agents sending to the collector buffer and retry while it is down. Expect a gap in your data for the window, not a loss, within the agents' retry limits.
+
+**Verify:**
+
+```bash
+chc "SELECT count() FROM system.replication_queue"
+chc "SELECT count() FROM system.mutations WHERE NOT is_done"
+```
+
+```text
+0
+0
+```
+
+**If it fails:** If either count will not drain to `0`, do not proceed: an in-flight mutation converted mid-flight comes back inconsistent. Wait, or investigate the stuck entry first.
+
+##### Step 4: Record the ZooKeeper tree and replica baseline
+
+**Purpose:** Capture the numbers the migration is verified against: the shape of the tree, and how many replicated tables must come back.
+
+**Run:**
+
+```bash
+chc "
+  SELECT path, name, numChildren
+  FROM system.zookeeper
+  WHERE path IN ('/', '/clickhouse', '/clickhouse/$CHI_NAME', '/clickhouse/$CHI_NAME/task_queue')
+  ORDER BY path, name
+  FORMAT PrettyCompact"
+
+chc "SELECT count() FROM system.replicas"
+```
+
+**Expect:**
+
+```text
+   ┌─path─────────────────────────────────────┬─name──────────────┬─numChildren─┐
+1. │ /                                        │ clickhouse        │           4 │
+2. │ /                                        │ zookeeper         │           2 │
+3. │ /clickhouse                              │ sessions          │           1 │
+4. │ /clickhouse                              │ signoz-clickhouse │           1 │
+5. │ /clickhouse                              │ tables            │          56 │
+6. │ /clickhouse                              │ task_queue        │           1 │
+7. │ /clickhouse/signoz-clickhouse            │ task_queue        │           2 │
+8. │ /clickhouse/signoz-clickhouse/task_queue │ ddl               │         354 │
+9. │ /clickhouse/signoz-clickhouse/task_queue │ replicas          │           3 │
+   └──────────────────────────────────────────┴───────────────────┴─────────────┘
+
+56
+```
+
+Write down `numChildren` for `/clickhouse → tables` and the `system.replicas` count. They must match after the swap.
+
+**Verify:**
+
+```bash
+chc "SELECT count() FROM system.replicas WHERE is_readonly"
+```
+
+```text
+0
+```
+
+**If it fails:** If any replica is already read-only before the migration starts, fix that first. Do not carry a read-only table through the conversion.
+
+##### Step 5: Capture the Keeper storage paths
+
+**Purpose:** Confirm where inside the Keeper volume the snapshot has to land, so the converter writes where Keeper reads at startup.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" exec "$CHK_STS-0" -- id
+kubectl -n "$NS" exec "$CHK_STS-0" -- ls -la /var/lib/clickhouse-keeper/coordination/
+kubectl -n "$NS" exec "$CHK_STS-0" -- \
+  grep -E 'snapshot_storage_path|log_storage_path|server_id' /etc/clickhouse-keeper/keeper_config.xml
+```
+
+**Expect:**
+
+```text
+uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel),11(floppy),20(dialout),26(tape),27(video),101(clickhouse)
+
+total 0
+drwxr-xr-x    1 clickhouse clickhouse        32 Nov 17 08:38 .
+drwxrwxrwx    1 clickhouse clickhouse        82 Nov 17 08:38 ..
+drwxr-xr-x    1 clickhouse clickhouse         0 Nov 17 08:38 log
+drwxr-x---    1 clickhouse clickhouse        44 Nov 17 08:38 logs
+drwxr-xr-x    1 clickhouse clickhouse         0 Nov 17 08:38 snapshots
+
+            <server_id>1</server_id>
+            <log_storage_path>/var/lib/clickhouse/coordination/logs</log_storage_path>
+            <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
+```
+
+The prefix in `keeper_config.xml` and the mount point on disk can differ. Use the path relative to the volume root, which is `coordination/snapshots` either way. That is what step 7 writes to. Files must end up owned by uid and gid `101`.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo mntr | nc 127.0.0.1 2181' | grep -E 'zk_server_state|zk_znode_count'
+```
+
+```text
+zk_server_state	standalone
+zk_znode_count	4
+```
+
+A near-empty count here is expected: an idle Keeper holds only its own nodes and has never held the real tree.
+
+##### Step 6: Scale ZooKeeper and Keeper down
+
+> [!WARNING]
+> From here, ClickHouse has no coordination store, and every `ReplicatedMergeTree` table is read-only until step 9 completes. This is the start of the outage window. Nothing is destroyed: both claims are retained, and you can reverse the step by scaling back up.
+>
+> Between this step and step 11, do not restart the operator pod and do not run `helm upgrade`. Until step 8, either one restarts Keeper while the converter is writing to its volume. After step 8, an upgrade with ZooKeeper still enabled writes ZooKeeper's hosts back into the CHI, and its hooks cannot run while the tables are read-only.
+
+**Purpose:** The conversion is offline and file-level. Both ends must be stopped so the files are consistent and unclaimed.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" scale statefulset "$CHK_STS" --replicas=0
+kubectl -n "$NS" scale statefulset "$ZK_STS" --replicas=0
+```
+
+If ZooKeeper runs more than one replica, this scales all of them. Do not leave one up, or it is promoted to leader and keeps writing.
+
+**Expect:**
+
+```text
+statefulset.apps/chk-signoz-keeper-cluster-0-0 scaled
+statefulset.apps/signoz-zookeeper scaled
+```
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" get pods | grep -E 'keeper|zookeeper'
+```
+
+```text
+chk-signoz-keeper-cluster-0-0-0               1/1     Terminating   0          4m15s
+signoz-zookeeper-0                            1/1     Running       0          20m
+```
+
+The first `get pods` right after the scale-down still lists the pods. A second one a few seconds later shows none and prints nothing.
+
+**If it fails:** If a pod will not terminate, do not force-delete a ZooKeeper pod mid-write. Wait for the graceful shutdown, then run step 6 again.
+
+##### Step 7: Convert the ZooKeeper data onto the Keeper volume
+
+> [!WARNING]
+> The Job deletes the contents of `coordination/log`, `coordination/logs` and `coordination/snapshots` on the Keeper claim before writing. This is deliberate: a leftover snapshot or changelog from Keeper's first start can beat the converted snapshot at load time. Only Keeper's own state is deleted. The ZooKeeper volume and ClickHouse's parts are untouched.
+
+**Purpose:** Translate the ZooKeeper snapshot, plus the transaction logs written after it, into one Keeper snapshot on the Keeper volume.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" delete job keeper-converter --ignore-not-found
+cat <<EOF | kubectl apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keeper-converter
+  namespace: $NS
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 101
+      containers:
+        - name: converter
+          image: $CONVERTER_IMAGE
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              rm -rf /chk/coordination/log/* /chk/coordination/logs/* /chk/coordination/snapshots/*
+              mkdir -p /chk/coordination/snapshots
+              clickhouse keeper-converter \
+                --zookeeper-logs-dir /zk/data/version-2 \
+                --zookeeper-snapshots-dir /zk/data/version-2 \
+                --output-dir /chk/coordination/snapshots
+              chown -R 101:101 /chk/coordination
+              md5sum /chk/coordination/snapshots/snapshot_*.bin.zstd
+          volumeMounts:
+            - name: zk
+              mountPath: /zk
+              readOnly: true
+            - name: chk
+              mountPath: /chk
+      volumes:
+        - name: zk
+          persistentVolumeClaim:
+            claimName: $ZK_LEADER_PVC
+        - name: chk
+          persistentVolumeClaim:
+            claimName: $CHK_PVC
+EOF
+
+kubectl -n "$NS" wait --for=condition=complete job/keeper-converter --timeout=600s
+kubectl -n "$NS" logs job/keeper-converter | tail -n 5
+```
+
+**Expect:**
+
+```text
+job.batch/keeper-converter created
+job.batch/keeper-converter condition met
+Deserialized txns log: 8000
+Deserialized txns log: 9000
+Finished /zk/data/version-2/log.1 deserialization, totally read 9222 records
+Snapshot serialized to path:"/chk/coordination/snapshots/snapshot_9222.bin.zstd"
+f2af4b672868853ea2aee209677841d4  /chk/coordination/snapshots/snapshot_9222.bin.zstd
+```
+
+The `Totally have 1 snapshots, will use latest` and `Finished, snapshot ZXID 0` lines are earlier in the full log. To see them, filter the log with `grep -E 'Totally|Finished'`.
+
+A stale snapshot on the ZooKeeper side is fine, because the converter replays the logs written after it. That is where the ZXID in the file name comes from. A log line reading `Totally have 0 snapshots` is a failure: the converter found nothing to read.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" logs job/keeper-converter | grep -c 'coordination/snapshots/snapshot_'
+kubectl -n "$NS" delete job keeper-converter
+```
+
+The count is `2`: the `Snapshot serialized` line and the `md5sum` line.
+
+**If it fails:** If the Job stays `Pending`, the two claims are not attachable to one node. Both are zonal, so they must sit in the same zone (see step 2). If the converter errors on deserialization, nothing has been repointed. Check the ZooKeeper version and go to step 6.
+
+##### Step 8: Bring Keeper up and confirm it loaded the converted tree
+
+**Purpose:** Confirm that Keeper serves the real ClickHouse tree, not an empty one, before any client is pointed at it.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" scale statefulset "$CHK_STS" --replicas=1
+kubectl -n "$NS" rollout status statefulset "$CHK_STS" --timeout=300s
+
+kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo mntr | nc 127.0.0.1 2181' | grep -E 'zk_server_state|zk_znode_count'
+```
+
+**Expect:**
+
+```text
+statefulset.apps/chk-signoz-keeper-cluster-0-0 scaled
+Waiting for statefulset spec update to be observed...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+statefulset rolling update complete 1 pods at revision chk-signoz-keeper-cluster-0-0-58f59c9d49...
+zk_server_state	standalone
+zk_znode_count	5355
+```
+
+`zk_znode_count` is in the same order of magnitude as the ZooKeeper tree from step 4, not a handful.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" exec "$CHK_STS-0" -- ls /var/lib/clickhouse-keeper/coordination/snapshots /var/lib/clickhouse-keeper/coordination/logs
+```
+
+```text
+/var/lib/clickhouse-keeper/coordination/logs:
+changelog_9223_109222.bin
+
+/var/lib/clickhouse-keeper/coordination/snapshots:
+snapshot_9222.bin.zstd
+```
+
+`snapshots` holds the converted `snapshot_<zxid>.bin.zstd` from step 7, and `logs` holds a `changelog_<zxid+1>_...bin` that starts right after it, so Keeper started from the converted snapshot.
+
+**If it fails:** If `zk_znode_count` comes back near-empty, Keeper started from its own state instead of the converted snapshot. Nothing is repointed yet, so this is free to redo: scale Keeper back to 0 and go to step 7.
+
+##### Step 9: Repoint ClickHouse at Keeper and restart the pods
+
+> [!WARNING]
+> The host change reaches ClickHouse as a config reload, and the live session does not move. ClickHouse keeps talking to the old host until the pods restart. If you skip the restart, the migration looks like it worked when it has not.
+>
+> This is the last step before ingestion resumes, and the last point at which rollback is clean. The host and port must be exactly `$KEEPER_HOST` and `2181`, because step 11 re-renders the same values and must find no difference.
+
+**Purpose:** Point ClickHouse at Keeper, and force it to open a new session against the converted tree.
+
+**Run:**
+
+```bash
+kubectl -n "$NS" patch chi "$CHI_NAME" --type merge -p '{"spec":{"configuration":{"zookeeper":{"nodes":[{"host":"'"$KEEPER_HOST"'","port":2181}]}}}}'
+
+for P in $CH_PODS; do
+  kubectl -n "$NS" delete pod "$P"
+done
+kubectl -n "$NS" wait --for=condition=Ready pod -l clickhouse.altinity.com/chi="$CHI_NAME" --timeout=300s
+```
+
+**Expect:**
+
+```text
+clickhouseinstallation.clickhouse.altinity.com/signoz-clickhouse patched
+pod "chi-signoz-clickhouse-cluster-0-0-0" deleted
+pod/chi-signoz-clickhouse-cluster-0-0-0 condition met
+```
+
+**Verify:**
+
+```bash
+chc "SELECT host, port, is_expired, connected_time FROM system.zookeeper_connection"
+chc "SELECT count() FROM system.replicas WHERE is_readonly"
+kubectl -n "$NS" get chi "$CHI_NAME" -o jsonpath='{.metadata.generation}'
+```
+
+`host` is `$KEEPER_HOST`, `is_expired` is `0`, `connected_time` is after the restart, and the read-only count is `0`. Note the CHI generation. Step 11 checks that it has not changed.
+
+**If it fails:** If `host` still shows ZooKeeper, the pod did not restart. Delete it again. If tables are read-only against Keeper, the tree did not carry over. See [Rollback during the migration](#rollback-during-the-migration).
+
+##### Step 10: Resume merges and ingestion
+
+**Purpose:** Unfreeze the cluster and let ingestion catch up.
+
+**Run:**
+
+```bash
+chc "SYSTEM START MERGES"
+kubectl -n "$NS" scale deployment "$COLLECTOR_DEPLOY" --replicas="$COLLECTOR_REPLICAS"
+```
+
+**Expect:**
+
+```text
+deployment.apps/signoz-otel-collector scaled
+```
+
+`SYSTEM START MERGES` prints nothing.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" get pods | grep otel-collector
+chc "SELECT count() FROM signoz_traces.signoz_index_v3 WHERE timestamp > now() - INTERVAL 5 MINUTE"
+```
+
+```text
+signoz-otel-collector-59fbb9b588-fshfm        0/1     Pending     0          0s
+6000
+```
+
+The collector pod is `Pending` for a few seconds and then `Running`. The row count climbs between two runs of the query only while agents are sending. With nothing sending, the five-minute window makes it fall, which is not a failure.
+
+**If it fails:** If the count stays flat while collectors are healthy, re-check the coordination connection with the step 9 Verify query.
+
+##### Step 11: Remove ZooKeeper from the release
+
+> [!WARNING]
+> Run this step right after step 10. Until it runs, the live CHI differs from the release, and any `helm upgrade` with `zookeeper.enabled` still `true` writes ZooKeeper's hosts back into the CHI.
+
+**Purpose:** Make the release agree with the step 9 patch, and remove the ZooKeeper StatefulSet and Services.
+
+**Run:**
+
+Set this in your values file:
+
+```yaml
+zookeeper:
+  enabled: false
+```
+
+```bash
+helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml
+```
+
+The chart renders the same Keeper host the patch set, so the CHI does not change and the operator does nothing. Helm removes the ZooKeeper StatefulSet and its Services, both idle since step 6. It leaves the claim `$ZK_LEADER_PVC`, because Helm never deletes claims.
+
+**Expect:**
+
+```text
+Release "signoz" has been upgraded. Happy Helming!
+NAME: signoz
+LAST DEPLOYED: Tue Nov 17 14:15:12 2026
+NAMESPACE: signoz
+STATUS: deployed
+REVISION: 4
+```
+
+The chart's NOTES follow.
+
+**Verify:**
+
+```bash
+kubectl -n "$NS" get statefulset "$ZK_STS"
+kubectl -n "$NS" get pvc "$ZK_LEADER_PVC"
+chc "SELECT host FROM system.zookeeper_connection"
+kubectl -n "$NS" get chi "$CHI_NAME" -o jsonpath='{.metadata.generation}'
+```
+
+The StatefulSet lookup returns `NotFound`, the claim is still `Bound`, `host` is still `$KEEPER_HOST`, and the CHI generation equals the value noted in step 9.
+
+Argo CD users: turn auto-sync back on now. The sync must show no change on the CHI.
+
+#### Check the result
+
+The migration is complete when all of the following hold, and the Verify query below holds too.
+
+**The tree carried over intact:**
+
+```bash
+chc "SELECT name, numChildren FROM system.zookeeper WHERE path = '/clickhouse' FORMAT PrettyCompact"
+```
+
+`tables` has the same `numChildren` as in step 4.
+
+**ClickHouse is talking to Keeper, on every pod:**
+
+```bash
+for P in $CH_PODS; do
+  kubectl -n "$NS" exec "$P" -c clickhouse -- clickhouse-client --user "$CH_USER" --password "$CH_PASSWORD" -q \
+    "SELECT host, is_expired FROM system.zookeeper_connection"
+done
+```
+
+`host` is `$KEEPER_HOST` on each.
+
+**Queues are moving and nothing is stuck:**
+
+```bash
+chc "SELECT count() FROM system.replication_queue WHERE num_tries > 10"
+chc "SELECT name, value FROM system.errors WHERE name IN ('TABLE_IS_READ_ONLY','KEEPER_EXCEPTION') AND value > 0"
+```
+
+The first returns `0`. Error counters are cumulative since the restart, so check that the second stops climbing, not that it reads zero.
+
+**Afterwards:**
+
+- The ZooKeeper StatefulSet is gone after step 11. Its claim is the rollback asset. Keep the claim until the installation has run a full retention cycle on Keeper, then remove it with `kubectl -n "$NS" delete pvc "$ZK_LEADER_PVC"`. If ZooKeeper had replicas, also remove the other `data-$ZK_STS-*` claims.
+- To run three Keeper replicas, set `keeper.replicaCount: 3` and run `helm upgrade`. The operator adds the replicas, and they take the tree from the leader.
+- Any later change to the coordination hosts needs the same manual pod restart as step 9.
+
+#### Rollback during the migration
+
+**Before step 9.** Nothing has been repointed. Scale Keeper back to `0`, scale ZooKeeper back up, and the release is exactly where step 6 left it:
+
+```bash
+kubectl -n "$NS" scale statefulset "$CHK_STS" --replicas=0
+kubectl -n "$NS" scale statefulset "$ZK_STS" --replicas="$ZK_REPLICAS"
+```
+
+**After step 9, before ingestion resumes.** Rollback is still clean. Patch the CHI back to ZooKeeper, scale ZooKeeper back up, wait for it, and restart the ClickHouse pods. No Helm runs. The ZooKeeper claim was never touched, and its state is still current because writes were frozen in step 3:
+
+```bash
+kubectl -n "$NS" patch chi "$CHI_NAME" --type merge -p '{"spec":{"configuration":{"zookeeper":{"nodes":[{"host":"'"$ZK_STS-0.$ZK_STS-headless"'","port":2181}]}}}}'
+kubectl -n "$NS" scale statefulset "$ZK_STS" --replicas="$ZK_REPLICAS"
+kubectl -n "$NS" rollout status statefulset "$ZK_STS" --timeout=300s
+
+for P in $CH_PODS; do
+  kubectl -n "$NS" delete pod "$P"
+done
+```
+
+With more than one ZooKeeper replica, `nodes` carries one entry per pod: `$ZK_STS-0.$ZK_STS-headless`, `$ZK_STS-1.$ZK_STS-headless`, and so on.
+
+**After ingestion resumes.** There is no clean rollback, because new parts are registered in Keeper only and the ZooKeeper state goes stale behind them. Do not point ClickHouse back at ZooKeeper at that stage, because going back means rebuilding coordination anyway.
+
+**Recovery when the tree did not carry over.** If tables came up read-only against an empty Keeper (`Table is in readonly mode since table metadata was not found in zookeeper`, `No node, path /clickhouse/tables/<uuid>/0/log`), you can rebuild the coordination metadata from the parts already on disk, with no re-ingest and no re-replication. `SYSTEM RESTART REPLICAS` acquires a fresh session and is cluster-wide, run once per server. `SYSTEM RESTORE REPLICA` is what actually writes `/clickhouse/tables/<uuid>/0` back and re-enumerates the active parts, so it runs per table:
+
+```bash
+chc "SYSTEM RESTART REPLICAS"
+
+chc "SELECT concat('SYSTEM RESTORE REPLICA ', database, '.', table, ';') FROM system.replicas WHERE is_readonly FORMAT TabSeparatedRaw" \
+  | kubectl -n "$NS" exec -i "$CH_POD" -c clickhouse -- clickhouse-client --user "$CH_USER" --password "$CH_PASSWORD" -n
+
+chc "SELECT count() FROM system.replicas WHERE is_readonly"
+```
+
+The last query returns `0`. Run this on every ClickHouse pod that reports read-only tables.
+
+#### If you upgraded without `zookeeper.enabled: true`
+
+An install that already has the Keeper CRD, upgraded with values that drop `zookeeper.enabled` without migrating, gets Keeper with an empty tree. Helm has removed the ZooKeeper StatefulSet and Services, and the claim `data-<release>-zookeeper-0` is retained. Every replicated table is read-only. No data is lost.
+
+To go back, turn ZooKeeper on again in your values file:
+
+```yaml
+zookeeper:
+  enabled: true
+```
+
+The schema migrator hook cannot run while the tables are read-only, so the upgrade below skips hooks:
+
+```bash
+helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml --no-hooks
+kubectl -n "$NS" rollout status statefulset "$ZK_STS" --timeout=300s
+
+for P in $CH_PODS; do
+  kubectl -n "$NS" delete pod "$P"
+done
+kubectl -n "$NS" wait --for=condition=Ready pod -l clickhouse.altinity.com/chi="$CHI_NAME" --timeout=300s
+
+chc "SELECT host, port, is_expired FROM system.zookeeper_connection"
+chc "SELECT count() FROM system.replicas WHERE is_readonly"
+```
+
+`host` is the ZooKeeper host and the read-only count is `0`. When you are ready, start this section from step 1.
+
+#### Getting help
+
+Open an issue on SigNoz/charts with the outputs of steps 4, 7 and 8 and the current `system.zookeeper_connection`. Escalate when replicas stay read-only after `SYSTEM RESTORE REPLICA`.
+
+> [!WARNING]
+> Do not delete the ZooKeeper claims, and do not force-delete ZooKeeper pods mid-write. Those volumes are the only rollback path.
+
+### You will see
+
+- In a run with one ClickHouse and one ZooKeeper replica, ingestion was stopped for about 3 minutes (step 3 to step 10), and steps 3 to 11 took about 6 minutes. The converter Job ran for 3 seconds.
+- In a run with two ClickHouse replicas and three ZooKeeper replicas, ingestion was stopped for 4 minutes 13 seconds. The converter mounted only the leader's claim and ran for 4 seconds, and Keeper held 7096 znodes after step 8. Both ClickHouse pods came back on Keeper with 56 writable replicas each.
+- In that run, `SYSTEM STOP MERGES` stopped merges on `$CH_POD` only. The other replica merged through the window, and the migration finished clean.
+- Keeper scaled to zero stays at zero through step 8. The operator logs `No reconcile work - abort reconcile` for the ClickHouseKeeperInstallation.
+- Keeper logs `Listen [0.0.0.0]:2181 failed` warnings when it starts after step 8, and serves clients on 2181.
+- The step 9 patch alone restarts no pod. The pod delete moves the session, and `connected_time` is after the restart.
+- `keeper.replicaCount: 3` after step 11 brings two more Keeper pods within about a minute, a leader with 2 synced followers at the same znode count, and no ClickHouse pod restarts.
+
+### Verify
+
+```bash
+chc "SELECT count(), countIf(is_readonly), countIf(is_session_expired) FROM system.replicas"
+```
+
+```text
+56	0	0
+```
+
+The first number equals the count recorded in step 4.
+
+## 12. Uninstall and rollback
+
+### Applies to
+
+You uninstall the release, or roll it back to a revision from before 0.152.0.
+
+### What changes
+
+The operator, the ClickHouseInstallation and the ClickHouseKeeperInstallation are in one release. `helm uninstall` removes the operator before it can finish the installations' finalizers.
+
+The old and new operator Deployments have different selectors, so a rollback to a revision from before 0.152.0 needs the new Deployment deleted by hand.
+
+Claims stay on both paths. Remove them by hand when the data is no longer wanted.
+
+### You must
+
+**To uninstall:**
+
+1. Delete the installations and wait for them:
+
+   ```bash
+   kubectl -n <namespace> delete chi,chk -l app.kubernetes.io/instance=<release> --wait
+   ```
+
+2. Uninstall the release:
+
+   ```bash
+   helm uninstall <release> -n <namespace>
+   ```
+
+3. If the release was uninstalled first, remove each installation's finalizer, then delete what the operator left:
+
+   ```bash
+   kubectl -n <namespace> patch chi <clickhouse.fullname> --type merge -p '{"metadata":{"finalizers":[]}}'
+   kubectl -n <namespace> patch chk <keeper.fullname> --type merge -p '{"metadata":{"finalizers":[]}}'
+   kubectl -n <namespace> delete statefulset,service,configmap -l clickhouse.altinity.com/chi=<clickhouse.fullname>
+   kubectl -n <namespace> delete statefulset,service,configmap -l clickhouse-keeper.altinity.com/chk=<keeper.fullname>
+   ```
+
+**To roll back** to a revision from before 0.152.0, while ClickHouse still runs on ZooKeeper (before section 11, step 9):
+
+1. With Keeper on, delete the ClickHouseKeeperInstallation and wait for it, while the 0.27.4 operator still runs:
+
+   ```bash
+   kubectl -n <namespace> delete chk -l app.kubernetes.io/instance=<release> --wait
+   ```
+
+2. Delete the operator Deployment right before the rollback:
+
+   ```bash
+   kubectl delete deployment -n <namespace> -l app.kubernetes.io/name=clickhouse-operator,app.kubernetes.io/instance=<release>
+   ```
+
+3. Roll back:
+
+   ```bash
+   helm rollback <release> <revision> -n <namespace>
+   ```
+
+> [!IMPORTANT]
+> Once ClickHouse runs on Keeper, stay on 0.152.0 or later. For the migration window, see [Rollback during the migration](#rollback-during-the-migration) in section 11.
+
+### You will see
+
+- If `helm uninstall` runs first, the ClickHouseInstallation keeps `finalizer.clickhouseinstallation.altinity.com` with a deletion timestamp. Its StatefulSet, pod and Services keep running, every claim stays `Bound`, and the operator pod is gone within 20 seconds. A ClickHouseKeeperInstallation stays the same way.
+- Removing the finalizer prints `clickhouseinstallation.clickhouse.altinity.com/<clickhouse.fullname> patched`.
+
+### Verify
+
+```bash
+kubectl get chi,chk -n <namespace> -l app.kubernetes.io/instance=<release>
+```
+
+After an uninstall it prints `No resources found in <namespace> namespace.`
+
+## Operator 0.27.4 behavior
+
+The 0.27.4 operator does the following on its own:
+
+- Per-CPU metrics (`OS*CPU<n>`, `CPUFrequencyMHz_<n>`) are no longer exported once the 0.27.4 operator runs. Dashboards and alerts on them get no data.
+- At the next ClickHouse restart, the `clickhouse_operator` user gains `access_management` and named-collection grants on ClickHouse 23.3 and later, and the operator sets `display_secrets_in_show_and_select: 1` on ClickHouse 23.5 and later.
+- An aborted reconcile is retried when a pod becomes Ready.
+- A replica that is deleted or loses its volume is removed from ZooKeeper or ClickHouse Keeper.
+- On data loss or a failed StatefulSet update, the operator recreates the StatefulSet.
+- A new replica waits until its replication lag is 10 seconds or less.
+- The operator rejects file names with the `USERS/`, `COMMON/` or `HOST/` prefix and user settings named `k8s_secret_*`, and reports `RemovedSecretRefSyntax`. The chart's templates use none of these. Remove any that your values or a hand-edited ClickHouseInstallation add.
+- The operator Deployment's strategy is `Recreate`: whenever it changes, the old operator pod stops before the new one starts.
+- The operator keeps a ConfigMap `chi-storage-<clickhouse.fullname>` beside the ClickHouseInstallation.
