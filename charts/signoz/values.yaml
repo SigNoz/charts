@@ -387,13 +387,17 @@ clickhouse:
         # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
         # clickhouse.logs.system.image.tag -- Tag of the system logs sidecar image.
-        # @default -- "0.111.16"
+        # @default -- "v0.144.15"
         # @section -- ClickHouse
-        tag: 0.111.16
+        tag: v0.144.15
         # clickhouse.logs.system.image.pullPolicy -- Pull policy of the system logs sidecar image.
         # @default -- "IfNotPresent"
         # @section -- ClickHouse
         pullPolicy: IfNotPresent
+      # clickhouse.logs.system.resources -- Resources of the system logs sidecar container, a Kubernetes ResourceRequirements object rendered as given.
+      # @default -- {}
+      # @section -- ClickHouse
+      resources: {}
       # -- Config of the opentelemetry collector
       # @section -- ClickHouse
       # @default -- "See values.yaml"
@@ -432,8 +436,6 @@ clickhouse:
           telemetry:
             logs:
               encoding: json
-            metrics:
-              address: 0.0.0.0:8888
           extensions:
             - health_check
           pipelines:
@@ -480,79 +482,41 @@ clickhouse:
     # -- Resources of the hook container.
     # @section -- ClickHouse
     resources: {}
-  # clickhouse.initContainers -- Init container to copy the histogramQuantile UDF.
-  # @section -- ClickHouse
-  # @default -- "See values.yaml"
-  initContainers:
-    # clickhouse.initContainers.enabled -- Renders the init containers of the ClickHouse pod; when false, neither `udf` nor `init` runs.
+  udf:
+    # clickhouse.udf.enabled -- Runs the init container that downloads the histogramQuantile binary from GitHub into the ClickHouse user scripts volume, using the ClickHouse image. Set to false on a cluster without GitHub access and bring the binary with an entry in `clickhouse.extraInitContainers`.
     # @default -- true
     # @section -- ClickHouse
     enabled: true
-    udf:
-      # clickhouse.initContainers.udf.enabled -- Adds the init container that downloads the histogramQuantile binary from GitHub into the ClickHouse user scripts volume.
-      # @default -- true
-      # @section -- ClickHouse
-      enabled: true
-      image:
-        # clickhouse.initContainers.udf.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
-        # @default -- "alpine"
-        # @section -- ClickHouse
-        repository: alpine
-        # clickhouse.initContainers.udf.image.tag -- Tag of the `udf` init container image.
-        # @default -- "3.18.2"
-        # @section -- ClickHouse
-        tag: 3.18.2
-        # clickhouse.initContainers.udf.image.pullPolicy -- Pull policy of the `udf` init container image.
-        # @default -- "IfNotPresent"
-        # @section -- ClickHouse
-        pullPolicy: IfNotPresent
-      # clickhouse.initContainers.udf.command -- Command of the `udf` init container; by default it downloads the histogramQuantile binary for the node's OS and architecture.
-      # @default -- "See values.yaml"
-      # @section -- ClickHouse
-      command:
-        - sh
-        - -c
-        - |
-          set -e
-          version="v0.0.1"
-          node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
-          node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
-          echo "Fetching histogram-binary for ${node_os}/${node_arch}"
-          cd /tmp
-          wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
-          tar -xzf histogram-quantile.tar.gz
-          chmod +x histogram-quantile
-          mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
-          echo "histogram-quantile installed successfully"
-    init:
-      # clickhouse.initContainers.init.enabled -- Adds an init container that runs `clickhouse.initContainers.init.command`.
-      # @default -- false
-      # @section -- ClickHouse
-      enabled: false
-      image:
-        # clickhouse.initContainers.init.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
-        # @default -- "busybox"
-        # @section -- ClickHouse
-        repository: busybox
-        # clickhouse.initContainers.init.image.tag -- Tag of the `init` container image.
-        # @default -- 1.35
-        # @section -- ClickHouse
-        tag: 1.35
-        # clickhouse.initContainers.init.image.pullPolicy -- Pull policy of the `init` container image.
-        # @default -- "IfNotPresent"
-        # @section -- ClickHouse
-        pullPolicy: IfNotPresent
-      # clickhouse.initContainers.init.command -- Command of the `init` container; by default a loop that runs `curl` against `http://signoz-clickhouse:8123/` until it succeeds.
-      # @default -- "See values.yaml"
-      # @section -- ClickHouse
-      command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
-          until curl -s -o /dev/null http://signoz-clickhouse:8123/
-          do sleep 1
-          done
+    # clickhouse.udf.command -- Command of the download init container; by default it fetches the histogramQuantile release for the node's OS and architecture.
+    # @default -- "See values.yaml"
+    # @section -- ClickHouse
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        version="v0.0.1"
+        node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+        node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+        echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+        cd /tmp
+        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+        tar -xzf histogram-quantile.tar.gz
+        chmod +x histogram-quantile
+        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+        echo "histogram-quantile installed successfully"
+    # clickhouse.udf.env -- Environment of the download init container, Kubernetes EnvVar objects rendered as given, for example a proxy setting or a mirror credential from a Secret.
+    # @default -- []
+    # @section -- ClickHouse
+    env: []
+    # clickhouse.udf.envFrom -- envFrom of the download init container, Kubernetes EnvFromSource objects rendered as given.
+    # @default -- []
+    # @section -- ClickHouse
+    envFrom: []
+  # clickhouse.extraInitContainers -- Init containers added to the ClickHouse pod after the histogramQuantile download, Kubernetes Container objects rendered as given. The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
+  # @default -- []
+  # @section -- ClickHouse
+  extraInitContainers: []
   # -- Extra containers for ClickHouse pod
   # @section -- ClickHouse
   extraContainers: []

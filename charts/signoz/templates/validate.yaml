@@ -48,7 +48,7 @@ An old key fails when it is set and non-empty; a probe in the old enabled/port/p
 {{- end }}
 {{- /*
 ClickHouse image blocks without a registry key: the repository carries the registry, and global.imageRegistry replaces it.
-An old registry key fails when it is set and non-empty.
+An old registry key fails when it is set and non-empty; `clickhouse.initContainers` fails on its presence alone.
 */ -}}
 {{- if dig "image" "registry" "" $ch }}
 {{- fail "`clickhouse.image.registry` has been removed; put the registry in front of `clickhouse.image.repository` (for example `my.registry/clickhouse/clickhouse-server`), or set `global.imageRegistry`." }}
@@ -56,11 +56,8 @@ An old registry key fails when it is set and non-empty.
 {{- if dig "logs" "system" "image" "registry" "" $ch }}
 {{- fail "`clickhouse.logs.system.image.registry` has been removed; put the registry in front of `clickhouse.logs.system.image.repository` (for example `my.registry/signoz/signoz-otel-collector`), or set `global.imageRegistry`." }}
 {{- end }}
-{{- if dig "initContainers" "udf" "image" "registry" "" $ch }}
-{{- fail "`clickhouse.initContainers.udf.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.udf.image.repository` (for example `my.registry/alpine`), or set `global.imageRegistry`." }}
-{{- end }}
-{{- if dig "initContainers" "init" "image" "registry" "" $ch }}
-{{- fail "`clickhouse.initContainers.init.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.init.image.repository` (for example `my.registry/busybox`), or set `global.imageRegistry`." }}
+{{- if hasKey $ch "initContainers" }}
+{{- fail "`clickhouse.initContainers` has moved: the histogramQuantile download is `clickhouse.udf` (`enabled`, `command`, `env`, `envFrom`, running on the ClickHouse image), and your own init containers go in `clickhouse.extraInitContainers` as Kubernetes Container objects." }}
 {{- end }}
 {{- /*
 ClickHouse in another namespace with none of the operator's watch settings set.

@@ -34,3 +34,29 @@ tests:
             ports:
               - name: backup-rest
                 containerPort: 7171
+  - it: should run the system logs sidecar as /signoz-otel-collector on v0.144.15 with its resources and no postStart hook on clickhouse
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.resources:
+        requests:
+          cpu: 10m
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[1].image
+          value: signoz/signoz-otel-collector:v0.144.15
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[1].command
+          value:
+            - /signoz-otel-collector
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[1].resources
+          value:
+            requests:
+              cpu: 10m
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].lifecycle
+      - notContains:
+          path: spec.templates.podTemplates[0].spec.containers[0].volumeMounts
+          content:
+            name: scripts
+            mountPath: /scripts

@@ -3,7 +3,6 @@ suite: clickhouse_configmaps_test.yaml
 templates:
   - templates/clickhouse/configmap-functions.yaml
   - templates/clickhouse/configmap-logs.yaml
-  - templates/clickhouse/configmap-scripts.yaml
 release:
   name: golden
   namespace: platform
@@ -30,16 +29,14 @@ tests:
       - equal:
           path: metadata.name
           value: golden-clickhouse-logs-system-config
-  - it: renders the scripts ConfigMap as <fullname>-scripts
-    template: templates/clickhouse/configmap-scripts.yaml
+  - it: renders the logs ConfigMap config without a service.telemetry.metrics block
+    template: templates/clickhouse/configmap-logs.yaml
+    set:
+      clickhouse.logs.system.enabled: true
     asserts:
-      - hasDocuments:
-          count: 1
-      - isKind:
-          of: ConfigMap
-      - equal:
-          path: metadata.name
-          value: golden-clickhouse-scripts
+      - notMatchRegex:
+          path: data["config.yaml"]
+          pattern: "metrics:"
   - it: follows clickhouse.fullnameOverride in every name
     set:
       clickhouse.fullnameOverride: chfnm
@@ -53,10 +50,6 @@ tests:
         equal:
           path: metadata.name
           value: chfnm-logs-system-config
-      - template: templates/clickhouse/configmap-scripts.yaml
-        equal:
-          path: metadata.name
-          value: chfnm-scripts
   - it: renders none of them when clickhouse.enabled is false
     set:
       clickhouse.enabled: false
@@ -66,8 +59,5 @@ tests:
         hasDocuments:
           count: 0
       - template: templates/clickhouse/configmap-logs.yaml
-        hasDocuments:
-          count: 0
-      - template: templates/clickhouse/configmap-scripts.yaml
         hasDocuments:
           count: 0

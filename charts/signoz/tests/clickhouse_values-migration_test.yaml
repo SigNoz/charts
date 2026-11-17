@@ -93,18 +93,12 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "`clickhouse.logs.system.image.registry` has been removed; put the registry in front of `clickhouse.logs.system.image.repository` (for example `my.registry/signoz/signoz-otel-collector`), or set `global.imageRegistry`."
-  - it: fails on clickhouse.initContainers.udf.image.registry
+  - it: fails on clickhouse.initContainers
     set:
-      clickhouse.initContainers.udf.image.registry: docker.io
+      clickhouse.initContainers.udf.enabled: true
     asserts:
       - failedTemplate:
-          errorMessage: "`clickhouse.initContainers.udf.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.udf.image.repository` (for example `my.registry/alpine`), or set `global.imageRegistry`."
-  - it: fails on clickhouse.initContainers.init.image.registry
-    set:
-      clickhouse.initContainers.init.image.registry: docker.io
-    asserts:
-      - failedTemplate:
-          errorMessage: "`clickhouse.initContainers.init.image.registry` has been removed; put the registry in front of `clickhouse.initContainers.init.image.repository` (for example `my.registry/busybox`), or set `global.imageRegistry`."
+          errorMessage: "`clickhouse.initContainers` has moved: the histogramQuantile download is `clickhouse.udf` (`enabled`, `command`, `env`, `envFrom`, running on the ClickHouse image), and your own init containers go in `clickhouse.extraInitContainers` as Kubernetes Container objects."
   - it: renders without error when every new key is set
     set:
       clickhouse.podSecurityContext:

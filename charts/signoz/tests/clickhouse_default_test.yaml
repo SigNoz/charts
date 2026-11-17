@@ -77,3 +77,17 @@ tests:
       - equal:
           path: spec.templates.podTemplates[*].spec.initContainers[0].name
           value: "clickhouse-udf-init"
+      - lengthEqual:
+          path: spec.templates.podTemplates[0].spec.initContainers
+          count: 1
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          value: clickhouse/clickhouse-server:25.12.5
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].image
+          value: clickhouse/clickhouse-server:25.12.5
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts
+          content:
+            name: shared-binary-volume
+            mountPath: /var/lib/clickhouse/user_scripts
