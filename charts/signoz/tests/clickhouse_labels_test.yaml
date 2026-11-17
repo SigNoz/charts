@@ -10,23 +10,17 @@ tests:
     asserts:
       - notExists:
           path: spec.templates.podTemplates[0].metadata.labels["helm.sh/chart"]
-      - equal:
+  - it: pod template carries no version or managed-by label, the CHI does
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/version"]
+      - notExists:
           path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/managed-by"]
+      - exists:
+          path: metadata.labels["app.kubernetes.io/version"]
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
           value: Helm
-  - it: pod template version label follows the image tag (25.12.5)
-    set:
-      clickhouse.image.tag: 25.12.5
-    asserts:
-      - equal:
-          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/version"]
-          value: "25.12.5"
-  - it: pod template version label follows the image tag (24.1.2-alpine)
-    set:
-      clickhouse.image.tag: 24.1.2-alpine
-    asserts:
-      - equal:
-          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/version"]
-          value: "24.1.2-alpine"
   - it: pod template keeps the selector labels
     asserts:
       - equal:

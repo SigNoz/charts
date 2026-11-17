@@ -263,3 +263,8 @@ tests:
           content:
             name: logs-system-config
             mountPath: /conf
+  - it: should retain PVCs the operator no longer matches to a claim template
+    asserts:
+      - equal:
+          path: spec.reconciling.cleanup.unknownObjects.pvc
+          value: Retain

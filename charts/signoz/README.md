@@ -1098,7 +1098,16 @@ runAsUser: 101</pre>
             <td>Pod security context of the ClickHouse pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.</td>
         </tr>
         <tr>
-            <td id="clickhouse--priorityClassName"><a href="./values.yaml#L621">clickhouse.priorityClassName</a></td>
+            <td id="clickhouse--containerSecurityContext"><a href="./values.yaml#L621">clickhouse.containerSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Security context of the ClickHouse container, a Kubernetes SecurityContext object rendered as given; rendered only when set. ClickHouse runs under `allowPrivilegeEscalation: false`, `capabilities: {drop: [ALL]}`, `runAsNonRoot: true` and `seccompProfile: {type: RuntimeDefault}`.</td>
+        </tr>
+        <tr>
+            <td id="clickhouse--priorityClassName"><a href="./values.yaml#L625">clickhouse.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1107,7 +1116,7 @@ runAsUser: 101</pre>
             <td>Clickhouse priority class name. Rendered into the ClickHouse pod template as given; an empty value sets no priority class.</td>
         </tr>
         <tr>
-            <td id="clickhouse--nodeSelector"><a href="./values.yaml#L625">clickhouse.nodeSelector</a></td>
+            <td id="clickhouse--nodeSelector"><a href="./values.yaml#L629">clickhouse.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1116,7 +1125,7 @@ runAsUser: 101</pre>
             <td>Node selector for assigning the ClickHouse pod.</td>
         </tr>
         <tr>
-            <td id="clickhouse--tolerations"><a href="./values.yaml#L629">clickhouse.tolerations</a></td>
+            <td id="clickhouse--tolerations"><a href="./values.yaml#L633">clickhouse.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1125,7 +1134,7 @@ runAsUser: 101</pre>
             <td>Toleration labels for ClickHouse pod assignment.</td>
         </tr>
         <tr>
-            <td id="clickhouse--affinity"><a href="./values.yaml#L633">clickhouse.affinity</a></td>
+            <td id="clickhouse--affinity"><a href="./values.yaml#L637">clickhouse.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1134,7 +1143,7 @@ runAsUser: 101</pre>
             <td>Affinity settings for the ClickHouse pod.</td>
         </tr>
         <tr>
-            <td id="clickhouse--topologySpreadConstraints"><a href="./values.yaml#L636">clickhouse.topologySpreadConstraints</a></td>
+            <td id="clickhouse--topologySpreadConstraints"><a href="./values.yaml#L640">clickhouse.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1143,7 +1152,7 @@ runAsUser: 101</pre>
             <td>TopologySpreadConstraints describes how clickhouse pods ought to spread</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence"><a href="./values.yaml#L640">clickhouse.persistence</a></td>
+            <td id="clickhouse--persistence"><a href="./values.yaml#L644">clickhouse.persistence</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">accessModes:
@@ -1157,7 +1166,7 @@ storageClass: null</pre>
             <td>ClickHouse persistence configuration.</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence--enabled"><a href="./values.yaml#L644">clickhouse.persistence.enabled</a></td>
+            <td id="clickhouse--persistence--enabled"><a href="./values.yaml#L648">clickhouse.persistence.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -1166,7 +1175,7 @@ storageClass: null</pre>
             <td>Enable data persistence using a PVC for ClickHouse data.</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence--existingClaim"><a href="./values.yaml#L648">clickhouse.persistence.existingClaim</a></td>
+            <td id="clickhouse--persistence--existingClaim"><a href="./values.yaml#L652">clickhouse.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1175,7 +1184,7 @@ storageClass: null</pre>
             <td>Use a manually managed Persistent Volume Claim. If defined, the PVC must be created manually.</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence--storageClass"><a href="./values.yaml#L652">clickhouse.persistence.storageClass</a></td>
+            <td id="clickhouse--persistence--storageClass"><a href="./values.yaml#L656">clickhouse.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1184,7 +1193,7 @@ storageClass: null</pre>
             <td>Persistent Volume Storage Class. If "-", disables dynamic provisioning. If null, uses the default provisioner.</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence--accessModes"><a href="./values.yaml#L656">clickhouse.persistence.accessModes</a></td>
+            <td id="clickhouse--persistence--accessModes"><a href="./values.yaml#L660">clickhouse.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -1193,7 +1202,7 @@ storageClass: null</pre>
             <td>Access Modes for the persistent volume.</td>
         </tr>
         <tr>
-            <td id="clickhouse--persistence--size"><a href="./values.yaml#L661">clickhouse.persistence.size</a></td>
+            <td id="clickhouse--persistence--size"><a href="./values.yaml#L665">clickhouse.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">20Gi</pre>
@@ -1202,7 +1211,7 @@ storageClass: null</pre>
             <td>Persistent Volume size.</td>
         </tr>
         <tr>
-            <td id="clickhouse--extraVolumes"><a href="./values.yaml#L664">clickhouse.extraVolumes</a></td>
+            <td id="clickhouse--extraVolumes"><a href="./values.yaml#L668">clickhouse.extraVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1211,7 +1220,7 @@ storageClass: null</pre>
             <td>Extra volumes for the ClickHouse pod, a list of Kubernetes Volume objects.</td>
         </tr>
         <tr>
-            <td id="clickhouse--extraVolumeMounts"><a href="./values.yaml#L667">clickhouse.extraVolumeMounts</a></td>
+            <td id="clickhouse--extraVolumeMounts"><a href="./values.yaml#L671">clickhouse.extraVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1231,7 +1240,7 @@ storageClass: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="zookeeper"><a href="./values.yaml#L673">zookeeper</a></td>
+            <td id="zookeeper"><a href="./values.yaml#L677">zookeeper</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
@@ -1240,7 +1249,7 @@ storageClass: null</pre>
             <td>Zookeeper default values. Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml</td>
         </tr>
         <tr>
-            <td id="zookeeper--image"><a href="./values.yaml#L685">zookeeper.image</a></td>
+            <td id="zookeeper--image"><a href="./values.yaml#L689">zookeeper.image</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">registry: null
@@ -1251,7 +1260,7 @@ tag: 3.7.1</pre>
             <td>Zookeeper image</td>
         </tr>
         <tr>
-            <td id="zookeeper--image--registry"><a href="./values.yaml#L688">zookeeper.image.registry</a></td>
+            <td id="zookeeper--image--registry"><a href="./values.yaml#L692">zookeeper.image.registry</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1260,7 +1269,7 @@ tag: 3.7.1</pre>
             <td>Zookeeper image registry to use.</td>
         </tr>
         <tr>
-            <td id="zookeeper--image--repository"><a href="./values.yaml#L691">zookeeper.image.repository</a></td>
+            <td id="zookeeper--image--repository"><a href="./values.yaml#L695">zookeeper.image.repository</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz/zookeeper</pre>
@@ -1269,7 +1278,7 @@ tag: 3.7.1</pre>
             <td>Zookeeper image repository to use.</td>
         </tr>
         <tr>
-            <td id="zookeeper--image--tag"><a href="./values.yaml#L696">zookeeper.image.tag</a></td>
+            <td id="zookeeper--image--tag"><a href="./values.yaml#L700">zookeeper.image.tag</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">3.7.1</pre>
@@ -1278,7 +1287,7 @@ tag: 3.7.1</pre>
             <td>Zookeeper image tag. Note: SigNoz ClickHouse does not support all versions of Zookeeper. Please override the default only if you know what you are doing.</td>
         </tr>
         <tr>
-            <td id="zookeeper--nameOverride"><a href="./values.yaml#L700">zookeeper.nameOverride</a></td>
+            <td id="zookeeper--nameOverride"><a href="./values.yaml#L704">zookeeper.nameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1287,7 +1296,7 @@ tag: 3.7.1</pre>
             <td>Name override for zookeeper app</td>
         </tr>
         <tr>
-            <td id="zookeeper--fullnameOverride"><a href="./values.yaml#L703">zookeeper.fullnameOverride</a></td>
+            <td id="zookeeper--fullnameOverride"><a href="./values.yaml#L707">zookeeper.fullnameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1296,7 +1305,7 @@ tag: 3.7.1</pre>
             <td>Fullname override for zookeeper app</td>
         </tr>
         <tr>
-            <td id="zookeeper--namespaceOverride"><a href="./values.yaml#L707">zookeeper.namespaceOverride</a></td>
+            <td id="zookeeper--namespaceOverride"><a href="./values.yaml#L711">zookeeper.namespaceOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1305,7 +1314,7 @@ tag: 3.7.1</pre>
             <td>Whether to install zookeeper into a different namespace than the parent</td>
         </tr>
         <tr>
-            <td id="zookeeper--podAnnotations"><a href="./values.yaml#L711">zookeeper.podAnnotations</a></td>
+            <td id="zookeeper--podAnnotations"><a href="./values.yaml#L715">zookeeper.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz.io/path: /metrics
@@ -1316,7 +1325,7 @@ signoz.io/scrape: "true"</pre>
             <td>Zookeeper pod(s) annotation.</td>
         </tr>
         <tr>
-            <td id="zookeeper--autopurge"><a href="./values.yaml#L718">zookeeper.autopurge</a></td>
+            <td id="zookeeper--autopurge"><a href="./values.yaml#L722">zookeeper.autopurge</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">purgeInterval: 1</pre>
@@ -1325,7 +1334,7 @@ signoz.io/scrape: "true"</pre>
             <td>Ongoing data directory cleanup configuration.</td>
         </tr>
         <tr>
-            <td id="zookeeper--autopurge--purgeInterval"><a href="./values.yaml#L721">zookeeper.autopurge.purgeInterval</a></td>
+            <td id="zookeeper--autopurge--purgeInterval"><a href="./values.yaml#L725">zookeeper.autopurge.purgeInterval</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -1334,7 +1343,7 @@ signoz.io/scrape: "true"</pre>
             <td>The time interval (in hours) for which the purge task has to be triggered</td>
         </tr>
         <tr>
-            <td id="zookeeper--metrics"><a href="./values.yaml#L725">zookeeper.metrics</a></td>
+            <td id="zookeeper--metrics"><a href="./values.yaml#L729">zookeeper.metrics</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: true
@@ -1346,7 +1355,7 @@ service:
             <td>ZooKeeper Prometheus Exporter configuration.</td>
         </tr>
         <tr>
-            <td id="zookeeper--metrics--enabled"><a href="./values.yaml#L728">zookeeper.metrics.enabled</a></td>
+            <td id="zookeeper--metrics--enabled"><a href="./values.yaml#L732">zookeeper.metrics.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -1355,7 +1364,7 @@ service:
             <td>Enable Prometheus to access ZooKeeper metrics endpoint.</td>
         </tr>
         <tr>
-            <td id="zookeeper--metrics--service--annotations"><a href="./values.yaml#L734">zookeeper.metrics.service.annotations</a></td>
+            <td id="zookeeper--metrics--service--annotations"><a href="./values.yaml#L738">zookeeper.metrics.service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1364,7 +1373,7 @@ service:
             <td>ZooKeeper metrics service annotation</td>
         </tr>
         <tr>
-            <td id="zookeeper--logLevel"><a href="./values.yaml#L741">zookeeper.logLevel</a></td>
+            <td id="zookeeper--logLevel"><a href="./values.yaml#L745">zookeeper.logLevel</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">INFO</pre>
@@ -1373,7 +1382,7 @@ service:
             <td>Zookeeper log level.</td>
         </tr>
         <tr>
-            <td id="zookeeper--livenessProbe"><a href="./values.yaml#L745">zookeeper.livenessProbe</a></td>
+            <td id="zookeeper--livenessProbe"><a href="./values.yaml#L749">zookeeper.livenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
@@ -1382,7 +1391,7 @@ service:
             <td>Zookeeper liveness probe settings.</td>
         </tr>
         <tr>
-            <td id="zookeeper--readinessProbe"><a href="./values.yaml#L749">zookeeper.readinessProbe</a></td>
+            <td id="zookeeper--readinessProbe"><a href="./values.yaml#L753">zookeeper.readinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
@@ -1391,7 +1400,7 @@ service:
             <td>Zookeeper readiness probe settings.</td>
         </tr>
         <tr>
-            <td id="zookeeper--customLivenessProbe"><a href="./values.yaml#L753">zookeeper.customLivenessProbe</a></td>
+            <td id="zookeeper--customLivenessProbe"><a href="./values.yaml#L757">zookeeper.customLivenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">exec:
@@ -1409,7 +1418,7 @@ timeoutSeconds: 5</pre>
             <td>Custom liveness probe for Zookeeper.</td>
         </tr>
         <tr>
-            <td id="zookeeper--customReadinessProbe"><a href="./values.yaml#L763">zookeeper.customReadinessProbe</a></td>
+            <td id="zookeeper--customReadinessProbe"><a href="./values.yaml#L767">zookeeper.customReadinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">exec:
@@ -1427,7 +1436,7 @@ timeoutSeconds: 5</pre>
             <td>Custom readiness probe for Zookeeper.</td>
         </tr>
         <tr>
-            <td id="zookeeper--minServerId"><a href="./values.yaml#L777">zookeeper.minServerId</a></td>
+            <td id="zookeeper--minServerId"><a href="./values.yaml#L781">zookeeper.minServerId</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -1436,7 +1445,7 @@ timeoutSeconds: 5</pre>
             <td>Minimal SERVER_ID value, nodes increment their IDs respectively. Servers increment their ID starting at this minimal value. Eg. with `minServerId=10` and 3 replicas, server IDs will be 10, 11, 12 for z-0, z-1 and z-2 respectively.</td>
         </tr>
         <tr>
-            <td id="zookeeper--replicaCount"><a href="./values.yaml#L781">zookeeper.replicaCount</a></td>
+            <td id="zookeeper--replicaCount"><a href="./values.yaml#L785">zookeeper.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -1445,7 +1454,7 @@ timeoutSeconds: 5</pre>
             <td>Replica count for zookeeper</td>
         </tr>
         <tr>
-            <td id="zookeeper--pdb"><a href="./values.yaml#L786">zookeeper.pdb</a></td>
+            <td id="zookeeper--pdb"><a href="./values.yaml#L790">zookeeper.pdb</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">create: false</pre>
@@ -1454,7 +1463,7 @@ timeoutSeconds: 5</pre>
             <td>ZooKeeper Pod Disruption Budget Ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/</td>
         </tr>
         <tr>
-            <td id="zookeeper--pdb--create"><a href="./values.yaml#L789">zookeeper.pdb.create</a></td>
+            <td id="zookeeper--pdb--create"><a href="./values.yaml#L793">zookeeper.pdb.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -1463,7 +1472,7 @@ timeoutSeconds: 5</pre>
             <td>Specifies whether a Pod Disruption Budget should be created</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence"><a href="./values.yaml#L795">zookeeper.persistence</a></td>
+            <td id="zookeeper--persistence"><a href="./values.yaml#L799">zookeeper.persistence</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">accessModes:
@@ -1478,7 +1487,7 @@ storageClass: null</pre>
             <td>Enable persistence using Persistent Volume Claims  Ref: https://kubernetes.io/docs/user-guide/persistent-volumes/</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--enabled"><a href="./values.yaml#L798">zookeeper.persistence.enabled</a></td>
+            <td id="zookeeper--persistence--enabled"><a href="./values.yaml#L802">zookeeper.persistence.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -1487,7 +1496,7 @@ storageClass: null</pre>
             <td>Enable ZooKeeper data persistence using PVC. If false, use emptyDir</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--existingClaim"><a href="./values.yaml#L802">zookeeper.persistence.existingClaim</a></td>
+            <td id="zookeeper--persistence--existingClaim"><a href="./values.yaml#L806">zookeeper.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1496,7 +1505,7 @@ storageClass: null</pre>
             <td>Name of an existing PVC to use (only when deploying a single replica)</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--storageClass"><a href="./values.yaml#L811">zookeeper.persistence.storageClass</a></td>
+            <td id="zookeeper--persistence--storageClass"><a href="./values.yaml#L815">zookeeper.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1505,7 +1514,7 @@ storageClass: null</pre>
             <td>PVC Storage Class for ZooKeeper data volume If defined, storageClassName: <storageClass> If set to "-", storageClassName: "", which disables dynamic provisioning If undefined (the default) or set to null, no storageClassName spec is   set, choosing the default provisioner.  (gp2 on AWS, standard on   GKE, AWS & OpenStack)</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--accessModes"><a href="./values.yaml#L815">zookeeper.persistence.accessModes</a></td>
+            <td id="zookeeper--persistence--accessModes"><a href="./values.yaml#L819">zookeeper.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -1514,7 +1523,7 @@ storageClass: null</pre>
             <td>PVC Access modes</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--size"><a href="./values.yaml#L820">zookeeper.persistence.size</a></td>
+            <td id="zookeeper--persistence--size"><a href="./values.yaml#L824">zookeeper.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8Gi</pre>
@@ -1523,7 +1532,7 @@ storageClass: null</pre>
             <td>PVC Storage Request for ZooKeeper data volume</td>
         </tr>
         <tr>
-            <td id="zookeeper--persistence--annotations"><a href="./values.yaml#L824">zookeeper.persistence.annotations</a></td>
+            <td id="zookeeper--persistence--annotations"><a href="./values.yaml#L828">zookeeper.persistence.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1532,7 +1541,7 @@ storageClass: null</pre>
             <td>Annotations for the PVC</td>
         </tr>
         <tr>
-            <td id="zookeeper--resources"><a href="./values.yaml#L828">zookeeper.resources</a></td>
+            <td id="zookeeper--resources"><a href="./values.yaml#L832">zookeeper.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">limits: {}
@@ -1555,7 +1564,7 @@ requests:
     </thead>
     <tbody>
         <tr>
-            <td id="externalClickhouse"><a href="./values.yaml#L1041">externalClickhouse</a></td>
+            <td id="externalClickhouse"><a href="./values.yaml#L1045">externalClickhouse</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">cluster: cluster
@@ -1577,7 +1586,7 @@ verify: false</pre>
             <td>External ClickHouse configuration. Required when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--host"><a href="./values.yaml#L1046">externalClickhouse.host</a></td>
+            <td id="externalClickhouse--host"><a href="./values.yaml#L1050">externalClickhouse.host</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1586,7 +1595,7 @@ verify: false</pre>
             <td>Host of the external ClickHouse cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--cluster"><a href="./values.yaml#L1051">externalClickhouse.cluster</a></td>
+            <td id="externalClickhouse--cluster"><a href="./values.yaml#L1055">externalClickhouse.cluster</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">cluster</pre>
@@ -1595,7 +1604,7 @@ verify: false</pre>
             <td>Name of the external cluster to run DDL queries on. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--database"><a href="./values.yaml#L1056">externalClickhouse.database</a></td>
+            <td id="externalClickhouse--database"><a href="./values.yaml#L1060">externalClickhouse.database</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz_metrics</pre>
@@ -1604,7 +1613,7 @@ verify: false</pre>
             <td>Database name for the external cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--traceDatabase"><a href="./values.yaml#L1061">externalClickhouse.traceDatabase</a></td>
+            <td id="externalClickhouse--traceDatabase"><a href="./values.yaml#L1065">externalClickhouse.traceDatabase</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz_traces</pre>
@@ -1613,7 +1622,7 @@ verify: false</pre>
             <td>Database name for SigNoz Traces on the external cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--logDatabase"><a href="./values.yaml#L1066">externalClickhouse.logDatabase</a></td>
+            <td id="externalClickhouse--logDatabase"><a href="./values.yaml#L1070">externalClickhouse.logDatabase</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz_logs</pre>
@@ -1622,7 +1631,7 @@ verify: false</pre>
             <td>Database name for SigNoz Logs on the external cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--meterDatabase"><a href="./values.yaml#L1071">externalClickhouse.meterDatabase</a></td>
+            <td id="externalClickhouse--meterDatabase"><a href="./values.yaml#L1075">externalClickhouse.meterDatabase</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz_meter</pre>
@@ -1631,7 +1640,7 @@ verify: false</pre>
             <td>Database name for SigNoz Meter on the external cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--user"><a href="./values.yaml#L1076">externalClickhouse.user</a></td>
+            <td id="externalClickhouse--user"><a href="./values.yaml#L1080">externalClickhouse.user</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1640,7 +1649,7 @@ verify: false</pre>
             <td>Username to connect to the external cluster. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--password"><a href="./values.yaml#L1081">externalClickhouse.password</a></td>
+            <td id="externalClickhouse--password"><a href="./values.yaml#L1085">externalClickhouse.password</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1649,7 +1658,7 @@ verify: false</pre>
             <td>Password for the external cluster. Ignored if `externalClickhouse.existingSecret` is set. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--existingSecret"><a href="./values.yaml#L1086">externalClickhouse.existingSecret</a></td>
+            <td id="externalClickhouse--existingSecret"><a href="./values.yaml#L1090">externalClickhouse.existingSecret</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1658,7 +1667,7 @@ verify: false</pre>
             <td>Name of an existing Kubernetes secret containing the password. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--existingSecretPasswordKey"><a href="./values.yaml#L1091">externalClickhouse.existingSecretPasswordKey</a></td>
+            <td id="externalClickhouse--existingSecretPasswordKey"><a href="./values.yaml#L1095">externalClickhouse.existingSecretPasswordKey</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1667,7 +1676,7 @@ verify: false</pre>
             <td>Key in the existing secret that contains the password. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--secure"><a href="./values.yaml#L1096">externalClickhouse.secure</a></td>
+            <td id="externalClickhouse--secure"><a href="./values.yaml#L1100">externalClickhouse.secure</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -1676,7 +1685,7 @@ verify: false</pre>
             <td>Whether to use a TLS connection when connecting to ClickHouse. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--verify"><a href="./values.yaml#L1101">externalClickhouse.verify</a></td>
+            <td id="externalClickhouse--verify"><a href="./values.yaml#L1105">externalClickhouse.verify</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -1685,7 +1694,7 @@ verify: false</pre>
             <td>Whether to verify the TLS certificate on connection to ClickHouse. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--httpPort"><a href="./values.yaml#L1106">externalClickhouse.httpPort</a></td>
+            <td id="externalClickhouse--httpPort"><a href="./values.yaml#L1110">externalClickhouse.httpPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8123</pre>
@@ -1694,7 +1703,7 @@ verify: false</pre>
             <td>HTTP port of the external ClickHouse instance. Used only when `clickhouse.enabled` is false.</td>
         </tr>
         <tr>
-            <td id="externalClickhouse--tcpPort"><a href="./values.yaml#L1111">externalClickhouse.tcpPort</a></td>
+            <td id="externalClickhouse--tcpPort"><a href="./values.yaml#L1115">externalClickhouse.tcpPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">9000</pre>
@@ -1714,7 +1723,7 @@ verify: false</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz"><a href="./values.yaml#L1115">signoz</a></td>
+            <td id="signoz"><a href="./values.yaml#L1119">signoz</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -1723,7 +1732,7 @@ verify: false</pre>
             <td>Default values for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--name"><a href="./values.yaml#L1119">signoz.name</a></td>
+            <td id="signoz--name"><a href="./values.yaml#L1123">signoz.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
@@ -1732,7 +1741,7 @@ verify: false</pre>
             <td>The name of the SigNoz component.</td>
         </tr>
         <tr>
-            <td id="signoz--replicaCount"><a href="./values.yaml#L1123">signoz.replicaCount</a></td>
+            <td id="signoz--replicaCount"><a href="./values.yaml#L1127">signoz.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -1741,7 +1750,7 @@ verify: false</pre>
             <td>The number of pod replicas for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--image"><a href="./values.yaml#L1126">signoz.image</a></td>
+            <td id="signoz--image"><a href="./values.yaml#L1130">signoz.image</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">pullPolicy: IfNotPresent
@@ -1753,7 +1762,7 @@ tag: v0.151.0</pre>
             <td>Image configuration for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--imagePullSecrets"><a href="./values.yaml#L1144">signoz.imagePullSecrets</a></td>
+            <td id="signoz--imagePullSecrets"><a href="./values.yaml#L1148">signoz.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1762,7 +1771,7 @@ tag: v0.151.0</pre>
             <td>Image pull secrets for SigNoz. This has higher precedence than the root level or global value.</td>
         </tr>
         <tr>
-            <td id="signoz--serviceAccount"><a href="./values.yaml#L1147">signoz.serviceAccount</a></td>
+            <td id="signoz--serviceAccount"><a href="./values.yaml#L1151">signoz.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -1773,7 +1782,7 @@ name: null</pre>
             <td>Service Account configuration for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--annotations"><a href="./values.yaml#L1191">signoz.annotations</a></td>
+            <td id="signoz--annotations"><a href="./values.yaml#L1195">signoz.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1782,7 +1791,7 @@ name: null</pre>
             <td>Annotations for the SigNoz pod.</td>
         </tr>
         <tr>
-            <td id="signoz--additionalArgs"><a href="./values.yaml#L1195">signoz.additionalArgs</a></td>
+            <td id="signoz--additionalArgs"><a href="./values.yaml#L1199">signoz.additionalArgs</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1791,7 +1800,7 @@ name: null</pre>
             <td>Additional command-line arguments for SigNoz.</td>
         </tr>
         <tr>
-            <td id="signoz--env"><a href="./values.yaml#L1219">signoz.env</a></td>
+            <td id="signoz--env"><a href="./values.yaml#L1223">signoz.env</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz_alertmanager_provider: signoz
@@ -1804,7 +1813,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Environment variables for SigNoz. Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml Note on Variable Naming: Environment variables are derived from the YAML configuration. For example, a key `provider` under the `telemetry_store` section becomes `signoz_telemetrystore_provider`.</td>
         </tr>
         <tr>
-            <td id="signoz--podSecurityContext"><a href="./values.yaml#L1236">signoz.podSecurityContext</a></td>
+            <td id="signoz--podSecurityContext"><a href="./values.yaml#L1240">signoz.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1813,7 +1822,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Pod-level security context.</td>
         </tr>
         <tr>
-            <td id="signoz--podAnnotations"><a href="./values.yaml#L1242">signoz.podAnnotations</a></td>
+            <td id="signoz--podAnnotations"><a href="./values.yaml#L1246">signoz.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1822,7 +1831,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Annotations for the SigNoz pod.</td>
         </tr>
         <tr>
-            <td id="signoz--securityContext"><a href="./values.yaml#L1246">signoz.securityContext</a></td>
+            <td id="signoz--securityContext"><a href="./values.yaml#L1250">signoz.securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1831,7 +1840,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Container-level security context.</td>
         </tr>
         <tr>
-            <td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L1257">signoz.additionalVolumeMounts</a></td>
+            <td id="signoz--additionalVolumeMounts"><a href="./values.yaml#L1261">signoz.additionalVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1840,7 +1849,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Additional volume mounts for the SigNoz container.</td>
         </tr>
         <tr>
-            <td id="signoz--additionalVolumes"><a href="./values.yaml#L1261">signoz.additionalVolumes</a></td>
+            <td id="signoz--additionalVolumes"><a href="./values.yaml#L1265">signoz.additionalVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1849,7 +1858,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Additional volumes for the SigNoz pod.</td>
         </tr>
         <tr>
-            <td id="signoz--livenessProbe"><a href="./values.yaml#L1265">signoz.livenessProbe</a></td>
+            <td id="signoz--livenessProbe"><a href="./values.yaml#L1269">signoz.livenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -1858,7 +1867,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Liveness probe configuration.</td>
         </tr>
         <tr>
-            <td id="signoz--readinessProbe"><a href="./values.yaml#L1277">signoz.readinessProbe</a></td>
+            <td id="signoz--readinessProbe"><a href="./values.yaml#L1281">signoz.readinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -1867,7 +1876,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Readiness probe configuration.</td>
         </tr>
         <tr>
-            <td id="signoz--customLivenessProbe"><a href="./values.yaml#L1289">signoz.customLivenessProbe</a></td>
+            <td id="signoz--customLivenessProbe"><a href="./values.yaml#L1293">signoz.customLivenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1876,7 +1885,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Custom liveness probe to override the default.</td>
         </tr>
         <tr>
-            <td id="signoz--customReadinessProbe"><a href="./values.yaml#L1293">signoz.customReadinessProbe</a></td>
+            <td id="signoz--customReadinessProbe"><a href="./values.yaml#L1297">signoz.customReadinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1885,7 +1894,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Custom readiness probe to override the default.</td>
         </tr>
         <tr>
-            <td id="signoz--resources"><a href="./values.yaml#L1328">signoz.resources</a></td>
+            <td id="signoz--resources"><a href="./values.yaml#L1332">signoz.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -1894,7 +1903,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
         </tr>
         <tr>
-            <td id="signoz--priorityClassName"><a href="./values.yaml#L1339">signoz.priorityClassName</a></td>
+            <td id="signoz--priorityClassName"><a href="./values.yaml#L1343">signoz.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -1903,7 +1912,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Priority class for the SigNoz pods.</td>
         </tr>
         <tr>
-            <td id="signoz--nodeSelector"><a href="./values.yaml#L1343">signoz.nodeSelector</a></td>
+            <td id="signoz--nodeSelector"><a href="./values.yaml#L1347">signoz.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1912,7 +1921,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Node selector for pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--tolerations"><a href="./values.yaml#L1347">signoz.tolerations</a></td>
+            <td id="signoz--tolerations"><a href="./values.yaml#L1351">signoz.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1921,7 +1930,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Tolerations for pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--affinity"><a href="./values.yaml#L1351">signoz.affinity</a></td>
+            <td id="signoz--affinity"><a href="./values.yaml#L1355">signoz.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -1930,7 +1939,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Affinity settings for pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1355">signoz.topologySpreadConstraints</a></td>
+            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1359">signoz.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -1939,7 +1948,7 @@ signoz_telemetrystore_provider: clickhouse</pre>
             <td>Topology spread constraints for pod distribution.</td>
         </tr>
         <tr>
-            <td id="signoz--persistence"><a href="./values.yaml#L1358">signoz.persistence</a></td>
+            <td id="signoz--persistence"><a href="./values.yaml#L1362">signoz.persistence</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">accessModes:
@@ -1964,7 +1973,7 @@ storageClass: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz--service"><a href="./values.yaml#L1160">signoz.service</a></td>
+            <td id="signoz--service"><a href="./values.yaml#L1164">signoz.service</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -1981,7 +1990,7 @@ type: ClusterIP</pre>
             <td>Service configuration for SigNoz. This allows you to configure how SigNoz is exposed within the Kubernetes cluster.</td>
         </tr>
         <tr>
-            <td id="signoz--ingress"><a href="./values.yaml#L1296">signoz.ingress</a></td>
+            <td id="signoz--ingress"><a href="./values.yaml#L1300">signoz.ingress</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2010,7 +2019,7 @@ tls: []</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1378">telemetryStoreMigrator</a></td>
+            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1382">telemetryStoreMigrator</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2019,7 +2028,7 @@ tls: []</pre>
             <td>Default values for the Telemetry Store Migrator.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1382">telemetryStoreMigrator.enabled</a></td>
+            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1386">telemetryStoreMigrator.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2028,7 +2037,7 @@ tls: []</pre>
             <td>Enable the Telemetry Store Migrator component.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1386">telemetryStoreMigrator.name</a></td>
+            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1390">telemetryStoreMigrator.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz-telemetrystore-migrator</pre>
@@ -2037,7 +2046,7 @@ tls: []</pre>
             <td>The name of the Telemetry Store Migrator component.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1390">telemetryStoreMigrator.annotations</a></td>
+            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1394">telemetryStoreMigrator.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2046,7 +2055,7 @@ tls: []</pre>
             <td>Annotations for the Telemetry Store Migrator job.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--upgradeHelmHooks"><a href="./values.yaml#L1394">telemetryStoreMigrator.upgradeHelmHooks</a></td>
+            <td id="telemetryStoreMigrator--upgradeHelmHooks"><a href="./values.yaml#L1398">telemetryStoreMigrator.upgradeHelmHooks</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2055,7 +2064,7 @@ tls: []</pre>
             <td>Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1398">telemetryStoreMigrator.enableReplication</a></td>
+            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1402">telemetryStoreMigrator.enableReplication</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2064,7 +2073,7 @@ tls: []</pre>
             <td>Whether to enable replication for the Telemetry Store Migrator.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1402">telemetryStoreMigrator.timeout</a></td>
+            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1406">telemetryStoreMigrator.timeout</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10m</pre>
@@ -2073,7 +2082,7 @@ tls: []</pre>
             <td>Timeout for the migration.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1406">telemetryStoreMigrator.nodeSelector</a></td>
+            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1410">telemetryStoreMigrator.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2082,7 +2091,7 @@ tls: []</pre>
             <td>Node selector for pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1410">telemetryStoreMigrator.tolerations</a></td>
+            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1414">telemetryStoreMigrator.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2091,7 +2100,7 @@ tls: []</pre>
             <td>Tolerations for pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1414">telemetryStoreMigrator.affinity</a></td>
+            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1418">telemetryStoreMigrator.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2100,7 +2109,7 @@ tls: []</pre>
             <td>Affinity settings for pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1418">telemetryStoreMigrator.topologySpreadConstraints</a></td>
+            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1422">telemetryStoreMigrator.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2109,7 +2118,7 @@ tls: []</pre>
             <td>Topology spread constraints for pod distribution.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1422">telemetryStoreMigrator.resources</a></td>
+            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1426">telemetryStoreMigrator.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2118,7 +2127,7 @@ tls: []</pre>
             <td>Resource requests and limits for all migrator containers.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1425">telemetryStoreMigrator.serviceAccount</a></td>
+            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1429">telemetryStoreMigrator.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2140,7 +2149,7 @@ name: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector"><a href="./values.yaml#L1439">otelCollector</a></td>
+            <td id="otelCollector"><a href="./values.yaml#L1443">otelCollector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2149,7 +2158,7 @@ name: null</pre>
             <td>Default values for the OpenTelemetry Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--name"><a href="./values.yaml#L1443">otelCollector.name</a></td>
+            <td id="otelCollector--name"><a href="./values.yaml#L1447">otelCollector.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">otel-collector</pre>
@@ -2158,7 +2167,7 @@ name: null</pre>
             <td>The name of the Otel Collector component.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image"><a href="./values.yaml#L1447">otelCollector.image</a></td>
+            <td id="otelCollector--image"><a href="./values.yaml#L1451">otelCollector.image</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2167,7 +2176,7 @@ name: null</pre>
             <td>Image configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1464">otelCollector.imagePullSecrets</a></td>
+            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1468">otelCollector.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2176,7 +2185,7 @@ name: null</pre>
             <td>Image pull secrets for the Otel Collector. This has higher precedence than the root level or global value.</td>
         </tr>
         <tr>
-            <td id="otelCollector--strategy"><a href="./values.yaml#L1468">otelCollector.strategy</a></td>
+            <td id="otelCollector--strategy"><a href="./values.yaml#L1472">otelCollector.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -2185,7 +2194,7 @@ name: null</pre>
             <td>Deployment strategy to use</td>
         </tr>
         <tr>
-            <td id="otelCollector--command"><a href="./values.yaml#L1471">otelCollector.command</a></td>
+            <td id="otelCollector--command"><a href="./values.yaml#L1475">otelCollector.command</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">extraArgs: null
@@ -2195,7 +2204,7 @@ name: /signoz-otel-collector</pre>
             <td>Configuration for the Otel Collector executable.</td>
         </tr>
         <tr>
-            <td id="otelCollector--configMap"><a href="./values.yaml#L1479">otelCollector.configMap</a></td>
+            <td id="otelCollector--configMap"><a href="./values.yaml#L1483">otelCollector.configMap</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">create: true</pre>
@@ -2204,7 +2213,7 @@ name: /signoz-otel-collector</pre>
             <td>ConfigMap settings.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount"><a href="./values.yaml#L1485">otelCollector.serviceAccount</a></td>
+            <td id="otelCollector--serviceAccount"><a href="./values.yaml#L1489">otelCollector.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2215,7 +2224,7 @@ name: null</pre>
             <td>Service Account configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--annotations"><a href="./values.yaml#L1513">otelCollector.annotations</a></td>
+            <td id="otelCollector--annotations"><a href="./values.yaml#L1517">otelCollector.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2224,7 +2233,7 @@ name: null</pre>
             <td>Annotations for the Otel Collector Deployment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--podAnnotations"><a href="./values.yaml#L1517">otelCollector.podAnnotations</a></td>
+            <td id="otelCollector--podAnnotations"><a href="./values.yaml#L1521">otelCollector.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2233,7 +2242,7 @@ name: null</pre>
             <td>Annotations for the Otel Collector pod(s).</td>
         </tr>
         <tr>
-            <td id="otelCollector--podLabels"><a href="./values.yaml#L1523">otelCollector.podLabels</a></td>
+            <td id="otelCollector--podLabels"><a href="./values.yaml#L1527">otelCollector.podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2242,7 +2251,7 @@ name: null</pre>
             <td>Labels for the Otel Collector pod(s).</td>
         </tr>
         <tr>
-            <td id="otelCollector--additionalEnvs"><a href="./values.yaml#L1527">otelCollector.additionalEnvs</a></td>
+            <td id="otelCollector--additionalEnvs"><a href="./values.yaml#L1531">otelCollector.additionalEnvs</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2251,7 +2260,7 @@ name: null</pre>
             <td>Additional environment variables for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L1533">otelCollector.lowCardinalityExceptionGrouping</a></td>
+            <td id="otelCollector--lowCardinalityExceptionGrouping"><a href="./values.yaml#L1537">otelCollector.lowCardinalityExceptionGrouping</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -2260,7 +2269,7 @@ name: null</pre>
             <td>Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.</td>
         </tr>
         <tr>
-            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1537">otelCollector.minReadySeconds</a></td>
+            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1541">otelCollector.minReadySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -2269,7 +2278,7 @@ name: null</pre>
             <td>Minimum number of seconds for a new pod to be ready.</td>
         </tr>
         <tr>
-            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1541">otelCollector.progressDeadlineSeconds</a></td>
+            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1545">otelCollector.progressDeadlineSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">600</pre>
@@ -2278,7 +2287,7 @@ name: null</pre>
             <td>Maximum time in seconds for a deployment to make progress before it is considered failed.</td>
         </tr>
         <tr>
-            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1545">otelCollector.replicaCount</a></td>
+            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1549">otelCollector.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -2287,7 +2296,7 @@ name: null</pre>
             <td>The number of pod replicas for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole"><a href="./values.yaml#L1549">otelCollector.clusterRole</a></td>
+            <td id="otelCollector--clusterRole"><a href="./values.yaml#L1553">otelCollector.clusterRole</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2296,7 +2305,7 @@ name: null</pre>
             <td>RBAC ClusterRole configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L1792">otelCollector.livenessProbe</a></td>
+            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L1796">otelCollector.livenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2305,7 +2314,7 @@ name: null</pre>
             <td>Liveness probe configuration. ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes</td>
         </tr>
         <tr>
-            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L1804">otelCollector.readinessProbe</a></td>
+            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L1808">otelCollector.readinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2314,7 +2323,7 @@ name: null</pre>
             <td>Readiness probe configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L1816">otelCollector.customLivenessProbe</a></td>
+            <td id="otelCollector--customLivenessProbe"><a href="./values.yaml#L1820">otelCollector.customLivenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2323,7 +2332,7 @@ name: null</pre>
             <td>Custom liveness probe to override the default.</td>
         </tr>
         <tr>
-            <td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L1820">otelCollector.customReadinessProbe</a></td>
+            <td id="otelCollector--customReadinessProbe"><a href="./values.yaml#L1824">otelCollector.customReadinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2332,7 +2341,7 @@ name: null</pre>
             <td>Custom readiness probe to override the default.</td>
         </tr>
         <tr>
-            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L1824">otelCollector.extraVolumeMounts</a></td>
+            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L1828">otelCollector.extraVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2341,7 +2350,7 @@ name: null</pre>
             <td>Extra volume mounts for the Otel Collector pod.</td>
         </tr>
         <tr>
-            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L1828">otelCollector.extraVolumes</a></td>
+            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L1832">otelCollector.extraVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2350,7 +2359,7 @@ name: null</pre>
             <td>Extra volumes for the Otel Collector pod.</td>
         </tr>
         <tr>
-            <td id="otelCollector--resources"><a href="./values.yaml#L1865">otelCollector.resources</a></td>
+            <td id="otelCollector--resources"><a href="./values.yaml#L1869">otelCollector.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2359,7 +2368,7 @@ name: null</pre>
             <td>Resource requests and limits. Ref: http://kubernetes.io/docs/user-guide/compute-resources/</td>
         </tr>
         <tr>
-            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L1876">otelCollector.priorityClassName</a></td>
+            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L1880">otelCollector.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -2368,7 +2377,7 @@ name: null</pre>
             <td>Priority class for the Otel Collector pods.</td>
         </tr>
         <tr>
-            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L1880">otelCollector.nodeSelector</a></td>
+            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L1884">otelCollector.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2377,7 +2386,7 @@ name: null</pre>
             <td>Node selector for pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--tolerations"><a href="./values.yaml#L1884">otelCollector.tolerations</a></td>
+            <td id="otelCollector--tolerations"><a href="./values.yaml#L1888">otelCollector.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2386,7 +2395,7 @@ name: null</pre>
             <td>Tolerations for pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--affinity"><a href="./values.yaml#L1888">otelCollector.affinity</a></td>
+            <td id="otelCollector--affinity"><a href="./values.yaml#L1892">otelCollector.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2395,7 +2404,7 @@ name: null</pre>
             <td>Affinity settings for pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L1892">otelCollector.topologySpreadConstraints</a></td>
+            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L1896">otelCollector.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2404,7 +2413,7 @@ name: null</pre>
             <td>Topology spread constraints for pod distribution.</td>
         </tr>
         <tr>
-            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L1902">otelCollector.podSecurityContext</a></td>
+            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L1906">otelCollector.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2413,7 +2422,7 @@ name: null</pre>
             <td>Pod-level security context.</td>
         </tr>
         <tr>
-            <td id="otelCollector--securityContext"><a href="./values.yaml#L1908">otelCollector.securityContext</a></td>
+            <td id="otelCollector--securityContext"><a href="./values.yaml#L1912">otelCollector.securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2422,7 +2431,7 @@ name: null</pre>
             <td>Container-level security context.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling"><a href="./values.yaml#L1919">otelCollector.autoscaling</a></td>
+            <td id="otelCollector--autoscaling"><a href="./values.yaml#L1923">otelCollector.autoscaling</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2431,7 +2440,7 @@ name: null</pre>
             <td>Autoscaling configuration (HPA).</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda"><a href="./values.yaml#L1956">otelCollector.autoscaling.keda</a></td>
+            <td id="otelCollector--autoscaling--keda"><a href="./values.yaml#L1960">otelCollector.autoscaling.keda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: null
@@ -2457,7 +2466,7 @@ triggers: []</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--service"><a href="./values.yaml#L1497">otelCollector.service</a></td>
+            <td id="otelCollector--service"><a href="./values.yaml#L1501">otelCollector.service</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2469,7 +2478,7 @@ type: ClusterIP</pre>
             <td>Service configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress"><a href="./values.yaml#L1831">otelCollector.ingress</a></td>
+            <td id="otelCollector--ingress"><a href="./values.yaml#L1835">otelCollector.ingress</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -2487,7 +2496,7 @@ tls: []</pre>
             <td>Ingress configuration for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1849">otelCollector.ingress.hosts</a></td>
+            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L1853">otelCollector.ingress.hosts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2507,7 +2516,7 @@ tls: []</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--ports"><a href="./values.yaml#L1589">otelCollector.ports</a></td>
+            <td id="otelCollector--ports"><a href="./values.yaml#L1593">otelCollector.ports</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2516,7 +2525,7 @@ tls: []</pre>
             <td>Port configurations for the Otel Collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp"><a href="./values.yaml#L1592">otelCollector.ports.otlp</a></td>
+            <td id="otelCollector--ports--otlp"><a href="./values.yaml#L1596">otelCollector.ports.otlp</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4317
@@ -2529,7 +2538,7 @@ servicePort: 4317</pre>
             <td>OTLP gRPC port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http"><a href="./values.yaml#L1610">otelCollector.ports.otlp-http</a></td>
+            <td id="otelCollector--ports--otlp-http"><a href="./values.yaml#L1614">otelCollector.ports.otlp-http</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 4318
@@ -2542,7 +2551,7 @@ servicePort: 4318</pre>
             <td>OTLP HTTP port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-compact"><a href="./values.yaml#L1628">otelCollector.ports.jaeger-compact</a></td>
+            <td id="otelCollector--ports--jaeger-compact"><a href="./values.yaml#L1632">otelCollector.ports.jaeger-compact</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 6831
@@ -2555,7 +2564,7 @@ servicePort: 6831</pre>
             <td>Jaeger Compact port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift"><a href="./values.yaml#L1646">otelCollector.ports.jaeger-thrift</a></td>
+            <td id="otelCollector--ports--jaeger-thrift"><a href="./values.yaml#L1650">otelCollector.ports.jaeger-thrift</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14268
@@ -2568,7 +2577,7 @@ servicePort: 14268</pre>
             <td>Jaeger Thrift port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc"><a href="./values.yaml#L1664">otelCollector.ports.jaeger-grpc</a></td>
+            <td id="otelCollector--ports--jaeger-grpc"><a href="./values.yaml#L1668">otelCollector.ports.jaeger-grpc</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 14250
@@ -2581,7 +2590,7 @@ servicePort: 14250</pre>
             <td>Jaeger gRPC port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zipkin"><a href="./values.yaml#L1682">otelCollector.ports.zipkin</a></td>
+            <td id="otelCollector--ports--zipkin"><a href="./values.yaml#L1686">otelCollector.ports.zipkin</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 9411
@@ -2594,7 +2603,7 @@ servicePort: 9411</pre>
             <td>Zipkin port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics"><a href="./values.yaml#L1700">otelCollector.ports.metrics</a></td>
+            <td id="otelCollector--ports--metrics"><a href="./values.yaml#L1704">otelCollector.ports.metrics</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8888
@@ -2607,7 +2616,7 @@ servicePort: 8888</pre>
             <td>Internal metrics port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages"><a href="./values.yaml#L1718">otelCollector.ports.zpages</a></td>
+            <td id="otelCollector--ports--zpages"><a href="./values.yaml#L1722">otelCollector.ports.zpages</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 55679
@@ -2620,7 +2629,7 @@ servicePort: 55679</pre>
             <td>ZPages port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof"><a href="./values.yaml#L1736">otelCollector.ports.pprof</a></td>
+            <td id="otelCollector--ports--pprof"><a href="./values.yaml#L1740">otelCollector.ports.pprof</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 1777
@@ -2633,7 +2642,7 @@ servicePort: 1777</pre>
             <td>pprof port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku"><a href="./values.yaml#L1754">otelCollector.ports.logsheroku</a></td>
+            <td id="otelCollector--ports--logsheroku"><a href="./values.yaml#L1758">otelCollector.ports.logsheroku</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8081
@@ -2646,7 +2655,7 @@ servicePort: 8081</pre>
             <td>Heroku logs port configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson"><a href="./values.yaml#L1772">otelCollector.ports.logsjson</a></td>
+            <td id="otelCollector--ports--logsjson"><a href="./values.yaml#L1776">otelCollector.ports.logsjson</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">containerPort: 8082
@@ -2670,7 +2679,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--config"><a href="./values.yaml#L1981">otelCollector.config</a></td>
+            <td id="otelCollector--config"><a href="./values.yaml#L1985">otelCollector.config</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2690,7 +2699,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="postgresql--enabled"><a href="./values.yaml#L2123">postgresql.enabled</a></td>
+            <td id="postgresql--enabled"><a href="./values.yaml#L2127">postgresql.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -2710,7 +2719,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2126">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2130">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -2731,7 +2740,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2133">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2137">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -2751,7 +2760,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2346">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2350">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

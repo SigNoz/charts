@@ -97,3 +97,16 @@ tests:
           content:
             name: CLICKHOUSE_HOST
             value: chfnm
+  - it: is <fullnameOverride>.<namespace>.svc.cluster.local with clickhouse.fullnameOverride and clickhouse.namespace
+    release:
+      namespace: signoz
+    set:
+      clickhouse.fullnameOverride: my-ch
+      clickhouse.namespace: db
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: my-ch.db.svc.cluster.local

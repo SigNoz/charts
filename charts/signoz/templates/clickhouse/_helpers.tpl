@@ -15,21 +15,25 @@ Expand the name of the chart.
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
+Fails the render past 34 characters, since `chi-<name>-deploy-confd-<cluster>-<shard>-<replica>` must fit 63.
 */}}
 {{- define "clickhouse.fullname" -}}
-{{- include "signoz.lib.fullname" (dict "release" .Release.Name "name" "clickhouse" "nameOverride" .Values.clickhouse.nameOverride "fullnameOverride" .Values.clickhouse.fullnameOverride) -}}
+{{- $name := include "signoz.lib.fullname" (dict "release" .Release.Name "name" "clickhouse" "nameOverride" .Values.clickhouse.nameOverride "fullnameOverride" .Values.clickhouse.fullnameOverride) -}}
+{{- if and .Values.clickhouse.enabled (gt (len $name) 34) -}}
+{{- fail (printf "clickhouse name %q is %d characters; the operator derives names from it that must fit 63, so it may be at most 34: shorten the release name or set `clickhouse.fullnameOverride`" $name (len $name)) -}}
+{{- end -}}
+{{- $name -}}
 {{- end -}}
 
 {{/*
 Return the service name of Clickhouse: the fullname, with the namespace and cluster domain
-appended when ClickHouse runs in a namespace other than the release's. A fullnameOverride is
-used as it is, without that suffix.
+appended when ClickHouse runs in a namespace other than the release's.
 */}}
 {{- define "clickhouse.servicename" -}}
 {{- $name := include "clickhouse.fullname" . -}}
 {{- $namespace := .Values.clickhouse.namespace -}}
 {{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
-{{- if and (not .Values.clickhouse.fullnameOverride) $namespace (ne $namespace .Release.Namespace) -}}
+{{- if and $namespace (ne $namespace .Release.Namespace) -}}
 {{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
 {{- else -}}
 {{ $name }}
@@ -53,15 +57,11 @@ app.kubernetes.io/component: {{ default "clickhouse" .Values.clickhouse.name }}
 {{- end -}}
 
 {{/*
-Labels on the ClickHouse pod template (CHI podTemplates).
-Any change under the StatefulSet's spec.template recreates the ClickHouse pods. `helm.sh/chart`
-would carry the signoz chart version, which changes every release, so it stays off the pod template.
-The version label follows the image tag, which only changes when the pods roll anyway.
+Labels on the ClickHouse pod template: the selector labels only, since a pod template change
+recreates the ClickHouse pods.
 */}}
 {{- define "clickhouse.podLabels" -}}
 {{ include "clickhouse.selectorLabels" . }}
-app.kubernetes.io/version: {{ .Values.clickhouse.image.tag | toString | trunc 63 | quote }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*

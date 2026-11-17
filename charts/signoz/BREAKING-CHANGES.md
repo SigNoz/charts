@@ -43,7 +43,7 @@ The `signoz` chart now depends on `altinity-clickhouse-operator` 0.27.4 from `ht
 - **Operator ConfigMaps.** The name suffix changes from `-etc-<dir>-files` to `-<dir>-files`. Update anything outside the chart that refers to them by name.
 - **Operator pod label.** `app.kubernetes.io/name` is now `clickhouse-operator` (was `clickhouse`). `app.kubernetes.io/component: operator` is kept. Update selectors, network policies and queries that match the operator pod on the old value.
 - **PodDisruptionBudget.** The operator renames `<release>-clickhouse-cluster` to `chi-<release>-clickhouse-cluster`. Update anything that refers to it by name.
-- **ClickHouse pods.** The ClickHouse pod template drops the `helm.sh/chart` label and carries the ClickHouse image tag as `app.kubernetes.io/version`. The ClickHouse pods therefore roll once during this upgrade. After that, a new chart version alone no longer restarts them. PVCs and data are untouched.
+- **ClickHouse pods.** The ClickHouse pod template carries the selector labels only. `helm.sh/chart`, `app.kubernetes.io/version` and `app.kubernetes.io/managed-by` stay on the ClickHouseInstallation. The ClickHouse pods therefore roll once during this upgrade. After that, a new chart version alone no longer restarts them. PVCs and data are untouched.
 - **Operator metrics Service.** The settings for its type and annotations are gone. It is always `ClusterIP`, on ports 8888 and 9999. Anything that reached it through another Service type, or read annotations on it, must change.
 
 ### Rollback and `--no-hooks`
@@ -56,6 +56,26 @@ The old and the new operator Deployment have different selectors, and in these t
 ```sh
 kubectl delete deployment <release>-clickhouse-operator -n <namespace>
 ```
+
+### Uninstall
+
+The operator and the ClickHouseInstallation (and the ClickHouseKeeperInstallation, when Keeper is on) are in the same release. `helm uninstall` deletes them in one pass, and the operator is gone before it can finish the installations' finalizers, so the installations stay in Terminating with their StatefulSets, pods and Services still running. Altinity's own chart documents the same behaviour. Delete the installations first and wait for them, then uninstall:
+
+```bash
+kubectl -n <namespace> delete chi,chk --all --wait
+helm uninstall <release> -n <namespace>
+```
+
+If the release was uninstalled first, remove the finalizer from each installation, then delete what the operator left:
+
+```bash
+kubectl -n <namespace> patch chi <release>-clickhouse --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n <namespace> patch chk <release>-keeper --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n <namespace> delete statefulset,service,configmap -l clickhouse.altinity.com/chi=<release>-clickhouse
+kubectl -n <namespace> delete statefulset,service,configmap -l clickhouse-keeper.altinity.com/chk=<release>-keeper
+```
+
+Claims are never deleted by either path; remove them by hand when the data is no longer wanted.
 
 ### Operator behavior that changes with 0.27.4
 
@@ -107,7 +127,7 @@ clickhouse:
 
 **Custom probes:** `clickhouse.customStartupProbe`, `clickhouse.customLivenessProbe` and `clickhouse.customReadinessProbe` have been removed. Set the probe object itself on `clickhouse.startupProbe`, `clickhouse.livenessProbe` or `clickhouse.readinessProbe`.
 
-**Pod security context:** `clickhouse.securityContext`, with its `enabled` flag, is now `clickhouse.podSecurityContext`, a pod security context object without the flag.
+**Pod security context:** `clickhouse.securityContext`, with its `enabled` flag, is now `clickhouse.podSecurityContext`, a pod security context object without the flag. The ClickHouse container's security context is the new `clickhouse.containerSecurityContext`, a Kubernetes SecurityContext object rendered only when set.
 
 Before:
 
@@ -142,7 +162,7 @@ clickhouse:
 
 **Volumes:** `clickhouse.additionalVolumes` is now `clickhouse.extraVolumes`, and `clickhouse.additionalVolumeMounts` is now `clickhouse.extraVolumeMounts`. The lists keep their shape.
 
-Each old key (`clickhouse.securityContext`, the three `custom*Probe` keys, `clickhouse.additionalVolumes`, `clickhouse.additionalVolumeMounts`, and a probe that still has `enabled`, `port` or `path`) makes the install fail with a message naming its replacement.
+Each old key (`clickhouse.securityContext`, the three `custom*Probe` keys, `clickhouse.additionalVolumes`, `clickhouse.additionalVolumeMounts`, and a probe that still has `enabled`, `port` or `path`) makes the install fail with a message naming its replacement; for `clickhouse.securityContext` that is `clickhouse.podSecurityContext` or `clickhouse.containerSecurityContext`.
 
 **Removed key:** `clickhouse.logs.system.image.pullSecrets` has been removed. No template read it; ClickHouse pods take their pull secrets from `clickhouse.imagePullSecrets`. If the old key is still set, the install goes ahead and the notes printed after it ask you to remove the key.
 

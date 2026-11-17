@@ -615,6 +615,10 @@ clickhouse:
     runAsGroup: 101
     fsGroup: 101
     fsGroupChangePolicy: OnRootMismatch
+  # clickhouse.containerSecurityContext -- Security context of the ClickHouse container, a Kubernetes SecurityContext object rendered as given; rendered only when set. ClickHouse runs under `allowPrivilegeEscalation: false`, `capabilities: {drop: [ALL]}`, `runAsNonRoot: true` and `seccompProfile: {type: RuntimeDefault}`.
+  # @section -- ClickHouse
+  # @default -- {}
+  containerSecurityContext: {}
   # -- Clickhouse priority class name.
   # Rendered into the ClickHouse pod template as given; an empty value sets no priority class.
   # @section -- ClickHouse

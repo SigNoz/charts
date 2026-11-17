@@ -13,7 +13,15 @@ tests:
         enabled: false
     asserts:
       - failedTemplate:
-          errorMessage: "`clickhouse.securityContext` has moved to `clickhouse.podSecurityContext`, a pod security context object without the enabled flag."
+          errorMessage: "`clickhouse.securityContext` has moved: the pod security context is `clickhouse.podSecurityContext` (without the `enabled` flag) and the container's is `clickhouse.containerSecurityContext`."
+  - it: renders clickhouse.containerSecurityContext
+    set:
+      clickhouse.containerSecurityContext:
+        runAsNonRoot: true
+    asserts:
+      - notFailedTemplate: {}
+      - hasDocuments:
+          count: 0
   - it: fails on clickhouse.customStartupProbe
     set:
       clickhouse.customStartupProbe:

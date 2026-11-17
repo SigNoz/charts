@@ -6,6 +6,19 @@ release:
   name: clickhouse
   namespace: signoz
 tests:
+  - it: should render a 34-character clickhouse name
+    set:
+      clickhouse.fullnameOverride: signoz-clickhouse-0123456789-01234
+    asserts:
+      - equal:
+          path: metadata.name
+          value: signoz-clickhouse-0123456789-01234
+  - it: should fail on a clickhouse name over 34 characters
+    set:
+      clickhouse.fullnameOverride: signoz-clickhouse-0123456789-012345
+    asserts:
+      - failedTemplate:
+          errorPattern: "may be at most 34"
   - it: should have format_schema_path setting
     asserts:
       - equal:
@@ -45,6 +58,20 @@ tests:
       - equal:
           path: spec.configuration.zookeeper.nodes[0].port
           value: 2181
+  - it: should render the containerSecurityContext when set
+    set:
+      clickhouse.containerSecurityContext:
+        runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[0].securityContext.runAsNonRoot
+          value: true
+  - it: should render no containerSecurityContext by default
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[0].securityContext
+      - exists:
+          path: spec.templates.podTemplates[0].spec.securityContext
   - it: should have histogramQuantile script in the first initContainer
     asserts:
       - equal:

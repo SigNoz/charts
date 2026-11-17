@@ -17,7 +17,7 @@ An old key fails when it is set and non-empty; a probe in the old enabled/port/p
 */ -}}
 {{- $ch := .Values.clickhouse | default dict }}
 {{- if dig "securityContext" dict $ch }}
-{{- fail "`clickhouse.securityContext` has moved to `clickhouse.podSecurityContext`, a pod security context object without the enabled flag." }}
+{{- fail "`clickhouse.securityContext` has moved: the pod security context is `clickhouse.podSecurityContext` (without the `enabled` flag) and the container's is `clickhouse.containerSecurityContext`." }}
 {{- end }}
 {{- if dig "customStartupProbe" dict $ch }}
 {{- fail "`clickhouse.customStartupProbe` has been removed; set `clickhouse.startupProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}

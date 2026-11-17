@@ -22,6 +22,11 @@ spec:
       {{- end }}
       serviceTemplate: service-template
 
+  reconciling:
+    cleanup:
+      unknownObjects:
+        pvc: Retain
+
   configuration:
     users:
       {{ .Values.clickhouse.user }}/password: {{ .Values.clickhouse.password }}
@@ -253,6 +258,9 @@ spec:
               {{- end }}
               {{- if .Values.clickhouse.resources }}
               resources: {{ toYaml .Values.clickhouse.resources | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
               {{- end }}
               {{- if .Values.clickhouse.logs.system.enabled }}
               lifecycle:
