@@ -3,7 +3,6 @@
 # drop templates/signoz/tests/test-connection.yaml, the helm test hook.
 /tests/
 /ci/
-/BREAKING-CHANGES.md
 .git/
 .gitignore
 *.swp
