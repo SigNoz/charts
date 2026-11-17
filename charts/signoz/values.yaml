@@ -848,14 +848,14 @@ keeper:
   # @section -- ClickHouse Keeper
   enabled: true
   # keeper.name -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects; `keeper.nameOverride` takes precedence.
-  # @default -- "clickhouse-keeper"
+  # @default -- "keeper"
   # @section -- ClickHouse Keeper
-  name: clickhouse-keeper
+  name: keeper
   # keeper.nameOverride -- Name override for ClickHouse Keeper.
   # @default -- ""
   # @section -- ClickHouse Keeper
   nameOverride: ""
-  # keeper.fullnameOverride -- Fullname override for ClickHouse Keeper, the name of its ClickHouseKeeperInstallation.
+  # keeper.fullnameOverride -- Fullname override for ClickHouse Keeper, the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
   # @default -- ""
   # @section -- ClickHouse Keeper
   fullnameOverride: ""
@@ -918,14 +918,14 @@ keeper:
     prometheus/metrics: "true"
     prometheus/events: "true"
     prometheus/asynchronous_metrics: "true"
-  # keeper.podSecurityContext -- Pod security context of the ClickHouse Keeper pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
+  # keeper.podSecurityContext -- Pod security context of the ClickHouse Keeper pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps. Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
   # @section -- ClickHouse Keeper
   podSecurityContext:
     fsGroup: 101
-  # keeper.securityContext -- Security context of the ClickHouse Keeper container, a Kubernetes SecurityContext object rendered as given; rendered only when set.
+  # keeper.containerSecurityContext -- Security context of the ClickHouse Keeper container, a Kubernetes SecurityContext object rendered as given; rendered only when set.
   # @default -- {}
   # @section -- ClickHouse Keeper
-  securityContext: {}
+  containerSecurityContext: {}
   # keeper.resources -- Resource requests and limits of the ClickHouse Keeper container.
   # @section -- ClickHouse Keeper
   resources:

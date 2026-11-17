@@ -11,9 +11,14 @@ Expand the name of the component.
 
 {{/*
 Create a default fully qualified name: the ClickHouseKeeperInstallation's name.
+Fails the render past 34 characters, since `chk-<name>-deploy-confd-<cluster>-<shard>-<replica>` must fit 63.
 */}}
 {{- define "keeper.fullname" -}}
-{{- include "signoz.lib.fullname" (dict "release" .Release.Name "name" "clickhouse-keeper" "nameOverride" .Values.keeper.nameOverride "fullnameOverride" .Values.keeper.fullnameOverride) -}}
+{{- $name := include "signoz.lib.fullname" (dict "release" .Release.Name "name" "keeper" "nameOverride" .Values.keeper.nameOverride "fullnameOverride" .Values.keeper.fullnameOverride) -}}
+{{- if gt (len $name) 34 -}}
+{{- fail (printf "keeper name %q is %d characters; the operator derives names from it that must fit 63, so it may be at most 34: shorten the release name or set `keeper.fullnameOverride`" $name (len $name)) -}}
+{{- end -}}
+{{- $name -}}
 {{- end -}}
 
 {{/*
@@ -26,13 +31,11 @@ app.kubernetes.io/component: keeper
 {{- end -}}
 
 {{/*
-Labels on the Keeper pod template. `helm.sh/chart` stays off it: a pod template change restarts
+Labels on the Keeper pod template: the selector labels only, since a pod template change restarts
 Keeper, which drops every ClickHouse session.
 */}}
 {{- define "keeper.podLabels" -}}
 {{ include "keeper.selectorLabels" . }}
-app.kubernetes.io/version: {{ .Values.keeper.image.tag | toString | trunc 63 | quote }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*

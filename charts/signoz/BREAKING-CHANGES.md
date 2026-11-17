@@ -245,6 +245,7 @@ This guide starts from a release that has already been upgraded to chart version
 - Keeper is in one of the two states the first upgrade leaves it in, as described in "ClickHouse Keeper replaces ZooKeeper" above: off (`keeper.enabled: false`) if the release stayed on ZooKeeper, or on (`keeper.enabled: true`, the chart default) and running idle beside ZooKeeper with an empty tree if the Keeper CRD was applied before the upgrade. Both are fine. Step 2 turns it on if it is off, and checks it.
 - ZooKeeper values live at `zookeeper.*`, not `clickhouse.zookeeper.*`.
 - `keeper.replicaCount` is 1 or unset.
+- `zookeeper.dataLogDir` is unset, the chart's default, so snapshots and transaction logs share the claim `data-<release>-zookeeper-<n>`. If it is set, the transaction logs live on `data-log-<release>-zookeeper-<n>` for the same ordinal as `ZK_LEADER_PVC` under `<dataLogDir>/version-2`: mount that claim in the step 7 Job as well and point `--zookeeper-logs-dir` at it, or the converter replays nothing and the converted tree is stale.
 - The chart's ZooKeeper is 3.7; the converter needs 3.4 or later.
 
 If the release has not been upgraded yet, do that first, in one of the two ways described in "ClickHouse Keeper replaces ZooKeeper" above, and come back here.
@@ -266,9 +267,9 @@ export ZK_STS="$RELEASE-zookeeper"
 export ZK_REPLICAS="<zookeeper-replica-count>"          # zookeeper.replicaCount, default 1
 export ZK_LEADER_PVC="data-$RELEASE-zookeeper-<n>"      # set in step 1
 
-export CHK_STS="chk-$RELEASE-clickhouse-keeper-cluster-0-0"
-export CHK_PVC="default-chk-$RELEASE-clickhouse-keeper-cluster-0-0-0"
-export KEEPER_HOST="keeper-$RELEASE-clickhouse-keeper"
+export CHK_STS="chk-$RELEASE-keeper-cluster-0-0"
+export CHK_PVC="default-chk-$RELEASE-keeper-cluster-0-0-0"
+export KEEPER_HOST="keeper-$RELEASE-keeper"
 
 export CHI_NAME="$RELEASE-clickhouse"
 export CH_PODS="$(kubectl -n "$NS" get pods -l clickhouse.altinity.com/chi="$CHI_NAME" -o name | sed 's|pod/||' | tr '\n' ' ')"
@@ -286,7 +287,7 @@ chc() { kubectl -n "$NS" exec "$CH_POD" -c clickhouse -- clickhouse-client --use
 | Variable | Meaning |
 |---|---|
 | `ZK_LEADER_PVC` | Claim of the ZooKeeper leader, set in step 1. The leader holds the most current snapshot and log; the conversion reads this volume. With one ZooKeeper replica it is `data-$RELEASE-zookeeper-0`. |
-| `CHK_STS`, `CHK_PVC`, `KEEPER_HOST` | Named by the operator from the chart's CHK `$RELEASE-clickhouse-keeper`. Confirm them in step 2. |
+| `CHK_STS`, `CHK_PVC`, `KEEPER_HOST` | Named by the operator from the chart's CHK `$RELEASE-keeper`. Confirm them in step 2. |
 | `CH_PODS` | Every ClickHouse pod. All of them are deleted in step 9 and come back under the same names, so the variable stays valid. |
 | `COLLECTOR_DEPLOY` | The collector Deployment. Its name depends on the release name, so read it from `kubectl get deploy`. |
 | `CONVERTER_IMAGE` | The server image at the version the cluster runs. The slim `clickhouse-keeper` image does not carry the converter. |
@@ -318,6 +319,18 @@ done
 **Expect:**
 
 ```text
+NAME                                READY   AGE
+chi-signoz-clickhouse-cluster-0-0   1/1     6m50s
+chk-signoz-keeper-cluster-0-0       1/1     3m31s
+signoz                              1/1     19m
+signoz-zookeeper                    1/1     19m
+
+NAME                                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-signoz-zookeeper-0                                         Bound    pvc-1fc40997-cf3d-4329-8752-88f23c84241d   8Gi        RWO            standard       <unset>                 19m
+data-volumeclaim-template-chi-signoz-clickhouse-cluster-0-0-0   Bound    pvc-773ce07a-b66b-4fb3-b95a-6d998368edc4   20Gi       RWO            standard       <unset>                 17m
+default-chk-signoz-keeper-cluster-0-0-0                         Bound    pvc-e784fd28-2a2e-418e-a1ba-679055aa9667   10Gi       RWO            standard       <unset>                 3m31s
+signoz-db-signoz-0                                              Bound    pvc-e9aad854-14b8-43ae-bcbf-97cde69b7ff8   1Gi        RWO            standard       <unset>                 19m
+
 signoz-zookeeper-0: Mode: standalone
 ```
 
@@ -364,17 +377,18 @@ kubectl -n "$NS" get svc | grep -E 'zookeeper|keeper'
 **Expect:**
 
 ```text
-NAME                       STATUS      CLUSTERS   HOSTS   AGE
-signoz-clickhouse-keeper   Completed   1          1       2m
+NAME            STATUS      CLUSTERS   HOSTS   HOSTS-COMPLETED   AGE    SUSPEND
+signoz-keeper   Completed   1          1                         4m8s
 
-data-signoz-zookeeper-0                              Bound   ...   RWO   ...
-default-chk-signoz-clickhouse-keeper-cluster-0-0-0   Bound   ...   RWO   ...
+data-signoz-zookeeper-0                                         Bound    pvc-1fc40997-cf3d-4329-8752-88f23c84241d   8Gi        RWO            standard       <unset>                 19m
+default-chk-signoz-keeper-cluster-0-0-0                         Bound    pvc-e784fd28-2a2e-418e-a1ba-679055aa9667   10Gi       RWO            standard       <unset>                 3m37s
 
-chk-signoz-clickhouse-keeper-cluster-0-0          ClusterIP   None   <none>   2181/TCP,9444/TCP
-chk-signoz-clickhouse-keeper-cluster-0-0-client   ClusterIP   None   <none>   2181/TCP
-keeper-signoz-clickhouse-keeper                   ClusterIP   None   <none>   2181/TCP,9444/TCP
-signoz-zookeeper                                  ClusterIP   ...    <none>   2181/TCP,2888/TCP,3888/TCP
-signoz-zookeeper-headless                         ClusterIP   None   <none>   2181/TCP,2888/TCP,3888/TCP
+chk-signoz-keeper-cluster-0-0          ClusterIP   None            <none>        2181/TCP,9444/TCP                                                  3m37s
+chk-signoz-keeper-cluster-0-0-client   ClusterIP   None            <none>        2181/TCP                                                           3m37s
+keeper-signoz-keeper                   ClusterIP   None            <none>        2181/TCP,9444/TCP                                                  2m22s
+signoz-zookeeper                       ClusterIP   10.96.180.26    <none>        2181/TCP,2888/TCP,3888/TCP                                         19m
+signoz-zookeeper-headless              ClusterIP   None            <none>        2181/TCP,2888/TCP,3888/TCP                                         19m
+signoz-zookeeper-metrics               ClusterIP   10.96.254.85    <none>        9141/TCP                                                           19m
 ```
 
 Confirm `CHK_STS`, `CHK_PVC` and `KEEPER_HOST` against this output.
@@ -407,9 +421,11 @@ chc "SYSTEM STOP MERGES"
 **Expect:**
 
 ```text
-(no collector pods remain)
-Ok.
+deployment.apps/signoz-otel-collector scaled
+signoz-otel-collector-59fbb9b588-c4fjj        1/1     Terminating   0          8m7s
 ```
+
+`SYSTEM STOP MERGES` prints nothing. The collector pod can still be listed for a few seconds after the scale-down; a second `get pods` shows it gone.
 
 Agents sending to the collector buffer and retry while it is down. Expect a gap in your data for the window, not a loss, within the agents' retry limits.
 
@@ -437,7 +453,7 @@ chc "SELECT count() FROM system.mutations WHERE NOT is_done"
 chc "
   SELECT path, name, numChildren
   FROM system.zookeeper
-  WHERE path IN ('/', '/clickhouse', '/clickhouse/clickhouse', '/clickhouse/clickhouse/task_queue')
+  WHERE path IN ('/', '/clickhouse', '/clickhouse/$CHI_NAME', '/clickhouse/$CHI_NAME/task_queue')
   ORDER BY path, name
   FORMAT PrettyCompact"
 
@@ -447,16 +463,17 @@ chc "SELECT count() FROM system.replicas"
 **Expect:**
 
 ```text
-   ┌─path──────────────────────────────┬─name───────┬─numChildren─┐
-1. │ /                                 │ clickhouse │           3 │
-2. │ /                                 │ zookeeper  │           2 │
-3. │ /clickhouse                       │ clickhouse │           1 │
-4. │ /clickhouse                       │ sessions   │           1 │
-5. │ /clickhouse                       │ tables     │          56 │
-6. │ /clickhouse/clickhouse            │ task_queue │           2 │
-7. │ /clickhouse/clickhouse/task_queue │ ddl        │           0 │
-8. │ /clickhouse/clickhouse/task_queue │ replicas   │           1 │
-   └───────────────────────────────────┴────────────┴─────────────┘
+   ┌─path─────────────────────────────────────┬─name──────────────┬─numChildren─┐
+1. │ /                                        │ clickhouse        │           4 │
+2. │ /                                        │ zookeeper         │           2 │
+3. │ /clickhouse                              │ sessions          │           1 │
+4. │ /clickhouse                              │ signoz-clickhouse │           1 │
+5. │ /clickhouse                              │ tables            │          56 │
+6. │ /clickhouse                              │ task_queue        │           1 │
+7. │ /clickhouse/signoz-clickhouse            │ task_queue        │           2 │
+8. │ /clickhouse/signoz-clickhouse/task_queue │ ddl               │         354 │
+9. │ /clickhouse/signoz-clickhouse/task_queue │ replicas          │           3 │
+   └──────────────────────────────────────────┴───────────────────┴─────────────┘
 
 56
 ```
@@ -491,15 +508,18 @@ kubectl -n "$NS" exec "$CHK_STS-0" -- \
 **Expect:**
 
 ```text
-uid=0(root) gid=0(root) groups=0(root),…,101(clickhouse)
+uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel),11(floppy),20(dialout),26(tape),27(video),101(clickhouse)
 
-drwxr-sr-x    2 clickhouse clickhouse      4096 ... log
-drwxr-s---    2 clickhouse clickhouse      4096 ... logs
-drwxr-sr-x    2 clickhouse clickhouse      4096 ... snapshots
+total 0
+drwxr-xr-x    1 clickhouse clickhouse        32 Nov 17 08:38 .
+drwxrwxrwx    1 clickhouse clickhouse        82 Nov 17 08:38 ..
+drwxr-xr-x    1 clickhouse clickhouse         0 Nov 17 08:38 log
+drwxr-x---    1 clickhouse clickhouse        44 Nov 17 08:38 logs
+drwxr-xr-x    1 clickhouse clickhouse         0 Nov 17 08:38 snapshots
 
-<server_id>1</server_id>
-<log_storage_path>/var/lib/clickhouse/coordination/logs</log_storage_path>
-<snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
+            <server_id>1</server_id>
+            <log_storage_path>/var/lib/clickhouse/coordination/logs</log_storage_path>
+            <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
 ```
 
 The prefix in `keeper_config.xml` and the mount point on disk can differ. Use the path relative to the volume root, which is `coordination/snapshots` either way. That is what step 7 writes to. Files must end up owned by uid and gid `101`.
@@ -511,11 +531,11 @@ kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo mntr | nc 127.0.0.1 2181' | gr
 ```
 
 ```text
-zk_server_state	leader
-zk_znode_count	5
+zk_server_state	standalone
+zk_znode_count	4
 ```
 
-A near-empty count here is expected, because this Keeper has never held the real tree.
+A near-empty count here is expected: an idle Keeper holds only its own nodes and has never held the real tree.
 
 ##### Step 6: Scale ZooKeeper and Keeper down
 
@@ -537,7 +557,7 @@ If ZooKeeper runs more than one replica, this scales all of them; do not leave o
 **Expect:**
 
 ```text
-statefulset.apps/chk-signoz-clickhouse-keeper-cluster-0-0 scaled
+statefulset.apps/chk-signoz-keeper-cluster-0-0 scaled
 statefulset.apps/signoz-zookeeper scaled
 ```
 
@@ -548,8 +568,11 @@ kubectl -n "$NS" get pods | grep -E 'keeper|zookeeper'
 ```
 
 ```text
-(no pods)
+chk-signoz-keeper-cluster-0-0-0               1/1     Terminating   0          4m15s
+signoz-zookeeper-0                            1/1     Running       0          20m
 ```
+
+The first `get pods` right after the scale-down still lists the pods; a second one a few seconds later shows none and prints nothing.
 
 **If it fails:** If a pod will not terminate, do not force-delete a ZooKeeper pod mid-write. Wait for the graceful shutdown. Go to step 6.
 
@@ -613,10 +636,16 @@ kubectl -n "$NS" logs job/keeper-converter | tail -n 5
 **Expect:**
 
 ```text
-Finished, snapshot ZXID 926
-Snapshot serialized to path:"/chk/coordination/snapshots/snapshot_24538.bin.zstd"
-d41d8cd98f00b204e9800998ecf8427e  /chk/coordination/snapshots/snapshot_24538.bin.zstd
+job.batch/keeper-converter created
+job.batch/keeper-converter condition met
+Deserialized txns log: 8000
+Deserialized txns log: 9000
+Finished /zk/data/version-2/log.1 deserialization, totally read 9222 records
+Snapshot serialized to path:"/chk/coordination/snapshots/snapshot_9222.bin.zstd"
+f2af4b672868853ea2aee209677841d4  /chk/coordination/snapshots/snapshot_9222.bin.zstd
 ```
+
+The `Totally have 1 snapshots, will use latest` and `Finished, snapshot ZXID 0` lines are earlier in the full log, so `grep -E 'Totally|Finished'` finds them if you want them.
 
 A stale snapshot on the ZooKeeper side is fine, because the converter replays the logs written after it; that is where the ZXID in the file name comes from. A log line reading `Totally have 0 snapshots` is a failure: the converter found nothing to read.
 
@@ -647,8 +676,13 @@ kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo mntr | nc 127.0.0.1 2181' | gr
 **Expect:**
 
 ```text
-zk_server_state	leader
-zk_znode_count	1216
+statefulset.apps/chk-signoz-keeper-cluster-0-0 scaled
+Waiting for statefulset spec update to be observed...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+statefulset rolling update complete 1 pods at revision chk-signoz-keeper-cluster-0-0-58f59c9d49...
+zk_server_state	standalone
+zk_znode_count	5355
 ```
 
 `zk_znode_count` in the same order of magnitude as the ZooKeeper tree from step 4, not a handful.
@@ -656,10 +690,18 @@ zk_znode_count	1216
 **Verify:**
 
 ```bash
-kubectl -n "$NS" logs "$CHK_STS-0" | grep -iE 'snapshot|Loaded' | tail -5
+kubectl -n "$NS" exec "$CHK_STS-0" -- ls /var/lib/clickhouse-keeper/coordination/snapshots /var/lib/clickhouse-keeper/coordination/logs
 ```
 
-The startup log names the converted snapshot file it loaded.
+```text
+/var/lib/clickhouse-keeper/coordination/logs:
+changelog_9223_109222.bin
+
+/var/lib/clickhouse-keeper/coordination/snapshots:
+snapshot_9222.bin.zstd
+```
+
+`snapshots` holds the converted `snapshot_<zxid>.bin.zstd` from step 7, and `logs` holds a `changelog_<zxid+1>_...bin` that starts right after it, so Keeper started from the converted snapshot.
 
 **If it fails:** If `zk_znode_count` comes back near-empty, Keeper started from its own state instead of the converted snapshot. Nothing is repointed yet, so this is free to redo: scale Keeper back to 0 and go to step 7.
 
@@ -714,9 +756,10 @@ kubectl -n "$NS" scale deployment "$COLLECTOR_DEPLOY" --replicas="$COLLECTOR_REP
 **Expect:**
 
 ```text
-Ok.
 deployment.apps/signoz-otel-collector scaled
 ```
+
+`SYSTEM START MERGES` prints nothing.
 
 **Verify:**
 
@@ -725,7 +768,12 @@ kubectl -n "$NS" get pods | grep otel-collector
 chc "SELECT count() FROM signoz_traces.signoz_index_v3 WHERE timestamp > now() - INTERVAL 5 MINUTE"
 ```
 
-Collector pods are `Running` and the row count climbs between two runs of the query.
+```text
+signoz-otel-collector-59fbb9b588-fshfm        0/1     Pending     0          0s
+6000
+```
+
+The collector pod is `Pending` for a few seconds and then `Running`. The row count climbs between two runs of the query only while agents are sending; with nothing sending, the five-minute window makes it fall, which is not a failure.
 
 **If it fails:** If the count stays flat while collectors are healthy, re-check the coordination connection with the step 9 verify query.
 
@@ -753,8 +801,15 @@ The chart renders the same Keeper host the patch set, so the CHI does not change
 **Expect:**
 
 ```text
-Release "signoz" has been upgraded.
+Release "signoz" has been upgraded. Happy Helming!
+NAME: signoz
+LAST DEPLOYED: Tue Nov 17 14:15:12 2026
+NAMESPACE: signoz
+STATUS: deployed
+REVISION: 4
 ```
+
+The chart's NOTES follow.
 
 **Verify:**
 
@@ -811,7 +866,7 @@ chc "SELECT count() FROM system.replication_queue WHERE num_tries > 10"
 chc "SELECT name, value FROM system.errors WHERE name IN ('TABLE_IS_READ_ONLY','KEEPER_EXCEPTION') AND value > 0"
 ```
 
-No rows from the first. Error counters are cumulative since the restart, so check that the second stops climbing rather than that it reads zero.
+The first returns `0`. Error counters are cumulative since the restart, so check that the second stops climbing rather than that it reads zero.
 
 **Afterwards:**
 

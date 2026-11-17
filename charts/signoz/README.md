@@ -1474,7 +1474,7 @@ storageClass: null</pre>
             <td id="keeper--name"><a href="./values.yaml#L853">keeper.name</a></td>
             <td>string</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">clickhouse-keeper</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">keeper</pre>
 </div>
             </td>
             <td>Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects; `keeper.nameOverride` takes precedence.</td>
@@ -1495,7 +1495,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
 </div>
             </td>
-            <td>Fullname override for ClickHouse Keeper, the name of its ClickHouseKeeperInstallation.</td>
+            <td>Fullname override for ClickHouse Keeper, the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.</td>
         </tr>
         <tr>
             <td id="keeper--image"><a href="./values.yaml#L864">keeper.image</a></td>
@@ -1607,10 +1607,10 @@ signoz.io/scrape: "true"</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">fsGroup: 101</pre>
 </div>
             </td>
-            <td>Pod security context of the ClickHouse Keeper pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.</td>
+            <td>Pod security context of the ClickHouse Keeper pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps. Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.</td>
         </tr>
         <tr>
-            <td id="keeper--securityContext"><a href="./values.yaml#L928">keeper.securityContext</a></td>
+            <td id="keeper--containerSecurityContext"><a href="./values.yaml#L928">keeper.containerSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
