@@ -2095,11 +2095,11 @@ tls: []</pre>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
-create: true
+create: false
 name: null</pre>
 </div>
             </td>
-            <td>Service Account configuration for the Telemetry Store Migrator.</td>
+            <td>ServiceAccount of the migrator Job. The Job only talks to ClickHouse, so by default none is created and the Job runs as the namespace's `default` ServiceAccount. Set `create: true` when policy or credentials are bound to a ServiceAccount; on an install upgraded with a chart before 0.152.0, delete the old `signoz-telemetrystore-migrator` ServiceAccount first or upgrade with `--take-ownership` (Helm 3.17 or later).</td>
         </tr>
     </tbody>
 </table>

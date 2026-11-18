@@ -15,6 +15,16 @@ Fail the render instead of ignoring them, so an old values file is caught at `he
 {{- fail "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: the migrator runs as an ordinary Job on install and upgrade, named with the release revision, and the otel-collector waits for its sync migrations in its `check` init container; `telemetryStoreMigrator.enabled: false` skips it." }}
 {{- end }}
 {{- /*
+The migrator Job is named `telemetryStoreMigrator.name` plus `-<release revision>`, and its pods carry that name in their `job-name` label, which must stay within 63 characters.
+The budget reserves six characters for the suffix (up to five digits) instead of reading `.Release.Revision`, so a name that renders today does not start failing on a later upgrade.
+*/ -}}
+{{- if .Values.telemetryStoreMigrator.enabled }}
+{{- $migratorName := include "telemetryStoreMigrator.fullname" . }}
+{{- if gt (len $migratorName) 57 }}
+{{- fail (printf "`telemetryStoreMigrator.name` %q is %d characters; the migrator Job name appends `-<release revision>` and must stay within 63 characters, so the name can have at most 57: shorten it." $migratorName (len $migratorName)) }}
+{{- end }}
+{{- end }}
+{{- /*
 ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
 An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails on the presence of any of those keys.
 */ -}}

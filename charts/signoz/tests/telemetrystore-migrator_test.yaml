@@ -25,24 +25,92 @@ tests:
       - equal:
           path: metadata.name
           value: signoz-telemetrystore-migrator-7
-  - it: renders the Job and its ServiceAccount without Helm hooks on install
+  - it: renders the Job without Helm hooks under the default ServiceAccount, and no ServiceAccount, on install
     asserts:
       - template: templates/telemetrystore-migrator/job.yaml
         notExists:
           path: metadata.annotations["helm.sh/hook"]
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
       - template: templates/telemetrystore-migrator/serviceaccount.yaml
-        notExists:
-          path: metadata.annotations["helm.sh/hook"]
-  - it: renders the Job and its ServiceAccount without Helm hooks on upgrade
+        hasDocuments:
+          count: 0
+  - it: renders the Job without Helm hooks under the default ServiceAccount, and no ServiceAccount, on upgrade
     release:
       upgrade: true
     asserts:
       - template: templates/telemetrystore-migrator/job.yaml
         notExists:
           path: metadata.annotations["helm.sh/hook"]
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+  - it: renders the ServiceAccount without Helm hooks and runs the Job under it with serviceAccount.create
+    release:
+      upgrade: true
+    set:
+      telemetryStoreMigrator.serviceAccount.create: true
+    asserts:
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: signoz-telemetrystore-migrator
       - template: templates/telemetrystore-migrator/serviceaccount.yaml
         notExists:
           path: metadata.annotations["helm.sh/hook"]
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: signoz-telemetrystore-migrator
+  - it: passes the global and root imagePullSecrets to the Job pod
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      global.imagePullSecrets:
+        - global-pull
+      imagePullSecrets:
+        - root-pull
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: root-pull
+  - it: passes otelCollector.imagePullSecrets to the Job pod
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      otelCollector.imagePullSecrets:
+        - collector-pull
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: collector-pull
+  - it: lists the global, root and otelCollector imagePullSecrets on the Job pod and none on the ServiceAccount with serviceAccount.create
+    set:
+      telemetryStoreMigrator.serviceAccount.create: true
+      global.imagePullSecrets:
+        - global-pull
+      imagePullSecrets:
+        - root-pull
+      otelCollector.imagePullSecrets:
+        - collector-pull
+    asserts:
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        notExists:
+          path: imagePullSecrets
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: root-pull
+            - name: collector-pull
   - it: keeps the Argo CD sync options on the Job beside telemetryStoreMigrator.annotations
     template: templates/telemetrystore-migrator/job.yaml
     set:
@@ -125,3 +193,20 @@ tests:
       - notFailedTemplate: {}
       - hasDocuments:
           count: 0
+  - it: names the Job with the release revision under a 57-character telemetryStoreMigrator.name
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.name: 012345678-012345678-012345678-012345678-012345678-0123456
+    asserts:
+      - equal:
+          path: metadata.name
+          value: 012345678-012345678-012345678-012345678-012345678-0123456-1
+  - it: fails on a telemetryStoreMigrator.name over 57 characters
+    template: templates/validate.yaml
+    set:
+      telemetryStoreMigrator.name: 012345678-012345678-012345678-012345678-012345678-01234567
+    asserts:
+      - failedTemplate:
+          errorPattern: "the migrator Job name appends `-<release revision>` and must stay within 63 characters, so the name can have at most 57: shorten it"

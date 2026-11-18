@@ -1395,16 +1395,16 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   # @default -- {}
   resources: {}
-  # telemetryStoreMigrator.serviceAccount -- Service Account configuration for the Telemetry Store Migrator.
+  # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job. The Job only talks to ClickHouse, so by default none is created and the Job runs as the namespace's `default` ServiceAccount. Set `create: true` when policy or credentials are bound to a ServiceAccount; on an install upgraded with a chart before 0.152.0, delete the old `signoz-telemetrystore-migrator` ServiceAccount first or upgrade with `--take-ownership` (Helm 3.17 or later).
   # @section -- Telemetry Store Migrator
   serviceAccount:
-    # telemetryStoreMigrator.serviceAccount.create - Specifies whether a service account should be created.
-    # @default -- true
-    create: true
-    # telemetryStoreMigrator.serviceAccount.annotations - Annotations to add to the service account.
+    # telemetryStoreMigrator.serviceAccount.create - Create the ServiceAccount.
+    # @default -- false
+    create: false
+    # telemetryStoreMigrator.serviceAccount.annotations - Annotations of the created ServiceAccount.
     # @default -- {}
     annotations: {}
-    # telemetryStoreMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
+    # telemetryStoreMigrator.serviceAccount.name - Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.
     # @default -- null
     name:
 # Default values for OtelCollector
