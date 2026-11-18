@@ -1,8 +1,9 @@
+{{- if .Values.clickhouseInstance.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "clickhouse.fullname" . }}-scripts
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ include "clickhouse.namespace" . }}
   labels:
     {{- include "clickhouse.labels" . | nindent 4 }}
 data:
@@ -29,3 +30,4 @@ data:
             sleep $DELAY
         fi
     done
+{{- end }}
