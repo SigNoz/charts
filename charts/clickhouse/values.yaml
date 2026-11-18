@@ -618,6 +618,13 @@ clickhouseOperator:
   podSecurityContext: {}
     # fsGroup: 2000
 
+  # -- Container-level security context for the operator container.
+  securityContext: {}
+    # allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #     - ALL
+
   # Clickhouse Operator secret for ClickHouse user password
   secret:
     # -- Specifies whether a secret should be created
@@ -755,6 +762,13 @@ clickhouseOperator:
       tag: 0.21.2
       # -- Metrics Exporter image pull policy.
       pullPolicy: IfNotPresent
+
+    # -- Container-level security context for the metrics-exporter container.
+    securityContext: {}
+      # allowPrivilegeEscalation: false
+      # capabilities:
+      #   drop:
+      #     - ALL
 
     # -- Additional environment variables for Metrics Exporter container.
     env: []

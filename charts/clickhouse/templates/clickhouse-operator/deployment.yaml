@@ -92,6 +92,10 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.clickhouseOperator.resources | nindent 12 }}
+          {{- with .Values.clickhouseOperator.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: metrics-exporter
           image: {{ include "metricsExporter.image" . }}
@@ -117,3 +121,7 @@ spec:
               name: metrics
           resources:
             {{- toYaml .Values.clickhouseOperator.metricsExporter.resources | nindent 12 }}
+          {{- with .Values.clickhouseOperator.metricsExporter.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
