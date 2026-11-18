@@ -211,6 +211,117 @@ service:
 secure: false
 # -- Whether to verify TLS certificate on connection to ClickHouse
 verify: false
+# -- ClickHouse Keeper, an in-tree replacement for the bundled Zookeeper.
+# Disabled by default: enabling it changes nothing for existing installs.
+#
+# Keeper speaks the Zookeeper wire protocol and ships inside the
+# clickhouse-server image this chart already pulls, so by default it needs no
+# extra image and no JVM. Set `keeper.enabled: true` together with
+# `zookeeper.enabled: false` to run without the Zookeeper subchart.
+#
+# NOTE: switching an EXISTING install from Zookeeper to Keeper is a metadata
+# migration, not a config flip -- Replicated* tables keep their state in the
+# coordination tree, so pointing ClickHouse at an empty Keeper puts every one
+# of them read-only.
+#
+# `clickhouse keeper-converter` replays Zookeeper's transaction logs on top of
+# a snapshot, so it only reproduces the full tree if the logs reach back to
+# that snapshot. Zookeeper does NOT write a snapshot on shutdown -- it writes
+# one every `snapCount` transactions -- and autoPurge deletes old logs. A
+# long-lived install can therefore hold a snapshot far older than its oldest
+# retained log, and converting from it silently yields an incomplete tree.
+# Check before converting: the oldest `log.<zxid>` must not be newer than the
+# newest `snapshot.<zxid>` in the dataDir.
+#
+# Where that gap exists, rebuild the metadata instead of converting -- point
+# ClickHouse at the empty Keeper and run `SYSTEM RESTORE REPLICA` per table,
+# which recreates the coordination state from the local parts. On a table with
+# more than one replica, restore one and let the others re-sync from it.
+keeper:
+  # -- Whether to deploy ClickHouse Keeper.
+  enabled: false
+  # -- Number of Keeper members. Must be odd; 3 tolerates one member loss.
+  replicaCount: 3
+  # -- Keeper image. Defaults to the ClickHouse image above, since Keeper ships
+  # inside it -- so there is normally nothing extra to pull or patch. Override
+  # only to decouple the Keeper version from the ClickHouse version.
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  # -- Raft peer port.
+  raftPort: 9234
+  # -- Keeper log level.
+  logLevel: information
+  # -- Max client connections.
+  maxConnections: 4096
+  service:
+    # -- Client port. 2181 keeps the Zookeeper client default.
+    port: 2181
+  coordination:
+    operationTimeoutMs: 10000
+    sessionTimeoutMs: 30000
+    minSessionTimeoutMs: 4000
+    raftLogsLevel: information
+    snapshotsToKeep: 3
+  persistence:
+    # -- Persist the coordination tree. Disable only for throwaway installs.
+    enabled: true
+    mountPath: /var/lib/clickhouse/coordination
+    accessModes:
+      - ReadWriteOnce
+    # -- Storage class. Falls back to global.storageClass when unset.
+    storageClass: null
+    size: 8Gi
+  metrics:
+    # -- Expose Keeper's Prometheus endpoint.
+    enabled: true
+    port: 9141
+  # -- Resources for Keeper. No JVM, so there is no heap-vs-limit sizing to get
+  # wrong the way there is with Zookeeper.
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  podSecurityContext:
+    fsGroup: 101
+  securityContext:
+    runAsUser: 101
+    runAsGroup: 101
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+  # -- Spread members across nodes; two on one node defeats a 3-member quorum.
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - keeper
+            topologyKey: kubernetes.io/hostname
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  imagePullSecrets: []
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
 # -- URL for external zookeeper.
 externalZookeeper: {}
   # servers:

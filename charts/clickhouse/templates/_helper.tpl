@@ -353,3 +353,55 @@ Return common environment variables for ClickHouse Operator
         containerName: operator
         resource: limits.memory
 {{- end }}
+
+{{/*
+Set keeper service name
+*/}}
+{{- define "clickhouse.keeper.servicename" -}}
+{{- printf "%s-%s" .Release.Name "clickhouse-keeper" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Set keeper headless service FQDN suffix
+*/}}
+{{- define "clickhouse.keeper.headlessSvcSuffix" -}}
+{{- $name := printf "%s-headless" (include "clickhouse.keeper.servicename" .) }}
+{{- $name }}
+{{- end -}}
+
+{{/*
+Keeper selector labels
+*/}}
+{{- define "clickhouse.keeper.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "clickhouse.name" . }}-keeper
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: keeper
+{{- end -}}
+
+{{/*
+Keeper image. Defaults to the ClickHouse image, which already contains
+clickhouse-keeper, so there is nothing extra to pull. Each field can be
+overridden independently to decouple the Keeper version from ClickHouse.
+*/}}
+{{- define "clickhouse.keeper.image" -}}
+{{- $registry := .Values.keeper.image.registry | default (default .Values.image.registry .Values.global.imageRegistry) -}}
+{{- $repository := .Values.keeper.image.repository | default .Values.image.repository -}}
+{{- $tag := (.Values.keeper.image.tag | default .Values.image.tag) | toString -}}
+{{- if $registry -}}
+    {{- printf "%s/%s:%s" $registry $repository $tag -}}
+{{- else -}}
+    {{- printf "%s:%s" $repository $tag -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Keeper labels. Mirrors clickhouse.labels but uses the keeper selector labels,
+so app.kubernetes.io/component is emitted once rather than twice.
+*/}}
+{{- define "clickhouse.keeper.labels" -}}
+helm.sh/chart: {{ include "clickhouse.chart" . }}
+{{ include "clickhouse.keeper.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+{{- end -}}
