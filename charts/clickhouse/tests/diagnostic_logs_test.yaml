@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: ClickHouse diagnostic log configuration
+templates:
+  - templates/clickhouse-operator/configmaps/etc-configd-files.yaml
+tests:
+  - it: omits diagnostic log configuration by default
+    asserts:
+      - notExists:
+          path: data["01-clickhouse-15-zookeeper_log.xml"]
+      - notExists:
+          path: data["01-clickhouse-16-processors_profile_log.xml"]
+      - exists:
+          path: data["01-clickhouse-14-session_log.xml"]
+  - it: enables ZooKeeper diagnostics independently with custom retention
+    set:
+      clickhouseOperator.zookeeperLog.enabled: true
+      clickhouseOperator.zookeeperLog.ttl: 2
+      clickhouseOperator.zookeeperLog.flushInterval: 1234
+    asserts:
+      - matchRegex:
+          path: data["01-clickhouse-15-zookeeper_log.xml"]
+          pattern: 'TTL event_date \+ interval 2 day'
+      - matchRegex:
+          path: data["01-clickhouse-15-zookeeper_log.xml"]
+          pattern: '<flush_interval_milliseconds>1234</flush_interval_milliseconds>'
+      - notExists:
+          path: data["01-clickhouse-16-processors_profile_log.xml"]
+  - it: enables processor diagnostics independently with custom retention
+    set:
+      clickhouseOperator.processorsProfileLog.enabled: true
+      clickhouseOperator.processorsProfileLog.ttl: 3
+      clickhouseOperator.processorsProfileLog.flushInterval: 2345
+    asserts:
+      - matchRegex:
+          path: data["01-clickhouse-16-processors_profile_log.xml"]
+          pattern: 'TTL event_date \+ interval 3 day'
+      - matchRegex:
+          path: data["01-clickhouse-16-processors_profile_log.xml"]
+          pattern: '<flush_interval_milliseconds>2345</flush_interval_milliseconds>'
+      - notExists:
+          path: data["01-clickhouse-15-zookeeper_log.xml"]
+  - it: enables both diagnostic logs with their existing defaults
+    set:
+      clickhouseOperator.zookeeperLog.enabled: true
+      clickhouseOperator.processorsProfileLog.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["01-clickhouse-15-zookeeper_log.xml"]
+          pattern: 'TTL event_date \+ interval 30 day'
+      - matchRegex:
+          path: data["01-clickhouse-16-processors_profile_log.xml"]
+          pattern: 'TTL event_date \+ interval 7 day'
