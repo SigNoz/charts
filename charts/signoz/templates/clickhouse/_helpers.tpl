@@ -255,14 +255,6 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 Minimized ClickHouse ENV variables for user credentials
 */}}
 {{- define "clickhouse.credentialsEnv" }}
-{{- include "clickhouse.credentialsEnvFrom" (dict "root" . "secretName" (include "clickhouse.secretName" .)) }}
-{{- end }}
-
-{{/*
-clickhouse.credentialsEnv with CLICKHOUSE_PASSWORD read from another Secret. Takes a dict: root, secretName.
-*/}}
-{{- define "clickhouse.credentialsEnvFrom" }}
-{{- with .root }}
 {{ if .Values.clickhouse.enabled -}}
 - name: CLICKHOUSE_HOST
   value: {{ include "clickhouse.servicename" . }}
@@ -275,7 +267,7 @@ clickhouse.credentialsEnv with CLICKHOUSE_PASSWORD read from another Secret. Tak
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
-  {{- include "signoz.lib.secretKeyRef" (dict "name" $.secretName "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
+  {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.clickhouse.secure | quote }}
 {{- else -}}
@@ -290,10 +282,9 @@ clickhouse.credentialsEnv with CLICKHOUSE_PASSWORD read from another Secret. Tak
 - name: CLICKHOUSE_USER
   value: {{ .Values.externalClickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
-  {{- include "signoz.lib.secretKeyRef" (dict "name" $.secretName "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
+  {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.externalClickhouse.secure | quote }}
-{{- end }}
 {{- end }}
 {{- end }}
 

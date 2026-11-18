@@ -1363,10 +1363,6 @@ telemetryStoreMigrator:
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}
-  # telemetryStoreMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks and ArgoCD Sync hooks. As a pre-upgrade hook, the migrator reads a hook-scoped copy of the chart-created ClickHouse password Secret, `<telemetryStoreMigrator.fullname>-credentials`, which Helm does not remove on uninstall.
-  # @default -- true
-  # @section -- Telemetry Store Migrator
-  upgradeHelmHooks: true
   # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
   # @default -- true
   # @section -- Telemetry Store Migrator
@@ -1375,6 +1371,10 @@ telemetryStoreMigrator:
   # @default -- "10m"
   # @section -- Telemetry Store Migrator
   timeout: "10m"
+  # telemetryStoreMigrator.ttlSecondsAfterFinished -- (int) Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it. Under Argo CD the Job name is fixed, so a TTL-deleted Job is recreated on the next sync and the migrator re-runs for nothing. Under plain Helm, which removes the previous Job on each upgrade, the TTL only matters for Jobs a failed upgrade leaves behind; set it (for example `604800`, seven days) when that case needs garbage collection.
+  # @default -- null
+  # @section -- Telemetry Store Migrator
+  ttlSecondsAfterFinished:
   # telemetryStoreMigrator.nodeSelector -- Node selector for pod assignment.
   # @section -- Telemetry Store Migrator
   # @default -- {}

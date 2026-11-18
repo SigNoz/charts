@@ -2019,16 +2019,7 @@ tls: []</pre>
             <td>Annotations for the Telemetry Store Migrator job.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--upgradeHelmHooks"><a href="./values.yaml#L1369">telemetryStoreMigrator.upgradeHelmHooks</a></td>
-            <td>bool</td>
-            <td>
-                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
-</div>
-            </td>
-            <td>Enable Helm pre-upgrade hooks and ArgoCD Sync hooks. As a pre-upgrade hook, the migrator reads a hook-scoped copy of the chart-created ClickHouse password Secret, `<telemetryStoreMigrator.fullname>-credentials`, which Helm does not remove on uninstall.</td>
-        </tr>
-        <tr>
-            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1373">telemetryStoreMigrator.enableReplication</a></td>
+            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1369">telemetryStoreMigrator.enableReplication</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2037,13 +2028,22 @@ tls: []</pre>
             <td>Whether to enable replication for the Telemetry Store Migrator.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1377">telemetryStoreMigrator.timeout</a></td>
+            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1373">telemetryStoreMigrator.timeout</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10m</pre>
 </div>
             </td>
             <td>Timeout for the migration.</td>
+        </tr>
+        <tr>
+            <td id="telemetryStoreMigrator--ttlSecondsAfterFinished"><a href="./values.yaml#L1377">telemetryStoreMigrator.ttlSecondsAfterFinished</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it. Under Argo CD the Job name is fixed, so a TTL-deleted Job is recreated on the next sync and the migrator re-runs for nothing. Under plain Helm, which removes the previous Job on each upgrade, the TTL only matters for Jobs a failed upgrade leaves behind; set it (for example `604800`, seven days) when that case needs garbage collection.</td>
         </tr>
         <tr>
             <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1381">telemetryStoreMigrator.nodeSelector</a></td>

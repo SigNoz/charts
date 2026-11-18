@@ -69,7 +69,7 @@ spec:
             - "sync"
             - "check"
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "clickhouse.secretName" .)) | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

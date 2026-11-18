@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: telemetrystore-migrator_test.yaml
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+  - templates/telemetrystore-migrator/serviceaccount.yaml
+  - templates/validate.yaml
+release:
+  name: signoz
+  namespace: platform
+tests:
+  - it: names the Job with the release revision
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: signoz-telemetrystore-migrator-1
+  - it: names the Job with the release revision on upgrade
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      upgrade: true
+      revision: 7
+    asserts:
+      - equal:
+          path: metadata.name
+          value: signoz-telemetrystore-migrator-7
+  - it: renders the Job and its ServiceAccount without Helm hooks on install
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        notExists:
+          path: metadata.annotations["helm.sh/hook"]
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        notExists:
+          path: metadata.annotations["helm.sh/hook"]
+  - it: renders the Job and its ServiceAccount without Helm hooks on upgrade
+    release:
+      upgrade: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        notExists:
+          path: metadata.annotations["helm.sh/hook"]
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        notExists:
+          path: metadata.annotations["helm.sh/hook"]
+  - it: keeps the Argo CD sync options on the Job beside telemetryStoreMigrator.annotations
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      telemetryStoreMigrator.annotations:
+        example.com/team: observability
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/team: observability
+            argocd.argoproj.io/sync-options: Force=true,Replace=true
+  - it: renders no ttlSecondsAfterFinished by default
+    template: templates/telemetrystore-migrator/job.yaml
+    asserts:
+      - notExists:
+          path: spec.ttlSecondsAfterFinished
+  - it: renders telemetryStoreMigrator.ttlSecondsAfterFinished when set
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      telemetryStoreMigrator.ttlSecondsAfterFinished: 604800
+    asserts:
+      - equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 604800
+  - it: reads CLICKHOUSE_PASSWORD from the chart's Secret in every migrator container
+    template: templates/telemetrystore-migrator/job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content: &chartSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: signoz-clickhouse-credentials
+                key: password
+      - contains:
+          path: spec.template.spec.initContainers[1].env
+          content: *chartSecret
+      - contains:
+          path: spec.template.spec.initContainers[2].env
+          content: *chartSecret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: *chartSecret
+  - it: reads CLICKHOUSE_PASSWORD from clickhouse.existingSecret in every migrator container
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.existingSecret: my-ch
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content: &existingSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: my-ch
+                key: pw
+      - contains:
+          path: spec.template.spec.initContainers[1].env
+          content: *existingSecret
+      - contains:
+          path: spec.template.spec.initContainers[2].env
+          content: *existingSecret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: *existingSecret
+  - it: fails on telemetryStoreMigrator.upgradeHelmHooks set to true
+    template: templates/validate.yaml
+    set:
+      telemetryStoreMigrator.upgradeHelmHooks: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: the migrator runs as an ordinary Job on install and upgrade, named with the release revision, and the otel-collector waits for its sync migrations in its `check` init container; `telemetryStoreMigrator.enabled: false` skips it."
+  - it: renders with telemetryStoreMigrator.upgradeHelmHooks set to false
+    template: templates/validate.yaml
+    set:
+      telemetryStoreMigrator.upgradeHelmHooks: false
+    asserts:
+      - notFailedTemplate: {}
+      - hasDocuments:
+          count: 0

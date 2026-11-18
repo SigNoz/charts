@@ -11,6 +11,9 @@ Fail the render instead of ignoring them, so an old values file is caught at `he
 {{- if hasKey (.Values.clickhouse | default dict) "zookeeper" }}
 {{- fail "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
 {{- end }}
+{{- if dig "upgradeHelmHooks" false (.Values.telemetryStoreMigrator | default dict) }}
+{{- fail "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: the migrator runs as an ordinary Job on install and upgrade, named with the release revision, and the otel-collector waits for its sync migrations in its `check` init container; `telemetryStoreMigrator.enabled: false` skips it." }}
+{{- end }}
 {{- /*
 ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
 An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails on the presence of any of those keys.

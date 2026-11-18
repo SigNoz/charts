@@ -2,21 +2,18 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "telemetryStoreMigrator.fullname" . }}
+  name: {{ include "telemetryStoreMigrator.fullname" . }}-{{ .Release.Revision }}
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
   annotations:
     {{- with .Values.telemetryStoreMigrator.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.telemetryStoreMigrator.upgradeHelmHooks }}
     argocd.argoproj.io/sync-options: Force=true,Replace=true
-    {{- if .Release.IsUpgrade }}
-    helm.sh/hook: pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    {{- end }}
-    {{- end }}
 spec:
+  {{- if not (kindIs "invalid" .Values.telemetryStoreMigrator.ttlSecondsAfterFinished) }}
+  ttlSecondsAfterFinished: {{ .Values.telemetryStoreMigrator.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       labels:
@@ -44,7 +41,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
             - "migrate"
             - "ready"
@@ -56,7 +53,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
             - "migrate"
             - "bootstrap"
@@ -68,7 +65,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
             - "migrate"
             - "sync"
@@ -82,7 +79,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
           args:
             - "migrate"
             - "async"

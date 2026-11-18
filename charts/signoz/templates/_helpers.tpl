@@ -248,26 +248,6 @@ Create the name of the service account to use for telemetryStoreMigrator
 {{- end -}}
 
 {{/*
-Return true if the chart creates the ClickHouse password Secret of the pre-upgrade telemetryStoreMigrator Job.
-*/}}
-{{- define "telemetryStoreMigrator.createHookSecret" -}}
-{{- if and .Values.telemetryStoreMigrator.enabled .Values.telemetryStoreMigrator.upgradeHelmHooks .Release.IsUpgrade (include "clickhouse.createSecret" .) -}}
-true
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the name of the Secret the telemetryStoreMigrator Job reads the ClickHouse password from.
-*/}}
-{{- define "telemetryStoreMigrator.secretName" -}}
-{{- if include "telemetryStoreMigrator.createHookSecret" . -}}
-{{- include "signoz.lib.secretName" (dict "existing" "" "fullname" (include "telemetryStoreMigrator.fullname" .) "suffix" "credentials") -}}
-{{- else -}}
-{{- include "clickhouse.secretName" . -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return the service fqdn of Postgresql
 */}}
 {{- define "postgresql.service" -}}
@@ -419,11 +399,9 @@ Shim for clickhouse.credentialsEnv; it remains until its callers in other compon
 
 {{/*
 Common ENV variables for the telemetry store migrator containers
-Takes a dict: root, secretName (the Secret CLICKHOUSE_PASSWORD is read from).
 */}}
 {{- define "snippet.telemetryStoreMigrator-env" }}
-{{- with .root }}
-{{- include "clickhouse.credentialsEnvFrom" (dict "root" . "secretName" $.secretName) }}
+{{- include "snippet.clickhouse-credentials" . }}
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
   value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
@@ -432,7 +410,6 @@ Takes a dict: root, secretName (the Secret CLICKHOUSE_PASSWORD is read from).
   value: {{ .Values.telemetryStoreMigrator.timeout | default "10m" | quote }}
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
   value: {{ .Values.telemetryStoreMigrator.enableReplication | quote }}
-{{- end }}
 {{- end }}
 
 {{/*
