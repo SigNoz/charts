@@ -18684,6 +18684,29 @@ entries:
     version: 0.0.2
   signoz-mcp-server:
   - apiVersion: v2
+    appVersion: v0.20.0
+    created: "2026-11-18T12:05:15.456535357Z"
+    description: Helm chart for the SigNoz MCP server
+    digest: 64036e9695d33eb3407d2d63a3eb69c9221874e776869b185c30b5032dd6dd2d
+    home: https://signoz.io
+    icon: https://signoz.io/img/SigNozLogo-orange.svg
+    keywords:
+    - SigNoz
+    - mcp
+    - signoz-mcp-server
+    - kubernetes
+    maintainers:
+    - email: hello@signoz.io
+      name: SigNoz
+      url: https://signoz.io
+    name: signoz-mcp-server
+    sources:
+    - https://github.com/SigNoz/signoz-mcp-server
+    type: application
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/signoz-mcp-server-0.20.0/signoz-mcp-server-0.20.0.tgz
+    version: 0.20.0
+  - apiVersion: v2
     appVersion: v0.19.0
     created: "2026-11-15T16:15:31.194821027Z"
     description: Helm chart for the SigNoz MCP server
@@ -18942,4 +18965,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-11-18T10:50:41.496654644Z"
+generated: "2026-11-18T12:05:15.457269594Z"
