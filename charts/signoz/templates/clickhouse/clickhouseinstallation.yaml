@@ -29,7 +29,8 @@ spec:
 
   configuration:
     users:
-      {{ .Values.clickhouse.user }}/password: {{ .Values.clickhouse.password }}
+      {{ .Values.clickhouse.user }}/password:
+        {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 8 }}
       {{ .Values.clickhouse.user }}/networks/ip:
         {{- range $.Values.clickhouse.allowedNetworkIps }}
         - {{ . | quote }}

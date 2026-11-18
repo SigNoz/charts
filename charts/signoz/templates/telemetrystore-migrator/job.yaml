@@ -44,7 +44,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
           args:
             - "migrate"
             - "ready"
@@ -56,7 +56,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
           args:
             - "migrate"
             - "bootstrap"
@@ -68,7 +68,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
           args:
             - "migrate"
             - "sync"
@@ -82,7 +82,7 @@ spec:
           image: {{ include "otelCollector.image" . }}
           imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+            {{- include "snippet.telemetryStoreMigrator-env" (dict "root" . "secretName" (include "telemetryStoreMigrator.secretName" .)) | nindent 12 }}
           args:
             - "migrate"
             - "async"

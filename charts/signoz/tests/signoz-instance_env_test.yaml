@@ -60,8 +60,14 @@ tests:
             value: tcp://RELEASE-NAME-clickhouse:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
       - exists:
           path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_USER')]
-      - exists:
-          path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_PASSWORD')]
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-clickhouse-credentials
+                key: password
 
 # --- Test Case 7: External ClickHouse environment variables ---
   - it: should set external clickhouse creds and dsn environment variable
@@ -93,7 +99,10 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: CLICKHOUSE_PASSWORD
-            value: "password"
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-clickhouse-credentials
+                key: password
       - contains:
           path: spec.template.spec.containers[0].env
           content:

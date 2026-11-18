@@ -182,11 +182,18 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- "admin"
   user: admin
-  # clickhouse.password -- ClickHouse password.
-  # Rendered as given, in plain text, into the ClickHouseInstallation and into the `CLICKHOUSE_PASSWORD` env of the components that connect to ClickHouse.
+  # clickhouse.password -- Password of `clickhouse.user`. Written into the Secret `<clickhouse.fullname>-credentials`, which the ClickHouseInstallation and every component that connects to ClickHouse read; ignored when `clickhouse.existingSecret` is set.
   # @section -- ClickHouse
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+  # clickhouse.existingSecret -- Name of a Secret you created that holds the password of `clickhouse.user`. When set, the chart creates no Secret and reads this one. With `clickhouse.namespace` set to another namespace, the Secret must exist there as well as in the release namespace.
+  # @default -- null
+  # @section -- ClickHouse
+  existingSecret:
+  # clickhouse.existingSecretPasswordKey -- Key of the password inside `clickhouse.existingSecret`.
+  # @default -- "password"
+  # @section -- ClickHouse
+  existingSecretPasswordKey: password
   # clickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
@@ -1042,21 +1049,21 @@ externalClickhouse:
   # @default -- ""
   # @section -- External ClickHouse
   user: ""
-  # externalClickhouse.password -- Password for the external cluster. Ignored if `externalClickhouse.existingSecret` is set.
+  # externalClickhouse.password -- Password for the external cluster. When `externalClickhouse.existingSecret` is unset, the chart writes it into the Secret `<clickhouse.fullname>-credentials`, which the components that connect to ClickHouse read; ignored when `externalClickhouse.existingSecret` is set.
   # Used only when `clickhouse.enabled` is false.
   # @default -- ""
   # @section -- External ClickHouse
   password: ""
-  # externalClickhouse.existingSecret -- Name of an existing Kubernetes secret containing the password.
+  # externalClickhouse.existingSecret -- Name of a Secret you created that holds the password for the external cluster. When set, the chart creates no Secret and the components read this one; when unset, the chart creates `<clickhouse.fullname>-credentials` from `externalClickhouse.password`.
   # Used only when `clickhouse.enabled` is false.
   # @default -- null
   # @section -- External ClickHouse
   existingSecret:
-  # externalClickhouse.existingSecretPasswordKey -- Key in the existing secret that contains the password.
+  # externalClickhouse.existingSecretPasswordKey -- Key of the password inside `externalClickhouse.existingSecret`. The chart-created `<clickhouse.fullname>-credentials` always stores it under `password`.
   # Used only when `clickhouse.enabled` is false.
-  # @default -- null
+  # @default -- "password"
   # @section -- External ClickHouse
-  existingSecretPasswordKey:
+  existingSecretPasswordKey: password
   # externalClickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
   # Used only when `clickhouse.enabled` is false.
   # @default -- false
@@ -1356,7 +1363,7 @@ telemetryStoreMigrator:
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}
-  # telemetryStoreMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.
+  # telemetryStoreMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks and ArgoCD Sync hooks. As a pre-upgrade hook, the migrator reads a hook-scoped copy of the chart-created ClickHouse password Secret, `<telemetryStoreMigrator.fullname>-credentials`, which Helm does not remove on uninstall.
   # @default -- true
   # @section -- Telemetry Store Migrator
   upgradeHelmHooks: true

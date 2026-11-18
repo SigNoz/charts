@@ -19,6 +19,27 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "may be at most 34"
+  - it: should read the user's password from the chart's Secret
+    asserts:
+      - equal:
+          path: spec.configuration.users["admin/password"]
+          value:
+            valueFrom:
+              secretKeyRef:
+                name: clickhouse-credentials
+                key: password
+  - it: should read the user's password from clickhouse.existingSecret
+    set:
+      clickhouse.existingSecret: my-ch
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - equal:
+          path: spec.configuration.users["admin/password"]
+          value:
+            valueFrom:
+              secretKeyRef:
+                name: my-ch
+                key: pw
   - it: should have format_schema_path setting
     asserts:
       - equal:

@@ -116,34 +116,37 @@ Set Clickhouse http port
 {{- end -}}
 
 {{/*
-Return true if a secret object for ClickHouse should be created
+Return true if the chart creates the ClickHouse password Secret.
 */}}
 {{- define "clickhouse.createSecret" -}}
-{{- if and (not .Values.clickhouse.enabled) (not .Values.externalClickhouse.existingSecret) .Values.externalClickhouse.password }}
-    {{- true -}}
+{{- $values := .Values.externalClickhouse -}}
+{{- if .Values.clickhouse.enabled -}}
+{{- $values = .Values.clickhouse -}}
 {{- end -}}
+{{- include "signoz.lib.createSecret" (dict "existing" $values.existingSecret) -}}
 {{- end -}}
 
 {{/*
-Return the ClickHouse secret name
+Return the name of the Secret holding the ClickHouse password.
 */}}
 {{- define "clickhouse.secretName" -}}
-{{- if .Values.externalClickhouse.existingSecret }}
-    {{- .Values.externalClickhouse.existingSecret | quote -}}
-{{- else -}}
-    {{- printf "%s-external" ( include "clickhouse.servicename" .) -}}
+{{- $values := .Values.externalClickhouse -}}
+{{- if .Values.clickhouse.enabled -}}
+{{- $values = .Values.clickhouse -}}
 {{- end -}}
+{{- include "signoz.lib.secretName" (dict "existing" $values.existingSecret "fullname" (include "clickhouse.fullname" .) "suffix" "credentials") -}}
 {{- end -}}
 
 {{/*
-Return the ClickHouse secret key
+Return the key of the ClickHouse password inside its Secret. existingSecretPasswordKey counts only
+with existingSecret, since the chart's own Secret always stores it under `password`.
 */}}
 {{- define "clickhouse.secretPasswordKey" -}}
-{{- if .Values.externalClickhouse.existingSecret }}
-    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in externalClickhouse" .Values.externalClickhouse.existingSecretPasswordKey | quote }}
-{{- else -}}
-    {{- printf "clickhouse-password" -}}
+{{- $values := .Values.externalClickhouse -}}
+{{- if .Values.clickhouse.enabled -}}
+{{- $values = .Values.clickhouse -}}
 {{- end -}}
+{{- include "signoz.lib.secretKey" (dict "existing" (and $values.existingSecret $values.existingSecretPasswordKey) "default" "password") -}}
 {{- end -}}
 
 {{- define "clickhouse.clickHouseUrl" -}}
@@ -252,6 +255,14 @@ Common ClickHouse ENV variables and helpers used by SigNoz
 Minimized ClickHouse ENV variables for user credentials
 */}}
 {{- define "clickhouse.credentialsEnv" }}
+{{- include "clickhouse.credentialsEnvFrom" (dict "root" . "secretName" (include "clickhouse.secretName" .)) }}
+{{- end }}
+
+{{/*
+clickhouse.credentialsEnv with CLICKHOUSE_PASSWORD read from another Secret. Takes a dict: root, secretName.
+*/}}
+{{- define "clickhouse.credentialsEnvFrom" }}
+{{- with .root }}
 {{ if .Values.clickhouse.enabled -}}
 - name: CLICKHOUSE_HOST
   value: {{ include "clickhouse.servicename" . }}
@@ -264,7 +275,7 @@ Minimized ClickHouse ENV variables for user credentials
 - name: CLICKHOUSE_USER
   value: {{ .Values.clickhouse.user | quote }}
 - name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.clickhouse.password | quote }}
+  {{- include "signoz.lib.secretKeyRef" (dict "name" $.secretName "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.clickhouse.secure | quote }}
 {{- else -}}
@@ -278,18 +289,11 @@ Minimized ClickHouse ENV variables for user credentials
   value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
 - name: CLICKHOUSE_USER
   value: {{ .Values.externalClickhouse.user | quote }}
-{{- if .Values.externalClickhouse.existingSecret }}
 - name: CLICKHOUSE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "clickhouse.secretName" . }}
-      key: {{ include "clickhouse.secretPasswordKey" . }}
-{{- else }}
-- name: CLICKHOUSE_PASSWORD
-  value: {{ .Values.externalClickhouse.password | quote }}
-{{- end }}
+  {{- include "signoz.lib.secretKeyRef" (dict "name" $.secretName "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.externalClickhouse.secure | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 
