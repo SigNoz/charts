@@ -64,9 +64,9 @@ An output-identical rewrite must render identically before and after. Run the co
 .claude/hooks/render-compare.sh <base commit or branch> <chart> [helm template args...]
 ```
 
-It copies `charts/<chart>` to a temporary directory outside the checkout, puts back each changed file's base content with `git show <base>:<path>`, removes files the diff adds and untracked files, and renders both sides with `helm template release-name`, passing any further arguments to both. It prints `IDENTICAL` and exits 0, or prints the diff and exits 1. When either render fails or comes out empty it prints `RENDER FAILED (base)` or `RENDER FAILED (head)` with helm's error and exits 1 without diffing; a failed render is a finding, never a pass.
+It extracts `charts/<chart>` at the base ref from git alone (`git archive`) into a temporary directory outside the checkout, never copying the working tree, and renders that and the working tree in place with `helm template release-name`, passing any further arguments to both. It prints `IDENTICAL` and exits 0, or prints the diff and exits 1. When either render fails or comes out empty it prints `RENDER FAILED (base)` or `RENDER FAILED (head)` with helm's error and exits 1 without diffing; a failed render is a finding, never a pass.
 
-Repeat with `--set` overrides that reach every changed branch, for example `.claude/hooks/render-compare.sh main signoz --set otelCollector.autoscaling.enabled=true`; default values alone often skip the path a refactor touched. The copy keeps the working tree's dependency archives under `charts/<chart>/charts/`, so subcharts render the same on both sides. When they are missing, both renders fail; report that, since restoring them takes `helm dependency build charts/<chart>`, which the fence does not allow.
+Repeat with `--set` overrides that reach every changed branch, for example `.claude/hooks/render-compare.sh main signoz --set otelCollector.autoscaling.enabled=true`; default values alone often skip the path a refactor touched. The base side takes the working tree's dependency archives under `charts/<chart>/charts/` (regular `.tgz` files only), so subcharts render the same on both sides. When they are missing, both renders fail; report that, since restoring them takes `helm dependency build charts/<chart>`, which the fence does not allow.
 
 ## Risk Levels
 

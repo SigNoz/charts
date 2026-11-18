@@ -6,7 +6,9 @@
 #
 # Prints IDENTICAL and exits 0, or prints the diff and exits 1. When either
 # render fails or comes out empty, prints RENDER FAILED (<side>) with helm's
-# error and exits 1 without diffing. Writes only to a temporary directory.
+# error and exits 1 without diffing. Writes only to a temporary directory: the
+# base side comes from git alone, never from a copy of the working tree, whose
+# symlinks would let a write land outside it.
 set -euo pipefail
 
 usage() {
@@ -30,32 +32,28 @@ sha=$(git rev-parse --verify --quiet "$base^{commit}") || {
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/render-compare.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 
-# The base copy starts from the working tree, so the gitignored dependency
-# archives under charts/<chart>/charts/ are the same on both sides.
 mkdir "$tmp/base"
-if [ -d "charts/$chart" ]; then
-  cp -R "charts/$chart" "$tmp/base/"
+if git cat-file -e "$sha:charts/$chart" 2>/dev/null; then
+  git archive "$sha" -- "charts/$chart" | tar -xf - -C "$tmp/base"
 fi
 
-git diff --no-renames --name-status -z "$sha" -- "charts/$chart" >"$tmp/changes"
-while IFS= read -r -d '' status && IFS= read -r -d '' path; do
-  rel=${path#charts/}
-  case "$status" in
-    A) rm -f "$tmp/base/$rel" ;;
-    *)
-      mkdir -p "$(dirname "$tmp/base/$rel")"
-      git show "$sha:$path" >"$tmp/base/$rel"
-      ;;
-  esac
-done <"$tmp/changes"
-
-git ls-files -z --others --exclude-standard -- "charts/$chart" >"$tmp/untracked"
-while IFS= read -r -d '' path; do
-  rm -f "$tmp/base/${path#charts/}"
-done <"$tmp/untracked"
+# The gitignored dependency archives come from the working tree, so subcharts
+# render the same on both sides. Only regular files are read, and nothing is
+# written through a link the base tree may carry.
+copy="$tmp/base/charts/$chart"
+deps="$copy/charts"
+if [ -d "$copy" ] && [ ! -L "$copy" ] && [ ! -L "$deps" ]; then
+  for f in "charts/$chart/charts"/*.tgz; do
+    if [ -f "$f" ] && [ ! -L "$f" ]; then
+      mkdir -p "$deps"
+      rm -f "$deps/${f##*/}"
+      cp "$f" "$deps/${f##*/}"
+    fi
+  done
+fi
 
 base_rc=0
-helm template release-name "$tmp/base/$chart" "$@" >"$tmp/base.yaml" 2>"$tmp/base.err" || base_rc=$?
+helm template release-name "$copy" "$@" >"$tmp/base.yaml" 2>"$tmp/base.err" || base_rc=$?
 head_rc=0
 helm template release-name "charts/$chart" "$@" >"$tmp/head.yaml" 2>"$tmp/head.err" || head_rc=$?
 
