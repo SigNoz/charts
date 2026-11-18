@@ -61,7 +61,7 @@ Install. The "Test Charts" workflow (`test.yaml`) runs `ct install --config ct.y
 
 ## Values documentation
 
-The comments above keys in `values.yaml` are published documentation: helm-docs renders them into the `README.md` of every chart that carries a `README.md.gotmpl`. `.claude/skills/values-docs/SKILL.md` states the comment form, the quality bar and the migration procedure. Most existing keys still use the key-prefixed `# <key> -- ` form with `# @default --`; new or edited keys follow the skill. Commit the regenerated `README.md` with the `values.yaml` change.
+The comments above keys in `values.yaml` are published documentation: helm-docs renders them into the `README.md` of every chart that carries a `README.md.gotmpl`. `.claude/skills/values-docs/SKILL.md` states the comment form, the vocabulary, the schema and the migration procedure. Most existing keys still use the key-prefixed `# <key> -- ` form with `# @default --`; new or edited keys follow the skill. Commit the regenerated `README.md` with the `values.yaml` change.
 
 ## Contributing conventions
 
@@ -81,7 +81,7 @@ The binding detail for Claude Code lives in `.claude/rules/`.
 | Path | Use |
 |---|---|
 | `.claude/skills/helm-chart-test/SKILL.md` | helm-unittest conventions: coverage discovery, suite layout, selectors and the commands CI runs |
-| `.claude/skills/values-docs/SKILL.md` | The helm-docs comment standard for `values.yaml` and the migration to it |
+| `.claude/skills/values-docs/SKILL.md` | The helm-docs comment standard for `values.yaml`, the generated `values.schema.json`, and the migration to them |
 | `.claude/agents/chart-explorer.md` | Read-only analysis of templates, helpers, value paths and history before a refactor |
 | `.claude/agents/refactor-guard.md` | Diff impact, rendered-output comparison and coverage gaps after a refactor |
 | `.claude/agents/test-writer.md` | Writes and runs helm-unittest suites under `charts/*/tests/` |
