@@ -20,7 +20,7 @@ Each chart follows the standard Helm structure (`Chart.yaml`, `values.yaml`, `te
 
 `charts/signoz` resolves its dependencies from https://charts.signoz.io, not from the sibling directories, so a change to `charts/clickhouse` reaches `charts/signoz` only after a release and a dependency version bump.
 
-`charts/redpanda` (the upstream Redpanda chart) and `charts/zookeeper` (the Bitnami ZooKeeper chart) are vendored. Never edit, test or regenerate them.
+`charts/redpanda` (the upstream Redpanda chart) and `charts/zookeeper` (the Bitnami ZooKeeper chart) are vendored: they are never edited and carry no tests.
 
 ## Feature implementation workflow
 
@@ -71,7 +71,7 @@ The comments above keys in `values.yaml` are published documentation: helm-docs 
 - A change to `charts/signoz` leaves `version` and `appVersion` in `Chart.yaml` unchanged; any other chart's `version` moves only when asked.
 - Push with the remote and branch named: `git push origin <branch>`.
 - Before any push, run the validation commands for every chart touched.
-- `charts/redpanda` and `charts/zookeeper` stay untouched.
+- `charts/redpanda` and `charts/zookeeper` are vendored: they are never edited and carry no tests.
 - Dependency archives under `charts/*/charts/*.tgz` come from `helm dependency build`, are gitignored, and are never committed.
 
 The binding detail for Claude Code lives in `.claude/rules/`.
@@ -86,4 +86,4 @@ The binding detail for Claude Code lives in `.claude/rules/`.
 | `.claude/agents/refactor-guard.md` | Diff impact, rendered-output comparison and coverage gaps after a refactor |
 | `.claude/agents/test-writer.md` | Writes and runs helm-unittest suites under `charts/*/tests/` |
 
-PreToolUse hooks fence the subagents: `chart-explorer` and `refactor-guard` run only read-only git, gh and `helm template` commands, and `test-writer` edits only `charts/*/tests/*.yaml` and runs only `helm unittest` and `ct lint`.
+PreToolUse hooks fence the subagents through `.claude/hooks/fence.sh`. Each Bash call is one command, with no shell operators, redirection, substitution, expansion or newlines. `chart-explorer` runs only read-only git, gh, `helm template`, `wc`, `ls` and `.claude/hooks/render-compare.sh` commands; `refactor-guard` runs the same set without gh and `git blame`; `test-writer` runs only `helm unittest` and `ct lint`, and edits only `.yaml` files under `charts/<chart>/tests/` outside the vendored charts, checked after resolving `..` and symlinks. `.claude/hooks/test-fences.sh` tests the fence.

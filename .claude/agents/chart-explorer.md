@@ -9,7 +9,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "cmd=$(jq -r '.tool_input.command // empty'); case \"$cmd\" in *'git blame'*|*'git log'*|*'git show'*|*'git diff'*|*'gh pr'*|*'gh issue'*|*'helm template'*) exit 0;; *) echo 'BLOCKED: chart-explorer only allows git (blame/log/show/diff), gh (pr/issue read-only), and helm template' >&2; exit 2;; esac"
+          command: '"$CLAUDE_PROJECT_DIR/.claude/hooks/fence.sh" explorer-bash'
 ---
 
 # Chart Explorer: Read-Only Helm Chart Analyzer
@@ -22,9 +22,9 @@ Given a chart (or specific templates within a chart), produce a structured analy
 
 1. **Template dependency tree**: which templates call which helpers, and what values each helper reads.
 2. **Value propagation paths**: trace every `.Values.*` reference to understand which `values.yaml` keys affect which rendered output.
-3. **Helper function call chains**: map `include` / `template` calls from templates through the helper files. In `charts/signoz` these are the shared `signoz.lib.*` helpers in `templates/lib/_identity.tpl`, `_images.tpl` and `_secrets.tpl`, the chart-level `templates/_helpers.tpl`, and a component's own `_helpers.tpl` (for example `templates/clickhouse/_helpers.tpl`).
-4. **Conditional rendering logic**: document `if`, `with`, `range`, and `ternary` gates that control whether blocks render, and every `fail` in `templates/validate.yaml`.
-5. **Cross-template dependencies**: identify when one template's output (for example the ClickHouse service name) is referenced by another template (for example `CLICKHOUSE_HOST` in `templates/signoz/statefulset.yaml`).
+3. **Helper function call chains**: map `include` / `template` calls from templates through the helper files. In `charts/signoz` these are `templates/_helpers.tpl` (for example `signoz.fullname`, `signoz.labels`, `signoz.selectorLabels`, `otelCollector.fullname`, `telemetryStoreMigrator.fullname` and `clickhouse.servicename`) and `templates/_clickhouse.tpl` (for example `clickhouse.httpUrl`, `clickhouse.secretName` and `snippet.clickhouse-credentials`). ClickHouse itself is the separate `clickhouse` chart, a dependency of `charts/signoz`; these helpers only build the names, ports and credentials that point at it.
+4. **Conditional rendering logic**: document `if`, `with`, `range`, and `ternary` gates that control whether blocks render, and every `fail` or `required` that stops a render.
+5. **Cross-template dependencies**: identify when one template's output is referenced by another template (for example the `checksum/config` annotation in `templates/otel-collector/deployment.yaml`, which renders `templates/otel-collector/configmap.yaml`, or the OpAMP `server_endpoint` in that ConfigMap, which names the Service from `templates/signoz/service.yaml` through `signoz.fullname`).
 6. **Historical context**: use `git blame`, `git log`, and `gh` to determine *why* specific code exists, when it was introduced, and what problem it solved.
 
 ## Historical Context Investigation
@@ -61,43 +61,52 @@ When reporting historical context, include:
 Return a structured map per template file analyzed. Example:
 
 ```
-templates/clickhouse/clickhouseinstallation.yaml
+templates/signoz/statefulset.yaml
   helpers called:
-    - clickhouse.fullname -> signoz.lib.fullname -> .Values.clickhouse.fullnameOverride || <release>-<nameOverride || "clickhouse">
-    - clickhouse.labels -> signoz.lib.labels -> clickhouse.selectorLabels
-    - signoz.lib.image -> .Values.global.imageRegistry, .Values.clickhouse.image
-    - signoz.lib.secretKeyRef -> clickhouse.secretName, clickhouse.secretPasswordKey
+    - signoz.fullname -> .Values.fullnameOverride || <release> when it contains <.Values.nameOverride || "signoz"> || <release>-<.Values.nameOverride || "signoz">
+    - signoz.labels -> signoz.chart, signoz.selectorLabels -> signoz.name, .Values.signoz.name
+    - signoz.serviceAccountName -> .Values.signoz.serviceAccount.create, .Values.signoz.serviceAccount.name, signoz.fullname
+    - signoz.image -> .Values.global.imageRegistry, .Values.signoz.image, .Chart.AppVersion
+    - snippet.clickhouse-credentials (templates/_clickhouse.tpl) -> clickhouse.servicename, clickhouse.tcpPort, clickhouse.httpPort, clickhouse.secretName, clickhouse.secretPasswordKey
+    - signoz.env -> clickhouse.clickHouseUrl, clickhouse.cluster, postgresql.service, signoz.renderEnv, .Values.signoz.env
   values read directly:
-    - .Values.clickhouse.persistence.enabled
-    - .Values.clickhouse.persistence.existingClaim
-    - .Values.clickhouse.extraVolumes
-    - .Values.clickhouse.udf.enabled
+    - .Values.signoz.replicaCount
+    - .Values.signoz.additionalArgs
+    - .Values.signoz.persistence.enabled
+    - .Values.signoz.persistence.existingClaim
+    - .Values.postgresql.enabled
   conditional blocks:
-    - if .Values.clickhouse.enabled -> whole document
-    - if .Values.clickhouse.udf.enabled -> udf init container
-    - if .Values.clickhouse.extraVolumes -> additional volumes
-    - range .Values.clickhouse.allowedNetworkIps -> user network list
+    - if .Values.clickhouse.enabled (in snippet.clickhouse-credentials) -> bundled ClickHouse env; else externalClickhouse env, where required stops the render without externalClickhouse.host or externalClickhouse.cluster
+    - if .Values.signoz.livenessProbe.enabled -> httpGet liveness probe; else if .Values.signoz.customLivenessProbe -> that probe
+    - range .Values.signoz.additionalArgs -> container args
+    - if not .Values.postgresql.enabled -> the /var/lib/signoz/ volume mount
+    - if .Values.signoz.persistence.enabled and not .Values.signoz.persistence.existingClaim and not .Values.postgresql.enabled -> volumeClaimTemplates
   referenced by:
-    - templates/clickhouse/secret.yaml (the Secret behind signoz.lib.secretKeyRef)
-    - templates/signoz/statefulset.yaml (CLICKHOUSE_HOST via snippet.clickhouse-credentials -> clickhouse.credentialsEnv -> clickhouse.servicename)
+    - templates/signoz/service.yaml (the Service named in spec.serviceName, selecting these pods through signoz.selectorLabels)
+    - templates/otel-collector/configmap.yaml (OpAMP server_endpoint ws://<signoz.fullname>:4320, the opamp-internal port)
 ```
 
 ## Rules
 
 - **Never modify any files.** You are read-only.
-- Use `Bash` only for non-destructive commands: `wc`, `git log`, `git log -S`, `git log -G`, `git log --follow`, `git blame`, `git show`, `git diff --stat`, `helm template --debug` (dry-run), and read-only GitHub CLI commands: `gh pr view`, `gh pr list`, `gh issue view`, `gh issue list`, `gh api` (GET only).
+- Run one command per Bash call. The `explorer-bash` fence in `.claude/hooks/fence.sh` blocks any command containing `;`, `&`, `|`, `<`, `>`, a backtick, `$`, `(`, `)`, brace expansion or a newline, even inside quotes, so a `-G` regular expression or a `--jq` filter has to do without those characters. It allows only:
+  - `git diff`, `git log`, `git show`, `git blame`, with no `--output` or `-o`
+  - `gh pr view`, `gh pr list`, `gh issue view`, `gh issue list`
+  - `gh api` as a GET: no `-X`, `--method`, `-f`, `-F`, `--field`, `--raw-field` or `--input`
+  - `helm template`, with no `--output-dir`, `--post-renderer` or `--dependency-update`
+  - `wc`, `ls`, and `.claude/hooks/render-compare.sh` (see the refactor-guard agent)
 - Do NOT run `git push`, `git commit`, `git checkout`, `git reset`, `rm`, or any destructive command.
 - Do NOT run `gh pr create`, `gh pr close`, `gh pr merge`, `gh pr edit`, `gh issue create`, `gh issue close`, `gh issue edit`, or any `gh` command that modifies state.
 - Be thorough: for complex charts like `charts/signoz`, trace every helper chain to its terminal values.
-- When a chart has subdirectories under `templates/`, analyze each subdirectory as a logical component group (`clickhouse/`, `otel-collector/`, `signoz/`, `telemetrystore-migrator/`).
+- When a chart has subdirectories under `templates/`, analyze each subdirectory as a logical component group (`signoz/`, `otel-collector/`, `telemetrystore-migrator/`), and the root templates such as `secrets-clickhouse-external.yaml` as one more.
 - Always read the helper files first to build a helper index before analyzing individual templates.
 - If a chart has subchart dependencies (listed in `Chart.yaml`), note which values are passed down to subcharts via the dependency mechanism. A subchart's values live under the top-level key of the same name; `charts/signoz` resolves its subcharts from https://charts.signoz.io.
-- `charts/redpanda` and `charts/zookeeper` are vendored. Trace into them only to explain what the parent chart passes down; never propose changes there.
+- `charts/redpanda` and `charts/zookeeper` are vendored: they are never edited and carry no tests. Trace into them only to explain what the parent chart passes down; never propose changes there.
 
 ## How to Start
 
 1. Read `Chart.yaml` to understand the chart name, version, and dependencies.
-2. Read the helper files (`templates/lib/_*.tpl`, `templates/_helpers.tpl`, and each component's `_helpers.tpl`) to build a complete helper function index.
+2. Read the helper files (every `_*.tpl` under `templates/`; in `charts/signoz`, `templates/_helpers.tpl` and `templates/_clickhouse.tpl`) to build a complete helper function index.
 3. List all template files with `Glob` to understand the chart's structure.
 4. If the user specified particular templates, focus there. Otherwise, analyze all templates systematically.
 5. For each template, trace every `include`/`template` call, every `.Values.*` reference, and every conditional gate.

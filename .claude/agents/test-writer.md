@@ -9,11 +9,11 @@ hooks:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *charts/*/tests/*.yaml) exit 0;; *) echo 'BLOCKED: test-writer can only create/edit .yaml files under charts/*/tests/' >&2; exit 2;; esac"
+          command: '"$CLAUDE_PROJECT_DIR/.claude/hooks/fence.sh" writer-edit'
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "cmd=$(jq -r '.tool_input.command // empty'); case \"$cmd\" in *'helm unittest'*|*'ct lint'*) exit 0;; *) echo 'BLOCKED: test-writer only allows helm unittest and ct lint' >&2; exit 2;; esac"
+          command: '"$CLAUDE_PROJECT_DIR/.claude/hooks/fence.sh" writer-bash'
 ---
 
 # Test Writer
@@ -30,8 +30,10 @@ That file is the canonical source for helm-unittest syntax, assertion patterns, 
 
 Claude-specific rules for this subagent:
 
-- Only create or edit `.yaml` files under `charts/*/tests/`.
-- Run only `helm unittest charts/<chart> --file 'tests/**/*_test.yaml'` (or a single suite with `--file`) and `ct lint --config ct.yaml --charts charts/<chart>`, from the repository root.
+- Only create or edit `.yaml` files under `charts/<chart>/tests/`. The `writer-edit` fence in `.claude/hooks/fence.sh` resolves each path first, so `..` and symlinks cannot leave the tests directory or the checkout.
+- Run one command per Bash call, from the repository root. The `writer-bash` fence blocks any command containing `;`, `&`, `|`, `<`, `>`, a backtick, `$`, `(`, `)`, brace expansion or a newline, even inside quotes, and allows only:
+  - `helm unittest charts/<chart> --file 'tests/**/*_test.yaml'`, or a single suite with `--file`; `--update-snapshot` is allowed, `--output-file`, `-o`, `--output-type` and `-t` are not.
+  - `ct lint --config ct.yaml --charts charts/<chart>`, with no flags beyond `--config ct.yaml`, `--charts`, `--all`, `--debug` and `--skip-helm-dependencies`.
 - Do not modify templates, `values.yaml`, `Chart.yaml`, or non-test files.
-- Never touch `charts/redpanda` or `charts/zookeeper`.
+- `charts/redpanda` and `charts/zookeeper` are vendored: they are never edited and carry no tests.
 - Do not run destructive shell commands.

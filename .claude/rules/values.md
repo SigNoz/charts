@@ -21,7 +21,9 @@ drift. The charts with a `README.md.gotmpl` are `charts/signoz`,
   plain `#`.
 - **No key-prefixed form**: never write `# <key> -- `. Lines a diff does not
   touch keep theirs until the chart migrates.
-- **`# @default -- <text>`** only for an empty, null or computed value.
+- **`# @default -- "<text>"`** only for an empty, null or computed value, as a
+  quoted JSON string: the README templates parse it as JSON and render
+  unquoted prose as `null`.
 - **`# @section -- <Name>`** on every key.
 - **`# @raw` and `# @ignored`** as helm-docs defines them.
 - **No `# --` inside a commented-out block**: helm-docs drops it.

@@ -19,8 +19,8 @@ imperative, no trailing period. From main's history:
 ## Stage by path
 Stage each file by path, never `git add -A` or `git add .`. Dependency
 archives under `charts/*/charts/*.tgz` are rebuilt by `helm dependency build`
-and never committed. `charts/redpanda` and `charts/zookeeper` are vendored and
-never edited.
+and never committed. `charts/redpanda` and `charts/zookeeper` are vendored:
+they are never edited and carry no tests.
 
 ## Push explicitly
 Name the remote and branch on every push: `git push origin <branch>`, even

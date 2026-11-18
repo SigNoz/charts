@@ -17,8 +17,8 @@ The charts that carry a `README.md.gotmpl` are `charts/signoz`,
 `charts/signoz-operator`. The "Generate Helm Docs" workflow
 (`.github/workflows/helm-docs.yaml`) regenerates `charts/signoz`,
 `charts/k8s-infra` and `charts/signoz-mcp-server` on every pull request and
-fails on any diff. `charts/redpanda` and `charts/zookeeper` are vendored; their
-comments are not edited.
+fails on any diff. `charts/redpanda` and `charts/zookeeper` are vendored: they
+are never edited and carry no tests.
 
 ## The comment form
 
@@ -28,10 +28,12 @@ comments are not edited.
   attaches it by path from anywhere in the file, so a renamed or moved key
   silently loses its description.
 - Do not restate a concrete default: helm-docs renders the Default column from
-  the YAML value. Use `# @default -- <text>` only when the YAML value is empty,
-  null or computed, and explain what the empty, null or sentinel value does.
-  The README templates print `@default` text in place of the YAML value, so a
-  restated default that falls out of step publishes the wrong default.
+  the YAML value. Use `# @default -- "<text>"` only when the YAML value is
+  empty, null or computed, and explain what the empty, null or sentinel value
+  does. The text is a quoted JSON string, because the README templates parse
+  it as JSON and render unquoted prose as `null`. They print it in place of the
+  YAML value, so a restated default that falls out of step publishes the wrong
+  default.
 - Keep `# @section -- <Name>` on every key. helm-docs assigns sections per
   value, not per block; a key without one lands in the unsectioned table.
 - `# @raw` for verbatim blocks; `# @ignored` to exclude a key and its children
@@ -52,7 +54,7 @@ clickhouse:
     # -- StorageClass of the ClickHouse data claim. `-` sets an empty
     # `storageClassName`, which disables dynamic provisioning; `global.storageClass`
     # overrides it.
-    # @default -- the cluster's default StorageClass
+    # @default -- "the cluster's default StorageClass"
     # @section -- ClickHouse
     storageClass: null
 ```

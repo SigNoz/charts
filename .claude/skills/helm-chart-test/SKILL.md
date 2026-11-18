@@ -1,6 +1,6 @@
 ---
 name: helm-chart-test
-description: Plan, write and validate helm-unittest tests for a chart. Use when adding, expanding, fixing, reviewing or migrating a chart's tests, or when a template, helper or values change needs matching rendered-manifest tests. Covers coverage discovery, the mirrored tests/<component>/<template>_test.yaml layout, the RELEASE-NAME and selector conventions, failedTemplate checks for validate.yaml, and the commands CI runs (helm unittest with the tests/**/*_test.yaml glob, ct lint).
+description: Plan, write and validate helm-unittest tests for a chart. Use when adding, expanding, fixing, reviewing or migrating a chart's tests, or when a template, helper or values change needs matching rendered-manifest tests. Covers coverage discovery, the mirrored tests/<component>/<template>_test.yaml layout, the RELEASE-NAME and selector conventions, failedTemplate checks for every fail in the templates, and the commands CI runs (helm unittest with the tests/**/*_test.yaml glob, ct lint).
 ---
 
 # /helm-chart-test [chart] [component]
@@ -37,11 +37,11 @@ Work through these steps silently. Produce a single structured report at the end
 ### 1. Understand the Chart Structure
 
 - Read `charts/<chart>/Chart.yaml` and note the chart type, version, kubeVersion, and dependencies. Dependencies come from `Chart.yaml`; `charts/signoz` resolves its subcharts from https://charts.signoz.io, so a change to a sibling chart reaches it only after a release and a version bump.
-- `charts/redpanda` and `charts/zookeeper` are vendored. Never add or change tests there.
+- `charts/redpanda` and `charts/zookeeper` are vendored: they are never edited and carry no tests.
 - Read the top level of `charts/<chart>/values.yaml` to understand major configuration axes, deployment modes, and component enable flags.
 - List `charts/<chart>/templates/**`.
-- Identify component groups. Subdirectories under `templates/` are natural groups (`charts/signoz/templates/clickhouse/`, `otel-collector/`, `signoz/`, `telemetrystore-migrator/`). If the chart has flat templates, treat the whole chart as one component.
-- Read the helpers before testing templates that call them. In `charts/signoz` these are the shared `signoz.lib.*` helpers in `templates/lib/_identity.tpl`, `_images.tpl` and `_secrets.tpl`, the chart-level `templates/_helpers.tpl`, and a component's own `_helpers.tpl` (for example `templates/clickhouse/_helpers.tpl`).
+- Identify component groups. Subdirectories under `templates/` are natural groups (`charts/signoz/templates/signoz/`, `otel-collector/`, `telemetrystore-migrator/`), and the root templates (`charts/signoz/templates/secrets-clickhouse-external.yaml`, `NOTES.txt`) form one more. If the chart has flat templates, treat the whole chart as one component.
+- Read the helpers before testing templates that call them. In `charts/signoz` these are `templates/_helpers.tpl` (for example `signoz.fullname`, `signoz.labels`, `signoz.selectorLabels`, `otelCollector.fullname`, `telemetryStoreMigrator.fullname` and `clickhouse.servicename`) and `templates/_clickhouse.tpl` (for example `clickhouse.httpUrl`, `clickhouse.secretName` and `snippet.clickhouse-credentials`). ClickHouse itself is the separate `clickhouse` chart, a dependency of `charts/signoz`; these helpers only build the names, ports and credentials that point at it.
 
 ### 2. Map Existing Test Coverage
 
@@ -72,10 +72,10 @@ Use this format:
 
 | Component | Renderable templates | Test files | Coverage |
 |---|---:|---:|---|
-| root-level (validate.yaml, NOTES.txt) | N | N | None / Partial / Good |
-| lib | N | N | None / Partial / Good |
-| clickhouse | N | N | None / Partial / Good |
+| root-level (secrets-clickhouse-external.yaml, NOTES.txt) | N | N | None / Partial / Good |
+| signoz | N | N | None / Partial / Good |
 | otel-collector | N | N | None / Partial / Good |
+| telemetrystore-migrator | N | N | None / Partial / Good |
 
 ### Notes
 - <important observations about deployment modes, required values, lookup usage, subcharts, or test complexity>
@@ -115,7 +115,7 @@ values:
 set:
   key.nested: value
 templates:
-  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/signoz/statefulset.yaml
 tests:
   - it: <test case description>
     values:
@@ -124,21 +124,22 @@ tests:
       key.nested: value
     documentSelector:
       path: metadata.name
-      value: RELEASE-NAME-clickhouse
+      value: RELEASE-NAME-signoz
     asserts:
       - isKind:
-          of: ClickHouseInstallation
+          of: StatefulSet
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-clickhouse
+          value: RELEASE-NAME-signoz
       - contains:
-          path: spec.templates.podTemplates[0].spec.containers[0].ports
+          path: spec.template.spec.containers[0].ports
           content:
             name: http
-            containerPort: 8123
+            containerPort: 8080
+            protocol: TCP
 ```
 
-The first line is the `yaml-language-server` schema comment, so editors validate the suite. Values files are resolved relative to the suite file, so a suite in `tests/clickhouse/` reaches a fixture in `tests/values/` as `../values/<scenario>.yaml`.
+The first line is the `yaml-language-server` schema comment, so editors validate the suite. Values files are resolved relative to the suite file, so a suite in `tests/signoz/` reaches a fixture in `tests/values/` as `../values/<scenario>.yaml`.
 
 ### Scope, Precedence, and Targeting
 
@@ -254,12 +255,14 @@ Prefer `equal`, `contains`, and specific negative assertions over broad `exists`
 
 ```yaml
   - it: counts only selected docs
-    template: templates/clickhouse/secret.yaml
+    template: templates/secrets-clickhouse-external.yaml
     set:
-      clickhouse.namespace: clickhouse
+      clickhouse.enabled: false
+      externalClickhouse.host: clickhouse.example
+      externalClickhouse.password: secret
     documentSelector:
-      path: metadata.namespace
-      value: clickhouse
+      path: kind
+      value: Secret
     asserts:
       - hasDocuments:
           count: 1
@@ -276,21 +279,21 @@ Wrong:
 
 ```yaml
       - notContains:
-          template: templates/clickhouse/clickhouseinstallation.yaml
-          path: spec.templates.podTemplates[0].spec.initContainers
+          template: templates/signoz/statefulset.yaml
+          path: spec.template.spec.containers[0].env
           content:
-            name: RELEASE-NAME-clickhouse-udf-init
+            name: SIGNOZ_SQLSTORE_PROVIDER
           any: true
 ```
 
 Correct:
 
 ```yaml
-      - template: templates/clickhouse/clickhouseinstallation.yaml
+      - template: templates/signoz/statefulset.yaml
         notContains:
-          path: spec.templates.podTemplates[0].spec.initContainers
+          path: spec.template.spec.containers[0].env
           content:
-            name: RELEASE-NAME-clickhouse-udf-init
+            name: SIGNOZ_SQLSTORE_PROVIDER
           any: true
 ```
 
@@ -303,16 +306,16 @@ Correct:
 ```yaml
   - equal:
       path: metadata.labels["app.kubernetes.io/component"]
-      value: clickhouse
+      value: signoz
 ```
 
 ### Conditional Rendering Tests
 
 ```yaml
-  - it: should not render when disabled
+  - it: should not render when autoscaling is disabled
+    template: templates/otel-collector/hpa.yaml
     set:
-      clickhouse.enabled: false
-      externalClickhouse.host: clickhouse.example
+      otelCollector.autoscaling.enabled: false
     asserts:
       - hasDocuments:
           count: 0
@@ -323,14 +326,17 @@ Correct:
 Only a case like this one sets `release:`.
 
 ```yaml
-  - it: names the installation after the release and installs into its namespace
+  - it: names the autoscaler after the release and places it in the release namespace
+    template: templates/otel-collector/hpa.yaml
     release:
       name: my-release
       namespace: my-namespace
+    set:
+      otelCollector.autoscaling.enabled: true
     asserts:
       - equal:
           path: metadata.name
-          value: my-release-clickhouse
+          value: my-release-signoz-otel-collector
       - equal:
           path: metadata.namespace
           value: my-namespace
@@ -338,31 +344,30 @@ Only a case like this one sets `release:`.
 
 ### Render Failures
 
-Every `fail` in a chart's `templates/validate.yaml` gets a case asserting it with `failedTemplate` and the full `errorMessage`, so a reworded or dropped check shows up as a test failure. Pair the failing cases with a case that renders the replacement value and asserts `notFailedTemplate`.
+Every `fail` in a chart's templates gets a case asserting it with `failedTemplate` and the full `errorMessage`, so a reworded or dropped check shows up as a test failure. Pair the failing cases with a case that renders the replacement value and asserts `notFailedTemplate`.
+
+No template outside the vendored charts calls `fail` yet, so the shape below uses placeholders:
 
 ```yaml
-  - it: fails on clickhouse.additionalVolumes
+  - it: fails on <the refused value>
     set:
-      clickhouse.additionalVolumes:
-        - name: data
-          emptyDir: {}
+      <key>: <refused value>
     asserts:
       - failedTemplate:
-          errorMessage: "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`, the same list of Kubernetes Volume objects."
+          errorMessage: "<the full message the fail call prints>"
 ```
 
 ## Test File Organization
 
-Mirror the template directory structure. A template at `templates/<component>/<template>.yaml` is tested from `tests/<component>/<template>_test.yaml`; a template at the root of `templates/` from `tests/<template>_test.yaml`; a helper file is tested from `tests/lib/`, named without its leading underscore:
+Mirror the template directory structure. A template at `templates/<component>/<template>.yaml` is tested from `tests/<component>/<template>_test.yaml`; a template at the root of `templates/` from `tests/<template>_test.yaml`. A helper file `templates/_<name>.tpl` is tested from `tests/<name>_test.yaml`, and a helper file under `templates/<component>/` from `tests/<component>/<name>_test.yaml`, named without the leading underscore:
 
 ```text
 charts/signoz/tests/
-  validate_test.yaml
-  lib/
-    identity_test.yaml
-  clickhouse/
-    clickhouseinstallation_test.yaml
-    secret_test.yaml
+  helpers_test.yaml
+  clickhouse_test.yaml
+  secrets-clickhouse-external_test.yaml
+  signoz/
+    statefulset_test.yaml
   otel-collector/
     deployment_test.yaml
   values/
@@ -382,7 +387,7 @@ New tests for a chart not yet migrated still go in the mirrored layout.
 ## Writing Workflow
 
 1. Read the template being tested. Understand every conditional, value reference, helper call, and document emitted.
-2. Read the helper files the template calls (`templates/lib/_*.tpl`, `templates/_helpers.tpl`, the component's `_helpers.tpl`).
+2. Read the helper files the template calls (every `_*.tpl` under `templates/`; in `charts/signoz`, `templates/_helpers.tpl` and `templates/_clickhouse.tpl`).
 3. Read `values.yaml` to understand defaults and the full value schema.
 4. Map render targets: determine whether the template emits zero, one, or many documents and which selector is stable.
 5. Write tests for default rendering, significant conditional branches, selector behavior, multi-template scoping, and edge cases.
@@ -424,7 +429,7 @@ ct lint --config ct.yaml --charts charts/<chart>
 
 - Only create or edit `.yaml` files under `charts/*/tests/` when this skill is being used specifically to write tests.
 - Do not modify templates, `values.yaml`, `Chart.yaml`, or non-test files as part of a test-writing task unless the user explicitly expands the scope.
-- Never touch `charts/redpanda` or `charts/zookeeper`.
+- `charts/redpanda` and `charts/zookeeper` are vendored: they are never edited and carry no tests.
 - Never run destructive shell commands.
 - Use `RELEASE-NAME` as the release name in assertions. Set `release:` only in cases that test release behavior.
 - Always set deployment-mode-style flags explicitly. Do not rely on defaults when a chart has conditional rendering modes. The suite-level `set:` blocks in `charts/k8s-infra/tests` that switch every preset on or off are chart behavior and stay.
@@ -435,4 +440,4 @@ ct lint --config ct.yaml --charts charts/<chart>
 - Use `hasDocuments.filterAware: true` when asserting counts under selector/index filtering.
 - Use `template` / `templates` at test or assertion level to prevent cross-template assertion bleed.
 - For negative paths, assert absence with `notExists` or `notContains`.
-- Assert every `fail` in `templates/validate.yaml` with `failedTemplate`.
+- Assert every `fail` in a chart's templates with `failedTemplate`.

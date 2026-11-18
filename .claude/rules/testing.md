@@ -24,8 +24,10 @@ helm unittest charts/<chart> --file 'tests/**/*_test.yaml'
 
 ## Test conventions
 - **Layout mirrors `templates/`**: suites live under `charts/<chart>/tests/`
-  as `tests/<component>/<template>_test.yaml`; a helper file `_<name>.tpl` is
-  tested from `tests/lib/<name>_test.yaml`.
+  as `tests/<component>/<template>_test.yaml`; a helper file
+  `templates/_<name>.tpl` is tested from `tests/<name>_test.yaml`, and a
+  helper file under `templates/<component>/` from
+  `tests/<component>/<name>_test.yaml`.
 - **Filenames end in `_test.yaml`**: CI's glob runs nothing else.
 - **`RELEASE-NAME` is the release name**: `release:` is set only in a case
   that tests release behavior.
@@ -36,7 +38,8 @@ helm unittest charts/<chart> --file 'tests/**/*_test.yaml'
 - **Flat layouts migrate whole**: a chart still on the flat
   `<component>_<topic>_test.yaml` layout moves in one pass, in its own
   `test(<chart>):` commit.
-- **Vendored charts carry no tests**: `charts/redpanda`, `charts/zookeeper`.
+- **Vendored charts are left alone**: `charts/redpanda` and `charts/zookeeper`
+  are vendored: they are never edited and carry no tests.
 
 The full standard, including migration, is
 `.claude/skills/helm-chart-test/SKILL.md`.
