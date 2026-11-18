@@ -40,6 +40,18 @@ tests:
         equal:
           path: metadata.namespace
           value: chdata
+  - it: should keep the Namespace on uninstall and from Argo CD prune and delete
+    template: templates/clickhouse/namespace.yaml
+    set:
+      clickhouse.namespace: other
+      altinity-clickhouse-operator.namespaceOverride: other
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-options"]
+          value: Prune=false,Delete=false
   - it: should render the Namespace when the operator in the release namespace watches ClickHouse
     template: templates/clickhouse/namespace.yaml
     set:

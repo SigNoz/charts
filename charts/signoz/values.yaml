@@ -71,12 +71,9 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- ""
   fullnameOverride: ""
-  # clickhouse.namespace -- The namespace ClickHouse (the ClickHouseInstallation, its ConfigMaps, ServiceAccount and hooks) is installed into.
-  # Defaults to the release namespace. When set to another namespace the chart creates it.
-  # The operator stays in the release namespace; to make it manage ClickHouse there, either set `altinity-clickhouse-operator.namespaceOverride`
-  # to the same value (operator runs next to ClickHouse, as older chart versions did), or set `altinity-clickhouse-operator.watchNamespaces`
-  # to a list with that one namespace as a plain name (no regexp, one entry; two entries or a regexp make the operator watch all namespaces)
-  # and `altinity-clickhouse-operator.rbac.namespaceScoped: false`. The chart only checks that one of these watch settings (or the watch list in the operator's config file) is set, not its value.
+  # clickhouse.namespace -- Namespace of the ClickHouseInstallation; empty means the release namespace. Any other value makes the chart
+  # create that namespace and keep it on uninstall (`helm.sh/resource-policy: keep`), and needs the operator pointed at it:
+  # `altinity-clickhouse-operator.namespaceOverride` set to the same value, or `watchNamespaces: [<value>]` with `rbac.namespaceScoped: false`.
   # @section -- ClickHouse
   # @default -- ""
   namespace: ""
@@ -815,6 +812,11 @@ zookeeper:
 # altinity-clickhouse-operator -- Values for Altinity's clickhouse-operator chart, in its own format. The operator is installed only when ClickHouse is; set `altinity-clickhouse-operator.enabled` to override.
 # @ignored
 altinity-clickhouse-operator:
+  # -- Namespace of the operator; empty means the release namespace. Altinity's chart does not create it: it must exist before
+  # `helm install`, because the CRD-install hook runs before the chart's own resources (on a fresh install that uses
+  # `clickhouse.namespace` here, create it first and install with `--take-ownership`).
+  namespaceOverride: ""
+
   # altinity-clickhouse-operator.enabled -- Install the Altinity clickhouse-operator. Defaults to the value of clickhouse.enabled; set it only to override that (external ClickHouse: leave unset).
   # enabled: true
 
