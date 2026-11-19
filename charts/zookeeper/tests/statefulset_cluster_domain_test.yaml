@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: statefulset_cluster_domain_test.yaml
+templates:
+  - templates/statefulset.yaml
+release:
+  name: signoz
+  namespace: signoz
+tests:
+  - it: should default to cluster.local
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_SERVERS")].value
+          pattern: \.svc\.cluster\.local:2888:3888
+  - it: should use global.clusterDomain when clusterDomain is not set
+    set:
+      global.clusterDomain: example.local
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_SERVERS")].value
+          pattern: \.svc\.example\.local:2888:3888
+  - it: should prefer clusterDomain over global.clusterDomain
+    set:
+      clusterDomain: zookeeper.local
+      global.clusterDomain: example.local
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_SERVERS")].value
+          pattern: \.svc\.zookeeper\.local:2888:3888
