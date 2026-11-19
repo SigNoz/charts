@@ -32,7 +32,7 @@ appended when ClickHouse runs in a namespace other than the release's.
 {{- define "clickhouse.servicename" -}}
 {{- $name := include "clickhouse.fullname" . -}}
 {{- $namespace := .Values.clickhouse.namespace -}}
-{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- $clusterDomain := include "signoz.clusterDomain" . -}}
 {{- if and $namespace (ne $namespace .Release.Namespace) -}}
 {{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
 {{- else -}}
@@ -94,28 +94,6 @@ annotations:
 {{- end }}
 
 {{/*
-Set Clickhouse tcp port
-*/}}
-{{- define "clickhouse.tcpPort" -}}
-{{- if .Values.clickhouse.enabled }}
-{{- default 9000 .Values.clickhouse.service.tcpPort }}
-{{- else }}
-{{- default 9000 .Values.externalClickhouse.tcpPort }}
-{{- end }}
-{{- end -}}
-
-{{/*
-Set Clickhouse http port
-*/}}
-{{- define "clickhouse.httpPort" -}}
-{{- if .Values.clickhouse.enabled }}
-{{- default 8123 .Values.clickhouse.service.httpPort }}
-{{- else }}
-{{- default 8123 .Values.externalClickhouse.httpPort }}
-{{- end }}
-{{- end -}}
-
-{{/*
 Return true if the chart creates the ClickHouse password Secret.
 */}}
 {{- define "clickhouse.createSecret" -}}
@@ -149,22 +127,6 @@ with existingSecret, since the chart's own Secret always stores it under `passwo
 {{- include "signoz.lib.secretKey" (dict "existing" (and $values.existingSecret $values.existingSecretPasswordKey) "default" "password") -}}
 {{- end -}}
 
-{{- define "clickhouse.clickHouseUrl" -}}
-{{- if .Values.clickhouse.enabled -}}
-  {{- include "clickhouse.servicename" . }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
-{{- else -}}
-  {{- required "externalClickhouse.host is required if using external clickhouse" .Values.externalClickhouse.host }}:{{ include "clickhouse.tcpPort" . }}/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
-{{- end -}}
-{{- end -}}
-
-{{- define "clickhouse.cluster" -}}
-{{- if .Values.clickhouse.enabled -}}
-  {{ .Values.clickhouse.cluster }}
-{{- else -}}
-  {{- required "externalClickhouse.cluster is required if using external clickhouse" .Values.externalClickhouse.cluster }}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Set zookeeper host
 */}}
@@ -190,7 +152,7 @@ Return suffix part of the headless service
 */}}
 {{- define "clickhouse.zookeeper.headlessSvcSuffix" -}}
 {{- $namespace := .Values.zookeeper.namespaceOverride }}
-{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain }}
+{{- $clusterDomain := include "signoz.clusterDomain" . }}
 {{- $name := printf "%s-headless" (include "clickhouse.zookeeper.servicename" .) }}
 {{- if and $namespace (ne $namespace .Values.clickhouse.namespace) }}
 {{- printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
@@ -222,71 +184,65 @@ no leading newline; include it with nindent.
 {{- end -}}
 
 {{/*
-Common ClickHouse ENV variables and helpers used by SigNoz
+Connection variables for every container that talks to ClickHouse. Include them first in the container's env, since
+the variables after them refer to them.
 */}}
 {{- define "clickhouse.env" }}
-{{- include "clickhouse.credentialsEnv" . }}
+{{- $values := .Values.externalClickhouse }}
+{{- $host := "" }}
+{{- $port := .Values.externalClickhouse.tcpPort }}
 {{- if .Values.clickhouse.enabled }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.clickhouse.database | quote }}
-- name: CLICKHOUSE_TRACE_DATABASE
-  value: {{ default "signoz_traces" .Values.clickhouse.traceDatabase | quote }}
-- name: CLICKHOUSE_LOG_DATABASE
-  value: {{ default "signoz_logs" .Values.clickhouse.logDatabase | quote }}
-- name: CLICKHOUSE_METER_DATABASE
-  value: {{ default "signoz_meter" .Values.clickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_VERIFY
-  value: {{ .Values.clickhouse.verify | quote }}
+{{- $values = .Values.clickhouse }}
+{{- $host = include "clickhouse.servicename" . }}
+{{- $port = .Values.clickhouse.service.tcpPort }}
 {{- else }}
-- name: CLICKHOUSE_DATABASE
-  value: {{ default "signoz_metrics" .Values.externalClickhouse.database | quote }}
-- name: CLICKHOUSE_TRACE_DATABASE
-  value: {{ default "signoz_traces" .Values.externalClickhouse.traceDatabase | quote }}
-- name: CLICKHOUSE_LOG_DATABASE
-  value: {{ default "signoz_logs" .Values.externalClickhouse.logDatabase | quote }}
-- name: CLICKHOUSE_METER_DATABASE
-  value: {{ default "signoz_meter" .Values.externalClickhouse.meterDatabase | quote }}
-- name: CLICKHOUSE_VERIFY
-  value: {{ .Values.externalClickhouse.verify | quote }}
+{{- $host = required "externalClickhouse.host is required if not clickhouse.enabled" $values.host }}
+{{- $_ := required "externalClickhouse.cluster is required if not clickhouse.enabled" $values.cluster }}
 {{- end }}
+- name: CLICKHOUSE_HOST
+  value: {{ $host | quote }}
+- name: CLICKHOUSE_PORT
+  value: {{ default 9000 $port | quote }}
+- name: CLICKHOUSE_CLUSTER
+  value: {{ $values.cluster | quote }}
+- name: CLICKHOUSE_USER
+  value: {{ $values.user | quote }}
+- name: CLICKHOUSE_PASSWORD
+  {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
+- name: CLICKHOUSE_SECURE
+  value: {{ $values.secure | quote }}
+- name: CLICKHOUSE_VERIFY
+  value: {{ $values.verify | quote }}
 {{- end }}
 
 {{/*
-Minimized ClickHouse ENV variables for user credentials
+Names of the four databases the collector writes to.
 */}}
-{{- define "clickhouse.credentialsEnv" }}
-{{ if .Values.clickhouse.enabled -}}
-- name: CLICKHOUSE_HOST
-  value: {{ include "clickhouse.servicename" . }}
-- name: CLICKHOUSE_PORT
-  value: {{ include "clickhouse.tcpPort" . | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ include "clickhouse.httpPort" . | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.clickhouse.cluster | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.clickhouse.user | quote }}
-- name: CLICKHOUSE_PASSWORD
-  {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.clickhouse.secure | quote }}
-{{- else -}}
-- name: CLICKHOUSE_HOST
-  value: {{ required "externalClickhouse.host is required if not clickhouse.enabled" .Values.externalClickhouse.host | quote }}
-- name: CLICKHOUSE_PORT
-  value: {{ default 9000 .Values.externalClickhouse.tcpPort | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ default 8123 .Values.externalClickhouse.httpPort | quote }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ required "externalClickhouse.cluster is required if not clickhouse.enabled" .Values.externalClickhouse.cluster | quote }}
-- name: CLICKHOUSE_USER
-  value: {{ .Values.externalClickhouse.user | quote }}
-- name: CLICKHOUSE_PASSWORD
-  {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 2 }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.externalClickhouse.secure | quote }}
+{{- define "clickhouse.databasesEnv" }}
+{{- $values := .Values.externalClickhouse }}
+{{- if .Values.clickhouse.enabled }}
+{{- $values = .Values.clickhouse }}
 {{- end }}
+- name: CLICKHOUSE_DATABASE
+  value: {{ default "signoz_metrics" $values.database | quote }}
+- name: CLICKHOUSE_TRACE_DATABASE
+  value: {{ default "signoz_traces" $values.traceDatabase | quote }}
+- name: CLICKHOUSE_LOG_DATABASE
+  value: {{ default "signoz_logs" $values.logDatabase | quote }}
+- name: CLICKHOUSE_METER_DATABASE
+  value: {{ default "signoz_meter" $values.meterDatabase | quote }}
 {{- end }}
+
+{{/*
+ClickHouse DSN for SigNoz and the migrator, built from the variables of clickhouse.env. For an external ClickHouse it
+ends in `?secure=true` when `externalClickhouse.secure` is on, plus `&skip_verify=true` when `externalClickhouse.verify`
+is off. The credentials go in the userinfo, since a query parameter would turn a `+` in the password into a space.
+*/}}
+{{- define "clickhouse.dsn" -}}
+{{- $values := .Values.externalClickhouse -}}
+tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+{{- if and (not .Values.clickhouse.enabled) (eq (toString $values.secure) "true") }}?secure=true{{ if ne (toString $values.verify) "true" }}&skip_verify=true{{ end }}{{ end }}
+{{- end -}}
 
 {{/*
 Return list of files and contents.

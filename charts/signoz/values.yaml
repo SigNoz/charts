@@ -9,14 +9,13 @@ global:
   # @default -- []
   # @section -- Global Settings
   imagePullSecrets: []
-  # global.storageClass -- Overrides the storage class for all PVCs with persistence enabled.
-  # If not set, the default storage class is used.
-  # If set to "-", storageClassName will be an empty string, which disables dynamic provisioning.
+  # global.storageClass -- StorageClass of the SigNoz, ClickHouse and ZooKeeper claims; when set, it overrides their own `persistence.storageClass`.
+  # When neither is set, the cluster's default StorageClass is used; "-" renders an empty storageClassName, which disables dynamic provisioning.
   # @default -- null
   # @section -- Global Settings
   storageClass: null
   # global.clusterDomain -- The Kubernetes cluster domain.
-  # It is used only when components are installed in different namespaces.
+  # ClickHouse, its operator and ZooKeeper build their pods' host names on it, as does the address of a component in another namespace.
   # @default -- "cluster.local"
   # @section -- Global Settings
   clusterDomain: cluster.local
@@ -74,8 +73,24 @@ clickhouse:
   # @default -- ""
   fullnameOverride: ""
   # clickhouse.namespace -- Namespace of the ClickHouseInstallation; empty means the release namespace. Any other value makes the chart
-  # create that namespace and keep it on uninstall (`helm.sh/resource-policy: keep`), and needs the operator pointed at it:
-  # `altinity-clickhouse-operator.namespaceOverride` set to the same value, or `watchNamespaces: [<value>]` with `rbac.namespaceScoped: false`.
+  # create that namespace and keep it on uninstall (`helm.sh/resource-policy: keep`), and needs the operator pointed at it.
+  # @raw
+  # For a namespace `clickhouse`, either run the operator there:
+  #
+  #   ```yaml
+  #   altinity-clickhouse-operator:
+  #     namespaceOverride: clickhouse
+  #   ```
+  #
+  # or keep it in the release namespace with the rights to watch that one:
+  #
+  #   ```yaml
+  #   altinity-clickhouse-operator:
+  #     watchNamespaces: [clickhouse]
+  #     rbac:
+  #       namespaceScoped: false
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- ""
   namespace: ""
@@ -193,11 +208,11 @@ clickhouse:
   # @default -- "password"
   # @section -- ClickHouse
   existingSecretPasswordKey: password
-  # clickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
+  # clickhouse.secure -- Passed as `CLICKHOUSE_SECURE` to the pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
   secure: false
-  # clickhouse.verify -- Whether to verify the TLS certificate on connection to ClickHouse.
+  # clickhouse.verify -- Passed as `CLICKHOUSE_VERIFY` to the pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
   verify: false
@@ -211,17 +226,30 @@ clickhouse:
     - "192.0.0.0/24"
     - "198.18.0.0/15"
     - "192.168.0.0/16"
-  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled one, as a `servers` list of `host` and `port` entries.
-  # Set `zookeeper.enabled: false` with it, or the bundled ZooKeeper is still installed.
+  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled one.
+  # Set `zookeeper.enabled` to false with it, or the bundled ZooKeeper is still installed.
+  # @raw
+  # One `servers` entry per ZooKeeper node:
+  #
+  #   ```yaml
+  #   servers:
+  #     - host: signoz-signoz-zookeeper
+  #       port: 2181
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- {}
   externalZookeeper: {}
-  # servers:
-  # - host: signoz-signoz-zookeeper
-  #   port: 2181
 
-  # clickhouse.profiles -- ClickHouse settings profiles as `<profile>/<setting>: value`, for example `default/max_memory_usage: 40000000000`;
-  # they override `defaultProfiles`. Settings: https://clickhouse.com/docs/en/operations/settings/settings/
+  # clickhouse.profiles -- ClickHouse settings profiles, one key per profile and setting; they override `defaultProfiles`.
+  # Settings: https://clickhouse.com/docs/en/operations/settings/settings/
+  # @raw
+  # A 40 GB memory cap on each query run under the default profile:
+  #
+  #   ```yaml
+  #   default/max_memory_usage: 40000000000
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- {}
   profiles: {}
@@ -235,8 +263,15 @@ clickhouse:
     admin/secondary_indices_enable_bulk_filtering: "0"
     default/query_plan_max_limit_for_lazy_materialization: "0"
     admin/query_plan_max_limit_for_lazy_materialization: "0"
-  # clickhouse.settings -- ClickHouse server settings as `<path>: value`; they override `defaultSettings`. The `prometheus/*` defaults serve the
-  # metrics that `clickhouse.podAnnotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
+  # clickhouse.settings -- ClickHouse server settings, keyed by their path in the server config; they override `defaultSettings`. The `prometheus/*`
+  # defaults serve the metrics that `clickhouse.podAnnotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
+  # @raw
+  # Debug logging, the `level` setting under `logger`:
+  #
+  #   ```yaml
+  #   logger/level: debug
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- "See values.yaml"
   settings:
@@ -246,14 +281,24 @@ clickhouse:
     # prometheus/metrics: true
     # prometheus/events: true
     # prometheus/asynchronous_metrics: true
-  # clickhouse.defaultSettings -- Server settings that load the histogramQuantile function and the `events.proto` format schema.
+  # clickhouse.defaultSettings -- Server settings that load the histogramQuantile function and set the format schema directory.
   # Do not replace this map; override a single setting through `clickhouse.settings`.
   # @section -- ClickHouse
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
     user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
-  # clickhouse.files -- ClickHouse configuration files as `<path>: <content>`; files under `config.d/` merge into the server config.
+  # clickhouse.files -- ClickHouse configuration files, keyed by path; files under `config.d/` merge into the server config.
+  # @raw
+  # A file that sets the server name clickhouse-client shows in its prompt:
+  #
+  #   ```yaml
+  #   config.d/display_name.xml: |
+  #     <clickhouse>
+  #       <display_name>signoz</display_name>
+  #     </clickhouse>
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- "See values.yaml"
   files:
@@ -304,9 +349,21 @@ clickhouse:
   # -- Volume claim templates of the ClickHouse installation, used only when `clickhouse.persistence.enabled` is false.
   # @section -- ClickHouse
   templates:
-    # clickhouse.templates.volumeClaimTemplates -- Volume claim templates (`name`, `accessModes`, `resources.requests.storage`, `storageClassName`)
-    # added when `persistence.enabled` is false. Mount each through `clickhouse.extraVolumeMounts` under the same `name`; without a mount at
-    # `/var/lib/clickhouse` the data is not kept.
+    # clickhouse.templates.volumeClaimTemplates -- Volume claim templates added when `persistence.enabled` is false. Mount each through
+    # `clickhouse.extraVolumeMounts` under the same `name`; without a mount at `/var/lib/clickhouse` the data is not kept.
+    # @raw
+    # Each entry takes these four fields, here a 50Gi claim named `data`:
+    #
+    #   ```yaml
+    #   - name: data
+    #     accessModes:
+    #       - ReadWriteOnce
+    #     resources:
+    #       requests:
+    #         storage: 50Gi
+    #     storageClassName: standard
+    #   ```
+    #
     # @default -- []
     # @section -- ClickHouse
     volumeClaimTemplates: []
@@ -340,8 +397,20 @@ clickhouse:
     # @default -- "s3"
     # @section -- ClickHouse
     type: s3
-    # clickhouse.coldStorage.endpoint -- Bucket URL including the path ClickHouse writes under, for example
-    # `https://<bucket>.s3-<region>.amazonaws.com/data/` or `https://storage.googleapis.com/<bucket>/data/`.
+    # clickhouse.coldStorage.endpoint -- Bucket URL including the path ClickHouse writes under.
+    # @raw
+    # An S3 bucket:
+    #
+    #   ```yaml
+    #   endpoint: https://my-bucket.s3-us-east-1.amazonaws.com/data/
+    #   ```
+    #
+    # or a GCS bucket:
+    #
+    #   ```yaml
+    #   endpoint: https://storage.googleapis.com/my-bucket/data/
+    #   ```
+    #
     # @default -- "https://<bucket-name>.s3-<region>.amazonaws.com/data/"
     # @section -- ClickHouse
     endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
@@ -494,7 +563,20 @@ clickhouse:
         chmod +x histogram-quantile
         mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
         echo "histogram-quantile installed successfully"
-    # clickhouse.udf.env -- Environment of the download init container, Kubernetes EnvVar objects rendered as given, for example a proxy setting or a mirror credential from a Secret.
+    # clickhouse.udf.env -- Environment of the download init container, Kubernetes EnvVar objects rendered as given.
+    # @raw
+    # A proxy for the download, and a credential from a Secret for a mirror that `command` fetches from:
+    #
+    #   ```yaml
+    #   - name: https_proxy
+    #     value: http://proxy.example.com:3128
+    #   - name: MIRROR_TOKEN
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: mirror-credentials
+    #         key: token
+    #   ```
+    #
     # @default -- []
     # @section -- ClickHouse
     env: []
@@ -502,6 +584,10 @@ clickhouse:
     # @default -- []
     # @section -- ClickHouse
     envFrom: []
+    # clickhouse.udf.resources -- Resource requests and limits of the download init container; empty sets none, so set it where a policy requires limits on every container.
+    # @default -- {}
+    # @section -- ClickHouse
+    resources: {}
   # clickhouse.extraInitContainers -- Init containers added to the ClickHouse pod after the histogramQuantile download, Kubernetes Container objects rendered as given. The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
   # @default -- []
   # @section -- ClickHouse
@@ -511,7 +597,16 @@ clickhouse:
   extraContainers: []
 
   # clickhouse.startupProbe -- Startup probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # For a handler other than `httpGet`, also set `httpGet: null`, since Helm merges your map into the default.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   startupProbe:
@@ -524,7 +619,16 @@ clickhouse:
     failureThreshold: 30
     successThreshold: 1
   # clickhouse.livenessProbe -- Liveness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # For a handler other than `httpGet`, also set `httpGet: null`, since Helm merges your map into the default.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   livenessProbe:
@@ -537,7 +641,16 @@ clickhouse:
     failureThreshold: 10
     successThreshold: 1
   # clickhouse.readinessProbe -- Readiness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # For a handler other than `httpGet`, also set `httpGet: null`, since Helm merges your map into the default.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   readinessProbe:
@@ -568,7 +681,19 @@ clickhouse:
     runAsGroup: 101
     fsGroup: 101
     fsGroupChangePolicy: OnRootMismatch
-  # clickhouse.containerSecurityContext -- Security context of the ClickHouse container, a Kubernetes SecurityContext object rendered as given; rendered only when set. ClickHouse runs under `allowPrivilegeEscalation: false`, `capabilities: {drop: [ALL]}`, `runAsNonRoot: true` and `seccompProfile: {type: RuntimeDefault}`.
+  # clickhouse.containerSecurityContext -- Security context of every container the chart renders in the ClickHouse pod; rendered only when set.
+  # @raw
+  # The restricted profile ClickHouse runs under:
+  #
+  #   ```yaml
+  #   allowPrivilegeEscalation: false
+  #   capabilities:
+  #     drop: [ALL]
+  #   runAsNonRoot: true
+  #   seccompProfile:
+  #     type: RuntimeDefault
+  #   ```
+  #
   # @section -- ClickHouse
   # @default -- {}
   containerSecurityContext: {}
@@ -809,6 +934,12 @@ altinity-clickhouse-operator:
             update:
               # Seconds the operator waits for a created or updated StatefulSet to become Ready; Altinity's 300 is too short for large ClickHouse volumes.
               timeout: 900
+        clickhouse:
+          configuration:
+            network:
+              # Altinity's value with its `cluster.local` taken from `global.clusterDomain` (Altinity's chart templates these files),
+              # so the `default` user's host check matches the ClickHouse pods on any cluster domain.
+              hostRegexpTemplate: '(chi-{chi}-[^.]+\d+-\d+|clickhouse\-{chi})\.{namespace}\.svc\.{{ include "signoz.clusterDomain" . | replace "." "\\." }}$'
     configdFiles:
       # level information + JSON formatting; Altinity's default is debug text.
       01-clickhouse-02-logger.xml: |
@@ -1025,12 +1156,14 @@ externalClickhouse:
   # @default -- "password"
   # @section -- External ClickHouse
   existingSecretPasswordKey: password
-  # externalClickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
+  # externalClickhouse.secure -- Connect to an external ClickHouse behind TLS by appending `?secure=true` to the SigNoz and migrator connection strings.
+  # Set `externalClickhouse.tcpPort` to its secure port, usually 9440, and add the same parameters to the exporter connection strings in `otelCollector.config` by hand.
   # Used only when `clickhouse.enabled` is false.
   # @default -- false
   # @section -- External ClickHouse
   secure: false
-  # externalClickhouse.verify -- Whether to verify the TLS certificate on connection to ClickHouse.
+  # externalClickhouse.verify -- With `externalClickhouse.secure` true, whether to verify the server's TLS certificate. False appends
+  # `&skip_verify=true` to the SigNoz and migrator connection strings; add it to the exporter connection strings in `otelCollector.config` by hand.
   # Used only when `clickhouse.enabled` is false.
   # @default -- false
   # @section -- External ClickHouse
@@ -1320,7 +1453,7 @@ telemetryStoreMigrator:
   # @default -- "signoz-telemetrystore-migrator"
   # @section -- Telemetry Store Migrator
   name: "signoz-telemetrystore-migrator"
-  # telemetryStoreMigrator.annotations -- Annotations for the Telemetry Store Migrator job.
+  # telemetryStoreMigrator.annotations -- Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`; a value for that key replaces the chart's.
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}

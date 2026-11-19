@@ -65,10 +65,6 @@ tests:
       - equal:
           path: spec.configuration.profiles.default/allow_nondeterministic_mutations
           value: "1"
-  - it: should have events.proto file
-    asserts:
-      - exists:
-          path: spec.configuration.files["events.proto"]
   - it: should have zookeeper nodes
     set:
       zookeeper.enabled: true
@@ -112,3 +108,14 @@ tests:
           content:
             name: shared-binary-volume
             mountPath: /var/lib/clickhouse/user_scripts
+  - it: should render namespaceDomainPattern from a global.clusterDomain other than cluster.local
+    set:
+      global.clusterDomain: mng.local
+    asserts:
+      - equal:
+          path: spec.namespaceDomainPattern
+          value: "%s.svc.mng.local"
+  - it: should render no namespaceDomainPattern on cluster.local
+    asserts:
+      - notExists:
+          path: spec.namespaceDomainPattern

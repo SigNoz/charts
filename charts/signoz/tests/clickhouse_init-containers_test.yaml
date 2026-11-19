@@ -77,3 +77,26 @@ tests:
       - equal:
           path: spec.templates.podTemplates[0].spec.containers[0].image
           value: mirror.example.com/clickhouse/clickhouse-server:25.12.5
+  - it: should pass clickhouse.containerSecurityContext and clickhouse.udf.resources to the udf container
+    set:
+      clickhouse.containerSecurityContext:
+        allowPrivilegeEscalation: false
+      clickhouse.udf.resources:
+        limits:
+          memory: 64Mi
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].securityContext
+          value:
+            allowPrivilegeEscalation: false
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources
+          value:
+            limits:
+              memory: 64Mi
+  - it: should render no securityContext or resources on the udf container by default
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].securityContext
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources

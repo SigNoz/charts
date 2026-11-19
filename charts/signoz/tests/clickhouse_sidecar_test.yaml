@@ -60,3 +60,19 @@ tests:
           content:
             name: scripts
             mountPath: /scripts
+  - it: should pass clickhouse.containerSecurityContext to the system logs sidecar
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.containerSecurityContext:
+        allowPrivilegeEscalation: false
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[1].securityContext
+          value:
+            allowPrivilegeEscalation: false
+  - it: should render no securityContext on the system logs sidecar by default
+    set:
+      clickhouse.logs.system.enabled: true
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[1].securityContext

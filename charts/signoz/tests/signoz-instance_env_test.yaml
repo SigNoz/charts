@@ -48,16 +48,26 @@ tests:
 
 
 # --- Test Case 6: ClickHouse environment variables ---
-  - it: should set the clickhouse creds and dsn environment variable
+  - it: should set the clickhouse creds first and the dsn and cluster from them
     set:
       clickhouse:
         enabled: true
     asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: CLICKHOUSE_HOST
+            value: RELEASE-NAME-clickhouse
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
-            value: tcp://RELEASE-NAME-clickhouse:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER
+            value: $(CLICKHOUSE_CLUSTER)
       - exists:
           path: spec.template.spec.containers[0].env[?(@.name == 'CLICKHOUSE_USER')]
       - contains:
@@ -107,7 +117,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
-            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
 
 # --- Test Case 8: External ClickHouse creds with secret and dsn environment variable ---
   - it: should set external clickhouse creds with secret and dsn environment variable
@@ -139,4 +149,72 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
-            value: tcp://sample.clickhouse.com:9000/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+# --- Test Case 9: External ClickHouse over TLS ---
+  - it: should connect to external clickhouse over TLS with externalClickhouse.secure and externalClickhouse.verify
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        secure: true
+        verify: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true
+
+# --- Test Case 10: External ClickHouse over TLS without certificate verification ---
+  - it: should connect to external clickhouse over TLS without certificate verification with externalClickhouse.verify false
+    set:
+      clickhouse:
+        enabled: false
+      externalClickhouse:
+        host: "sample.clickhouse.com"
+        secure: true
+        verify: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+
+# --- Test Case 11: ClickHouse DSN overridden in upper case ---
+  - it: should replace the chart's clickhouse dsn with SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN set in signoz.env
+    set:
+      signoz:
+        env:
+          SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+# --- Test Case 12: Bundled ClickHouse with clickhouse.secure ---
+  - it: should pass clickhouse.secure as CLICKHOUSE_SECURE and keep the bundled clickhouse dsn without parameters
+    set:
+      clickhouse:
+        enabled: true
+        secure: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_SECURE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)

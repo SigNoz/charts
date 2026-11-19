@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: zookeeper_subchart_test.yaml
+templates:
+  - charts/zookeeper/templates/statefulset.yaml
+release:
+  name: signoz
+  namespace: platform
+tests:
+  - it: should address the ensemble members on cluster.local by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_SERVERS")].value
+          value: signoz-zookeeper-0.signoz-zookeeper-headless.platform.svc.cluster.local:2888:3888::1
+  - it: should address the ensemble members on global.clusterDomain
+    set:
+      global.clusterDomain: mng.local
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_SERVERS")].value
+          value: signoz-zookeeper-0.signoz-zookeeper-headless.platform.svc.mng.local:2888:3888::1
+  - it: should turn transaction log preallocation off
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "ZOO_PRE_ALLOC_SIZE")].value
+          value: "0"

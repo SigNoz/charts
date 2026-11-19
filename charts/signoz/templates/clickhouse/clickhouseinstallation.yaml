@@ -14,6 +14,10 @@ metadata:
     {{- toYaml .Values.clickhouse.annotations | nindent 4 }}
   {{- end }}
 spec:
+  {{- $clusterDomain := include "signoz.clusterDomain" . }}
+  {{- if ne $clusterDomain "cluster.local" }}
+  namespaceDomainPattern: {{ printf "%%s.svc.%s" $clusterDomain | quote }}
+  {{- end }}
   defaults:
     templates:
       {{- if and (.Values.clickhouse.persistence.enabled) (not .Values.clickhouse.persistence.existingClaim) }}
@@ -52,18 +56,6 @@ spec:
       {{- merge dict .Values.clickhouse.settings .Values.clickhouse.defaultSettings | toYaml | nindent 6 }}
 
     files:
-      events.proto: |
-        syntax = "proto3";
-        message Event {
-          string uuid = 1;
-          string event = 2;
-          string properties = 3;
-          string timestamp = 4;
-          uint64 team_id = 5;
-          string distinct_id = 6;
-          string created_at = 7;
-          string elements_chain = 8;
-        }
       {{- if .Values.clickhouse.coldStorage.enabled }}
       config.d/storage.xml: |
         <clickhouse>
@@ -204,6 +196,12 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+              {{- with .Values.clickhouse.udf.resources }}
+              resources: {{ toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
             {{- end }}
             {{- with .Values.clickhouse.extraInitContainers }}
             {{- toYaml . | nindent 12 }}
@@ -280,6 +278,9 @@ spec:
               volumeMounts:
                 - name: logs-system-config
                   mountPath: /conf
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
             {{- end }}
 
             {{- if .Values.clickhouse.extraContainers }}

@@ -47,3 +47,17 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+  - it: should build the default user's host regexp on cluster.local by default
+    template: charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: 'hostRegexpTemplate: \(chi-\{chi\}-\[\^\.\]\+\\d\+-\\d\+\|clickhouse\\-\{chi\}\)\\\.\{namespace\}\\\.svc\\\.cluster\\\.local\$'
+  - it: should build the default user's host regexp on global.clusterDomain
+    template: charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+    set:
+      global.clusterDomain: mng.local
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: 'hostRegexpTemplate: \(chi-\{chi\}-\[\^\.\]\+\\d\+-\\d\+\|clickhouse\\-\{chi\}\)\\\.\{namespace\}\\\.svc\\\.mng\\\.local\$'

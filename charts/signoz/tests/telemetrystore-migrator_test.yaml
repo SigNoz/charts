@@ -122,6 +122,16 @@ tests:
           value:
             example.com/team: observability
             argocd.argoproj.io/sync-options: Force=true,Replace=true
+  - it: lets telemetryStoreMigrator.annotations replace the Argo CD sync options on the Job
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      telemetryStoreMigrator.annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/sync-options: Replace=true
   - it: renders no ttlSecondsAfterFinished by default
     template: templates/telemetrystore-migrator/job.yaml
     asserts:
@@ -210,3 +220,96 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "the migrator Job name appends `-<release revision>` and must stay within 63 characters, so the name can have at most 57: shorten it"
+  - it: connects every migrator container to the bundled ClickHouse, with the connection variables before the migrator's own
+    template: templates/telemetrystore-migrator/job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].env
+          value: &bundledEnv
+            - name: CLICKHOUSE_HOST
+              value: signoz-clickhouse
+            - name: CLICKHOUSE_PORT
+              value: "9000"
+            - name: CLICKHOUSE_CLUSTER
+              value: cluster
+            - name: CLICKHOUSE_USER
+              value: admin
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: signoz-clickhouse-credentials
+                  key: password
+            - name: CLICKHOUSE_SECURE
+              value: "false"
+            - name: CLICKHOUSE_VERIFY
+              value: "false"
+            - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+              value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+            - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+              value: $(CLICKHOUSE_CLUSTER)
+            - name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT
+              value: 10m
+            - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
+              value: "true"
+      - equal:
+          path: spec.template.spec.initContainers[1].env
+          value: *bundledEnv
+      - equal:
+          path: spec.template.spec.initContainers[2].env
+          value: *bundledEnv
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value: *bundledEnv
+  - it: connects the migrator to an external ClickHouse without TLS
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: clickhouse.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+            value: clickhouse.example.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+  - it: connects the migrator over TLS without certificate verification with externalClickhouse.secure
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: clickhouse.example.com
+      externalClickhouse.secure: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+  - it: connects the migrator over TLS with certificate verification with externalClickhouse.secure and externalClickhouse.verify
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: clickhouse.example.com
+      externalClickhouse.secure: true
+      externalClickhouse.verify: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true
+  - it: keeps the migrator off TLS with externalClickhouse.secure set to the string "false"
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: clickhouse.example.com
+      externalClickhouse.secure: "false"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)

@@ -6,10 +6,7 @@ metadata:
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
   annotations:
-    {{- with .Values.telemetryStoreMigrator.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-    argocd.argoproj.io/sync-options: Force=true,Replace=true
+    {{- toYaml (mergeOverwrite (dict "argocd.argoproj.io/sync-options" "Force=true,Replace=true") (.Values.telemetryStoreMigrator.annotations | default dict)) | nindent 4 }}
 spec:
   {{- if not (kindIs "invalid" .Values.telemetryStoreMigrator.ttlSecondsAfterFinished) }}
   ttlSecondsAfterFinished: {{ .Values.telemetryStoreMigrator.ttlSecondsAfterFinished }}
