@@ -837,73 +837,67 @@ clickhouse:
   # @section -- ClickHouse
   envFrom: []
 
-# keeper -- ClickHouse Keeper, the default coordination store of the ClickHouse installation, rendered as a ClickHouseKeeperInstallation when `clickhouse.enabled` and `keeper.enabled` are both true.
-# @default -- "See values.yaml"
-# @section -- ClickHouse Keeper
+# ClickHouse Keeper, the default coordination store of the ClickHouse installation, rendered as a ClickHouseKeeperInstallation when `clickhouse.enabled` and `keeper.enabled` are both true.
 keeper:
-  # keeper.enabled -- Install ClickHouse Keeper.
   # Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false.
   # On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade
-  # @default -- true
+  # -- Install Keeper.
   # @section -- ClickHouse Keeper
   enabled: true
-  # keeper.name -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects; `keeper.nameOverride` takes precedence.
-  # @default -- "keeper"
+  # `keeper.nameOverride` takes precedence.
+  # -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects.
   # @section -- ClickHouse Keeper
   name: keeper
-  # keeper.nameOverride -- Name override for ClickHouse Keeper.
-  # @default -- ""
+  # Name override for ClickHouse Keeper.
+  # -- Override the chart name.
   # @section -- ClickHouse Keeper
   nameOverride: ""
-  # keeper.fullnameOverride -- Fullname override for ClickHouse Keeper, the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
-  # @default -- ""
+  # The full name of ClickHouse Keeper is the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
+  # -- Override the full resource name.
   # @section -- ClickHouse Keeper
   fullnameOverride: ""
-  # keeper.image -- ClickHouse Keeper image configuration.
-  # @section -- ClickHouse Keeper
   image:
-    # keeper.image.repository -- Image repository. May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
-    # @default -- "clickhouse/clickhouse-keeper"
+    # May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
+    # -- Image repository.
     # @section -- ClickHouse Keeper
     repository: clickhouse/clickhouse-keeper
-    # keeper.image.tag -- ClickHouse Keeper image tag. Pinned on its own, it does not follow `clickhouse.image.tag`: a Keeper restart drops every ClickHouse session.
-    # @default -- "25.12.5"
+    # The tag is pinned on its own and does not follow `clickhouse.image.tag`: a Keeper restart drops every ClickHouse session.
+    # -- Image tag.
     # @section -- ClickHouse Keeper
     tag: 25.12.5
-    # keeper.image.pullPolicy -- ClickHouse Keeper image pull policy.
-    # @default -- "IfNotPresent"
+    # -- Image pull policy.
     # @section -- ClickHouse Keeper
     pullPolicy: IfNotPresent
-  # keeper.imagePullSecrets -- Image Registry Secret Names for ClickHouse Keeper. Merged with `global.imagePullSecrets` if set.
-  # @default -- []
+  # Merged with `global.imagePullSecrets` if set.
+  # -- Secrets for pulling images from a private registry.
   # @section -- ClickHouse Keeper
   imagePullSecrets: []
-  # keeper.replicaCount -- Number of Keeper replicas. Use an odd number: Keeper needs a majority of its replicas to work.
+  # Use an odd number: Keeper needs a majority of its replicas to work.
   # At 3, spread the replicas with `podDistribution` (`ShardAntiAffinity` and `MaxNumberPerNode` with `number: 1`) or with `affinity` or `topologySpreadConstraints`.
-  # @default -- 1
+  # -- Number of replicas.
   # @section -- ClickHouse Keeper
   replicaCount: 1
-  # keeper.labels -- Labels for the ClickHouseKeeperInstallation.
-  # @default -- {}
+  # -- Labels to add to the ClickHouseKeeperInstallation.
   # @section -- ClickHouse Keeper
   labels: {}
-  # keeper.annotations -- Annotations for the ClickHouseKeeperInstallation.
-  # @default -- {}
+  # -- Annotations to add to the ClickHouseKeeperInstallation.
   # @section -- ClickHouse Keeper
   annotations: {}
-  # keeper.podLabels -- Labels for the ClickHouse Keeper pod(s).
-  # @default -- {}
+  # -- Labels to add to the pod.
   # @section -- ClickHouse Keeper
   podLabels: {}
-  # keeper.podAnnotations -- Annotations for the ClickHouse Keeper pod(s). Your keys merge with these per key; set a key to `null` to drop it.
+  # Your keys merge with these per key; set a key to `null` to drop it.
   # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
+  # -- Annotations to add to the pod.
+  # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   podAnnotations:
     signoz.io/scrape: "true"
     signoz.io/port: "9141"
     signoz.io/path: /metrics
-  # keeper.settings -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`. Your keys merge with these per key; set a key to `null` to drop it.
+  # Your keys merge with these per key; set a key to `null` to drop it.
   # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.podAnnotations`; change both together.
+  # -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   settings:
@@ -918,58 +912,59 @@ keeper:
     prometheus/metrics: "true"
     prometheus/events: "true"
     prometheus/asynchronous_metrics: "true"
-  # keeper.podSecurityContext -- Pod security context of the ClickHouse Keeper pod, a Kubernetes PodSecurityContext object rendered as given. Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps. Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
+  # A Kubernetes PodSecurityContext object, rendered as given.
+  # Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
+  # Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
+  # -- Security context for the pod.
+  # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   podSecurityContext:
     fsGroup: 101
-  # keeper.containerSecurityContext -- Security context of the ClickHouse Keeper container, a Kubernetes SecurityContext object rendered as given; rendered only when set.
-  # @default -- {}
+  # A Kubernetes SecurityContext object, rendered as given; rendered only when set.
+  # -- Security context for the container.
+  # @default -- "no container security context"
   # @section -- ClickHouse Keeper
   containerSecurityContext: {}
-  # keeper.resources -- Resource requests and limits of the ClickHouse Keeper container.
+  # -- Resource requests and limits for the container.
+  # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   resources:
     requests:
       cpu: 100m
       memory: 256Mi
-  # keeper.priorityClassName -- Priority class of the ClickHouse Keeper pod(s); an empty value sets none.
-  # @default -- ""
+  # An empty value sets none.
+  # -- Priority class of the pod.
+  # @default -- "no priority class"
   # @section -- ClickHouse Keeper
   priorityClassName: ""
-  # keeper.nodeSelector -- Node selector for the ClickHouse Keeper pod(s).
-  # @default -- {}
+  # -- Node labels for pod assignment.
   # @section -- ClickHouse Keeper
   nodeSelector: {}
-  # keeper.tolerations -- Tolerations for the ClickHouse Keeper pod(s).
-  # @default -- []
+  # -- Tolerations for pod assignment.
   # @section -- ClickHouse Keeper
   tolerations: []
-  # keeper.affinity -- Affinity for the ClickHouse Keeper pod(s).
-  # @default -- {}
+  # -- Affinity rules for pod assignment.
   # @section -- ClickHouse Keeper
   affinity: {}
-  # keeper.topologySpreadConstraints -- Topology spread constraints for the ClickHouse Keeper pod(s).
-  # @default -- []
+  # -- Topology spread constraints for pod assignment.
   # @section -- ClickHouse Keeper
   topologySpreadConstraints: []
-  # keeper.podDistribution -- Topologies for distributing the ClickHouse Keeper pods, in the operator's `podDistribution` format (see `clickhouse.podDistribution`).
-  # @default -- []
+  # See `clickhouse.podDistribution`.
+  # -- Topologies for distributing the ClickHouse Keeper pods, in the operator's `podDistribution` format.
   # @section -- ClickHouse Keeper
   podDistribution: []
-  # keeper.persistence -- Persistent volume of each ClickHouse Keeper replica. The claim is kept when the installation or a replica is removed.
-  # @section -- ClickHouse Keeper
+  # Persistent volume of each ClickHouse Keeper replica. The claim is kept when the installation or a replica is removed.
   persistence:
-    # keeper.persistence.accessModes -- Access modes for the persistent volume.
-    # @default -- ["ReadWriteOnce"]
+    # -- Access modes of the claim.
     # @section -- ClickHouse Keeper
     accessModes:
       - ReadWriteOnce
-    # keeper.persistence.size -- Persistent volume size.
-    # @default -- "10Gi"
+    # -- Size of the claim.
     # @section -- ClickHouse Keeper
     size: 10Gi
-    # keeper.persistence.storageClass -- Persistent Volume Storage Class; `global.storageClass` takes precedence when set. If "-", disables dynamic provisioning. If null, uses the default provisioner.
-    # @default -- null
+    # `global.storageClass` takes precedence when set. If "-", disables dynamic provisioning. If null, uses the default provisioner.
+    # -- StorageClass of the claim.
+    # @default -- "the default provisioner"
     # @section -- ClickHouse Keeper
     storageClass: null
 
