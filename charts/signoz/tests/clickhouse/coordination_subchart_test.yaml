@@ -6,6 +6,7 @@ templates:
 tests:
   - it: dials the headless Service the bundled ZooKeeper renders, also under zookeeper.fullnameOverride
     set:
+      zookeeper.enabled: true
       zookeeper.fullnameOverride: coord
     asserts:
       - template: charts/zookeeper/templates/svc-headless.yaml
