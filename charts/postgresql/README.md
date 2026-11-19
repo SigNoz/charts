@@ -452,10 +452,10 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td id="persistence--mountPath"><a href="./values.yaml#L158">persistence.mountPath</a></td>
 		<td>string</td>
 		<td>
-			<div style="max-width: 300px;"><pre lang="yaml">/signoz/postgresql</pre>
+			<div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
 </div>
 		</td>
-		<td>Mount path for Postgres data.</td>
+		<td>Mount path for the Postgres data claim. It must match the image's data volume (`/var/lib/postgresql/data` for postgres:15); any other path leaves the database in an anonymous volume outside the claim.</td>
 	</tr>
 	<tr>
 		<td id="persistence--subPath"><a href="./values.yaml#L161">persistence.subPath</a></td>
@@ -470,10 +470,10 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td id="persistence--dataDir"><a href="./values.yaml#L164">persistence.dataDir</a></td>
 		<td>string</td>
 		<td>
-			<div style="max-width: 300px;"><pre lang="yaml">/signoz/postgresql/data</pre>
+			<div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data/pgdata</pre>
 </div>
 		</td>
-		<td>Data directory for Postgres data.</td>
+		<td>Data directory for Postgres data (`PGDATA`). Keep it a subdirectory of `persistence.mountPath`, since initdb refuses a mount point that holds `lost+found`.</td>
 	</tr>
 	<tr>
 		<td id="additionalArgs"><a href="./values.yaml#L168">additionalArgs</a></td>
