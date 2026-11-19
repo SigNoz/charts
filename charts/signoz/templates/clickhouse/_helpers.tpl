@@ -128,6 +128,17 @@ with existingSecret, since the chart's own Secret always stores it under `passwo
 {{- end -}}
 
 {{/*
+Return the key of the SHA-256 hex of the bundled ClickHouse password inside its Secret, or empty when the ClickHouseInstallation reads the plain password.
+*/}}
+{{- define "clickhouse.secretPasswordSha256Key" -}}
+{{- if .Values.clickhouse.existingSecret -}}
+{{- .Values.clickhouse.existingSecretPasswordSha256Key -}}
+{{- else -}}
+password_sha256_hex
+{{- end -}}
+{{- end -}}
+
+{{/*
 Set zookeeper host
 */}}
 {{- define "clickhouse.zookeeper.servicename" -}}

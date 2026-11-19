@@ -33,8 +33,14 @@ spec:
 
   configuration:
     users:
+      {{- $sha256Key := include "clickhouse.secretPasswordSha256Key" . }}
+      {{- if $sha256Key }}
+      {{ .Values.clickhouse.user }}/password_sha256_hex:
+        {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" $sha256Key) | nindent 8 }}
+      {{- else }}
       {{ .Values.clickhouse.user }}/password:
         {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 8 }}
+      {{- end }}
       {{ .Values.clickhouse.user }}/networks/ip:
         {{- range $.Values.clickhouse.allowedNetworkIps }}
         - {{ . | quote }}
