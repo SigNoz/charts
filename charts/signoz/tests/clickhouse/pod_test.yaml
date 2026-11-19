@@ -1,0 +1,306 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/pod
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/clickhouse/configmap-functions.yaml
+  - templates/clickhouse/configmap-logs.yaml
+  - templates/clickhouse/serviceaccount.yaml
+tests:
+  - it: downloads histogramQuantile first, with clickhouse.udf.command on the ClickHouse image, into the user scripts directory the server loads functions from
+    set:
+      clickhouse.image.tag: t1
+      clickhouse.udf.command: [sh, -c, "curl -fsSL https://mirror.example/histogramQuantile -o /var/lib/clickhouse/user_scripts/histogramQuantile"]
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          value: clickhouse/clickhouse-server:t1
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].command
+          value: [sh, -c, "curl -fsSL https://mirror.example/histogramQuantile -o /var/lib/clickhouse/user_scripts/histogramQuantile"]
+      # the download and the clickhouse container mount one pod-scoped emptyDir at /var/lib/clickhouse/user_scripts
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.initContainers[0].volumeMounts[?(@.mountPath == "/var/lib/clickhouse/user_scripts")].name &&
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse/user_scripts")].name
+            )].emptyDir
+          value: {}
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.configuration.settings.user_scripts_path
+          value: /var/lib/clickhouse/user_scripts/
+      # the clickhouse container mounts the functions ConfigMap, whole, at /etc/clickhouse-server/functions
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/etc/clickhouse-server/functions")].name
+            )].configMap
+          value: {name: RELEASE-NAME-clickhouse-custom-functions}
+      - template: templates/clickhouse/configmap-functions.yaml
+        isKind:
+          of: ConfigMap
+      - template: templates/clickhouse/configmap-functions.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-clickhouse-custom-functions
+      - template: templates/clickhouse/configmap-functions.yaml
+        matchRegex:
+          path: data["custom-functions.xml"]
+          pattern: <name>histogramQuantile</name>
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.configuration.settings.user_defined_executable_functions_config
+          value: /etc/clickhouse-server/functions/custom-functions.xml
+  - it: gives the download container clickhouse.udf.env, envFrom and resources, for a proxy, a mirror credential or a limits policy
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.udf.env:
+        - {name: https_proxy, value: "http://proxy.example:3128"}
+      clickhouse.udf.envFrom:
+        - secretRef: {name: mirror-credentials}
+      clickhouse.udf.resources:
+        limits: {cpu: 100m, memory: 64Mi}
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].env
+          content: {name: https_proxy, value: "http://proxy.example:3128"}
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].envFrom
+          content: {secretRef: {name: mirror-credentials}}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].resources.limits
+          value: {cpu: 100m, memory: 64Mi}
+  - it: runs only clickhouse.extraInitContainers, rendered as given, with clickhouse.udf.enabled false
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.udf.enabled: false
+      clickhouse.extraInitContainers:
+        - name: copy-udf
+          image: mirror.example/udf:1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers
+          value:
+            - name: copy-udf
+              image: mirror.example/udf:1
+  - it: runs clickhouse.extraInitContainers after the download
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.udf.command: [sh, -c, download]
+      clickhouse.extraInitContainers:
+        - name: after
+          image: mirror.example/after:1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].command
+          value: [sh, -c, download]
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[1].name
+          value: after
+  - it: gives clickhouse.extraInitContainers the user scripts directory through shared-binary-volume, the volume name the values document
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.udf.enabled: false
+      clickhouse.extraInitContainers:
+        - name: copy-udf
+          image: mirror.example/udf:1
+          volumeMounts:
+            - {name: shared-binary-volume, mountPath: /udf}
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse/user_scripts")].name
+          value: shared-binary-volume
+      - equal:
+          path: spec.templates.podTemplates[0].spec.volumes[?(@.name == "shared-binary-volume")].emptyDir
+          value: {}
+  - it: applies clickhouse.containerSecurityContext to every container the chart renders in the ClickHouse pod
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.containerSecurityContext:
+        runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].securityContext
+          value: {runAsNonRoot: true}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].securityContext
+          value: {runAsNonRoot: true}
+      - equal:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].securityContext
+          value: {runAsNonRoot: true}
+  - it: runs the ClickHouse pod with clickhouse.podSecurityContext
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.podSecurityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+        fsGroupChangePolicy: Always
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.securityContext
+          value: {runAsUser: 2000, runAsGroup: 2000, fsGroup: 2000, fsGroupChangePolicy: Always}
+  - it: renders no pod security context with clickhouse.podSecurityContext null
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.podSecurityContext: null
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.securityContext
+  - it: runs the ClickHouse container with the startup, liveness and readiness probes set
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.startupProbe: {httpGet: {port: http, path: /ping}, failureThreshold: 90, periodSeconds: 10, timeoutSeconds: 5, successThreshold: 1, initialDelaySeconds: 15}
+      clickhouse.livenessProbe: {httpGet: {port: http, path: /ping}, failureThreshold: 6, periodSeconds: 15, timeoutSeconds: 3, successThreshold: 1, initialDelaySeconds: 45}
+      clickhouse.readinessProbe: {httpGet: {port: http, path: /ping}, failureThreshold: 4, periodSeconds: 7, timeoutSeconds: 2, successThreshold: 1, initialDelaySeconds: 5}
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].startupProbe.failureThreshold
+          value: 90
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].livenessProbe.periodSeconds
+          value: 15
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].readinessProbe.periodSeconds
+          value: 7
+  - it: renders no probe for a probe set to null
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.startupProbe: null
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].startupProbe
+      - exists:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].livenessProbe
+  - it: renders an exec probe with a single handler when httpGet is set to null
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.livenessProbe:
+        httpGet: null
+        exec:
+          command: ["clickhouse-client", "-q", "SELECT 1"]
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 6
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].livenessProbe.httpGet
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].livenessProbe.exec.command
+          value: ["clickhouse-client", "-q", "SELECT 1"]
+  - it: overrides one profile setting with clickhouse.profiles and keeps the profile settings SigNoz relies on
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.profiles:
+        default/max_memory_usage: "40000000000"
+        default/allow_nondeterministic_mutations: "0"
+    asserts:
+      - equal:
+          path: spec.configuration.profiles["default/max_memory_usage"]
+          value: "40000000000"
+      - equal:
+          path: spec.configuration.profiles["default/allow_nondeterministic_mutations"]
+          value: "0"
+      - exists:
+          path: spec.configuration.profiles["default/allow_experimental_window_functions"]
+  - it: overrides one server setting with clickhouse.settings and keeps the settings that load the functions
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.settings:
+        logger/level: debug
+    asserts:
+      - equal:
+          path: spec.configuration.settings["logger/level"]
+          value: debug
+      - exists:
+          path: spec.configuration.settings.user_defined_executable_functions_config
+  - it: runs the system logs sidecar from ConfigMap <fullname>-logs-system-config with clickhouse.logs.system.enabled
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.config:
+        receivers: {}
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].command
+          value: [/signoz-otel-collector]
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].args
+          value: [--config=/conf/config.yaml]
+      # the sidecar mounts the logs ConfigMap, whole, at /conf, so its config.yaml key is /conf/config.yaml
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].volumeMounts[?(@.mountPath == "/conf")].name
+            )].configMap
+          value: {name: RELEASE-NAME-clickhouse-logs-system-config}
+      - template: templates/clickhouse/configmap-logs.yaml
+        isKind:
+          of: ConfigMap
+      - template: templates/clickhouse/configmap-logs.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-clickhouse-logs-system-config
+      - template: templates/clickhouse/configmap-logs.yaml
+        exists:
+          path: data["config.yaml"]
+  - it: gives the system logs sidecar clickhouse.logs.system.resources, for a limits policy
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.resources:
+        limits: {cpu: 200m, memory: 128Mi}
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].resources.limits
+          value: {cpu: 200m, memory: 128Mi}
+  - it: annotates the ClickHouse ServiceAccount with the cold storage role and runs the pods as it
+    set:
+      clickhouse.coldStorage.enabled: true
+      clickhouse.coldStorage.role.enabled: true
+      clickhouse.coldStorage.role.annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::1:role/cold
+    asserts:
+      - template: templates/clickhouse/serviceaccount.yaml
+        equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::1:role/cold
+      - template: templates/clickhouse/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-clickhouse
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.serviceAccountName
+          value: RELEASE-NAME-clickhouse
+  - it: runs the ClickHouse pods as clickhouse.serviceAccount.name without creating it when create is false
+    set:
+      clickhouse.serviceAccount.create: false
+      clickhouse.serviceAccount.name: ch-sa
+    asserts:
+      - template: templates/clickhouse/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.podTemplates[0].spec.serviceAccountName
+          value: ch-sa
+  - it: adds clickhouse.extraContainers to the ClickHouse pod
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.extraContainers:
+        - name: backup
+          image: altinity/clickhouse-backup:2.6.3
+          args: [server]
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers
+          content: {name: backup, image: altinity/clickhouse-backup:2.6.3, args: [server]}

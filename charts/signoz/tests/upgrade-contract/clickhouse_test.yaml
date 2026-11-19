@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: upgrade-contract/clickhouse
+templates:
+  - templates/validate.yaml
+tests:
+  - it: rejects clickhouse.clickhouseOperator, naming altinity-clickhouse-operator
+    set:
+      clickhouse.clickhouseOperator: {}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.clickhouseOperator.*altinity-clickhouse-operator"
+  - it: rejects clickhouse.zookeeper, naming zookeeper
+    set:
+      clickhouse.zookeeper: {}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.zookeeper.*to `zookeeper"
+  - it: rejects clickhouse.securityContext, naming podSecurityContext and containerSecurityContext
+    set:
+      clickhouse.securityContext: {enabled: true, runAsUser: 101}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.securityContext.*clickhouse\\.podSecurityContext.*clickhouse\\.containerSecurityContext"
+  - it: rejects clickhouse.customStartupProbe, naming clickhouse.startupProbe
+    set:
+      clickhouse.customStartupProbe: {exec: {command: ["true"]}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.customStartupProbe.*clickhouse\\.startupProbe"
+  - it: rejects clickhouse.customLivenessProbe, naming clickhouse.livenessProbe
+    set:
+      clickhouse.customLivenessProbe: {tcpSocket: {port: 9000}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.customLivenessProbe.*clickhouse\\.livenessProbe"
+  - it: rejects clickhouse.customReadinessProbe, naming clickhouse.readinessProbe
+    set:
+      clickhouse.customReadinessProbe: {httpGet: {port: http, path: /ping}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.customReadinessProbe.*clickhouse\\.readinessProbe"
+  - it: rejects clickhouse.additionalVolumes, naming clickhouse.extraVolumes
+    set:
+      clickhouse.additionalVolumes: [{name: x, emptyDir: {}}]
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.additionalVolumes.*clickhouse\\.extraVolumes"
+  - it: rejects clickhouse.additionalVolumeMounts, naming clickhouse.extraVolumeMounts
+    set:
+      clickhouse.additionalVolumeMounts: [{name: x, mountPath: /x}]
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.additionalVolumeMounts.*clickhouse\\.extraVolumeMounts"
+  - it: rejects clickhouse.startupProbe.enabled, the old probe shape
+    set: {clickhouse.startupProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.startupProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.startupProbe.port, the old probe shape
+    set: {clickhouse.startupProbe.port: 8123}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.startupProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.startupProbe.path, the old probe shape
+    set: {clickhouse.startupProbe.path: /ping}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.startupProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.livenessProbe.enabled, the old probe shape
+    set: {clickhouse.livenessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.livenessProbe.port, the old probe shape
+    set: {clickhouse.livenessProbe.port: 8123}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.livenessProbe.path, the old probe shape
+    set: {clickhouse.livenessProbe.path: /ping}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.readinessProbe.enabled, the old probe shape
+    set: {clickhouse.readinessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.readinessProbe.port, the old probe shape
+    set: {clickhouse.readinessProbe.port: 8123}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects clickhouse.readinessProbe.path, the old probe shape
+    set: {clickhouse.readinessProbe.path: /ping}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.readinessProbe.*enabled/port/path"}}]
+  - it: renders the probes in the Kubernetes shape
+    set:
+      clickhouse.startupProbe: {httpGet: {port: http, path: /ping}, failureThreshold: 60, periodSeconds: 10}
+      clickhouse.livenessProbe: {httpGet: {port: http, path: /ping}, periodSeconds: 5}
+      clickhouse.readinessProbe: {httpGet: {port: http, path: /ping}, periodSeconds: 5}
+    asserts:
+      - notFailedTemplate: {}
+  - it: rejects clickhouse.image.registry, naming clickhouse.image.repository
+    set: {clickhouse.image.registry: docker.io}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.image\\.registry.*clickhouse\\.image\\.repository"}}]
+  - it: rejects clickhouse.logs.system.image.registry, naming its repository
+    set: {clickhouse.logs.system.image.registry: docker.io}
+    asserts: [{failedTemplate: {errorPattern: "clickhouse\\.logs\\.system\\.image\\.registry.*clickhouse\\.logs\\.system\\.image\\.repository"}}]
+  - it: rejects clickhouse.initContainers, naming clickhouse.udf and clickhouse.extraInitContainers
+    set:
+      clickhouse.initContainers: {udf: {enabled: true}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.initContainers.*clickhouse\\.udf.*clickhouse\\.extraInitContainers"

@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/coordination_subchart
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - charts/zookeeper/templates/svc-headless.yaml
+tests:
+  - it: dials the headless Service the bundled ZooKeeper renders, also under zookeeper.fullnameOverride
+    set:
+      zookeeper.fullnameOverride: coord
+    asserts:
+      - template: charts/zookeeper/templates/svc-headless.yaml
+        equal:
+          path: metadata.name
+          value: coord-headless
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: coord-0.coord-headless}
+          any: true

@@ -1,0 +1,233 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/connection
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/signoz/statefulset.yaml
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: connects every client, the collector's check container included, to the ClickHouse Service on the port clickhouse.service.tcpPort exposes
+    set:
+      clickhouse.service.tcpPort: 9100
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].generateName
+          value: RELEASE-NAME-clickhouse
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        contains:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].spec.ports
+          content: {name: tcp, port: 9100}
+          any: true
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_PORT, value: "9100"}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_PORT, value: "9100"}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_PORT, value: "9100"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_PORT, value: "9100"}
+
+  - it: addresses ClickHouse in clickhouse.namespace as <fullname>.<namespace>.svc.<cluster domain> from every client
+    set:
+      clickhouse.namespace: db
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.cluster.local}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.cluster.local}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.cluster.local}
+
+  - it: connects every client to externalClickhouse.host, tcpPort, cluster and user, and runs SigNoz and the migrations on that cluster, for an external ClickHouse
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.tcpPort: 9001
+      externalClickhouse.cluster: c1
+      externalClickhouse.user: u1
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_HOST, value: ch.example}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_PORT, value: "9001"}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: c1}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_HOST, value: ch.example}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: c1}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_HOST, value: ch.example}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_PORT, value: "9001"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: c1}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER, value: $(CLICKHOUSE_CLUSTER)}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER, value: $(CLICKHOUSE_CLUSTER)}
+
+  - it: tells every client whether ClickHouse speaks TLS and whether to verify it, from clickhouse.secure and clickhouse.verify
+    set:
+      clickhouse.secure: true
+      clickhouse.verify: true
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_SECURE, value: "true"}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_VERIFY, value: "true"}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_SECURE, value: "true"}
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_VERIFY, value: "true"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_SECURE, value: "true"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_VERIFY, value: "true"}
+  - it: connects SigNoz and the migrator over TLS without certificate verification with externalClickhouse.secure
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: true
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+
+  - it: verifies the certificate with externalClickhouse.secure and externalClickhouse.verify
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: true
+      externalClickhouse.verify: true
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true
+
+  - it: stays off TLS when externalClickhouse.secure is the string "false"
+    template: templates/telemetrystore-migrator/job.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: "false"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: lets a SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN in signoz.env, in any case, replace the chart's connection string
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz:
+        env:
+          SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: points the collector at the databases the ClickHouse block names
+    template: templates/otel-collector/deployment.yaml
+    set:
+      clickhouse.database: m1
+      clickhouse.traceDatabase: t1
+      clickhouse.logDatabase: l1
+      clickhouse.meterDatabase: me1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_DATABASE, value: m1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_TRACE_DATABASE, value: t1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_LOG_DATABASE, value: l1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_METER_DATABASE, value: me1}
