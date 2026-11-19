@@ -28,7 +28,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: PGDATA
-            value: "/var/lib/postgresql/data" 
+            value: "/var/lib/postgresql/data/pgdata"
   - it: should render custom auth env Variables
     set:
       enabled: true
