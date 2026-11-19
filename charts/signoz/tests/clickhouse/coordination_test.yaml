@@ -5,6 +5,7 @@ templates:
 tests:
   - it: coordinates ClickHouse through the bundled ZooKeeper, one node per replica on its headless Service
     set:
+      zookeeper.enabled: true
       zookeeper.replicaCount: 3
     asserts:
       - lengthEqual:
@@ -21,6 +22,7 @@ tests:
           content: {host: RELEASE-NAME-zookeeper-2.RELEASE-NAME-zookeeper-headless, port: 2181}
   - it: addresses ZooKeeper in zookeeper.namespaceOverride as <node>.<namespace>.svc.<cluster domain>
     set:
+      zookeeper.enabled: true
       zookeeper.namespaceOverride: zk
     asserts:
       - contains:

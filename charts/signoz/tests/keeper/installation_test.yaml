@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: keeper/installation
+templates:
+  - templates/keeper/clickhousekeeperinstallation.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: installs ClickHouse Keeper as ClickHouseKeeperInstallation <release>-keeper
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    asserts:
+      - isKind:
+          of: ClickHouseKeeperInstallation
+      - isAPIVersion:
+          of: clickhouse-keeper.altinity.com/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-keeper
+
+  - it: labels the installation with the release instance label and the Keeper image tag as its version
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.image.tag: t1
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/version"]
+          value: t1
+
+  - it: installs no Keeper with keeper.enabled false
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.enabled: false
+      clickhouse.externalZookeeper.servers:
+        - {host: zk.example, port: 2181}
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: installs no Keeper for an external ClickHouse
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: installs Keeper in clickhouse.namespace, beside ClickHouse
+    set:
+      clickhouse.namespace: db
+    asserts:
+      - template: templates/keeper/clickhousekeeperinstallation.yaml
+        equal:
+          path: metadata.namespace
+          value: db
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.namespace
+          value: db
+
+  - it: names the installation <release>-<keeper.nameOverride> and labels the pods with that name
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.nameOverride: coord
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-coord
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels["app.kubernetes.io/name"]
+          value: coord
+
+  - it: renders a 34-character Keeper name
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.fullnameOverride: abcdefghij-abcdefghij-abcdefghij-a
+    asserts:
+      - equal:
+          path: metadata.name
+          value: abcdefghij-abcdefghij-abcdefghij-a
+
+  - it: fails the render on a Keeper name over 34 characters, naming keeper.fullnameOverride
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.fullnameOverride: abcdefghij-abcdefghij-abcdefghij-ab
+    asserts:
+      - failedTemplate:
+          errorPattern: "at most 34.*keeper\\.fullnameOverride"
+
+  - it: fails the render when a long release name takes the Keeper name over 34 characters
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    release:
+      name: abcdefghij-abcdefghij-abcdefg
+    asserts:
+      - failedTemplate:
+          errorPattern: "at most 34"
+
+  - it: runs keeper.replicaCount replicas in Keeper cluster cluster
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.configuration.clusters[?(@.name == "cluster")].layout.replicasCount
+          value: 3
+
+  - it: builds the Keeper replicas' host names on global.clusterDomain
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      global.clusterDomain: mng.local
+    asserts:
+      - equal:
+          path: spec.namespaceDomainPattern
+          value: "%s.svc.mng.local"
+
+  - it: leaves the Keeper host names to the operator on cluster.local
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    asserts:
+      - notExists:
+          path: spec.namespaceDomainPattern
