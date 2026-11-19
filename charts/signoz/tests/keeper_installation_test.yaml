@@ -174,3 +174,14 @@ tests:
           path: metadata.labels["app.kubernetes.io/version"]
       - exists:
           path: metadata.labels["app.kubernetes.io/managed-by"]
+  - it: renders namespaceDomainPattern from a global.clusterDomain other than cluster.local
+    set:
+      global.clusterDomain: mng.local
+    asserts:
+      - equal:
+          path: spec.namespaceDomainPattern
+          value: "%s.svc.mng.local"
+  - it: renders no namespaceDomainPattern on cluster.local
+    asserts:
+      - notExists:
+          path: spec.namespaceDomainPattern
