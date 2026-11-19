@@ -14,6 +14,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- $clusterDomain := include "signoz.clusterDomain" . }}
+  {{- if ne $clusterDomain "cluster.local" }}
+  namespaceDomainPattern: {{ printf "%%s.svc.%s" $clusterDomain | quote }}
+  {{- end }}
   configuration:
     clusters:
       - name: "cluster"
