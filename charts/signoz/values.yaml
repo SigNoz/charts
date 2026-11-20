@@ -1780,6 +1780,17 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   # @default -- {}
   resources: {}
+  # A list of Kubernetes EnvVar objects for the four migration containers, rendered as
+  # written after the chart's variables. An entry named like one the chart sets, such as
+  # `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`, replaces its value.
+  # -- Extra environment variables for the container.
+  # @section -- Telemetry Store Migrator
+  env: []
+  # Sources of environment variables for the four migration containers, Kubernetes
+  # EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- Telemetry Store Migrator
+  envFrom: []
   # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
   # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 0.152.0, first delete
   # the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.
