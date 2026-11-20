@@ -135,3 +135,16 @@ tests:
       - equal:
           path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels.team
           value: db
+
+  - it: lists global.imagePullSecrets, then imagePullSecrets, then keeper.imagePullSecrets, on the Keeper pod
+    set:
+      global.imagePullSecrets: [global-pull]
+      imagePullSecrets: [root-pull]
+      keeper.imagePullSecrets: [keeper-pull]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: root-pull
+            - name: keeper-pull

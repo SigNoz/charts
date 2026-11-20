@@ -47,7 +47,7 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.keeper.imagePullSecrets)) | nindent 10 }}
+          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.keeper.imagePullSecrets)) | nindent 10 }}
           {{- with .Values.keeper.priorityClassName }}
           priorityClassName: {{ . | quote }}
           {{- end }}

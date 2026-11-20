@@ -868,7 +868,7 @@ keeper:
     # -- Image pull policy.
     # @section -- ClickHouse Keeper
     pullPolicy: IfNotPresent
-  # Merged with `global.imagePullSecrets` if set.
+  # The Keeper pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
   # -- Secrets for pulling images from a private registry.
   # @section -- ClickHouse Keeper
   imagePullSecrets: []
