@@ -43,7 +43,6 @@ auth:
   # @default -- "signoz"
   username: "signoz"
   # auth.password -- Password for the custom user to create, stored in the Secret `<fullname>-auth` under the key `password`. Ignored if `auth.existingSecret` is provided, and then no Secret is created.
-  # @default -- "signoz@123"
   password: "signoz123"
   # auth.database -- Name for a custom database to create.
   # @default -- ""
