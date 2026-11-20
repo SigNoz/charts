@@ -82,9 +82,18 @@ spec:
             - name: opamp-internal
               containerPort: 4320
               protocol: TCP
+          {{- $chartEnv := list (include "clickhouse.env" . | fromYamlArray) (include "signoz.telemetryStoreEnv" . | fromYamlArray) }}
+          {{- if .Values.postgresql.enabled }}
+          {{- $chartEnv = append $chartEnv (include "signoz.postgresqlEnv" . | fromYamlArray) }}
+          {{- end }}
+          {{- with include "signoz.lib.env" (dict "chart" $chartEnv "user" .Values.signoz.env) }}
           env:
-            {{- include "clickhouse.env" . | nindent 12 }}
-            {{- include "signoz.env" . | nindent 12 }}
+            {{- . | trim | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- $liveness := .Values.signoz.livenessProbe }}
           {{- if $liveness.enabled }}
           livenessProbe:

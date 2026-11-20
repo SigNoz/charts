@@ -1519,28 +1519,27 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   additionalArgs: []
-  # Environment variables for the SigNoz.
-  # You can specify variables in two ways:
-  # 1. Flexible structure for advanced configurations (recommended):
-  #    Example:
-  #      env:
-  #        MY_KEY:
-  #          value: my-value  # Direct value
-  #        SECRET_KEY:
-  #          valueFrom:       # Reference from a Secret or ConfigMap
-  #            secretKeyRef:
-  #              name: my-secret
-  #              key: my-key
-  # 2. Simple key-value pairs (backward-compatible):
-  #    Example:
-  #      env:
-  #        MY_KEY: my-value
-
-  # signoz.env -- Environment variables for SigNoz.
-  # Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
-  # Note on Variable Naming: Environment variables are derived from the YAML configuration.
-  # For example, a key `provider` under the `telemetry_store` section becomes
-  # `signoz_telemetrystore_provider`.
+  # Environment variables for the SigNoz container, as `NAME: value`. A key is
+  # upper-cased. A string, number or boolean becomes the variable's value; a map
+  # is the rest of the EnvVar, such as `valueFrom` with a `secretKeyRef`:
+  #   env:
+  #     MY_KEY: my-value
+  #     SECRET_KEY:
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: my-secret
+  #           key: my-key
+  # A key with the name of a variable the chart sets, such as `CLICKHOUSE_USER`
+  # or `POSTGRES_USER`, replaces that variable's value. The other keys follow
+  # the chart's variables in alphabetical order, and a variable is placed after
+  # any variable its value references through `$(NAME)`. When a key is set in
+  # both cases, the lower-case one wins: change a default below by its
+  # lower-case name, or set it to null to remove it.
+  # The names follow the SigNoz configuration: a key `provider` under the
+  # `telemetry_store` section becomes `signoz_telemetrystore_provider`. The
+  # full list is https://github.com/SigNoz/signoz/blob/main/conf/example.yaml.
+  # -- Extra environment variables for the container.
+  # @default -- "the five SigNoz settings in values.yaml"
   # @section -- SigNoz
   env:
     signoz_telemetrystore_provider: clickhouse
@@ -1556,6 +1555,12 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
+  # Kubernetes EnvFromSource objects for the SigNoz container, rendered as
+  # given. A variable of the same name in `signoz.env` or set by the chart
+  # takes precedence over one from these sources.
+  # -- Sources of extra environment variables for the container.
+  # @section -- SigNoz
+  envFrom: []
   # signoz.podSecurityContext -- Pod-level security context.
   # @section -- SigNoz
   # @default -- {}
