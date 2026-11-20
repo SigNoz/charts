@@ -328,3 +328,34 @@ tests:
     asserts:
       - notExists:
           path: spec.templates.podTemplates[0].spec.priorityClassName
+  - it: mounts clickhouse.udf.extraVolumeMounts on the download container only, for a CA bundle the download needs
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.extraVolumes:
+        - name: corp-ca
+          configMap: {name: corp-ca-bundle}
+      clickhouse.udf.extraVolumeMounts:
+        - {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.initContainers[?(@.name == "RELEASE-NAME-clickhouse-udf-init")].volumeMounts
+          content: {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}
+      - notContains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts
+          content: {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}
+  - it: mounts clickhouse.logs.system.extraVolumeMounts on the system logs sidecar only, for a CA bundle its exporter needs
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.extraVolumes:
+        - name: corp-ca
+          configMap: {name: corp-ca-bundle}
+      clickhouse.logs.system.extraVolumeMounts:
+        - {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].volumeMounts
+          content: {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}
+      - notContains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts
+          content: {name: corp-ca, mountPath: /etc/ssl/certs/corp, readOnly: true}

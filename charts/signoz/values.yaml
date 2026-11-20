@@ -502,6 +502,11 @@ clickhouse:
       # -- Sources of extra environment variables for the container.
       # @section -- ClickHouse
       envFrom: []
+      # Kubernetes VolumeMount objects for the sidecar container only, rendered
+      # as given; add their volumes to `clickhouse.extraVolumes`.
+      # -- Extra volume mounts for the container.
+      # @section -- ClickHouse
+      extraVolumeMounts: []
       # -- Configuration of the sidecar collector, rendered as given into its config file.
       # @section -- ClickHouse
       # @default -- "See values.yaml"
@@ -656,6 +661,11 @@ clickhouse:
     # @default -- {}
     # @section -- ClickHouse
     resources: {}
+    # Kubernetes VolumeMount objects for the download init container only,
+    # rendered as given; add their volumes to `clickhouse.extraVolumes`.
+    # -- Extra volume mounts for the container.
+    # @section -- ClickHouse
+    extraVolumeMounts: []
   # clickhouse.extraInitContainers -- Init containers added to the ClickHouse pod after the histogramQuantile download, Kubernetes Container objects rendered as given. The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
   # @default -- []
   # @section -- ClickHouse

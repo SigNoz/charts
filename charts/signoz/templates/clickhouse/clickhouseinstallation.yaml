@@ -198,6 +198,9 @@ spec:
               volumeMounts:
                 - name: shared-binary-volume
                   mountPath: /var/lib/clickhouse/user_scripts
+                {{- with .Values.clickhouse.udf.extraVolumeMounts }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
               {{- with .Values.clickhouse.udf.resources }}
               resources: {{ toYaml . | nindent 16 }}
               {{- end }}
@@ -293,6 +296,9 @@ spec:
               volumeMounts:
                 - name: logs-system-config
                   mountPath: /conf
+                {{- with .Values.clickhouse.logs.system.extraVolumeMounts }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
               {{- with .Values.clickhouse.containerSecurityContext }}
               securityContext: {{ toYaml . | nindent 16 }}
               {{- end }}
