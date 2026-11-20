@@ -1657,7 +1657,11 @@ signoz:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # signoz.ingress.hosts - Hostname and path configurations for the ingress.
+    # Each path routes to the SigNoz Service on its `port`, or on
+    # `signoz.service.port` when the path sets none; a path without `pathType`
+    # gets `ImplementationSpecific`.
+    # -- Hosts and paths of the Ingress.
+    # @default -- "the host signoz.domain.com, with the path / on port 8080"
     # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
