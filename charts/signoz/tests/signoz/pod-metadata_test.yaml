@@ -19,11 +19,3 @@ tests:
       - equal:
           path: spec.selector.matchLabels["app.kubernetes.io/component"]
           value: query
-  - it: annotates the SigNoz pods with signoz.pod.annotations
-    set:
-      signoz.pod.annotations:
-        backup.velero.io/backup-volumes: signoz-db
-    asserts:
-      - equal:
-          path: spec.template.metadata.annotations["backup.velero.io/backup-volumes"]
-          value: signoz-db

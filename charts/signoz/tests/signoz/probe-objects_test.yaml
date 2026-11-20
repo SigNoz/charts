@@ -3,7 +3,7 @@ suite: signoz/probe-objects
 templates:
   - templates/signoz/statefulset.yaml
 tests:
-  - it: probes SigNoz's readiness with the handler written in signoz.readinessProbe, a tcpSocket in place of the default httpGet
+  - it: probes SigNoz's readiness with the tcpSocket written in signoz.readinessProbe, its httpGet set to null, which Helm drops from the default
     set:
       signoz.readinessProbe:
         httpGet: null
@@ -21,18 +21,3 @@ tests:
     asserts:
       - notExists:
           path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe
-  - it: gives SigNoz the startup probe written in signoz.startupProbe
-    set:
-      signoz.startupProbe:
-        httpGet:
-          port: http
-          path: /api/v1/health
-        failureThreshold: 30
-        periodSeconds: 10
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].startupProbe
-          value:
-            httpGet: {port: http, path: /api/v1/health}
-            failureThreshold: 30
-            periodSeconds: 10

@@ -3,64 +3,79 @@ suite: signoz/env-order
 templates:
   - templates/signoz/statefulset.yaml
 tests:
-  - it: lists the ClickHouse variables, then SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN and _CLUSTER, then the signoz.env keys in alphabetical order
+  - it: lists the signoz.env keys last, in alphabetical order, after SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN and _CLUSTER
     set:
       signoz.env:
+        signoz_telemetrystore_provider: null
+        signoz_emailing_enabled: null
+        signoz_prometheus_active__query__tracker_enabled: null
+        signoz_alertmanager_provider: null
+        signoz_alertmanager_signoz_external__url: null
         tz: Europe/Berlin
         https_proxy: http://proxy.example.com:3128
     asserts:
       - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[7].name
-          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[8].name
-          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[9].name
-          value: HTTPS_PROXY
-      - equal:
           path: spec.template.spec.containers[?(@.name == "signoz")].env[-1].name
           value: TZ
-  - it: lists POSTGRES_USER, POSTGRES_PORT, POSTGRES_PASSWORD, POSTGRES_DB, SIGNOZ_SQLSTORE_PROVIDER and SIGNOZ_SQLSTORE_POSTGRES_DSN in that order, after the telemetry store variables and before the signoz.env keys
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-2].name
+          value: HTTPS_PROXY
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-3].name
+          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-4].name
+          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+  - it: lists POSTGRES_USER, POSTGRES_PORT, POSTGRES_PASSWORD, POSTGRES_DB, SIGNOZ_SQLSTORE_PROVIDER and SIGNOZ_SQLSTORE_POSTGRES_DSN in that order, after SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER and before the signoz.env keys
     set:
       postgresql.enabled: true
       postgresql.auth.database: signozdb
       signoz.env:
+        signoz_telemetrystore_provider: null
+        signoz_emailing_enabled: null
+        signoz_prometheus_active__query__tracker_enabled: null
+        signoz_alertmanager_provider: null
+        signoz_alertmanager_signoz_external__url: null
         https_proxy: http://proxy.example.com:3128
     asserts:
       - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[8].name
-          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-1].name
+          value: HTTPS_PROXY
       - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[9].name
-          value: POSTGRES_USER
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[10].name
-          value: POSTGRES_PORT
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[11].name
-          value: POSTGRES_PASSWORD
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[12].name
-          value: POSTGRES_DB
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[13].name
-          value: SIGNOZ_SQLSTORE_PROVIDER
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[14].name
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-2].name
           value: SIGNOZ_SQLSTORE_POSTGRES_DSN
       - equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].env[15].name
-          value: HTTPS_PROXY
-  - it: renders a signoz.env key after the signoz.env key its value references through $(NAME)
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-3].name
+          value: SIGNOZ_SQLSTORE_PROVIDER
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-4].name
+          value: POSTGRES_DB
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-5].name
+          value: POSTGRES_PASSWORD
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-6].name
+          value: POSTGRES_PORT
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-7].name
+          value: POSTGRES_USER
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-8].name
+          value: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER
+  - it: renders a signoz.env key after the signoz.env key its value references through $(NAME), even when its own name sorts first
     set:
       signoz.env:
-        webhook_url: https://$(PUBLIC_HOST)/hooks
+        signoz_telemetrystore_provider: null
+        signoz_emailing_enabled: null
+        signoz_prometheus_active__query__tracker_enabled: null
+        signoz_alertmanager_provider: null
+        signoz_alertmanager_signoz_external__url: null
+        callback_url: https://$(PUBLIC_HOST)/oauth/callback
         public_host: signoz.example.com
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "signoz")].env[-1]
-          value: {name: WEBHOOK_URL, value: "https://$(PUBLIC_HOST)/hooks"}
+          value: {name: CALLBACK_URL, value: "https://$(PUBLIC_HOST)/oauth/callback"}
       - contains:
           path: spec.template.spec.containers[?(@.name == "signoz")].env
           content: {name: PUBLIC_HOST, value: signoz.example.com}

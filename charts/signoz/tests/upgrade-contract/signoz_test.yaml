@@ -29,7 +29,7 @@ tests:
     set:
       signoz.customReadinessProbe: {tcpSocket: {port: 8080}}
     asserts: [{failedTemplate: {errorPattern: "signoz\\.customReadinessProbe.*signoz\\.readinessProbe"}}]
-  - it: renders the SigNoz probes in the Kubernetes shape, beside the empty custom probes of an old values file
+  - it: accepts the SigNoz probes in the Kubernetes shape, beside the empty custom probes of an old values file
     set:
       signoz.livenessProbe: {httpGet: {port: http, path: /api/v1/health}, periodSeconds: 20}
       signoz.readinessProbe: {httpGet: null, tcpSocket: {port: http}}
@@ -58,7 +58,7 @@ tests:
     set:
       signoz.additionalVolumes: [{name: cfg, configMap: {name: signoz-cfg}}]
     asserts: [{failedTemplate: {errorPattern: "signoz\\.additionalVolumes.*signoz\\.extraVolumes"}}]
-  - it: renders the moved SigNoz keys at their new paths, beside the empty old keys of an old values file
+  - it: accepts the moved SigNoz keys at their new paths, beside the empty old keys of an old values file
     set:
       signoz.extraArgs: [--use-logs-new-schema=true]
       signoz.pod.annotations: {prometheus.io/scrape: "true"}

@@ -3,6 +3,7 @@ suite: signoz/ports
 templates:
   - templates/signoz/statefulset.yaml
   - templates/signoz/service.yaml
+  - templates/NOTES.txt
 tests:
   - it: keeps the SigNoz container on 8080, 8085 and 4320 while signoz.service.port, internalPort and opampPort move only the Service
     set:
@@ -40,3 +41,6 @@ tests:
           path: spec.ports
           content: {name: opamp-internal, port: 4321, targetPort: opamp-internal}
           any: true
+      - template: templates/NOTES.txt
+        matchRegexRaw:
+          pattern: port-forward \$POD_NAME 9090:8080
