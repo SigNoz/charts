@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/check-security-context
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: applies otelCollector.containerSecurityContext to the collector and its check init container
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      otelCollector.containerSecurityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities: {drop: [ALL]}
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].securityContext
+          value: {allowPrivilegeEscalation: false, runAsNonRoot: true, capabilities: {drop: [ALL]}}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].securityContext
+          value: {allowPrivilegeEscalation: false, runAsNonRoot: true, capabilities: {drop: [ALL]}}

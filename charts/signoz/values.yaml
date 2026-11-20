@@ -1862,10 +1862,10 @@ otelCollector:
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
-  # otelCollector.imagePullSecrets -- Image pull secrets for the Otel Collector.
-  # This has higher precedence than the root level or global value.
+  # Names of Secrets in the release namespace. The collector pod pulls with
+  # `global.imagePullSecrets`, then the root `imagePullSecrets`, then this list.
+  # -- Secrets for pulling images from a private registry.
   # @section -- Otel Collector
-  # @default -- []
   imagePullSecrets: []
   # otelCollector.strategy -- Deployment strategy to use
   # @section -- Otel Collector
@@ -1916,16 +1916,23 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- null
   annotations:
-  # otelCollector.podAnnotations -- Annotations for the Otel Collector pod(s).
+  # A key that repeats one of the chart's labels replaces its value.
+  # -- Labels to add to the Deployment.
   # @section -- Otel Collector
-  # @default -- { signoz.io/scrape: "true", signoz.io/port: "8888" }
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-  # otelCollector.podLabels -- Labels for the Otel Collector pod(s).
-  # @section -- Otel Collector
-  # @default -- {}
-  podLabels: {}
+  labels: {}
+  pod:
+    # The defaults mark the collector's own metrics on port 8888 for scraping;
+    # set a key to null to drop it. The chart sets `checksum/config` itself,
+    # and a key of that name here is ignored.
+    # -- Annotations to add to the pod.
+    # @section -- Otel Collector
+    annotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+    # The chart's selector labels always win over a key of the same name.
+    # -- Labels to add to the pod.
+    # @section -- Otel Collector
+    labels: {}
   # otelCollector.additionalEnvs -- Additional environment variables for the Otel Collector.
   # @section -- Otel Collector
   # @default -- {}
@@ -2307,10 +2314,10 @@ otelCollector:
   podSecurityContext: {}
   # fsGroup: 2000
 
-  # otelCollector.securityContext -- Container-level security context.
+  # Applies to the collector container and to its `check` init container.
+  # -- Security context for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  securityContext: {}
+  containerSecurityContext: {}
   # capabilities:
   #   drop:
   #   - ALL

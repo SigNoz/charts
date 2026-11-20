@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: upgrade-contract/collector
+templates:
+  - templates/validate.yaml
+tests:
+  - it: rejects otelCollector.podAnnotations, naming otelCollector.pod.annotations
+    set:
+      otelCollector.podAnnotations: {example.com/team: observability}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.podAnnotations.*otelCollector\\.pod\\.annotations"
+  - it: rejects otelCollector.podLabels, naming otelCollector.pod.labels
+    set:
+      otelCollector.podLabels: {team: observability}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.podLabels.*otelCollector\\.pod\\.labels"
+  - it: rejects otelCollector.securityContext, naming otelCollector.containerSecurityContext
+    set:
+      otelCollector.securityContext: {runAsNonRoot: true}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.securityContext.*otelCollector\\.containerSecurityContext"
+  - it: renders the pod metadata and the container security context in their new keys
+    set:
+      otelCollector.pod.annotations: {example.com/team: observability}
+      otelCollector.pod.labels: {team: observability}
+      otelCollector.containerSecurityContext: {runAsNonRoot: true}
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders an old values file that keeps the released empty otelCollector.podLabels and securityContext
+    set:
+      otelCollector.podLabels: {}
+      otelCollector.securityContext: {}
+    asserts:
+      - notFailedTemplate: {}
