@@ -241,3 +241,18 @@ tests:
           path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].spec.ports
           content: {name: http, port: 8124}
           any: true
+
+  - it: points the ClickHouse Service at ClickHouse's http and client ports by name, whatever ports clickhouse.service.httpPort and tcpPort expose
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.service.httpPort: 8124
+      clickhouse.service.tcpPort: 9001
+    asserts:
+      - contains:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].spec.ports
+          content: {name: http, port: 8124, targetPort: http}
+          any: true
+      - contains:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].spec.ports
+          content: {name: tcp, port: 9001, targetPort: client}
+          any: true

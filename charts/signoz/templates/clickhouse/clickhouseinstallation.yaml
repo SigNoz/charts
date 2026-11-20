@@ -324,9 +324,11 @@ spec:
           ports:
             - name: http
               port: {{ .httpPort }}
+              targetPort: http
               {{ if eq .type "ClusterIP" }}nodePort: null{{- end }}
             - name: tcp
               port: {{ .tcpPort }}
+              targetPort: client
               {{ if eq .type "ClusterIP" }}nodePort: null{{- end -}}
         {{- end }}
 
