@@ -7,14 +7,16 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- /*
 Values keys that no longer do anything at these paths (removed, or moved to a new path).
 Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
+`clickhouse.clickhouseOperator` and `clickhouse.zookeeper` fail when present with a non-null value, an empty map included, so a
+null placeholder passes; `clickhouse.altinity-clickhouse-operator`, never released, fails only when it holds an entry.
 */ -}}
-{{- if hasKey (.Values.clickhouse | default dict) "clickhouseOperator" }}
+{{- if not (kindIs "invalid" (index (.Values.clickhouse | default dict) "clickhouseOperator")) }}
 {{ "`clickhouse.clickhouseOperator` has moved to `altinity-clickhouse-operator`: the operator's settings in the keys of Altinity's chart, at the top level; `altinity-clickhouse-operator.enabled: false` skips the operator." }}
 {{- end }}
 {{- if dig "altinity-clickhouse-operator" dict (.Values.clickhouse | default dict) }}
 {{ "`clickhouse.altinity-clickhouse-operator` has moved to `altinity-clickhouse-operator`: the same keys, at the top level." }}
 {{- end }}
-{{- if hasKey (.Values.clickhouse | default dict) "zookeeper" }}
+{{- if not (kindIs "invalid" (index (.Values.clickhouse | default dict) "zookeeper")) }}
 {{ "`clickhouse.zookeeper` has moved to `zookeeper`: the same keys, at the top level; `clickhouse.externalZookeeper` is unchanged." }}
 {{- end }}
 {{- /*
@@ -54,7 +56,7 @@ An old key fails when it is set and non-empty; a probe in the old enabled/port/p
 {{- end }}
 {{- /*
 ClickHouse image blocks without a registry key: the repository carries the registry, and global.imageRegistry replaces it.
-An old registry key fails when it is set and non-empty; `clickhouse.initContainers` fails on its presence alone.
+An old registry key fails when it is set and non-empty; `clickhouse.initContainers` fails when present with a non-null value, an empty map included.
 */ -}}
 {{- if dig "image" "registry" "" $ch }}
 {{ "`clickhouse.image.registry` has been removed: put the registry in front of `clickhouse.image.repository`, as in `my.registry/clickhouse/clickhouse-server`, or set `global.imageRegistry`." }}
@@ -62,7 +64,7 @@ An old registry key fails when it is set and non-empty; `clickhouse.initContaine
 {{- if dig "logs" "system" "image" "registry" "" $ch }}
 {{ "`clickhouse.logs.system.image.registry` has been removed: put the registry in front of `clickhouse.logs.system.image.repository`, as in `my.registry/signoz/signoz-otel-collector`, or set `global.imageRegistry`." }}
 {{- end }}
-{{- if hasKey $ch "initContainers" }}
+{{- if not (kindIs "invalid" (index $ch "initContainers")) }}
 {{ "`clickhouse.initContainers` has moved to `clickhouse.udf` and `clickhouse.extraInitContainers`: the histogramQuantile download's `enabled` and `command` under `clickhouse.udf`, which runs on the ClickHouse image, and your own init containers in `clickhouse.extraInitContainers`, as Kubernetes Container objects." }}
 {{- end }}
 {{- /*
