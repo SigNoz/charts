@@ -1876,8 +1876,11 @@ otelCollector:
     # otelCollector.command.name - Otel Collector command name.
     # @default -- "/signoz-otel-collector"
     name: /signoz-otel-collector
-    # otelCollector.command.extraArgs - Extra command-line arguments for the Otel Collector.
-    extraArgs:
+  # Appended after the chart's `--config`, `--manager-config` and
+  # `--copy-path` flags, which `configMap.create: false` drops.
+  # -- Extra command-line arguments for the collector.
+  # @section -- Otel Collector
+  extraArgs: []
   # otelCollector.configMap -- ConfigMap settings.
   # @section -- Otel Collector
   configMap:
@@ -2202,42 +2205,44 @@ otelCollector:
       # otelCollector.ports.logsjson.protocol - Protocol for JSON logs.
       # @default -- "TCP"
       protocol: TCP
-  # otelCollector.livenessProbe -- Liveness probe configuration.
+  # Kubernetes probe objects, rendered as given; your keys merge into the
+  # defaults. Set `httpGet: null` to use another handler, or the whole probe
+  # to null for none. Port 13133 is the default config's `health_check`.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  # -- Liveness probe for the container.
+  # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   livenessProbe:
-    enabled: true
-    port: 13133
-    path: /
+    httpGet:
+      port: 13133
+      path: /
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # otelCollector.readinessProbe -- Readiness probe configuration.
+  # -- Readiness probe for the container.
+  # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   readinessProbe:
-    enabled: true
-    port: 13133
-    path: /
+    httpGet:
+      port: 13133
+      path: /
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # otelCollector.customLivenessProbe -- Custom liveness probe to override the default.
+  # A probe object here holds the liveness and readiness probes back until
+  # it succeeds.
+  # -- Startup probe for the container.
+  # @default -- "no startup probe"
   # @section -- Otel Collector
-  # @default -- {}
-  customLivenessProbe: {}
-  # otelCollector.customReadinessProbe -- Custom readiness probe to override the default.
+  startupProbe: {}
+  # Mounted in the collector container and in its `check` init container,
+  # which reaches the same ClickHouse (a CA file, for example).
+  # -- Extra volume mounts for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  customReadinessProbe: {}
-  # otelCollector.extraVolumeMounts -- Extra volume mounts for the Otel Collector pod.
-  # @section -- Otel Collector
-  # @default -- []
   extraVolumeMounts: []
   # otelCollector.extraVolumes -- Extra volumes for the Otel Collector pod.
   # @section -- Otel Collector

@@ -75,6 +75,10 @@ spec:
           envFrom:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.otelCollector.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -102,7 +106,7 @@ spec:
             - --manager-config=/conf/otel-collector-opamp-config.yaml
             - --copy-path=/var/tmp/collector-config.yaml
             {{- end }}
-            {{- range .Values.otelCollector.command.extraArgs }}
+            {{- range .Values.otelCollector.extraArgs }}
             - {{ . | quote }}
             {{- end }}
           {{- with .Values.otelCollector.containerSecurityContext }}
@@ -124,33 +128,17 @@ spec:
             {{- with .Values.otelCollector.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- if .Values.otelCollector.livenessProbe.enabled }}
-          livenessProbe:
-            httpGet:
-              port: {{ .Values.otelCollector.livenessProbe.port }}
-              path: {{ .Values.otelCollector.livenessProbe.path }}
-            initialDelaySeconds: {{ .Values.otelCollector.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.otelCollector.livenessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.otelCollector.livenessProbe.timeoutSeconds }}
-            successThreshold: {{ .Values.otelCollector.livenessProbe.successThreshold }}
-            failureThreshold: {{ .Values.otelCollector.livenessProbe.failureThreshold }}
-          {{- else if .Values.otelCollector.customLivenessProbe }}
-          livenessProbe:
-            {{- toYaml .Values.otelCollector.customLivenessProbe | nindent 12 }}
+          {{- with .Values.otelCollector.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.otelCollector.readinessProbe.enabled }}
+          {{- with .Values.otelCollector.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.otelCollector.readinessProbe }}
           readinessProbe:
-            httpGet:
-              port: {{ .Values.otelCollector.readinessProbe.port }}
-              path: {{ .Values.otelCollector.readinessProbe.path }}
-            initialDelaySeconds: {{ .Values.otelCollector.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.otelCollector.readinessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.otelCollector.readinessProbe.timeoutSeconds }}
-            successThreshold: {{ .Values.otelCollector.readinessProbe.successThreshold }}
-            failureThreshold: {{ .Values.otelCollector.readinessProbe.failureThreshold }}
-          {{- else if .Values.otelCollector.customReadinessProbe }}
-          readinessProbe:
-            {{- toYaml .Values.otelCollector.customReadinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.otelCollector.resources | nindent 12 }}
