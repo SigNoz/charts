@@ -94,35 +94,17 @@ spec:
           envFrom:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- $liveness := .Values.signoz.livenessProbe }}
-          {{- if $liveness.enabled }}
+          {{- with .Values.signoz.livenessProbe }}
           livenessProbe:
-            httpGet:
-              port: {{ $liveness.port }}
-              path: {{ $liveness.path }}
-            initialDelaySeconds: {{ $liveness.initialDelaySeconds }}
-            periodSeconds: {{ $liveness.periodSeconds }}
-            timeoutSeconds: {{ $liveness.timeoutSeconds }}
-            successThreshold: {{ $liveness.successThreshold }}
-            failureThreshold: {{ $liveness.failureThreshold }}
-          {{- else if .Values.signoz.customLivenessProbe }}
-          livenessProbe:
-            {{- toYaml .Values.signoz.customLivenessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- $readiness := .Values.signoz.readinessProbe }}
-          {{- if $readiness.enabled }}
+          {{- with .Values.signoz.readinessProbe }}
           readinessProbe:
-            httpGet:
-              port: {{ $readiness.port }}
-              path: {{ $readiness.path }}
-            initialDelaySeconds: {{ $readiness.initialDelaySeconds }}
-            periodSeconds: {{ $readiness.periodSeconds }}
-            timeoutSeconds: {{ $readiness.timeoutSeconds }}
-            successThreshold: {{ $readiness.successThreshold }}
-            failureThreshold: {{ $readiness.failureThreshold }}
-          {{- else if .Values.signoz.customReadinessProbe }}
-          readinessProbe:
-            {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
             {{- with $sqliteVolume }}
