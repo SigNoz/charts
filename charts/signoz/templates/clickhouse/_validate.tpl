@@ -1,0 +1,83 @@
+{{/*
+clickhouse.validate: the ClickHouse values rules.
+Emits: one line per rule the values break, holding that rule's message; nothing when every rule
+holds. validate.yaml gathers these lines with every other component's and fails once.
+*/}}
+{{- define "clickhouse.validate" -}}
+{{- /*
+Values keys that no longer do anything at these paths (removed, or moved to a new path).
+Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
+*/ -}}
+{{- if hasKey (.Values.clickhouse | default dict) "clickhouseOperator" }}
+{{ "`clickhouse.clickhouseOperator` is no longer a supported value. The operator is installed from Altinity's chart; its settings live at `altinity-clickhouse-operator.*` (top level, Altinity's keys); `altinity-clickhouse-operator.enabled: false` skips it." }}
+{{- end }}
+{{- if hasKey (.Values.clickhouse | default dict) "altinity-clickhouse-operator" }}
+{{ "operator values moved from `clickhouse.altinity-clickhouse-operator.*` to `altinity-clickhouse-operator.*` (top level)." }}
+{{- end }}
+{{- if hasKey (.Values.clickhouse | default dict) "zookeeper" }}
+{{ "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
+{{- end }}
+{{- /*
+ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
+An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails on the presence of any of those keys.
+*/ -}}
+{{- $ch := .Values.clickhouse | default dict }}
+{{- if dig "securityContext" dict $ch }}
+{{ "`clickhouse.securityContext` has moved: the pod security context is `clickhouse.podSecurityContext` (without the `enabled` flag) and the container's is `clickhouse.containerSecurityContext`." }}
+{{- end }}
+{{- if dig "customStartupProbe" dict $ch }}
+{{ "`clickhouse.customStartupProbe` has been removed; set `clickhouse.startupProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "customLivenessProbe" dict $ch }}
+{{ "`clickhouse.customLivenessProbe` has been removed; set `clickhouse.livenessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "customReadinessProbe" dict $ch }}
+{{ "`clickhouse.customReadinessProbe` has been removed; set `clickhouse.readinessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{- end }}
+{{- if dig "additionalVolumes" list $ch }}
+{{ "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`, the same list of Kubernetes Volume objects." }}
+{{- end }}
+{{- if dig "additionalVolumeMounts" list $ch }}
+{{ "`clickhouse.additionalVolumeMounts` has moved to `clickhouse.extraVolumeMounts`, the same list of Kubernetes VolumeMount objects." }}
+{{- end }}
+{{- $startupProbe := dig "startupProbe" dict $ch | default dict }}
+{{- if or (hasKey $startupProbe "enabled") (hasKey $startupProbe "port") (hasKey $startupProbe "path") }}
+{{ "`clickhouse.startupProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- $livenessProbe := dig "livenessProbe" dict $ch | default dict }}
+{{- if or (hasKey $livenessProbe "enabled") (hasKey $livenessProbe "port") (hasKey $livenessProbe "path") }}
+{{ "`clickhouse.livenessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- $readinessProbe := dig "readinessProbe" dict $ch | default dict }}
+{{- if or (hasKey $readinessProbe "enabled") (hasKey $readinessProbe "port") (hasKey $readinessProbe "path") }}
+{{ "`clickhouse.readinessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- end }}
+{{- /*
+ClickHouse image blocks without a registry key: the repository carries the registry, and global.imageRegistry replaces it.
+An old registry key fails when it is set and non-empty; `clickhouse.initContainers` fails on its presence alone.
+*/ -}}
+{{- if dig "image" "registry" "" $ch }}
+{{ "`clickhouse.image.registry` has been removed; put the registry in front of `clickhouse.image.repository` (for example `my.registry/clickhouse/clickhouse-server`), or set `global.imageRegistry`." }}
+{{- end }}
+{{- if dig "logs" "system" "image" "registry" "" $ch }}
+{{ "`clickhouse.logs.system.image.registry` has been removed; put the registry in front of `clickhouse.logs.system.image.repository` (for example `my.registry/signoz/signoz-otel-collector`), or set `global.imageRegistry`." }}
+{{- end }}
+{{- if hasKey $ch "initContainers" }}
+{{ "`clickhouse.initContainers` has moved: the histogramQuantile download is `clickhouse.udf` (`enabled`, `command`, `env`, `envFrom`, running on the ClickHouse image), and your own init containers go in `clickhouse.extraInitContainers` as Kubernetes Container objects." }}
+{{- end }}
+{{- /*
+ClickHouse in another namespace with none of the operator's watch settings set.
+This check protects installs that set `clickhouse.namespace` under older chart versions, where the operator was
+installed into that namespace. The operator now stays in the release namespace and watches only it unless told
+otherwise, so an unchanged values file would leave the CHI unreconciled.
+It fires only when none of the operator's watch settings (namespaceOverride, watchNamespaces, the watch list in
+the operator's config file) has been set; it never judges their value.
+*/ -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.namespace (ne .Values.clickhouse.namespace .Release.Namespace) (eq (include "clickhouse.operatorEnabled" .) "true") }}
+{{- $ns := .Values.clickhouse.namespace }}
+{{- $op := index .Values "altinity-clickhouse-operator" | default dict }}
+{{- if and (not ($op.namespaceOverride | default "")) (not ($op.watchNamespaces | default list)) (not (dig "configs" "files" "config.yaml" "watch" "namespaces" "include" list $op)) }}
+{{ printf "`clickhouse.namespace` is set to `%s` but the operator's watch settings are untouched, so it would watch only the release namespace and never reconcile the ClickHouseInstallation. Older chart versions installed the operator into that namespace; to keep that layout set `altinity-clickhouse-operator.namespaceOverride: %s`. To keep the operator in the release namespace instead, set `altinity-clickhouse-operator.watchNamespaces: [\"%s\"]` (or the watch list inside `altinity-clickhouse-operator.configs.files.config.yaml`) and `altinity-clickhouse-operator.rbac.namespaceScoped: false` so it has rights there." $ns $ns $ns }}
+{{- end }}
+{{- end }}
+{{- end -}}

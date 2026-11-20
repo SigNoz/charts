@@ -97,3 +97,12 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "clickhouse\\.initContainers.*clickhouse\\.udf.*clickhouse\\.extraInitContainers"
+  - it: reports clickhouse.securityContext and clickhouse.additionalVolumes together, in one failure
+    set:
+      clickhouse.securityContext: {enabled: true, runAsUser: 101}
+      clickhouse.additionalVolumes: [{name: backups, emptyDir: {}}]
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.securityContext.*clickhouse\\.podSecurityContext"
+      - failedTemplate:
+          errorPattern: "clickhouse\\.additionalVolumes.*clickhouse\\.extraVolumes"
