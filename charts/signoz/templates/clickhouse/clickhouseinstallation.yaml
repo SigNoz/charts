@@ -5,10 +5,7 @@ metadata:
   name: {{ include "clickhouse.fullname" . }}
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
-    {{- include "clickhouse.labels" . | nindent 4 }}
-    {{- if .Values.clickhouse.labels }}
-    {{- toYaml .Values.clickhouse.labels | nindent 4 }}
-    {{- end }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "clickhouse.labels" . | fromYaml) .Values.clickhouse.labels)) | nindent 4 }}
   {{- if .Values.clickhouse.annotations }}
   annotations:
     {{- toYaml .Values.clickhouse.annotations | nindent 4 }}

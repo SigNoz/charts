@@ -93,3 +93,20 @@ tests:
         equal:
           path: metadata.labels["app.kubernetes.io/instance"]
           value: RELEASE-NAME
+  - it: labels the installation once with a clickhouse.labels key that repeats a chart label, taking the user's value, and keeps the other chart labels
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.nameOverride: chdb
+      clickhouse.labels:
+        app.kubernetes.io/component: telemetry-store
+        team: db
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: telemetry-store
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: chdb
+      - equal:
+          path: metadata.labels.team
+          value: db
