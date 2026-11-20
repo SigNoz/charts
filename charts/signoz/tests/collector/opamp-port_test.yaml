@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/opamp-port
+templates:
+  - templates/otel-collector/configmap.yaml
+  - templates/signoz/service.yaml
+tests:
+  - it: dials SigNoz's OpAMP endpoint on the port signoz.service.opampPort gives the SigNoz Service
+    release:
+      name: obs
+    set:
+      signoz.service.opampPort: 4321
+    asserts:
+      - template: templates/otel-collector/configmap.yaml
+        equal:
+          path: data["otel-collector-opamp-config.yaml"]
+          value: 'server_endpoint: "ws://obs-signoz:4321/v1/opamp"'
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: obs-signoz
+      - template: templates/signoz/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "opamp-internal")].port
+          value: 4321

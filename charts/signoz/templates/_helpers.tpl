@@ -95,19 +95,6 @@ Set signoz url
 
 
 
-{{/*
-Return the initContainers image name
-*/}}
-{{- define "otelCollector.initContainers.init.image" -}}
-{{- $registryName := default .Values.otelCollector.initContainers.init.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.otelCollector.initContainers.init.image.repository -}}
-{{- $tag := .Values.otelCollector.initContainers.init.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
 
 
 {{/*
@@ -124,29 +111,7 @@ Return the proper otelCollector image name
 {{- end -}}
 {{- end -}}
 
-{{/*
-Create the name of the clusterRole to use
-*/}}
-{{- define "otelCollector.clusterRoleName" -}}
-{{- if .Values.otelCollector.clusterRole.create }}
-{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $clusterRole .Values.otelCollector.clusterRole.name }}
-{{- else }}
-{{- default "default" .Values.otelCollector.clusterRole.name }}
-{{- end }}
-{{- end }}
 
-{{/*
-Create the name of the clusterRoleBinding to use
-*/}}
-{{- define "otelCollector.clusterRoleBindingName" -}}
-{{- if .Values.otelCollector.clusterRole.create }}
-{{- $clusterRole := printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .) -}}
-{{- default $clusterRole .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
-{{- else }}
-{{- default "default" .Values.otelCollector.clusterRole.clusterRoleBinding.name }}
-{{- end }}
-{{- end }}
 
 
 

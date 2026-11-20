@@ -1,24 +1,25 @@
-{{- if .Values.otelCollector.ingress.enabled -}}
-{{- $fullName := include "otelCollector.fullname" . -}}
-{{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
-{{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
+{{- if .Values.otelCollector.ingress.enabled }}
+{{- $ingress := .Values.otelCollector.ingress }}
+{{- $fullName := include "otelCollector.fullname" . }}
+{{- $apiIsStable := eq (include "ingress.isStable" .) "true" }}
+{{- $supportsPathType := eq (include "ingress.supportsPathType" .) "true" }}
 apiVersion: {{ include "ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
     {{- include "otelCollector.labels" . | nindent 4 }}
-  {{- with .Values.otelCollector.ingress.annotations }}
+  {{- with $ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.otelCollector.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.otelCollector.ingress.className }}
+  {{- if and $ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ $ingress.className }}
   {{- end }}
-  {{- if .Values.otelCollector.ingress.tls }}
+  {{- with $ingress.tls }}
   tls:
-    {{- range .Values.otelCollector.ingress.tls }}
+    {{- range . }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -29,17 +30,17 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.otelCollector.ingress.hosts }}
+    {{- range $ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- if $ingressSupportsPathType }}
+            {{- if $supportsPathType }}
             pathType: {{ .pathType }}
             {{- end }}
             backend:
-              {{- if $ingressApiIsStable }}
+              {{- if $apiIsStable }}
               service:
                 name: {{ $fullName }}
                 port:
