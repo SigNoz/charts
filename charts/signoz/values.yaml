@@ -936,6 +936,14 @@ keeper:
   # -- Sources of extra environment variables for the container.
   # @section -- ClickHouse Keeper
   envFrom: []
+  # A list of Kubernetes Volume objects, rendered as given; mount them with `keeper.extraVolumeMounts`.
+  # -- Extra volumes for the pod.
+  # @section -- ClickHouse Keeper
+  extraVolumes: []
+  # A list of Kubernetes VolumeMount objects for the clickhouse-keeper container, rendered as given.
+  # -- Extra volume mounts for the container.
+  # @section -- ClickHouse Keeper
+  extraVolumeMounts: []
   # -- Resource requests and limits for the container.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper

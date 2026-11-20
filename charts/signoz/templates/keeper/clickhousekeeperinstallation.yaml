@@ -66,6 +66,10 @@ spec:
           {{- with .Values.keeper.podSecurityContext }}
           securityContext: {{ toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.keeper.extraVolumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           containers:
             - name: clickhouse-keeper
               image: {{ include "keeper.image" . }}
@@ -76,6 +80,10 @@ spec:
               {{- end }}
               {{- with .Values.keeper.envFrom }}
               envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.extraVolumeMounts }}
+              volumeMounts:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
               {{- with .Values.keeper.resources }}

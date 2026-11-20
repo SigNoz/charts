@@ -65,3 +65,21 @@ tests:
           path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.accessModes
       - notExists:
           path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.storageClassName
+
+  - it: mounts a keeper.extraVolumes volume in the clickhouse-keeper container at its keeper.extraVolumeMounts path
+    set:
+      keeper.extraVolumes:
+        - name: keeper-ca
+          secret:
+            secretName: keeper-ca
+      keeper.extraVolumeMounts:
+        - name: keeper-ca
+          mountPath: /etc/keeper/ca
+          readOnly: true
+    asserts:
+      - equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse-keeper")].volumeMounts[?(@.mountPath == "/etc/keeper/ca")].name
+            )].secret
+          value: {secretName: keeper-ca}
