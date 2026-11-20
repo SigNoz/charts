@@ -312,10 +312,10 @@ tests:
       - equal:
           path: spec.templates.podTemplates[0].spec.priorityClassName
           value: telemetry-critical
-  - it: annotates the ClickHouse pods with clickhouse.podAnnotations
+  - it: annotates the ClickHouse pods with clickhouse.pod.annotations
     template: templates/clickhouse/clickhouseinstallation.yaml
     set:
-      clickhouse.podAnnotations:
+      clickhouse.pod.annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     asserts:
       - equal:

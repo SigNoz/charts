@@ -66,10 +66,10 @@ tests:
       - matchRegex:
           path: spec.templates.podTemplates[0].spec.initContainers[0].name
           pattern: ^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$
-  - it: labels the ClickHouse pods with the selector labels and clickhouse.podLabels only
+  - it: labels the ClickHouse pods with the selector labels and clickhouse.pod.labels only
     template: templates/clickhouse/clickhouseinstallation.yaml
     set:
-      clickhouse.podLabels:
+      clickhouse.pod.labels:
         team: db
     asserts:
       - equal:
@@ -109,4 +109,18 @@ tests:
           value: chdb
       - equal:
           path: metadata.labels.team
+          value: db
+  - it: keeps the chart's selector labels on the ClickHouse pods when clickhouse.pod.labels names one of them, and adds the other pod labels
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.nameOverride: chdb
+      clickhouse.pod.labels:
+        app.kubernetes.io/name: analytics-db
+        team: db
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels["app.kubernetes.io/name"]
+          value: chdb
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.labels.team
           value: db

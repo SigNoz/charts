@@ -106,3 +106,21 @@ tests:
           errorPattern: "clickhouse\\.securityContext.*clickhouse\\.podSecurityContext"
       - failedTemplate:
           errorPattern: "clickhouse\\.additionalVolumes.*clickhouse\\.extraVolumes"
+  - it: rejects clickhouse.podAnnotations, naming clickhouse.pod.annotations
+    set:
+      clickhouse.podAnnotations: {cluster-autoscaler.kubernetes.io/safe-to-evict: "false"}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.podAnnotations.*clickhouse\\.pod\\.annotations"
+  - it: rejects clickhouse.podLabels, naming clickhouse.pod.labels
+    set:
+      clickhouse.podLabels: {team: db}
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.podLabels.*clickhouse\\.pod\\.labels"
+  - it: renders clickhouse.pod.labels and clickhouse.pod.annotations
+    set:
+      clickhouse.pod.labels: {team: db}
+      clickhouse.pod.annotations: {cluster-autoscaler.kubernetes.io/safe-to-evict: "false"}
+    asserts:
+      - notFailedTemplate: {}

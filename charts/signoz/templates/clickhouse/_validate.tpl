@@ -66,6 +66,16 @@ An old registry key fails when it is set and non-empty; `clickhouse.initContaine
 {{ "`clickhouse.initContainers` has moved: the histogramQuantile download is `clickhouse.udf` (`enabled`, `command`, `env`, `envFrom`, running on the ClickHouse image), and your own init containers go in `clickhouse.extraInitContainers` as Kubernetes Container objects." }}
 {{- end }}
 {{- /*
+The pod's labels and annotations moved under clickhouse.pod. An old key fails only when it holds an entry, so an empty map
+copied from an older values file passes.
+*/ -}}
+{{- if dig "podAnnotations" dict $ch }}
+{{ "`clickhouse.podAnnotations` has moved to `clickhouse.pod.annotations`: the same map of annotations." }}
+{{- end }}
+{{- if dig "podLabels" dict $ch }}
+{{ "`clickhouse.podLabels` has moved to `clickhouse.pod.labels`: the same map of labels; a key named like one of the chart's selector labels is ignored." }}
+{{- end }}
+{{- /*
 ClickHouse in another namespace with none of the operator's watch settings set.
 This check protects installs that set `clickhouse.namespace` under older chart versions, where the operator was
 installed into that namespace. The operator now stays in the release namespace and watches only it unless told

@@ -147,16 +147,22 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- {}
   annotations: {}
-  # -- Labels added to the ClickHouse pods.
-  # @section -- ClickHouse
-  podLabels: {}
-  # clickhouse.podAnnotations -- Annotations on the ClickHouse pods; the `signoz.io/*` defaults let the SigNoz collectors scrape the metrics endpoint
-  # set in `clickhouse.settings`.
-  # @section -- ClickHouse
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '9363'
-    signoz.io/path: /metrics
+  pod:
+    # A key named like one of the chart's selector labels
+    # (`app.kubernetes.io/name`, `app.kubernetes.io/instance`,
+    # `app.kubernetes.io/component`) is ignored: the chart keeps its own value.
+    # -- Labels to add to the pod.
+    # @section -- ClickHouse
+    labels: {}
+    # The `signoz.io/*` defaults let the SigNoz collectors scrape the metrics
+    # endpoint set in `clickhouse.settings`.
+    # -- Annotations to add to the pod.
+    # @default -- "signoz.io/scrape, signoz.io/port and signoz.io/path for the metrics endpoint"
+    # @section -- ClickHouse
+    annotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '9363'
+      signoz.io/path: /metrics
   # clickhouse.service -- ClickHouse service configuration.
   # @section -- ClickHouse
   service:
@@ -283,7 +289,7 @@ clickhouse:
     default/query_plan_max_limit_for_lazy_materialization: "0"
     admin/query_plan_max_limit_for_lazy_materialization: "0"
   # clickhouse.settings -- ClickHouse server settings, keyed by their path in the server config; they override `defaultSettings`. The `prometheus/*`
-  # defaults serve the metrics that `clickhouse.podAnnotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
+  # defaults serve the metrics that `clickhouse.pod.annotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
   # @raw
   # Debug logging, the `level` setting under `logger`:
   #

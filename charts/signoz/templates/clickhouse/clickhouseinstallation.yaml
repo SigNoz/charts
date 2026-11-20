@@ -125,13 +125,10 @@ spec:
       - name: pod-template
         metadata:
           labels:
-            {{- include "clickhouse.podLabels" . | nindent 12 }}
-            {{- if .Values.clickhouse.podLabels }}
-            {{- toYaml .Values.clickhouse.podLabels | nindent 12 }}
-            {{- end }}
-          {{- with .Values.clickhouse.podAnnotations }}
+            {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.clickhouse.pod.labels) "keep" (include "clickhouse.podLabels" . | fromYaml)) | nindent 12 }}
+          {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.clickhouse.pod.annotations)) }}
           annotations:
-            {{- toYaml . | nindent 12 }}
+            {{- . | nindent 12 }}
           {{- end }}
         {{- with .Values.clickhouse.podDistribution }}
         podDistribution:
