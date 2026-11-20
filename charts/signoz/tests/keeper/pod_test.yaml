@@ -96,3 +96,15 @@ tests:
       - equal:
           path: spec.templates.podTemplates[?(@.metadata.annotations["signoz.io/port"] == $.spec.configuration.settings["prometheus/port"])].metadata.annotations["signoz.io/scrape"]
           value: "true"
+
+  - it: lists global.imagePullSecrets first, then keeper.imagePullSecrets, on the Keeper pod
+    set:
+      global.imagePullSecrets: [global-pull]
+      imagePullSecrets: []
+      keeper.imagePullSecrets: [keeper-pull]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: keeper-pull

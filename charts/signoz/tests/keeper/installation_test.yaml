@@ -119,3 +119,16 @@ tests:
     asserts:
       - notExists:
           path: spec.namespaceDomainPattern
+
+  - it: labels the installation with keeper.labels beside the chart's labels
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.labels:
+        team: db
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: db
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
