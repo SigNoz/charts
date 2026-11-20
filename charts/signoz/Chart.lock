@@ -12,7 +12,7 @@ dependencies:
   repository: https://charts.signoz.io
   version: 5.10.2
 - name: postgresql
-  repository: https://charts.signoz.io
-  version: 0.0.2
-digest: sha256:06f3fa2d44eb3364351038b5722ca010f0cd971cba6e2c0846c3724ff5830834
-generated: "2026-11-17T03:18:23.216163+05:30"
+  repository: file://../postgresql
+  version: 0.0.3
+digest: sha256:df6a1683b6db61b969cae6a6ff94e3e7cc860fbe859115fcf654a7ba9cfc43b6
+generated: "2026-11-21T15:48:38.307312+05:30"
