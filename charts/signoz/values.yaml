@@ -580,6 +580,33 @@ clickhouse:
     # -- Resources of the hook container.
     # @section -- ClickHouse
     resources: {}
+    # The hook runs before every other object of the upgrade, so on tainted or
+    # dedicated nodes it needs its own scheduling keys to start.
+    # -- Node labels for pod assignment.
+    # @section -- ClickHouse
+    nodeSelector: {}
+    # -- Tolerations for pod assignment.
+    # @section -- ClickHouse
+    tolerations: []
+    # -- Affinity rules for pod assignment.
+    # @section -- ClickHouse
+    affinity: {}
+    # -- Topology spread constraints for pod assignment.
+    # @section -- ClickHouse
+    topologySpreadConstraints: []
+    # Empty sets none.
+    # -- Priority class of the pod.
+    # @section -- ClickHouse
+    priorityClassName: ""
+    # A Kubernetes PodSecurityContext, rendered as given; empty sets none.
+    # -- Security context for the pod.
+    # @section -- ClickHouse
+    podSecurityContext: {}
+    # A Kubernetes SecurityContext for the operator-upgrade container, rendered
+    # as given; empty sets none.
+    # -- Security context for the container.
+    # @section -- ClickHouse
+    containerSecurityContext: {}
   udf:
     # clickhouse.udf.enabled -- Download the histogramQuantile binary, which SigNoz's histogram percentile queries call, from GitHub in an init container.
     # Without GitHub access, set it to false and supply the binary through `clickhouse.extraInitContainers`.

@@ -137,7 +137,9 @@ spec:
         spec:
           {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 10 }}
           serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
-          priorityClassName: {{ .Values.clickhouse.priorityClassName | quote }}
+          {{- with .Values.clickhouse.priorityClassName }}
+          priorityClassName: {{ . | quote }}
+          {{- end }}
           {{- if .Values.clickhouse.affinity }}
           affinity: {{ toYaml .Values.clickhouse.affinity | nindent 12 }}
           {{- end }}

@@ -20,6 +20,29 @@ spec:
       {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 6 }}
       serviceAccountName: {{ include "clickhouse.operatorFullname" . }}-upgrade
       restartPolicy: OnFailure
+      {{- with .Values.clickhouse.operatorUpgradeHook.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: operator-upgrade
           image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.operatorUpgradeHook.image "name" "clickhouse.operatorUpgradeHook.image") }}
@@ -40,6 +63,10 @@ spec:
             - --wait=true
           {{- with .Values.clickhouse.operatorUpgradeHook.resources }}
           resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.operatorUpgradeHook.containerSecurityContext }}
+          securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
 {{- end }}

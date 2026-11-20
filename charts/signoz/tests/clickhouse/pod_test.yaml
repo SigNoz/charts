@@ -321,3 +321,10 @@ tests:
       - equal:
           path: spec.templates.podTemplates[0].metadata.annotations["cluster-autoscaler.kubernetes.io/safe-to-evict"]
           value: "false"
+  - it: renders no priority class on the ClickHouse pods with clickhouse.priorityClassName empty
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.priorityClassName: ""
+    asserts:
+      - notExists:
+          path: spec.templates.podTemplates[0].spec.priorityClassName

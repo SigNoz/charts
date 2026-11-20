@@ -154,3 +154,85 @@ tests:
             - name: registry-mirror
             - name: corp-pull
             - name: ch-vendor
+  - it: schedules the hook pod with clickhouse.operatorUpgradeHook.nodeSelector, tolerations, affinity, topologySpreadConstraints and priorityClassName, for tainted or dedicated nodes
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      clickhouse.operatorUpgradeHook.nodeSelector: {node-role.example.com/platform: "true"}
+      clickhouse.operatorUpgradeHook.tolerations:
+        - {key: dedicated, operator: Equal, value: platform, effect: NoSchedule}
+      clickhouse.operatorUpgradeHook.affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - {key: kubernetes.io/arch, operator: In, values: [amd64]}
+      clickhouse.operatorUpgradeHook.topologySpreadConstraints:
+        - {maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway}
+      clickhouse.operatorUpgradeHook.priorityClassName: platform-critical
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value: {node-role.example.com/platform: "true"}
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - {key: dedicated, operator: Equal, value: platform, effect: NoSchedule}
+      - equal:
+          path: spec.template.spec.affinity
+          value:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - {key: kubernetes.io/arch, operator: In, values: [amd64]}
+      - equal:
+          path: spec.template.spec.topologySpreadConstraints
+          value:
+            - {maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway}
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: platform-critical
+  - it: runs the hook with clickhouse.operatorUpgradeHook.podSecurityContext on its pod and containerSecurityContext on operator-upgrade, for a restricted namespace
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      clickhouse.operatorUpgradeHook.podSecurityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      clickhouse.operatorUpgradeHook.containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "operator-upgrade")].securityContext.allowPrivilegeEscalation
+          value: false
+  - it: renders no scheduling key or security context on the hook when the clickhouse.operatorUpgradeHook keys are empty
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      clickhouse.operatorUpgradeHook.nodeSelector: {}
+      clickhouse.operatorUpgradeHook.tolerations: []
+      clickhouse.operatorUpgradeHook.affinity: {}
+      clickhouse.operatorUpgradeHook.topologySpreadConstraints: []
+      clickhouse.operatorUpgradeHook.priorityClassName: ""
+      clickhouse.operatorUpgradeHook.podSecurityContext: {}
+      clickhouse.operatorUpgradeHook.containerSecurityContext: {}
+    asserts:
+      - notExists:
+          path: spec.template.spec.nodeSelector
+      - notExists:
+          path: spec.template.spec.tolerations
+      - notExists:
+          path: spec.template.spec.affinity
+      - notExists:
+          path: spec.template.spec.topologySpreadConstraints
+      - notExists:
+          path: spec.template.spec.priorityClassName
+      - notExists:
+          path: spec.template.spec.securityContext
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "operator-upgrade")].securityContext
