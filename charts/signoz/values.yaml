@@ -877,26 +877,29 @@ keeper:
   # -- Number of replicas.
   # @section -- ClickHouse Keeper
   replicaCount: 1
+  # A key that names one of the chart's labels replaces its value.
   # -- Labels to add to the ClickHouseKeeperInstallation.
   # @section -- ClickHouse Keeper
   labels: {}
   # -- Annotations to add to the ClickHouseKeeperInstallation.
   # @section -- ClickHouse Keeper
   annotations: {}
-  # -- Labels to add to the pod.
-  # @section -- ClickHouse Keeper
-  podLabels: {}
+  pod:
+    # The chart's selector labels (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) stay; a key that names one of them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- ClickHouse Keeper
+    labels: {}
+    # Your keys merge with these per key; set a key to `null` to drop it.
+    # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
+    # -- Annotations to add to the pod.
+    # @default -- "See values.yaml"
+    # @section -- ClickHouse Keeper
+    annotations:
+      signoz.io/scrape: "true"
+      signoz.io/port: "9141"
+      signoz.io/path: /metrics
   # Your keys merge with these per key; set a key to `null` to drop it.
-  # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
-  # -- Annotations to add to the pod.
-  # @default -- "See values.yaml"
-  # @section -- ClickHouse Keeper
-  podAnnotations:
-    signoz.io/scrape: "true"
-    signoz.io/port: "9141"
-    signoz.io/path: /metrics
-  # Your keys merge with these per key; set a key to `null` to drop it.
-  # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.podAnnotations`; change both together.
+  # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.pod.annotations`; change both together.
   # -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper

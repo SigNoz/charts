@@ -3,9 +3,9 @@ suite: keeper/pod
 templates:
   - templates/keeper/clickhousekeeperinstallation.yaml
 tests:
-  - it: labels the Keeper pods with the selector labels and keeper.podLabels only
+  - it: labels the Keeper pods with the selector labels and keeper.pod.labels only
     set:
-      keeper.podLabels:
+      keeper.pod.labels:
         team: db
     asserts:
       - equal:
@@ -92,6 +92,9 @@ tests:
           path: spec.configuration.settings["logger/level"]
 
   - it: annotates the Keeper pods for scraping on the port Keeper serves its metrics on
+    set:
+      keeper.pod.annotations:
+        signoz.io/scrape: "true"
     asserts:
       - equal:
           path: spec.templates.podTemplates[?(@.metadata.annotations["signoz.io/port"] == $.spec.configuration.settings["prometheus/port"])].metadata.annotations["signoz.io/scrape"]
@@ -108,3 +111,27 @@ tests:
           value:
             - name: global-pull
             - name: keeper-pull
+
+  - it: annotates the Keeper pods with keeper.pod.annotations, merged per key with the scrape annotations
+    set:
+      keeper.pod.annotations:
+        example.com/owner: platform
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.annotations["example.com/owner"]
+          value: platform
+      - exists:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.annotations["signoz.io/scrape"]
+
+  - it: keeps the selector labels on the Keeper pods when keeper.pod.labels names one of them
+    set:
+      keeper.pod.labels:
+        app.kubernetes.io/component: coordination
+        team: db
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels["app.kubernetes.io/component"]
+          value: keeper
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels.team
+          value: db

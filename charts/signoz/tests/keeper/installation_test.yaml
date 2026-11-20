@@ -132,3 +132,21 @@ tests:
       - equal:
           path: metadata.labels["app.kubernetes.io/instance"]
           value: RELEASE-NAME
+
+  - it: labels the installation once with a keeper.labels key that repeats a chart label, taking the user's value, and keeps the other chart labels
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      keeper.nameOverride: coord
+      keeper.labels:
+        app.kubernetes.io/component: coordination
+        team: db
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: coordination
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: coord
+      - equal:
+          path: metadata.labels.team
+          value: db

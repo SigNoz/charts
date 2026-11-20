@@ -5,10 +5,7 @@ metadata:
   name: {{ include "keeper.fullname" . }}
   namespace: {{ include "clickhouse.namespace" . }}
   labels:
-    {{- include "keeper.labels" . | nindent 4 }}
-    {{- with .Values.keeper.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "keeper.labels" . | fromYaml) .Values.keeper.labels)) | nindent 4 }}
   {{- with .Values.keeper.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -40,13 +37,10 @@ spec:
       - name: default
         metadata:
           labels:
-            {{- include "keeper.podLabels" . | nindent 12 }}
-            {{- with .Values.keeper.podLabels }}
-            {{- toYaml . | nindent 12 }}
-            {{- end }}
-          {{- with .Values.keeper.podAnnotations }}
+            {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.keeper.pod.labels) "keep" (include "keeper.podLabels" . | fromYaml)) | nindent 12 }}
+          {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.keeper.pod.annotations)) }}
           annotations:
-            {{- toYaml . | nindent 12 }}
+            {{- . | nindent 12 }}
           {{- end }}
         {{- with .Values.keeper.podDistribution }}
         podDistribution:
