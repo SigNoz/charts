@@ -1455,10 +1455,9 @@ signoz:
     # signoz.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
-  # signoz.imagePullSecrets -- Image pull secrets for SigNoz.
-  # This has higher precedence than the root level or global value.
+  # The SigNoz pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
+  # -- Secrets for pulling images from a private registry.
   # @section -- SigNoz
-  # @default -- []
   imagePullSecrets: []
   # signoz.serviceAccount -- Service Account configuration for SigNoz.
   # @section -- SigNoz
@@ -1485,14 +1484,18 @@ signoz:
     # signoz.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
     # @default -- "ClusterIP"
     type: ClusterIP
-    # signoz.service.port - The external HTTP port for SigNoz.
-    # @default -- 8080
+    # The port of the HTTP API and UI. It moves only the Service: the container
+    # always listens on 8080, and the Service targets it by name.
+    # -- Service port.
+    # @section -- SigNoz Networking
     port: 8080
-    # signoz.service.internalPort - The internal gRPC port for SigNoz.
-    # @default -- 8085
+    # It moves only the Service: the container always listens on 8085.
+    # -- Service port for the internal API.
+    # @section -- SigNoz Networking
     internalPort: 8085
-    # signoz.service.opampPort - The internal OpAMP port for SigNoz.
-    # @default -- 4320
+    # It moves only the Service: the container always listens on 4320.
+    # -- Service port for OpAMP.
+    # @section -- SigNoz Networking
     opampPort: 4320
     # signoz.service.nodePort - Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
     # @default -- null
@@ -1503,10 +1506,15 @@ signoz:
     # signoz.service.opampInternalNodePort - Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
     # @default -- null
     opampInternalNodePort: null
-  # signoz.annotations -- Annotations for the SigNoz pod.
+  # -- Annotations to add to the StatefulSet.
+  # @default -- "no annotations"
   # @section -- SigNoz
-  # @default -- null
   annotations:
+  # A key that matches a chart label replaces it; the selector and the pod
+  # labels never take these.
+  # -- Labels to add to the StatefulSet.
+  # @section -- SigNoz
+  labels: {}
   # signoz.additionalArgs -- Additional command-line arguments for SigNoz.
   # @section -- SigNoz
   # @default -- []

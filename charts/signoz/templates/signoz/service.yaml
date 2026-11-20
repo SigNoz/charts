@@ -1,44 +1,44 @@
+{{- $service := .Values.signoz.service }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "signoz.fullname" . }}
   labels:
-    {{- include "signoz.labels" . | nindent 4 }}
-{{- with .Values.signoz.service }}
-{{- if .labels }}
-    {{- toYaml .labels | nindent 4 }}
-{{- end }}
-{{- if .annotations }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "signoz.labels" . | fromYaml) $service.labels)) | nindent 4 }}
+  {{- with $service.annotations }}
   annotations:
-    {{- toYaml .annotations | nindent 4 }}
-{{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  type: {{ .type }}
+  type: {{ $service.type }}
+  {{- /* An explicit null nodePort on a ClusterIP Service removes one left from a NodePort type, which the API server refuses. */}}
   ports:
     - name: http
-      port: {{ .port }}
-      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
-      protocol: TCP
+      port: {{ $service.port }}
       targetPort: http
-      {{- if (and (eq .type "NodePort") .nodePort) }}
-      nodePort: {{ .nodePort }}
+      protocol: TCP
+      {{- if eq $service.type "ClusterIP" }}
+      nodePort: null
+      {{- else if and (eq $service.type "NodePort") $service.nodePort }}
+      nodePort: {{ $service.nodePort }}
       {{- end }}
     - name: http-internal
-      port: {{ .internalPort }}
-      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
-      protocol: TCP
+      port: {{ $service.internalPort }}
       targetPort: http-internal
-      {{- if (and (eq .type "NodePort") .internalNodePort) }}
-      nodePort: {{ .internalNodePort }}
+      protocol: TCP
+      {{- if eq $service.type "ClusterIP" }}
+      nodePort: null
+      {{- else if and (eq $service.type "NodePort") $service.internalNodePort }}
+      nodePort: {{ $service.internalNodePort }}
       {{- end }}
     - name: opamp-internal
-      port: {{ .opampPort }}
-      {{- include "signoz.service.ifClusterIP" .type | indent 6 }}
-      protocol: TCP
+      port: {{ $service.opampPort }}
       targetPort: opamp-internal
-      {{- if (and (eq .type "NodePort") .opampInternalNodePort) }}
-      nodePort: {{ .opampInternalNodePort }}
+      protocol: TCP
+      {{- if eq $service.type "ClusterIP" }}
+      nodePort: null
+      {{- else if and (eq $service.type "NodePort") $service.opampInternalNodePort }}
+      nodePort: {{ $service.opampInternalNodePort }}
       {{- end }}
-{{- end }}
   selector:
     {{- include "signoz.selectorLabels" . | nindent 4 }}
