@@ -35,3 +35,17 @@ The collector's own environment variables, after the ClickHouse and pod identity
 - name: LOW_CARDINAL_EXCEPTION_GROUPING
   value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
 {{- end }}
+
+{{/*
+The collector's ClusterRole name: otelCollector.clusterRole.name, else <fullname>-<release namespace>, unique per namespace.
+*/}}
+{{- define "otelCollector.clusterRoleName" -}}
+{{- default (printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .)) .Values.otelCollector.clusterRole.name -}}
+{{- end -}}
+
+{{/*
+The collector's ClusterRoleBinding name: otelCollector.clusterRole.clusterRoleBinding.name, else <fullname>-<release namespace>.
+*/}}
+{{- define "otelCollector.clusterRoleBindingName" -}}
+{{- default (printf "%s-%s" (include "otelCollector.fullname" .) (include "signoz.namespace" .)) .Values.otelCollector.clusterRole.clusterRoleBinding.name -}}
+{{- end -}}
