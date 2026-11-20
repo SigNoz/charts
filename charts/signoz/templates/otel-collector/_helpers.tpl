@@ -27,3 +27,11 @@ The ServiceAccount the collector runs as.
 {{- define "otelCollector.serviceAccountName" -}}
 {{- include "signoz.lib.serviceAccountName" (dict "serviceAccount" .Values.otelCollector.serviceAccount "fullname" (include "otelCollector.fullname" .)) -}}
 {{- end -}}
+
+{{/*
+The collector's own environment variables, after the ClickHouse and pod identity lists.
+*/}}
+{{- define "otelCollector.chartEnv" }}
+- name: LOW_CARDINAL_EXCEPTION_GROUPING
+  value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
+{{- end }}

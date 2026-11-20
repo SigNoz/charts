@@ -11,6 +11,9 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- if dig "podLabels" dict $oc }}
 {{ "`otelCollector.podLabels` has moved to `otelCollector.pod.labels`: the same map of pod labels." }}
 {{- end }}
+{{- if dig "additionalEnvs" dict $oc }}
+{{ "`otelCollector.additionalEnvs` has moved to `otelCollector.env`: a list of Kubernetes EnvVar objects, `- name: <NAME>` with `value` or `valueFrom`." }}
+{{- end }}
 {{- if dig "securityContext" dict $oc }}
 {{ "`otelCollector.securityContext` has moved to `otelCollector.containerSecurityContext`: the same Kubernetes SecurityContext, which also applies to the `check` init container." }}
 {{- end }}
