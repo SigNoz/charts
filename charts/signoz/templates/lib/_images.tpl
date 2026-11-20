@@ -58,7 +58,7 @@ every list is empty.
 {{- if $names -}}
 imagePullSecrets:
 {{- range $names }}
-  - name: {{ . }}
+  - name: {{ . | quote }}
 {{- end }}
 {{- end -}}
 {{- end -}}

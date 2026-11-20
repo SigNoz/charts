@@ -93,3 +93,11 @@ tests:
             - name: shared-pull
             - name: ch-vendor
             - name: ch-backup
+  - it: lists a pull secret named like a number under that name, as a string, on the ClickHouse pod
+    set:
+      global.imagePullSecrets: ["123"]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: "123"
