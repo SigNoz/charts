@@ -89,29 +89,25 @@ tests:
           value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
       - contains:
           path: spec.template.spec.initContainers[?(@.name == "ready")].env
-          content: {name: CLICKHOUSE_MIGRATOR_USER}
-          any: true
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
       - equal:
           path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env[-1]
           value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
       - contains:
           path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
-          content: {name: CLICKHOUSE_MIGRATOR_USER}
-          any: true
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
       - equal:
           path: spec.template.spec.initContainers[?(@.name == "sync")].env[-1]
           value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
       - contains:
           path: spec.template.spec.initContainers[?(@.name == "sync")].env
-          content: {name: CLICKHOUSE_MIGRATOR_USER}
-          any: true
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
       - equal:
           path: spec.template.spec.containers[?(@.name == "async")].env[-1]
           value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
       - contains:
           path: spec.template.spec.containers[?(@.name == "async")].env
-          content: {name: CLICKHOUSE_MIGRATOR_USER}
-          any: true
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
   - it: gives every migration the sources in telemetryStoreMigrator.envFrom
     set:
       telemetryStoreMigrator.envFrom:
