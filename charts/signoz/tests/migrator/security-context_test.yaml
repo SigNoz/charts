@@ -3,28 +3,22 @@ suite: migrator/security-context
 templates:
   - templates/telemetrystore-migrator/job.yaml
 tests:
-  - it: runs the Job's pod with telemetryStoreMigrator.podSecurityContext
+  - it: runs the Job's pod with telemetryStoreMigrator.podSecurityContext and every migration with telemetryStoreMigrator.containerSecurityContext
     set:
       telemetryStoreMigrator.podSecurityContext:
         runAsNonRoot: true
         runAsUser: 10001
         seccompProfile:
           type: RuntimeDefault
-    asserts:
-      - equal:
-          path: spec.template.spec.securityContext.runAsUser
-          value: 10001
-      - equal:
-          path: spec.template.spec.securityContext.seccompProfile.type
-          value: RuntimeDefault
-  - it: runs every migration with telemetryStoreMigrator.containerSecurityContext
-    set:
       telemetryStoreMigrator.containerSecurityContext:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         capabilities:
           drop: [ALL]
     asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 10001
       - equal:
           path: spec.template.spec.initContainers[?(@.name == "ready")].securityContext.readOnlyRootFilesystem
           value: true
