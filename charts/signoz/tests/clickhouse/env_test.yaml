@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/env
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: gives the clickhouse container the variables in clickhouse.env, a plain value and one read from a Secret
+    set:
+      clickhouse.env:
+        - name: TZ
+          value: Europe/Berlin
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: clickhouse-s3
+              key: secret-access-key
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].env
+          content: {name: TZ, value: Europe/Berlin}
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].env
+          content: {name: AWS_SECRET_ACCESS_KEY, valueFrom: {secretKeyRef: {name: clickhouse-s3, key: secret-access-key}}}
+  - it: gives the clickhouse container the sources in clickhouse.envFrom
+    set:
+      clickhouse.envFrom:
+        - secretRef:
+            name: clickhouse-env
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].envFrom
+          content: {secretRef: {name: clickhouse-env}}
+  - it: replaces the logs sidecar's OTEL_RESOURCE_ATTRIBUTES with the one in clickhouse.logs.system.env, once, after the pod identity variables
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.env:
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: service.name=clickhouse-system-logs,k8s.pod.uid=$(K8S_POD_UID)
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].env
+          content: {name: OTEL_RESOURCE_ATTRIBUTES}
+          any: true
+          count: 1
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].env[-1]
+          value: {name: OTEL_RESOURCE_ATTRIBUTES, value: "service.name=clickhouse-system-logs,k8s.pod.uid=$(K8S_POD_UID)"}
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].env
+          content: {name: K8S_POD_UID}
+          any: true
+  - it: renders a clickhouse.logs.system.env variable that references $(K8S_POD_NAME) after K8S_POD_NAME
+    set:
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.env:
+        - name: CLICKHOUSE_REPLICA
+          value: $(K8S_POD_NAME)
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].env[-1]
+          value: {name: CLICKHOUSE_REPLICA, value: $(K8S_POD_NAME)}
+      - contains:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].env
+          content: {name: K8S_POD_NAME}
+          any: true
+  - it: fails the render on a variable named twice in clickhouse.env, naming the variable
+    set:
+      clickhouse.env:
+        - name: MALLOC_CONF
+          value: background_thread:true
+        - name: MALLOC_CONF
+          value: prof:true
+    asserts:
+      - failedTemplate:
+          errorPattern: "MALLOC_CONF"
+  - it: fails the render on a clickhouse.env entry without a name
+    set:
+      clickhouse.env:
+        - value: Europe/Berlin
+    asserts:
+      - failedTemplate:
+          errorPattern: "no name"

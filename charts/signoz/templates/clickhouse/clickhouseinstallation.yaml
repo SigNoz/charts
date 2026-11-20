@@ -189,9 +189,9 @@ spec:
             - name: {{ include "clickhouse.fullname" . }}-udf-init
               image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.image "name" "clickhouse.image") }}
               imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
-              {{- with .Values.clickhouse.udf.env }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.clickhouse.udf.env) }}
               env:
-                {{- toYaml . | nindent 16 }}
+                {{- . | trim | nindent 16 }}
               {{- end }}
               {{- with .Values.clickhouse.udf.envFrom }}
               envFrom:
@@ -219,6 +219,14 @@ spec:
               # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
               image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.image "name" "clickhouse.image") }}
               imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.clickhouse.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               command:
                 - /bin/bash
                 - -c
@@ -274,10 +282,15 @@ spec:
                 - /signoz-otel-collector
               args:
                 - --config=/conf/config.yaml
+              {{- $logsEnv := list (include "snippet.k8s-env" . | fromYamlArray) (list (dict "name" "OTEL_RESOURCE_ATTRIBUTES" "value" "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)")) }}
+              {{- with include "signoz.lib.env" (dict "chart" $logsEnv "user" .Values.clickhouse.logs.system.env) }}
               env:
-                {{- include "snippet.k8s-env" . | nindent 16 }}
-                - name: OTEL_RESOURCE_ATTRIBUTES
-                  value: "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)"
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.logs.system.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               {{- if .Values.clickhouse.logs.system.resources }}
               resources: {{ toYaml .Values.clickhouse.logs.system.resources | nindent 16 }}
               {{- end }}

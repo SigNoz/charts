@@ -480,6 +480,16 @@ clickhouse:
       # @default -- {}
       # @section -- ClickHouse
       resources: {}
+      # A list of Kubernetes EnvVar objects for the sidecar container, rendered
+      # as written. An entry named like one the chart sets replaces it.
+      # -- Extra environment variables for the container.
+      # @section -- ClickHouse
+      env: []
+      # Sources of environment variables for the sidecar container, Kubernetes
+      # EnvFromSource objects rendered as given.
+      # -- Sources of extra environment variables for the container.
+      # @section -- ClickHouse
+      envFrom: []
       # -- Configuration of the sidecar collector, rendered as given into its config file.
       # @section -- ClickHouse
       # @default -- "See values.yaml"
@@ -767,6 +777,16 @@ clickhouse:
   # clickhouse.extraVolumeMounts -- Extra volume mounts for the ClickHouse container, a list of Kubernetes VolumeMount objects.
   # @section -- ClickHouse
   extraVolumeMounts: []
+  # A list of Kubernetes EnvVar objects for the clickhouse container, rendered
+  # as written. Names starting with `CONFIGURATION_` belong to the operator.
+  # -- Extra environment variables for the container.
+  # @section -- ClickHouse
+  env: []
+  # Sources of environment variables for the clickhouse container, Kubernetes
+  # EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- ClickHouse
+  envFrom: []
 
 # zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through; its keys follow Bitnami's chart:
 # https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
