@@ -9,7 +9,7 @@ Values keys that no longer do anything at these paths (removed, or moved to a ne
 Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
 */ -}}
 {{- if dig "upgradeHelmHooks" false (.Values.telemetryStoreMigrator | default dict) }}
-{{ "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: the migrator runs as an ordinary Job on install and upgrade, named with the release revision, and the otel-collector waits for its sync migrations in its `check` init container; `telemetryStoreMigrator.enabled: false` skips it." }}
+{{ "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: delete it, since the migrator now runs as a Job named with the release revision on every install and upgrade; set `telemetryStoreMigrator.enabled: false` to skip it." }}
 {{- end }}
 {{- /*
 The migrator Job is named `telemetryStoreMigrator.name` plus `-<release revision>`, and its pods carry that name in their `job-name` label, which must stay within 63 characters.
