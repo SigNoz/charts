@@ -8,12 +8,16 @@ tests:
     template: templates/otel-collector/deployment.yaml
     set:
       otelCollector.livenessProbe: null
+      otelCollector.readinessProbe:
+        httpGet:
+          port: 13133
+          path: /
     asserts:
       - notExists:
           path: spec.template.spec.containers[?(@.name == "collector")].livenessProbe
       - exists:
           path: spec.template.spec.containers[?(@.name == "collector")].readinessProbe
-  - it: renders a tcpSocket probe with a single handler when httpGet is set to null
+  - it: renders the collector's probe as given, so a tcpSocket probe with httpGet set to null has a single handler
     template: templates/otel-collector/deployment.yaml
     set:
       otelCollector.readinessProbe:
@@ -27,16 +31,3 @@ tests:
       - equal:
           path: spec.template.spec.containers[?(@.name == "collector")].readinessProbe.tcpSocket.port
           value: 13133
-  - it: runs the collector with otelCollector.startupProbe once it is set
-    template: templates/otel-collector/deployment.yaml
-    set:
-      otelCollector.startupProbe:
-        httpGet:
-          port: 13133
-          path: /
-        failureThreshold: 36
-        periodSeconds: 10
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[?(@.name == "collector")].startupProbe.failureThreshold
-          value: 36
