@@ -70,6 +70,14 @@ spec:
             - name: clickhouse-keeper
               image: {{ include "keeper.image" . }}
               imagePullPolicy: {{ .Values.keeper.image.pullPolicy }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.keeper.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               {{- with .Values.keeper.resources }}
               resources: {{ toYaml . | nindent 16 }}
               {{- end }}

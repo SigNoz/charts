@@ -928,6 +928,14 @@ keeper:
   # @default -- "no container security context"
   # @section -- ClickHouse Keeper
   containerSecurityContext: {}
+  # A list of Kubernetes EnvVar objects for the clickhouse-keeper container, rendered as written.
+  # -- Extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  env: []
+  # Sources of environment variables for the clickhouse-keeper container, Kubernetes EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  envFrom: []
   # -- Resource requests and limits for the container.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
