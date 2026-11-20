@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/extra-containers
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: runs a signoz.extraContainers sidecar beside the signoz container on the signoz-db claim
+    set:
+      signoz.extraContainers:
+        - name: litestream
+          image: litestream/litestream:0.3.13
+          args: [replicate]
+          volumeMounts:
+            - name: signoz-db
+              mountPath: /var/lib/signoz
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "litestream")].volumeMounts[?(@.mountPath == "/var/lib/signoz")].name
+          value: signoz-db
+      - contains:
+          path: spec.volumeClaimTemplates
+          content: {metadata: {name: signoz-db}}
+          any: true
+      - contains:
+          path: spec.template.spec.containers
+          content: {name: signoz}
+          any: true
+  - it: runs signoz.extraInitContainers before the signoz container starts
+    set:
+      signoz.extraInitContainers:
+        - name: litestream-restore
+          image: litestream/litestream:0.3.13
+          args: [restore, -if-db-not-exists, /var/lib/signoz/signoz.db]
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "litestream-restore")].args
+          value: [restore, -if-db-not-exists, /var/lib/signoz/signoz.db]

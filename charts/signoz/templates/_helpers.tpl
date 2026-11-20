@@ -70,30 +70,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: {{ default "signoz" .Values.signoz.name }}
 {{- end -}}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "signoz.serviceAccountName" -}}
-{{- if .Values.signoz.serviceAccount.create -}}
-    {{ default (include "signoz.fullname" .) .Values.signoz.serviceAccount.name }}
-{{- else -}}
-    {{ default "default" .Values.signoz.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
 
-{{/*
-Return the proper signoz image name
-*/}}
-{{- define "signoz.image" -}}
-{{- $registryName := default .Values.signoz.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.signoz.image.repository -}}
-{{- $tag := default .Chart.AppVersion .Values.signoz.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Set signoz port
@@ -102,12 +79,6 @@ Set signoz port
 {{- default 8080 .Values.signoz.service.port  -}}
 {{- end -}}
 
-{{/*
-Set signoz internal port
-*/}}
-{{- define "signoz.internalPort" -}}
-{{- default 8085 .Values.signoz.service.internalPort  -}}
-{{- end -}}
 
 {{/*
 Set signoz url
@@ -116,12 +87,6 @@ Set signoz url
 {{ include "signoz.fullname" . }}:{{ include "signoz.port" . }}
 {{- end -}}
 
-{{/*
-Set signoz internal url
-*/}}
-{{- define "signoz.internalUrl" -}}
-{{ include "signoz.fullname" . }}:{{ include "signoz.internalPort" . }}
-{{- end -}}
 
 
 {{/*
@@ -259,14 +224,6 @@ Create the name of the service account to use for telemetryStoreMigrator
 
 
 
-{{/*
-Return `nodePort: null` if service type is ClusterIP
-*/}}
-{{- define "signoz.service.ifClusterIP" -}}
-{{- if (eq . "ClusterIP") }}
-nodePort: null
-{{- end }}
-{{- end }}
 
 {{/*
 Return structured list of ports config.

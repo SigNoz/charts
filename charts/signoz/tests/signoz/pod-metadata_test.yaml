@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/pod-metadata
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: labels the SigNoz pods with signoz.pod.labels, keeping the selector label over a pod label of the same name
+    set:
+      signoz.name: query
+      signoz.pod.labels:
+        app.kubernetes.io/component: query-service
+        team: observability
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: observability
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: query
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: query
+  - it: annotates the SigNoz pods with signoz.pod.annotations
+    set:
+      signoz.pod.annotations:
+        backup.velero.io/backup-volumes: signoz-db
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["backup.velero.io/backup-volumes"]
+          value: signoz-db
