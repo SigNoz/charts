@@ -5,8 +5,12 @@ global:
   # @default -- null
   # @section -- Global Settings
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
-  # global.imagePullSecrets -- Global Image Pull Secrets.
-  # @default -- []
+  # Each component's pod lists these first, then the root `imagePullSecrets`,
+  # then the component's own `imagePullSecrets`; a name in more than one list
+  # is listed once. They do not reach the operator pod or its CRD hook, which
+  # read `altinity-clickhouse-operator.imagePullSecrets` and
+  # `altinity-clickhouse-operator.crdHook.imagePullSecrets`.
+  # -- Secrets for pulling images from a private registry.
   # @section -- Global Settings
   imagePullSecrets: []
   # global.storageClass -- StorageClass of the SigNoz, ClickHouse and ZooKeeper claims; when set, it overrides their own `persistence.storageClass`.
@@ -43,11 +47,11 @@ fullnameOverride: ""
 # @section -- General Settings
 # @default -- ""
 clusterName: ""
-# -- Image Registry Secret Names for all SigNoz components.
-# If `global.imagePullSecrets` is set, it will be merged with this list.
-# This has lower precedence than `imagePullSecrets` at the individual component level.
+# Each component's pod lists `global.imagePullSecrets` first, then these, then
+# the component's own `imagePullSecrets`; a name in more than one list is
+# listed once.
+# -- Secrets for pulling images from a private registry.
 # @section -- General Settings
-# @default -- []
 imagePullSecrets: []
 # - "signoz-pull-secret"
 
@@ -109,9 +113,11 @@ clickhouse:
     # @default -- "IfNotPresent"
     # @section -- ClickHouse
     pullPolicy: IfNotPresent
-  # clickhouse.imagePullSecrets -- Image Registry Secret Names for ClickHouse. Merged with `global.imagePullSecrets` if set.
+  # The ClickHouse pod and the operator-upgrade hook's pod list
+  # `global.imagePullSecrets` first, then the root `imagePullSecrets`, then
+  # these; a name in more than one list is listed once.
+  # -- Secrets for pulling images from a private registry.
   # @section -- ClickHouse
-  # @default -- []
   imagePullSecrets: []
   # - "clickhouse-pull-secret"
 
@@ -944,6 +950,9 @@ zookeeper:
 # https://github.com/Altinity/clickhouse-operator/tree/release-0.27.4/deploy/helm
 # @ignored
 altinity-clickhouse-operator:
+  # `global.imagePullSecrets` and the root `imagePullSecrets` do not reach the
+  # operator pod or its CRD hook: set `imagePullSecrets` and
+  # `crdHook.imagePullSecrets` here, as lists of `name:` objects.
   # -- Namespace of the operator; empty means the release namespace. Altinity's chart does not create it: it must exist before
   # `helm install`, because the CRD-install hook runs before the chart's own resources (on a fresh install that uses
   # `clickhouse.namespace` here, create it first and install with `--take-ownership`).

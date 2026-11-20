@@ -17,6 +17,7 @@ spec:
       labels:
         {{- include "clickhouse.labels" . | nindent 8 }}
     spec:
+      {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 6 }}
       serviceAccountName: {{ include "clickhouse.operatorFullname" . }}-upgrade
       restartPolicy: OnFailure
       containers:

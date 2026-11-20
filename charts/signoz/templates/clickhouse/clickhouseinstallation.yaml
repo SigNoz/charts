@@ -135,7 +135,7 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         spec:
-          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 10 }}
+          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 10 }}
           serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
           priorityClassName: {{ .Values.clickhouse.priorityClassName | quote }}
           {{- if .Values.clickhouse.affinity }}

@@ -141,3 +141,16 @@ tests:
             - apiGroups: [apps]
               resources: [deployments]
               verbs: [get, list, delete]
+  - it: pulls the hook's kubectl image with global.imagePullSecrets, then imagePullSecrets, then clickhouse.imagePullSecrets, in that order
+    template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+    set:
+      global.imagePullSecrets: [registry-mirror]
+      imagePullSecrets: [corp-pull]
+      clickhouse.imagePullSecrets: [ch-vendor]
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: registry-mirror
+            - name: corp-pull
+            - name: ch-vendor

@@ -42,14 +42,17 @@ given. The tag is image.tag when set, else defaultTag when set, else image.tag a
 {{/*
 signoz.lib.imagePullSecrets: the imagePullSecrets field of a pod spec or ServiceAccount.
 Takes: lists (a list of lists of secret names).
-Emits: `imagePullSecrets:` followed by `  - name: <name>` for every entry of every list, in order;
-nothing at all when every list is empty.
+Emits: `imagePullSecrets:` followed by `  - name: <name>` for every entry of every list, in order; a
+name already listed is skipped, so each name appears once, at its first place. Nothing at all when
+every list is empty.
 */}}
 {{- define "signoz.lib.imagePullSecrets" -}}
 {{- $names := list -}}
 {{- range .lists -}}
 {{- range . -}}
+{{- if not (has . $names) -}}
 {{- $names = append $names . -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- if $names -}}
