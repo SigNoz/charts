@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/env-overrides
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: replaces the chart's CLICKHOUSE_USER and CLICKHOUSE_PASSWORD with the otelCollector.env entries of those names, listing each once
+    template: templates/otel-collector/deployment.yaml
+    set:
+      clickhouse.user: signoz
+      otelCollector.env:
+        - name: CLICKHOUSE_USER
+          value: ingest
+        - name: CLICKHOUSE_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: ch-ingest, key: password}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_USER, value: ingest}
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_USER, value: signoz}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_PASSWORD, valueFrom: {secretKeyRef: {name: ch-ingest, key: password}}}
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_PASSWORD, valueFrom: {secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}}}

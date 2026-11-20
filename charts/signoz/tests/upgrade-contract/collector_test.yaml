@@ -34,3 +34,16 @@ tests:
       otelCollector.securityContext: {}
     asserts:
       - notFailedTemplate: {}
+  - it: rejects otelCollector.additionalEnvs, naming otelCollector.env
+    set:
+      otelCollector.additionalEnvs: {UPSTREAM_REGION: eu-west-1}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.additionalEnvs.*otelCollector\\.env"
+  - it: renders the collector env in its new keys, and an old values file that keeps the released empty otelCollector.additionalEnvs
+    set:
+      otelCollector.additionalEnvs: {}
+      otelCollector.env: [{name: UPSTREAM_REGION, value: eu-west-1}]
+      otelCollector.envFrom: [{secretRef: {name: collector-extra}}]
+    asserts:
+      - notFailedTemplate: {}

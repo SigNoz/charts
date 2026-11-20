@@ -67,8 +67,14 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with include "signoz.lib.env" (dict "chart" (list (include "snippet.telemetryStoreMigrator-env" . | fromYamlArray)) "user" .Values.telemetryStoreMigrator.env) }}
           env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
+            {{- . | trim | nindent 12 }}
+          {{- end }}
+          {{- with .Values.telemetryStoreMigrator.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.telemetryStoreMigrator.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -103,16 +109,15 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- $chartEnv := list (include "clickhouse.env" . | fromYamlArray) (include "clickhouse.databasesEnv" . | fromYamlArray) (include "snippet.k8s-env" . | fromYamlArray) (include "otelCollector.chartEnv" . | fromYamlArray) }}
+          {{- with include "signoz.lib.env" (dict "chart" $chartEnv "user" .Values.otelCollector.env) }}
           env:
-            {{- include "clickhouse.env" . | nindent 12 }}
-            {{- include "clickhouse.databasesEnv" . | nindent 12 }}
-            {{- include "snippet.k8s-env" . | nindent 12 }}
-            - name: LOW_CARDINAL_EXCEPTION_GROUPING
-              value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
-            {{- range $key, $val := .Values.otelCollector.additionalEnvs }}
-            - name: {{ $key }}
-              value: {{ $val | toYaml }}
-            {{- end }}
+            {{- . | trim | nindent 12 }}
+          {{- end }}
+          {{- with .Values.otelCollector.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: otel-collector-config-vol
               mountPath: /conf

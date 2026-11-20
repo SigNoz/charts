@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/env-list
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  # Kubernetes expands $(NAME) only from earlier entries, so the user's entries come last, unsorted
+  - it: renders otelCollector.env last on the collector, in the order written
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.env:
+        - name: ZED_REPLICAS
+          value: "1"
+        - name: ALPHA_TARGET
+          value: $(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[-2].name
+          value: ZED_REPLICAS
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[-1].name
+          value: ALPHA_TARGET

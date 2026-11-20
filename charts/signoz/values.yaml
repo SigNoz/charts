@@ -1933,11 +1933,17 @@ otelCollector:
     # -- Labels to add to the pod.
     # @section -- Otel Collector
     labels: {}
-  # otelCollector.additionalEnvs -- Additional environment variables for the Otel Collector.
+  # A list of Kubernetes EnvVar objects for the collector container, rendered
+  # as written after the chart's own variables. An entry named like one the
+  # chart sets, such as `CLICKHOUSE_USER`, replaces its value.
+  # -- Extra environment variables for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  additionalEnvs: {}
-  # env_key: env_value
+  env: []
+  # Sources of environment variables for the collector container, Kubernetes
+  # EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- Otel Collector
+  envFrom: []
 
   # otelCollector.lowCardinalityExceptionGrouping -- Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.
   # @section -- Otel Collector
