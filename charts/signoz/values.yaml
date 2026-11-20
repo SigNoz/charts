@@ -1590,38 +1590,41 @@ signoz:
   # @section -- SigNoz
   # @default -- []
   additionalVolumes: []
-  # signoz.livenessProbe -- Liveness probe configuration.
+  # A Kubernetes probe object, rendered as given. Your values merge into these
+  # defaults: set a field to null to drop it, switch the handler with
+  # `httpGet: null` beside another one such as `tcpSocket`, or set the whole key
+  # to null for no probe.
+  # -- Liveness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health on port http"
   # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
   livenessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health
+    httpGet:
+      port: http
+      path: /api/v1/health
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # signoz.readinessProbe -- Readiness probe configuration.
+  # A Kubernetes probe object, rendered as given, merged and dropped like
+  # `signoz.livenessProbe`.
+  # -- Readiness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health?live=1 on port http"
   # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
   readinessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health?live=1
+    httpGet:
+      port: http
+      path: /api/v1/health?live=1
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # signoz.customLivenessProbe -- Custom liveness probe to override the default.
+  # A Kubernetes probe object, rendered as given; none by default.
+  # -- Startup probe for the container.
+  # @default -- "no startup probe"
   # @section -- SigNoz
-  # @default -- {}
-  customLivenessProbe: {}
-  # signoz.customReadinessProbe -- Custom readiness probe to override the default.
-  # @section -- SigNoz
-  # @default -- {}
-  customReadinessProbe: {}
+  startupProbe: {}
   # signoz.ingress -- (object) Ingress configuration for SigNoz.
   # @section -- SigNoz Networking
   ingress:
