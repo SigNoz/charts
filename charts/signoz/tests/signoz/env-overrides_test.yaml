@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/env-overrides
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: replaces CLICKHOUSE_USER with the signoz.env key of that name, listed once
+    set:
+      clickhouse.user: admin
+      signoz.env:
+        CLICKHOUSE_USER: reader
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_USER}
+          any: true
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_USER, value: reader}
+  - it: replaces POSTGRES_USER and POSTGRES_PORT with the signoz.env keys of those names, each listed once
+    set:
+      postgresql.enabled: true
+      postgresql.auth.username: signoz
+      postgresql.service.port: 5432
+      signoz.env:
+        postgres_user: app
+        POSTGRES_PORT: "6543"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_USER, value: app}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_USER}
+          any: true
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_PORT, value: "6543"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_PORT}
+          any: true
+          count: 1
+  - it: replaces SIGNOZ_SQLSTORE_POSTGRES_DSN with the signoz.env key of that name, listed once, after the PG_APP_PASSWORD it references
+    set:
+      postgresql.enabled: true
+      signoz.env:
+        signoz_sqlstore_postgres_dsn: postgres://app:$(PG_APP_PASSWORD)@pg.example.com:5432/signoz?sslmode=require
+        PG_APP_PASSWORD:
+          valueFrom:
+            secretKeyRef:
+              name: signoz-app-db
+              key: password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_SQLSTORE_POSTGRES_DSN}
+          any: true
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[-1]
+          value: {name: SIGNOZ_SQLSTORE_POSTGRES_DSN, value: "postgres://app:$(PG_APP_PASSWORD)@pg.example.com:5432/signoz?sslmode=require"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: PG_APP_PASSWORD, valueFrom: {secretKeyRef: {name: signoz-app-db, key: password}}}
