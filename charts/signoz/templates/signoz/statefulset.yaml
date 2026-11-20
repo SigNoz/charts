@@ -27,12 +27,12 @@ spec:
       {{- include "signoz.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.signoz.podAnnotations }}
+      {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.signoz.pod.annotations)) }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "signoz.selectorLabels" . | nindent 8 }}
+        {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.signoz.pod.labels) "keep" (include "signoz.selectorLabels" . | fromYaml)) | nindent 8 }}
     spec:
       {{- with include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.signoz.imagePullSecrets)) }}
       {{- . | nindent 6 }}
@@ -59,13 +59,17 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.signoz.podSecurityContext | nindent 8 }}
+      {{- with .Values.signoz.extraInitContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: signoz
           securityContext:
-            {{- toYaml .Values.signoz.securityContext | nindent 12 }}
+            {{- toYaml .Values.signoz.containerSecurityContext | nindent 12 }}
           image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.signoz.image "defaultTag" .Chart.AppVersion "name" "signoz.image") }}
           imagePullPolicy: {{ .Values.signoz.image.pullPolicy }}
-          {{- with .Values.signoz.additionalArgs }}
+          {{- with .Values.signoz.extraArgs }}
           args:
             {{- range . }}
             - {{ . | quote }}
@@ -111,12 +115,15 @@ spec:
             - name: {{ . }}
               mountPath: /var/lib/signoz/
             {{- end }}
-            {{- with .Values.signoz.additionalVolumeMounts }}
+            {{- with .Values.signoz.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
             {{- toYaml .Values.signoz.resources | nindent 12 }}
-      {{- if or (has $sqliteVolume (list "signoz-db-volume" "signoz-db-existing-claim")) .Values.signoz.additionalVolumes }}
+        {{- with .Values.signoz.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if or (has $sqliteVolume (list "signoz-db-volume" "signoz-db-existing-claim")) .Values.signoz.extraVolumes }}
       volumes:
         {{- if eq $sqliteVolume "signoz-db-volume" }}
         - name: signoz-db-volume
@@ -126,7 +133,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ $persistence.existingClaim }}
         {{- end }}
-        {{- with .Values.signoz.additionalVolumes }}
+        {{- with .Values.signoz.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- end }}

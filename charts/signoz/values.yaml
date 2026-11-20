@@ -1515,10 +1515,11 @@ signoz:
   # -- Labels to add to the StatefulSet.
   # @section -- SigNoz
   labels: {}
-  # signoz.additionalArgs -- Additional command-line arguments for SigNoz.
+  # Command-line arguments for the SigNoz container, rendered in order after
+  # the image's own; the container gets no `args` when this is empty.
+  # -- Extra arguments for the container.
   # @section -- SigNoz
-  # @default -- []
-  additionalArgs: []
+  extraArgs: []
   # Environment variables for the SigNoz container, as `NAME: value`. A key is
   # upper-cased. A string, number or boolean becomes the variable's value; a map
   # is the rest of the EnvVar, such as `valueFrom` with a `secretKeyRef`:
@@ -1567,29 +1568,45 @@ signoz:
   podSecurityContext: {}
   # fsGroup: 2000
 
-  # signoz.podAnnotations -- Annotations for the SigNoz pod.
+  pod:
+    # -- Annotations to add to the pod.
+    # @section -- SigNoz
+    annotations: {}
+    # The selector labels stay the chart's: a key here with the name of one of
+    # them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- SigNoz
+    labels: {}
+  # A Kubernetes SecurityContext for the signoz container, rendered as given,
+  # for example:
+  #   capabilities:
+  #     drop: [ALL]
+  #   readOnlyRootFilesystem: true
+  #   runAsNonRoot: true
+  #   runAsUser: 1000
+  # -- Security context for the container.
   # @section -- SigNoz
-  # @default -- {}
-  podAnnotations: {}
-  # signoz.securityContext -- Container-level security context.
+  containerSecurityContext: {}
+  # Kubernetes VolumeMount objects for the signoz container only, rendered as
+  # given after the chart's database mount.
+  # -- Extra volume mounts for the container.
   # @section -- SigNoz
-  # @default -- {}
-  securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-  # signoz.additionalVolumeMounts -- Additional volume mounts for the SigNoz container.
+  extraVolumeMounts: []
+  # Kubernetes Volume objects for the SigNoz pod, rendered as given.
+  # -- Extra volumes for the pod.
   # @section -- SigNoz
-  # @default -- []
-  additionalVolumeMounts: []
-  # signoz.additionalVolumes -- Additional volumes for the SigNoz pod.
+  extraVolumes: []
+  # Kubernetes Container objects run before the signoz container, rendered as
+  # given, such as a restore of the SQLite database.
+  # -- Extra init containers for the pod.
   # @section -- SigNoz
-  # @default -- []
-  additionalVolumes: []
+  extraInitContainers: []
+  # Kubernetes Container objects run beside the signoz container, rendered as
+  # given. A sidecar that must share the SQLite database, such as a backup,
+  # mounts the claim `signoz-db` at `/var/lib/signoz`.
+  # -- Extra containers for the pod.
+  # @section -- SigNoz
+  extraContainers: []
   # A Kubernetes probe object, rendered as given. Your values merge into these
   # defaults: set a field to null to drop it, switch the handler with
   # `httpGet: null` beside another one such as `tcpSocket`, or set the whole key
