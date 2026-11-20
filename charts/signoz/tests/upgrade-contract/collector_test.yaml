@@ -47,3 +47,54 @@ tests:
       otelCollector.envFrom: [{secretRef: {name: collector-extra}}]
     asserts:
       - notFailedTemplate: {}
+  - it: rejects otelCollector.command.extraArgs, naming otelCollector.extraArgs
+    set:
+      otelCollector.command.extraArgs: [--feature-gates=-pkg.translator.prometheus.NormalizeName]
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.command\\.extraArgs.*otelCollector\\.extraArgs"
+  - it: rejects otelCollector.livenessProbe.enabled, naming otelCollector.livenessProbe
+    set: {otelCollector.livenessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.enabled.*otelCollector\\.livenessProbe"}}]
+  - it: rejects otelCollector.livenessProbe.port, naming otelCollector.livenessProbe.httpGet.port
+    set: {otelCollector.livenessProbe.port: 13134}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.port.*otelCollector\\.livenessProbe\\.httpGet\\.port"}}]
+  - it: rejects otelCollector.livenessProbe.path, naming its httpGet.path
+    set: {otelCollector.livenessProbe.path: /healthz}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.path.*httpGet\\.path"}}]
+  - it: rejects otelCollector.readinessProbe.enabled, naming otelCollector.readinessProbe
+    set: {otelCollector.readinessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.enabled.*otelCollector\\.readinessProbe"}}]
+  - it: rejects otelCollector.readinessProbe.port, naming otelCollector.readinessProbe.httpGet.port
+    set: {otelCollector.readinessProbe.port: 13134}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.port.*otelCollector\\.readinessProbe\\.httpGet\\.port"}}]
+  - it: rejects otelCollector.readinessProbe.path, naming its httpGet.path
+    set: {otelCollector.readinessProbe.path: /healthz}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.path.*httpGet\\.path"}}]
+  - it: rejects otelCollector.customLivenessProbe, naming otelCollector.livenessProbe
+    set:
+      otelCollector.customLivenessProbe: {tcpSocket: {port: 13133}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.customLivenessProbe.*otelCollector\\.livenessProbe"
+  - it: rejects otelCollector.customReadinessProbe, naming otelCollector.readinessProbe
+    set:
+      otelCollector.customReadinessProbe: {tcpSocket: {port: 13133}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.customReadinessProbe.*otelCollector\\.readinessProbe"
+  - it: renders the probes in the Kubernetes shape and otelCollector.extraArgs
+    set:
+      otelCollector.livenessProbe: {httpGet: {port: 13133, path: /}, periodSeconds: 10}
+      otelCollector.readinessProbe: {httpGet: {port: 13133, path: /}, periodSeconds: 10}
+      otelCollector.startupProbe: {httpGet: {port: 13133, path: /}, failureThreshold: 30}
+      otelCollector.extraArgs: [--feature-gates=-pkg.translator.prometheus.NormalizeName]
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders an old values file that keeps the released empty custom probes and command.extraArgs
+    set:
+      otelCollector.customLivenessProbe: {}
+      otelCollector.customReadinessProbe: {}
+      otelCollector.command.extraArgs: null
+    asserts:
+      - notFailedTemplate: {}

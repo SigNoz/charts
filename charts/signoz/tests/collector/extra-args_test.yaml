@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/extra-args
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: appends otelCollector.extraArgs after the chart's config flags, which stay
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.configMap.create: true
+      otelCollector.extraArgs:
+        - --feature-gates=-pkg.translator.prometheus.NormalizeName
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].args[-1]
+          value: --feature-gates=-pkg.translator.prometheus.NormalizeName
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].args
+          content: --config=/conf/otel-collector-config.yaml
