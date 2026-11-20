@@ -9,61 +9,61 @@ Values keys that no longer do anything at these paths (removed, or moved to a ne
 Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
 */ -}}
 {{- if hasKey (.Values.clickhouse | default dict) "clickhouseOperator" }}
-{{ "`clickhouse.clickhouseOperator` is no longer a supported value. The operator is installed from Altinity's chart; its settings live at `altinity-clickhouse-operator.*` (top level, Altinity's keys); `altinity-clickhouse-operator.enabled: false` skips it." }}
+{{ "`clickhouse.clickhouseOperator` has moved to `altinity-clickhouse-operator`: the operator's settings in the keys of Altinity's chart, at the top level; `altinity-clickhouse-operator.enabled: false` skips the operator." }}
 {{- end }}
-{{- if hasKey (.Values.clickhouse | default dict) "altinity-clickhouse-operator" }}
-{{ "operator values moved from `clickhouse.altinity-clickhouse-operator.*` to `altinity-clickhouse-operator.*` (top level)." }}
+{{- if dig "altinity-clickhouse-operator" dict (.Values.clickhouse | default dict) }}
+{{ "`clickhouse.altinity-clickhouse-operator` has moved to `altinity-clickhouse-operator`: the same keys, at the top level." }}
 {{- end }}
 {{- if hasKey (.Values.clickhouse | default dict) "zookeeper" }}
-{{ "ZooKeeper values moved from `clickhouse.zookeeper.*` to `zookeeper.*` (top level); `clickhouse.externalZookeeper` is unchanged." }}
+{{ "`clickhouse.zookeeper` has moved to `zookeeper`: the same keys, at the top level; `clickhouse.externalZookeeper` is unchanged." }}
 {{- end }}
 {{- /*
 ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
-An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails on the presence of any of those keys.
+An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails when any of those keys holds a value.
 */ -}}
 {{- $ch := .Values.clickhouse | default dict }}
 {{- if dig "securityContext" dict $ch }}
-{{ "`clickhouse.securityContext` has moved: the pod security context is `clickhouse.podSecurityContext` (without the `enabled` flag) and the container's is `clickhouse.containerSecurityContext`." }}
+{{ "`clickhouse.securityContext` has moved to `clickhouse.podSecurityContext` and `clickhouse.containerSecurityContext`: the pod's fields, without `enabled`, under `podSecurityContext`, and the container's under `containerSecurityContext`." }}
 {{- end }}
 {{- if dig "customStartupProbe" dict $ch }}
-{{ "`clickhouse.customStartupProbe` has been removed; set `clickhouse.startupProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{ "`clickhouse.customStartupProbe` has moved to `clickhouse.startupProbe`: the probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe." }}
 {{- end }}
 {{- if dig "customLivenessProbe" dict $ch }}
-{{ "`clickhouse.customLivenessProbe` has been removed; set `clickhouse.livenessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{ "`clickhouse.customLivenessProbe` has moved to `clickhouse.livenessProbe`: the probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe." }}
 {{- end }}
 {{- if dig "customReadinessProbe" dict $ch }}
-{{ "`clickhouse.customReadinessProbe` has been removed; set `clickhouse.readinessProbe` to the probe object itself; for a non-HTTP probe also set `httpGet: null`." }}
+{{ "`clickhouse.customReadinessProbe` has moved to `clickhouse.readinessProbe`: the probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe." }}
 {{- end }}
 {{- if dig "additionalVolumes" list $ch }}
-{{ "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`, the same list of Kubernetes Volume objects." }}
+{{ "`clickhouse.additionalVolumes` has moved to `clickhouse.extraVolumes`: the same list of Kubernetes Volume objects." }}
 {{- end }}
 {{- if dig "additionalVolumeMounts" list $ch }}
-{{ "`clickhouse.additionalVolumeMounts` has moved to `clickhouse.extraVolumeMounts`, the same list of Kubernetes VolumeMount objects." }}
+{{ "`clickhouse.additionalVolumeMounts` has moved to `clickhouse.extraVolumeMounts`: the same list of Kubernetes VolumeMount objects." }}
 {{- end }}
 {{- $startupProbe := dig "startupProbe" dict $ch | default dict }}
-{{- if or (hasKey $startupProbe "enabled") (hasKey $startupProbe "port") (hasKey $startupProbe "path") }}
-{{ "`clickhouse.startupProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- if or (not (kindIs "invalid" (index $startupProbe "enabled"))) (not (kindIs "invalid" (index $startupProbe "port"))) (not (kindIs "invalid" (index $startupProbe "path"))) }}
+{{ "`clickhouse.startupProbe.enabled`, `.port` and `.path`, the old enabled/port/path shape, have moved to `clickhouse.startupProbe.httpGet.port` and `.httpGet.path`: write the probe object, and `clickhouse.startupProbe: null` for `enabled: false`." }}
 {{- end }}
 {{- $livenessProbe := dig "livenessProbe" dict $ch | default dict }}
-{{- if or (hasKey $livenessProbe "enabled") (hasKey $livenessProbe "port") (hasKey $livenessProbe "path") }}
-{{ "`clickhouse.livenessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- if or (not (kindIs "invalid" (index $livenessProbe "enabled"))) (not (kindIs "invalid" (index $livenessProbe "port"))) (not (kindIs "invalid" (index $livenessProbe "path"))) }}
+{{ "`clickhouse.livenessProbe.enabled`, `.port` and `.path`, the old enabled/port/path shape, have moved to `clickhouse.livenessProbe.httpGet.port` and `.httpGet.path`: write the probe object, and `clickhouse.livenessProbe: null` for `enabled: false`." }}
 {{- end }}
 {{- $readinessProbe := dig "readinessProbe" dict $ch | default dict }}
-{{- if or (hasKey $readinessProbe "enabled") (hasKey $readinessProbe "port") (hasKey $readinessProbe "path") }}
-{{ "`clickhouse.readinessProbe` is now a Kubernetes probe object (httpGet.port, httpGet.path, timings); the enabled/port/path shape is no longer read." }}
+{{- if or (not (kindIs "invalid" (index $readinessProbe "enabled"))) (not (kindIs "invalid" (index $readinessProbe "port"))) (not (kindIs "invalid" (index $readinessProbe "path"))) }}
+{{ "`clickhouse.readinessProbe.enabled`, `.port` and `.path`, the old enabled/port/path shape, have moved to `clickhouse.readinessProbe.httpGet.port` and `.httpGet.path`: write the probe object, and `clickhouse.readinessProbe: null` for `enabled: false`." }}
 {{- end }}
 {{- /*
 ClickHouse image blocks without a registry key: the repository carries the registry, and global.imageRegistry replaces it.
 An old registry key fails when it is set and non-empty; `clickhouse.initContainers` fails on its presence alone.
 */ -}}
 {{- if dig "image" "registry" "" $ch }}
-{{ "`clickhouse.image.registry` has been removed; put the registry in front of `clickhouse.image.repository` (for example `my.registry/clickhouse/clickhouse-server`), or set `global.imageRegistry`." }}
+{{ "`clickhouse.image.registry` has been removed: put the registry in front of `clickhouse.image.repository`, as in `my.registry/clickhouse/clickhouse-server`, or set `global.imageRegistry`." }}
 {{- end }}
 {{- if dig "logs" "system" "image" "registry" "" $ch }}
-{{ "`clickhouse.logs.system.image.registry` has been removed; put the registry in front of `clickhouse.logs.system.image.repository` (for example `my.registry/signoz/signoz-otel-collector`), or set `global.imageRegistry`." }}
+{{ "`clickhouse.logs.system.image.registry` has been removed: put the registry in front of `clickhouse.logs.system.image.repository`, as in `my.registry/signoz/signoz-otel-collector`, or set `global.imageRegistry`." }}
 {{- end }}
 {{- if hasKey $ch "initContainers" }}
-{{ "`clickhouse.initContainers` has moved: the histogramQuantile download is `clickhouse.udf` (`enabled`, `command`, `env`, `envFrom`, running on the ClickHouse image), and your own init containers go in `clickhouse.extraInitContainers` as Kubernetes Container objects." }}
+{{ "`clickhouse.initContainers` has moved to `clickhouse.udf` and `clickhouse.extraInitContainers`: the histogramQuantile download's `enabled` and `command` under `clickhouse.udf`, which runs on the ClickHouse image, and your own init containers in `clickhouse.extraInitContainers`, as Kubernetes Container objects." }}
 {{- end }}
 {{- /*
 The pod's labels and annotations moved under clickhouse.pod. An old key fails only when it holds an entry, so an empty map
