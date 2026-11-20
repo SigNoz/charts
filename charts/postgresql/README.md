@@ -176,7 +176,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 			<div style="max-width: 300px;"><pre lang="yaml">signoz@123</pre>
 </div>
 		</td>
-		<td>Password for the custom user to create. Ignored if `auth.existingSecret` is provided.</td>
+		<td>Password for the custom user to create, stored in the Secret `<fullname>-auth` under the key `password`. Ignored if `auth.existingSecret` is provided, and then no Secret is created.</td>
 	</tr>
 	<tr>
 		<td id="auth--database"><a href="./values.yaml#L50">auth.database</a></td>
