@@ -17,7 +17,7 @@ tests:
           path: spec.selector.matchLabels.team
       - notExists:
           path: spec.template.metadata.labels.team
-  - it: labels the Deployment once with an otelCollector.labels key that repeats a chart label, taking the user's value
+  - it: labels the Deployment once with an otelCollector.labels key that repeats a chart label, taking the user's value, and keeps the other chart labels
     template: templates/otel-collector/deployment.yaml
     release:
       name: obs

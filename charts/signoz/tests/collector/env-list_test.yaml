@@ -9,14 +9,14 @@ tests:
     template: templates/otel-collector/deployment.yaml
     set:
       otelCollector.env:
-        - name: ZED_REPLICAS
-          value: "1"
-        - name: ALPHA_TARGET
-          value: $(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+        - name: ZED_HOST
+          value: collector.example.com
+        - name: ALPHA_URL
+          value: http://$(ZED_HOST)/v1
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "collector")].env[-2].name
-          value: ZED_REPLICAS
+          value: ZED_HOST
       - equal:
           path: spec.template.spec.containers[?(@.name == "collector")].env[-1].name
-          value: ALPHA_TARGET
+          value: ALPHA_URL
