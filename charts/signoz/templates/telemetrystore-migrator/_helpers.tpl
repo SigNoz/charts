@@ -40,7 +40,8 @@ telemetryStoreMigrator.serviceAccountName: the ServiceAccount the Job runs as.
 {{/*
 telemetryStoreMigrator.migration: one migration container of the Job.
 Takes: name (the container name), args (the migrate command's arguments), context (the root context).
-Every migration runs the collector's image, so it applies the schema that collector version expects.
+Every migration runs the collector's image, so it applies the schema that collector version expects, and
+shares the migrator's security context and extra mounts.
 Emits: the container as one list item, with no leading indentation; include it with nindent.
 */}}
 {{- define "telemetryStoreMigrator.migration" -}}
@@ -58,6 +59,14 @@ Emits: the container as one list item, with no leading indentation; include it w
   {{- end }}
   args:
     {{- toYaml .args | nindent 4 }}
+  {{- with $values.telemetryStoreMigrator.containerSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $values.telemetryStoreMigrator.extraVolumeMounts }}
+  volumeMounts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with $values.telemetryStoreMigrator.resources }}
   resources:
     {{- toYaml . | nindent 4 }}

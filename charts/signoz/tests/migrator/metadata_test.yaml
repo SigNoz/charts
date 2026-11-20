@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/metadata
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: labels the Job with telemetryStoreMigrator.labels, your value winning over a chart label of the same name
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.labels:
+        team: observability
+        app.kubernetes.io/component: schema-migrations
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: observability
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: schema-migrations
+  - it: labels the Job's pods with telemetryStoreMigrator.pod.labels, the chart's own pod label winning over a key of the same name
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.name: migr
+      telemetryStoreMigrator.pod.labels:
+        team: observability
+        app.kubernetes.io/component: schema-migrations
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: observability
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: migr
+  - it: annotates the Job's pods with telemetryStoreMigrator.pod.annotations
+    set:
+      telemetryStoreMigrator.pod.annotations:
+        sidecar.istio.io/inject: "false"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["sidecar.istio.io/inject"]
+          value: "false"

@@ -1745,6 +1745,18 @@ telemetryStoreMigrator:
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}
+  # Merged with the chart's labels on the Job; a key the chart also sets takes your value.
+  # -- Labels to add to the Job.
+  # @section -- Telemetry Store Migrator
+  labels: {}
+  pod:
+    # Merged with the chart's labels on the Job's pods; a key the chart sets keeps the chart's value.
+    # -- Labels to add to the pod.
+    # @section -- Telemetry Store Migrator
+    labels: {}
+    # -- Annotations to add to the pod.
+    # @section -- Telemetry Store Migrator
+    annotations: {}
   # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
   # @default -- true
   # @section -- Telemetry Store Migrator
@@ -1775,10 +1787,22 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   # @default -- []
   topologySpreadConstraints: []
+  # Empty sets none.
+  # -- Priority class of the pod.
+  # @section -- Telemetry Store Migrator
+  priorityClassName: ""
+  # A Kubernetes PodSecurityContext for the Job's pod, rendered as given; empty sets none.
+  # -- Security context for the pod.
+  # @section -- Telemetry Store Migrator
+  podSecurityContext: {}
   # telemetryStoreMigrator.resources -- Resource requests and limits for all migrator containers.
   # @section -- Telemetry Store Migrator
   # @default -- {}
   resources: {}
+  # A Kubernetes SecurityContext for the four migration containers, rendered as given; empty sets none.
+  # -- Security context for the container.
+  # @section -- Telemetry Store Migrator
+  containerSecurityContext: {}
   # A list of Kubernetes EnvVar objects for the four migration containers, rendered as
   # written after the chart's variables. An entry named like one the chart sets, such as
   # `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`, replaces its value.
@@ -1790,6 +1814,14 @@ telemetryStoreMigrator:
   # -- Sources of extra environment variables for the container.
   # @section -- Telemetry Store Migrator
   envFrom: []
+  # Kubernetes Volume objects added to the Job's pod, rendered as given.
+  # -- Extra volumes for the pod.
+  # @section -- Telemetry Store Migrator
+  extraVolumes: []
+  # Kubernetes VolumeMount objects added to the four migration containers, rendered as given.
+  # -- Extra volume mounts for the container.
+  # @section -- Telemetry Store Migrator
+  extraVolumeMounts: []
   # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
   # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 0.152.0, first delete
   # the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.
