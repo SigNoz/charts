@@ -57,3 +57,15 @@ tests:
           value:
             - name: global-pull
             - name: ch-pull
+  - it: lists global.imagePullSecrets first, then clickhouse.imagePullSecrets, each in the order written, on the ClickHouse pod
+    set:
+      global.imagePullSecrets: [registry-mirror, corp-pull]
+      clickhouse.imagePullSecrets: [ch-vendor, ch-backup]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: registry-mirror
+            - name: corp-pull
+            - name: ch-vendor
+            - name: ch-backup

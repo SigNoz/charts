@@ -231,3 +231,13 @@ tests:
       - contains:
           path: spec.template.spec.containers[?(@.name == "collector")].env
           content: {name: CLICKHOUSE_METER_DATABASE, value: me1}
+
+  - it: exposes ClickHouse's HTTP interface on the Service port clickhouse.service.httpPort
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.service.httpPort: 8124
+    asserts:
+      - contains:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].spec.ports
+          content: {name: http, port: 8124}
+          any: true

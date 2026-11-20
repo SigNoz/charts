@@ -132,3 +132,12 @@ tests:
       - template: templates/clickhouse/hooks/operator-upgrade/serviceaccount.yaml
         hasDocuments:
           count: 0
+  - it: lets the hook only read and delete Deployments, so it can remove the old operator Deployment and nothing else
+    template: templates/clickhouse/hooks/operator-upgrade/role.yaml
+    asserts:
+      - equal:
+          path: rules
+          value:
+            - apiGroups: [apps]
+              resources: [deployments]
+              verbs: [get, list, delete]

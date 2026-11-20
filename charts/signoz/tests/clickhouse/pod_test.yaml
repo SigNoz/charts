@@ -304,3 +304,20 @@ tests:
       - contains:
           path: spec.templates.podTemplates[0].spec.containers
           content: {name: backup, image: altinity/clickhouse-backup:2.6.3, args: [server]}
+  - it: runs the ClickHouse pods at the priority class clickhouse.priorityClassName names
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.priorityClassName: telemetry-critical
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.priorityClassName
+          value: telemetry-critical
+  - it: annotates the ClickHouse pods with clickhouse.podAnnotations
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.podAnnotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].metadata.annotations["cluster-autoscaler.kubernetes.io/safe-to-evict"]
+          value: "false"
