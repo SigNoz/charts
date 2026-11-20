@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/security-context
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: runs the Job's pod with telemetryStoreMigrator.podSecurityContext
+    set:
+      telemetryStoreMigrator.podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 10001
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+  - it: runs every migration with telemetryStoreMigrator.containerSecurityContext
+    set:
+      telemetryStoreMigrator.containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: [ALL]
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "async")].securityContext.readOnlyRootFilesystem
+          value: true
