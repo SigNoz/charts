@@ -1796,22 +1796,23 @@ telemetryStoreMigrator:
   # -- Security context for the pod.
   # @section -- Telemetry Store Migrator
   podSecurityContext: {}
-  # telemetryStoreMigrator.resources -- Resource requests and limits for all migrator containers.
+  # Set on the four migration containers and on the collector's `check` init container.
+  # -- Resource requests and limits for the container.
   # @section -- Telemetry Store Migrator
-  # @default -- {}
   resources: {}
   # A Kubernetes SecurityContext for the four migration containers, rendered as given; empty sets none.
   # -- Security context for the container.
   # @section -- Telemetry Store Migrator
   containerSecurityContext: {}
-  # A list of Kubernetes EnvVar objects for the four migration containers, rendered as
-  # written after the chart's variables. An entry named like one the chart sets, such as
-  # `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`, replaces its value.
+  # A list of Kubernetes EnvVar objects for the four migration containers and the
+  # collector's `check` init container, rendered as written after the chart's variables.
+  # An entry named like one the chart sets, such as `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`,
+  # replaces its value.
   # -- Extra environment variables for the container.
   # @section -- Telemetry Store Migrator
   env: []
-  # Sources of environment variables for the four migration containers, Kubernetes
-  # EnvFromSource objects rendered as given.
+  # Sources of environment variables for the four migration containers and the collector's
+  # `check` init container, Kubernetes EnvFromSource objects rendered as given.
   # -- Sources of extra environment variables for the container.
   # @section -- Telemetry Store Migrator
   envFrom: []
