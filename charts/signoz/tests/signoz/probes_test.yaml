@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/probes
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: times the liveness probe with the timings set under signoz.livenessProbe, for a slow start
+    set:
+      signoz.livenessProbe.initialDelaySeconds: 45
+      signoz.livenessProbe.periodSeconds: 20
+      signoz.livenessProbe.timeoutSeconds: 3
+      signoz.livenessProbe.successThreshold: 1
+      signoz.livenessProbe.failureThreshold: 9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe.initialDelaySeconds
+          value: 45
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe.periodSeconds
+          value: 20
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe.timeoutSeconds
+          value: 3
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe.successThreshold
+          value: 1
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe.failureThreshold
+          value: 9
+
+  - it: times the readiness probe with the timings set under signoz.readinessProbe
+    set:
+      signoz.readinessProbe.initialDelaySeconds: 31
+      signoz.readinessProbe.periodSeconds: 21
+      signoz.readinessProbe.timeoutSeconds: 4
+      signoz.readinessProbe.successThreshold: 2
+      signoz.readinessProbe.failureThreshold: 8
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.initialDelaySeconds
+          value: 31
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.periodSeconds
+          value: 21
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.timeoutSeconds
+          value: 4
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.successThreshold
+          value: 2
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.failureThreshold
+          value: 8

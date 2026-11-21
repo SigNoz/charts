@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/storage
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: keeps the SQLite database on claim template signoz-db, mounted at /var/lib/signoz/
+    set:
+      postgresql.enabled: false
+      signoz.persistence.enabled: true
+      signoz.persistence.existingClaim: ""
+    asserts:
+      - exists:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")]
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].volumeMounts[?(@.mountPath == "/var/lib/signoz/")].name
+          value: signoz-db
+
+  - it: sizes the claim with signoz.persistence.size
+    set:
+      signoz.persistence.enabled: true
+      signoz.persistence.size: 5Gi
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")].spec.resources.requests.storage
+          value: 5Gi
+
+  - it: takes signoz.persistence.storageClass without global.storageClass
+    set:
+      signoz.persistence.enabled: true
+      signoz.persistence.storageClass: fast
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")].spec.storageClassName
+          value: fast
+
+  - it: takes global.storageClass over signoz.persistence.storageClass
+    set:
+      global.storageClass: g1
+      signoz.persistence.enabled: true
+      signoz.persistence.storageClass: fast
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")].spec.storageClassName
+          value: g1
+
+  - it: renders an empty storage class for -, which disables dynamic provisioning
+    set:
+      signoz.persistence.enabled: true
+      signoz.persistence.storageClass: "-"
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")].spec.storageClassName
+          value: ""
+
+  - it: renders an empty storage class for a global.storageClass of -, over signoz.persistence.storageClass
+    set:
+      global.storageClass: "-"
+      signoz.persistence.enabled: true
+      signoz.persistence.storageClass: fast
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[?(@.metadata.name == "signoz-db")].spec.storageClassName
+          value: ""
+
+  - it: mounts signoz.persistence.existingClaim at /var/lib/signoz/ instead of a claim template
+    set:
+      signoz.persistence.enabled: true
+      signoz.persistence.existingClaim: my-claim
+    asserts:
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "signoz")].volumeMounts[?(@.mountPath == "/var/lib/signoz/")].name
+            )].persistentVolumeClaim
+          value: {claimName: my-claim}
+      - notExists:
+          path: spec.volumeClaimTemplates
+
+  - it: keeps the SQLite database in an emptyDir at /var/lib/signoz/, with no claim template, without persistence
+    set:
+      signoz.persistence.enabled: false
+    asserts:
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "signoz")].volumeMounts[?(@.mountPath == "/var/lib/signoz/")].name
+            )].emptyDir
+          value: {}
+      - notExists:
+          path: spec.volumeClaimTemplates
+
+  - it: keeps no SQLite claim template and no mount at /var/lib/signoz/ with postgresql.enabled
+    set:
+      postgresql.enabled: true
+      signoz.persistence.enabled: true
+      signoz.persistence.existingClaim: ""
+    asserts:
+      - notExists:
+          path: spec.volumeClaimTemplates
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "signoz")].volumeMounts[?(@.mountPath == "/var/lib/signoz/")]
+
+  - it: mounts no signoz.persistence.existingClaim with postgresql.enabled
+    set:
+      postgresql.enabled: true
+      signoz.persistence.enabled: true
+      signoz.persistence.existingClaim: my-claim
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes[?(@.persistentVolumeClaim.claimName == "my-claim")]
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "signoz")].volumeMounts[?(@.mountPath == "/var/lib/signoz/")]
