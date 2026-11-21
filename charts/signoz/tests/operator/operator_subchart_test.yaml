@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: operator/operator_subchart
+templates:
+  - charts/altinity-clickhouse-operator/templates/generated/*.yaml
+  - templates/clickhouse/hooks/operator-upgrade/job.yaml
+tests:
+  - it: names the operator Deployment <release>-clickhouse-operator and selects its pods by name and instance only
+    template: charts/altinity-clickhouse-operator/templates/generated/Deployment-clickhouse-operator.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-clickhouse-operator
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: clickhouse-operator
+            app.kubernetes.io/instance: RELEASE-NAME
+  - it: keeps the operator namespace-scoped, with a Role and no operator ClusterRole
+    asserts:
+      - template: charts/altinity-clickhouse-operator/templates/generated/Role-clickhouse-operator.yaml
+        isKind:
+          of: Role
+      - template: charts/altinity-clickhouse-operator/templates/generated/ClusterRole-clickhouse-operator-kube-system.yaml
+        hasDocuments:
+          count: 0
+  - it: renders no operator and no upgrade hook when you run the operator yourself
+    set:
+      altinity-clickhouse-operator.enabled: false
+    asserts:
+      - template: templates/clickhouse/hooks/operator-upgrade/job.yaml
+        hasDocuments:
+          count: 0

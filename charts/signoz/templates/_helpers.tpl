@@ -40,6 +40,16 @@ Return namespace of the signoz release
 {{- end -}}
 
 {{/*
+Return the Kubernetes cluster DNS domain: global.clusterDomain if set, else `cluster.local`.
+Every host name the chart writes takes its domain from this helper, never from a literal. A custom
+resource with a domain field, such as the ClickHouseInstallation's namespaceDomainPattern, gets
+it only when the domain is not `cluster.local`.
+*/}}
+{{- define "signoz.clusterDomain" -}}
+{{- default "cluster.local" .Values.global.clusterDomain -}}
+{{- end -}}
+
+{{/*
 Common labels
 */}}
 {{- define "signoz.labels" -}}
@@ -248,29 +258,6 @@ Create the name of the service account to use for telemetryStoreMigrator
 {{- end -}}
 
 {{/*
-Return the service name of Clickhouse
-*/}}
-{{- define "clickhouse.servicename" -}}
-{{- if .Values.clickhouse.fullnameOverride -}}
-{{- .Values.clickhouse.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default "clickhouse" .Values.clickhouse.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- $name = .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else }}
-{{- $name = printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- $namespace := .Values.clickhouse.namespace -}}
-{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
-{{- if and $namespace (ne $namespace .Release.Namespace) -}}
-{{ printf "%s.%s.svc.%s" $name $namespace $clusterDomain }}
-{{- else -}}
-{{ $name }}
-{{- end -}}
-{{- end -}}
-{{- end }}
-
-{{/*
 Return the service fqdn of Postgresql
 */}}
 {{- define "postgresql.service" -}}
@@ -291,7 +278,7 @@ Return the service fqdn of Postgresql
   {{- end -}}
 {{- end -}}
 {{- $namespace := .Values.postgresql.namespace -}}
-{{- $clusterDomain := default "cluster.local" .Values.global.clusterDomain -}}
+{{- $clusterDomain := include "signoz.clusterDomain" . -}}
 {{- if and $namespace (ne $namespace .Release.Namespace) -}}
 {{ printf "postgres://%s:%s@%s.%s.svc.%s:%s/%s?sslmode=disable" $username $password $name $namespace $clusterDomain $port $database }}
 {{- else -}}
@@ -405,6 +392,21 @@ Common K8s environment variables used by SigNoz OtelCollector.
 {{- end }}
 
 {{/*
+Common ENV variables for the telemetry store migrator containers
+*/}}
+{{- define "snippet.telemetryStoreMigrator-env" }}
+{{- include "clickhouse.env" . }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+  value: {{ include "clickhouse.dsn" . | quote }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+  value: $(CLICKHOUSE_CLUSTER)
+- name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT
+  value: {{ .Values.telemetryStoreMigrator.timeout | default "10m" | quote }}
+- name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
+  value: {{ .Values.telemetryStoreMigrator.enableReplication | quote }}
+{{- end }}
+
+{{/*
 Return the proper Image Registry Secret Names.
 */}}
 {{- define "signoz.imagePullSecrets" -}}
@@ -429,9 +431,13 @@ Create Env
 ====== Default ENV ======
 */}}
 {{- $defaultEnv := dict
-    "signoz_telemetrystore_clickhouse_dsn"     (printf "tcp://%s" (include "clickhouse.clickHouseUrl" .))
-    "signoz_telemetrystore_clickhouse_cluster" (include "clickhouse.cluster" .)
+    "signoz_telemetrystore_clickhouse_dsn"     (include "clickhouse.dsn" .)
+    "signoz_telemetrystore_clickhouse_cluster" "$(CLICKHOUSE_CLUSTER)"
 }}
+{{- /* A key set in signoz.env replaces the default of the same name, whatever its case */}}
+{{- range $key := keys (.Values.signoz.env | default dict) }}
+{{- $_ := unset $defaultEnv (lower $key) }}
+{{- end }}
 
 {{/*
 SQL STORE POSTGRES ENV
