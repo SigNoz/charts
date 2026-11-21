@@ -31,6 +31,7 @@ Commands in this guide use these placeholders:
 - `<clickhouse.name>`: `clickhouse.nameOverride`, or `clickhouse` when that is unset.
 - `<clickhouse.fullname>`: the name of your ClickHouseInstallation, `<release>-clickhouse` by default.
 - `<keeper.fullname>`: the name of your ClickHouseKeeperInstallation, `keeper.fullnameOverride` when set, else `<release>-keeper`, or `<release>-<keeper.nameOverride>` with `keeper.nameOverride` set.
+- `<postgresql.fullname>`: the full name of the bundled Postgres chart, the name of its StatefulSet, `<release>-postgresql` by default ([section 16](#16-bundled-postgres)).
 
 To list both installations with their names, run:
 
@@ -553,7 +554,7 @@ Every component that connects to ClickHouse reads the ClickHouse password from t
 | ClickHouseKeeperInstallation | None | `<keeper.fullname>`, `ClickHouseKeeperInstallation/<release>-keeper` by default, in `<namespace>`; labels `app.kubernetes.io/name: keeper` (`keeper.nameOverride` when set), `app.kubernetes.io/component: keeper` and `keeper.labels`, where a key that matches a chart label is rendered once with your value; pod labels: the three selector labels and `keeper.pod.labels`, where a key named like a selector label is ignored; pod annotations: `keeper.pod.annotations`, by default `signoz.io/scrape`, `signoz.io/port: "9141"` and `signoz.io/path`; one claim per replica from `keeper.persistence.size`, `keeper.persistence.accessModes` and `keeper.persistence.storageClass`, with `global.storageClass` taking precedence, kept when the installation or a replica is removed | NetworkPolicies that let ClickHouse reach `keeper-<keeper.fullname>` on port 2181, PodMonitors on the Keeper pod's labels, and backups of its claims |
 | ZooKeeper `StatefulSet/<release>-zookeeper`, `Service/<release>-zookeeper`, `Service/<release>-zookeeper-headless`, `Service/<release>-zookeeper-metrics` and `ConfigMap/<release>-zookeeper-scripts` | Rendered by default; pod template `helm.sh/chart: zookeeper-0.0.1`, `ZOO_PRE_ALLOC_SIZE` `65536` | Rendered only with `zookeeper.enabled: true`; annotation `signoz.io/deprecated: "true"`; pod template `helm.sh/chart: zookeeper-0.0.2`, `ZOO_PRE_ALLOC_SIZE` `0`, the new default of `zookeeper.preAllocSize` | Nothing; see step 3 of [section 1](#1-the-first-upgrade). To keep the old preallocation, set `zookeeper.preAllocSize: 65536` |
 | Schema migrator Job and ServiceAccount | Job `signoz-telemetrystore-migrator`; ServiceAccount `signoz-telemetrystore-migrator` | Job `signoz-telemetrystore-migrator-<revision>`; the ServiceAccount only with `telemetryStoreMigrator.serviceAccount.create: true` ([section 14](#14-schema-migrator)) | Anything that names the Job or binds the ServiceAccount |
-| Postgres objects, with `postgresql.enabled: true` | Labels `helm.sh/chart: postgresql-0.0.2` | Labels `helm.sh/chart: postgresql-0.0.3`; a new Secret `<release>-postgresql-auth` ([section 16](#16-bundled-postgres)) | Selectors on `helm.sh/chart` |
+| Postgres objects, with `postgresql.enabled: true` | Labels `helm.sh/chart: postgresql-0.0.2` | Labels `helm.sh/chart: postgresql-0.0.3`; a new Secret `<postgresql.fullname>-auth` ([section 16](#16-bundled-postgres)) | Selectors on `helm.sh/chart` |
 
 ### You must
 
@@ -1840,9 +1841,9 @@ Your values set `postgresql.enabled: true`.
 ### What changes
 
 - The bundled Postgres chart ships inside the SigNoz chart, at version `0.0.3`; 0.151.0 pulled `0.0.2` from `https://charts.signoz.io`. Its objects carry `helm.sh/chart: postgresql-0.0.3`.
-- The data claim `pgdata-<release>-postgresql-0` is mounted at `/var/lib/postgresql/data`, and `PGDATA` is `/var/lib/postgresql/data/pgdata`. In 0.151.0 the claim was mounted at `/var/lib/postgresql` and `PGDATA` was `/var/lib/postgresql/data`. The database directory is now `pgdata` at the root of the claim, a path the 0.151.0 pod never wrote to. The Postgres pod rolls once.
-- The chart stores `postgresql.auth.password` in the Secret `<release>-postgresql-auth`, under the key `password`, unless `postgresql.auth.existingSecret` is set.
-- SigNoz reads `POSTGRES_PASSWORD` from the Secret `<release>-postgresql-auth` through a `secretKeyRef`, in place of the literal value in its pod spec. With `postgresql.auth.existingSecret` set, SigNoz and Postgres read the password from that Secret, as in 0.151.0.
+- The data claim `pgdata-<postgresql.fullname>-0` is mounted at `/var/lib/postgresql/data`, and `PGDATA` is `/var/lib/postgresql/data/pgdata`. In 0.151.0 the claim was mounted at `/var/lib/postgresql` and `PGDATA` was `/var/lib/postgresql/data`. The database directory is now `pgdata` at the root of the claim, a path the 0.151.0 pod never wrote to. The Postgres pod rolls once.
+- The chart stores `postgresql.auth.password` under the key `password` in the Secret `<postgresql.fullname>-auth`. That name is `<release>-postgresql-auth` unless `postgresql.fullnameOverride` or `postgresql.nameOverride` is set, and is cut to 63 characters when longer. The chart creates no such Secret when `postgresql.auth.existingSecret` is set.
+- SigNoz reads `POSTGRES_PASSWORD` from the key `password` of the Secret `<postgresql.fullname>-auth` through a `secretKeyRef`, in place of the literal value in its pod spec. With `postgresql.auth.existingSecret` set, SigNoz and Postgres read the password from that Secret, under the key `postgresql.auth.secretKeys.userPasswordKey` (`password` when unset), as in 0.151.0.
 
 > [!IMPORTANT]
 > Dump the SigNoz database before the upgrade and compare its tables after it, as below. Postgres starts on a directory of the claim that 0.151.0 never wrote to.
@@ -1852,15 +1853,15 @@ Your values set `postgresql.enabled: true`.
 1. Before the upgrade, list the tables and dump the database. `--clean --if-exists` lets the dump replace the tables a restore finds:
 
    ```bash
-   kubectl -n <namespace> exec <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
-   kubectl -n <namespace> exec <release>-postgresql-0 -- pg_dump --clean --if-exists -U <postgresql.auth.username> <postgresql.auth.database> > signoz-db.sql
+   kubectl -n <namespace> exec <postgresql.fullname>-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
+   kubectl -n <namespace> exec <postgresql.fullname>-0 -- pg_dump --clean --if-exists -U <postgresql.auth.username> <postgresql.auth.database> > signoz-db.sql
    ```
 
 2. After the upgrade, run the Verify command below. If tables from step 1 are missing, or SigNoz shows none of your users, dashboards or alerts, stop SigNoz, restore the dump and start SigNoz again:
 
    ```bash
    kubectl -n <namespace> scale statefulset -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz --replicas=0
-   kubectl -n <namespace> exec -i <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> < signoz-db.sql
+   kubectl -n <namespace> exec -i <postgresql.fullname>-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> < signoz-db.sql
    kubectl -n <namespace> scale statefulset -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz --replicas=<signoz.replicaCount>
    ```
 
@@ -1894,7 +1895,7 @@ stringData:
 ### Verify
 
 ```bash
-kubectl -n <namespace> exec <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
+kubectl -n <namespace> exec <postgresql.fullname>-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
 ```
 
 It lists the same tables as step 1 of "You must".
@@ -1903,11 +1904,13 @@ It lists the same tables as step 1 of "You must".
 kubectl get statefulset -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz -o jsonpath='{.items[0].spec.template.spec.containers[0].env[?(@.name=="POSTGRES_PASSWORD")].valueFrom.secretKeyRef.name} {.items[0].spec.template.spec.containers[0].env[?(@.name=="POSTGRES_PASSWORD")].valueFrom.secretKeyRef.key}'
 ```
 
-It prints the Secret and the key that the SigNoz container's `POSTGRES_PASSWORD` reads:
+It prints the Secret and the key that the SigNoz container's `POSTGRES_PASSWORD` reads. With the default names:
 
 ```text
 <release>-postgresql-auth password
 ```
+
+With `postgresql.fullnameOverride` or `postgresql.nameOverride` set, the Secret is `<postgresql.fullname>-auth`. With `postgresql.auth.existingSecret` set, it prints that Secret and `postgresql.auth.secretKeys.userPasswordKey`, `password` when unset.
 
 ## Operator 0.27.4 behavior
 
