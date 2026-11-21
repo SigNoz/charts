@@ -26,7 +26,7 @@ Commands in this guide use these placeholders:
 - `<namespace>`: the namespace the object lives in. This is the release namespace, or `clickhouse.namespace` when you set it.
 - `<clickhouse.name>`: `clickhouse.nameOverride`, or `clickhouse` when that is unset.
 - `<clickhouse.fullname>`: the name of your ClickHouseInstallation, `<release>-clickhouse` by default.
-- `<keeper.fullname>`: the name of your ClickHouseKeeperInstallation, `<release>-keeper` by default.
+- `<keeper.fullname>`: the name of your ClickHouseKeeperInstallation, `keeper.fullnameOverride` when set, else `<release>-keeper`, or `<release>-<keeper.nameOverride>` with `keeper.nameOverride` set.
 
 To list both installations with their names, run:
 
@@ -557,7 +557,7 @@ A diff of the first upgrade also shows changes in text only. The ClickHouse, Sig
 
 - During the first upgrade, both PodDisruptionBudgets exist and the ClickHouse pod reports `MultiplePodDisruptionBudgets` warnings. Afterwards only `chi-<clickhouse.fullname>-<clickhouse.cluster>` is left.
 - The operator metrics Service shows `8888/TCP,9999/TCP` and selects `app.kubernetes.io/instance=<release>,app.kubernetes.io/name=clickhouse-operator`.
-- A Keeper installation brings the StatefulSet `chk-<keeper.fullname>-cluster-0-0`, the Services `keeper-<keeper.fullname>`, `chk-<keeper.fullname>-cluster-0-0` and `chk-<keeper.fullname>-cluster-0-0-client`, and the claim `default-chk-<keeper.fullname>-cluster-0-0-0`.
+- A Keeper installation brings the StatefulSet `chk-<keeper.fullname>-cluster-0-0`, the Services `keeper-<keeper.fullname>`, `chk-<keeper.fullname>-cluster-0-0` and `chk-<keeper.fullname>-cluster-0-0-client`, and the claim `default-chk-<keeper.fullname>-cluster-0-0-0`, of `keeper.persistence.size` (`10Gi` by default).
 
 ### Verify
 
@@ -995,7 +995,7 @@ kubectl -n "$NS" exec "$CHK_STS-0" -- sh -c 'echo ruok | nc 127.0.0.1 2181'
 imok
 ```
 
-**If it fails:** If the Keeper pod is not running, check node taints, and check that the Keeper claim landed in the same zone as the ZooKeeper claim. The converter Job must mount both. Then run step 2 again.
+**If it fails:** If the Keeper pod is not running, check node taints, and check that the Keeper claim landed in the same zone as the ZooKeeper claim. Its storage class is `global.storageClass`, else `keeper.persistence.storageClass`. The converter Job must mount both. Then run step 2 again.
 
 ##### Step 3: Stop ingestion and merges
 
@@ -1115,7 +1115,7 @@ drwxr-xr-x    1 clickhouse clickhouse         0 Nov 17 08:38 snapshots
             <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
 ```
 
-The prefix in `keeper_config.xml` and the mount point on disk can differ. Use the path relative to the volume root, which is `coordination/snapshots` either way. That is what step 7 writes to. Files must end up owned by uid and gid `101`.
+The prefix in `keeper_config.xml` and the mount point on disk can differ. Use the path relative to the volume root, which is `coordination/snapshots` either way. That is what step 7 writes to. Files must end up owned by uid and gid `101`, the `fsGroup` that `keeper.podSecurityContext` sets by default.
 
 **Verify:**
 
