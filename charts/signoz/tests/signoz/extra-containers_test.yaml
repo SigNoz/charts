@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/extra-containers
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: runs a signoz.extraContainers sidecar beside the signoz container, with the signoz-db claim it mounts
+    set:
+      postgresql.enabled: false
+      signoz.persistence.enabled: true
+      signoz.extraContainers:
+        - name: litestream
+          image: litestream/litestream:0.3.13
+          args: [replicate]
+          volumeMounts:
+            - name: signoz-db
+              mountPath: /var/lib/signoz
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content: {name: litestream}
+          any: true
+      - contains:
+          path: spec.template.spec.containers
+          content: {name: signoz}
+          any: true
+      - contains:
+          path: spec.volumeClaimTemplates
+          content: {metadata: {name: signoz-db}}
+          any: true

@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: upgrade-contract/signoz
+templates:
+  - templates/validate.yaml
+tests:
+  - it: rejects signoz.livenessProbe.enabled, naming signoz.livenessProbe
+    set: {signoz.livenessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.enabled.*signoz\\.livenessProbe: null"}}]
+  - it: rejects signoz.livenessProbe.port, naming signoz.livenessProbe.httpGet.port
+    set: {signoz.livenessProbe.port: 8080}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.port.*signoz\\.livenessProbe\\.httpGet\\.port"}}]
+  - it: rejects signoz.livenessProbe.path, naming signoz.livenessProbe.httpGet.path
+    set: {signoz.livenessProbe.path: /api/v1/health}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.path.*signoz\\.livenessProbe\\.httpGet\\.path"}}]
+  - it: rejects signoz.readinessProbe.enabled, naming signoz.readinessProbe
+    set: {signoz.readinessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.enabled.*signoz\\.readinessProbe: null"}}]
+  - it: rejects signoz.readinessProbe.port, naming signoz.readinessProbe.httpGet.port
+    set: {signoz.readinessProbe.port: 8080}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.port.*signoz\\.readinessProbe\\.httpGet\\.port"}}]
+  - it: rejects signoz.readinessProbe.path, naming signoz.readinessProbe.httpGet.path
+    set: {signoz.readinessProbe.path: "/api/v1/health?live=1"}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.path.*signoz\\.readinessProbe\\.httpGet\\.path"}}]
+  - it: rejects signoz.customLivenessProbe, naming signoz.livenessProbe
+    set:
+      signoz.customLivenessProbe: {exec: {command: [/bin/true]}}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.customLivenessProbe.*signoz\\.livenessProbe"}}]
+  - it: rejects signoz.customReadinessProbe, naming signoz.readinessProbe
+    set:
+      signoz.customReadinessProbe: {tcpSocket: {port: 8080}}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.customReadinessProbe.*signoz\\.readinessProbe"}}]
+  - it: accepts the SigNoz probes in the Kubernetes shape, beside the empty custom probes of an old values file
+    set:
+      signoz.livenessProbe: {httpGet: {port: http, path: /api/v1/health}, periodSeconds: 20}
+      signoz.readinessProbe: {httpGet: null, tcpSocket: {port: http}}
+      signoz.startupProbe: {httpGet: {port: http, path: /api/v1/health}, failureThreshold: 30}
+      signoz.customLivenessProbe: {}
+      signoz.customReadinessProbe: {}
+    asserts:
+      - notFailedTemplate: {}
+  - it: rejects signoz.additionalArgs, naming signoz.extraArgs
+    set:
+      signoz.additionalArgs: [--use-logs-new-schema=true]
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.additionalArgs.*signoz\\.extraArgs"}}]
+  - it: rejects signoz.podAnnotations, naming signoz.pod.annotations
+    set:
+      signoz.podAnnotations: {prometheus.io/scrape: "true"}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.podAnnotations.*signoz\\.pod\\.annotations"}}]
+  - it: rejects signoz.securityContext, naming signoz.containerSecurityContext
+    set:
+      signoz.securityContext: {runAsNonRoot: true, runAsUser: 1000}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.securityContext.*signoz\\.containerSecurityContext"}}]
+  - it: rejects signoz.additionalVolumeMounts, naming signoz.extraVolumeMounts
+    set:
+      signoz.additionalVolumeMounts: [{name: cfg, mountPath: /etc/signoz}]
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.additionalVolumeMounts.*signoz\\.extraVolumeMounts"}}]
+  - it: rejects signoz.additionalVolumes, naming signoz.extraVolumes
+    set:
+      signoz.additionalVolumes: [{name: cfg, configMap: {name: signoz-cfg}}]
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.additionalVolumes.*signoz\\.extraVolumes"}}]
+  - it: accepts the moved SigNoz keys at their new paths, beside the empty old keys of an old values file
+    set:
+      signoz.extraArgs: [--use-logs-new-schema=true]
+      signoz.pod.annotations: {prometheus.io/scrape: "true"}
+      signoz.containerSecurityContext: {runAsNonRoot: true, runAsUser: 1000}
+      signoz.extraVolumeMounts: [{name: cfg, mountPath: /etc/signoz}]
+      signoz.extraVolumes: [{name: cfg, configMap: {name: signoz-cfg}}]
+      signoz.additionalArgs: []
+      signoz.podAnnotations: {}
+      signoz.securityContext: {}
+      signoz.additionalVolumeMounts: []
+      signoz.additionalVolumes: []
+    asserts:
+      - notFailedTemplate: {}
