@@ -572,13 +572,28 @@ It prints the ClickHouse image, `clickhouse/clickhouse-server:25.12.5` with defa
 
 ### Applies to
 
-You set `global.imageRegistry` or `global.imagePullSecrets`.
+You set `global.imageRegistry`, `global.imagePullSecrets`, `imagePullSecrets` or a component's `imagePullSecrets`.
 
 ### What changes
 
 The operator, metrics-exporter and CRD hook images, and the operator pod's pull secrets, come from Altinity's chart. That chart reads its own keys under `altinity-clickhouse-operator` and no `global.*` value.
 
-The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, because `global.imageRegistry` replaces the registry at the front of its repository, `registry.k8s.io/kubectl`. The hook's ServiceAccount carries `global.imagePullSecrets` and `clickhouse.imagePullSecrets`.
+The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, because `global.imageRegistry` replaces the registry at the front of its repository, `registry.k8s.io/kubectl`.
+
+The pods below list their pull secrets in their own spec: `global.imagePullSecrets`, then `imagePullSecrets`, then the list of their component, with each name once. The chart's ServiceAccounts carry no pull secrets.
+
+| Pod | Component list |
+| --- | --- |
+| ClickHouse | `clickhouse.imagePullSecrets` |
+| Operator upgrade hook | `clickhouse.imagePullSecrets` |
+| ClickHouse Keeper | `keeper.imagePullSecrets` |
+| SigNoz | `signoz.imagePullSecrets` |
+| Collector | `otelCollector.imagePullSecrets` |
+| Schema migrator | `otelCollector.imagePullSecrets` |
+
+In 0.151.0, the SigNoz, collector and schema migrator ServiceAccounts carried `global.imagePullSecrets` and `imagePullSecrets`, the ClickHouse ServiceAccount and pod carried `global.imagePullSecrets` and `clickhouse.imagePullSecrets`, and the SigNoz and collector pods listed only their own lists. A name in more than one list was listed more than once.
+
+With `global.imageRegistry` set, a registry written at the front of `signoz.image.repository` or `otelCollector.image.repository` is replaced, as it is for ClickHouse: `docker.io/signoz/signoz` becomes `<global.imageRegistry>/signoz/signoz`, where 0.151.0 rendered `<global.imageRegistry>/docker.io/signoz/signoz`. `otelCollector.image.repository` names the image of the collector, its `check` init container and the four schema migrator containers. The default repositories carry no registry, so with them the images are the same as in 0.151.0.
 
 The histogramQuantile download (`clickhouse.udf`) runs the ClickHouse container's image, so there is no `alpine` image to mirror. It downloads the binary from GitHub.
 
@@ -647,9 +662,24 @@ The histogramQuantile download (`clickhouse.udf`) runs the ClickHouse container'
              echo "histogram-quantile installed successfully"
      ```
 
+4. If a pod of your own runs under a chart ServiceAccount and pulls from a private registry, list its pull secrets in its own spec.
+
+5. If you write a registry at the front of `signoz.image.repository` or `otelCollector.image.repository` and set `global.imageRegistry`, mirror those images under `<global.imageRegistry>/` followed by the repository without its registry, such as `<global.imageRegistry>/signoz/signoz-otel-collector`.
+
 ### You will see
 
-With default values, both hook Jobs pull `registry.k8s.io/kubectl:v1.36.3`.
+- With default values, both hook Jobs pull `registry.k8s.io/kubectl:v1.36.3`.
+- With these values:
+
+  ```yaml
+  global:
+    imagePullSecrets: ["shared"]
+  imagePullSecrets: ["signoz-pull", "shared"]
+  clickhouse:
+    imagePullSecrets: ["clickhouse-pull"]
+  ```
+
+  the ClickHouse pod and the operator upgrade hook list `shared`, `signoz-pull` and `clickhouse-pull`. The SigNoz, collector, schema migrator and ClickHouse Keeper pods list `shared` and `signoz-pull`. No chart ServiceAccount lists a pull secret.
 
 ### Verify
 
@@ -660,6 +690,14 @@ kubectl get deployment -n <namespace> -l app.kubernetes.io/name=clickhouse-opera
 ```text
 my.registry/altinity/clickhouse-operator:0.27.4 my.registry/altinity/metrics-exporter:0.27.4
 ```
+
+For the SigNoz pod's pull secrets:
+
+```bash
+kubectl get pods -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz -o jsonpath='{.items[0].spec.imagePullSecrets[*].name}'
+```
+
+It prints the names in `global.imagePullSecrets`, then `imagePullSecrets`, then `signoz.imagePullSecrets`, each once.
 
 ## 9. Hooks and deployers
 
