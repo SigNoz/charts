@@ -9,3 +9,9 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "telemetryStoreMigrator\\.name.*at most 57"
+  - it: renders a telemetryStoreMigrator.name over 57 characters when telemetryStoreMigrator.enabled is false
+    set:
+      telemetryStoreMigrator.enabled: false
+      telemetryStoreMigrator.name: abcdefghij-abcdefghij-abcdefghij-abcdefghij-abcdefghij-abc
+    asserts:
+      - notFailedTemplate: {}
