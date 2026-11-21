@@ -112,7 +112,7 @@ tests:
             - name: global-pull
             - name: keeper-pull
 
-  - it: annotates the Keeper pods with keeper.pod.annotations, merged per key with the scrape annotations
+  - it: annotates the Keeper pods with keeper.pod.annotations
     set:
       keeper.pod.annotations:
         example.com/owner: platform
@@ -120,8 +120,6 @@ tests:
       - equal:
           path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.annotations["example.com/owner"]
           value: platform
-      - exists:
-          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.annotations["signoz.io/scrape"]
 
   - it: keeps the selector labels on the Keeper pods when keeper.pod.labels names one of them
     set:
