@@ -1608,6 +1608,64 @@ kubectl get chi,chk -n <namespace> -l app.kubernetes.io/instance=<release>
 
 After an uninstall it prints `No resources found in <namespace> namespace.`
 
+## 13. The SigNoz container
+
+### Applies to
+
+Every install: the SigNoz pod rolls once on the first upgrade. The details matter when your values set `signoz.env`, a port under `signoz.service`, `signoz.service.labels` or `signoz.ingress.hosts`.
+
+### What changes
+
+- The SigNoz container lists the chart's variables first: `CLICKHOUSE_*`, then `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN` and `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER`, then, with `postgresql.enabled: true`, `POSTGRES_*` and `SIGNOZ_SQLSTORE_*`. Your `signoz.env` keys follow, sorted by the key as you write it, so upper-case keys come before lower-case ones. In 0.151.0 the chart's variables and yours were interleaved.
+- A variable whose value references another through `$(NAME)` is placed after it, so Kubernetes expands it.
+- A number in `signoz.env` renders in full: `signoz.env.signoz_cache_memory_max__cost: 1000000` gives `"1000000"`, where 0.151.0 gave `"1e+06"`. Other values render with plain YAML quoting and keep their value.
+- A `signoz.env` key with the name of a chart variable replaces that variable's value in place, and no name is listed twice. This covers `CLICKHOUSE_*` (such as `signoz.env.CLICKHOUSE_USER`), `POSTGRES_*` (such as `signoz.env.postgres_user`), `SIGNOZ_SQLSTORE_PROVIDER` and `SIGNOZ_SQLSTORE_POSTGRES_DSN`.
+- The container always declares ports 8080 (`http`), 8085 (`http-internal`) and 4320 (`opamp-internal`), the ports SigNoz listens on. `signoz.service.port`, `signoz.service.internalPort` and `signoz.service.opampPort` move only the Service port, and the Service targets the container ports by name. In 0.151.0 they also set the container ports.
+- The pod has no `dashboards` volume, which nothing mounted, so with the default claim template (`signoz.persistence.enabled: true`) and with `postgresql.enabled: true` it has no `volumes` key. Its `volumeMounts` are unchanged. The container has no `args` key while `signoz.extraArgs` is empty.
+- An Ingress path in `signoz.ingress.hosts` without `port` routes to `signoz.service.port`, and one without `pathType` gets `ImplementationSpecific`. In 0.151.0 both rendered empty.
+- A key in `signoz.service.labels` that matches a chart label is rendered once, with your value.
+- New keys: `signoz.envFrom`, `signoz.startupProbe`, `signoz.labels` for the StatefulSet's labels, `signoz.pod.labels` for the pod's labels (a key named like a selector label is ignored), `signoz.extraInitContainers` and `signoz.extraContainers`.
+
+> [!IMPORTANT]
+> With `postgresql.enabled: true`, a `signoz.env.signoz_sqlstore_provider`, `signoz.env.signoz_sqlstore_postgres_dsn` or `signoz.env.postgres_*` key now takes effect. In 0.151.0 the chart listed its own `SIGNOZ_SQLSTORE_*` variables after yours, so the chart's value won, and it ignored your `POSTGRES_*` keys. Delete such a key unless you want its value to apply.
+
+### You must
+
+1. If your values hold a key the note above names, delete it before the upgrade, or keep it to apply its value.
+
+### You will see
+
+With these values:
+
+```yaml
+signoz:
+  env:
+    signoz_cache_memory_max__cost: 1000000
+    CLICKHOUSE_USER: custom
+```
+
+the SigNoz container lists its variables in this order, with `CLICKHOUSE_USER` set to `custom` and `SIGNOZ_CACHE_MEMORY_MAX__COST` set to `"1000000"`:
+
+```text
+CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_CLUSTER CLICKHOUSE_USER CLICKHOUSE_PASSWORD CLICKHOUSE_SECURE CLICKHOUSE_VERIFY SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER SIGNOZ_ALERTMANAGER_PROVIDER SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL SIGNOZ_CACHE_MEMORY_MAX__COST SIGNOZ_EMAILING_ENABLED SIGNOZ_PROMETHEUS_ACTIVE__QUERY__TRACKER_ENABLED SIGNOZ_TELEMETRYSTORE_PROVIDER
+```
+
+### Verify
+
+```bash
+kubectl get statefulset -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz -o jsonpath='{.items[0].spec.template.spec.containers[0].ports[*].containerPort}'
+```
+
+```text
+8080 8085 4320
+```
+
+```bash
+kubectl get statefulset -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz -o jsonpath='{.items[0].spec.template.spec.containers[0].env[*].name}'
+```
+
+It prints the chart's variables first, then your `signoz.env` keys, with each name once.
+
 ## Operator 0.27.4 behavior
 
 The 0.27.4 operator does the following on its own:
