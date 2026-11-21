@@ -4,7 +4,7 @@ dependencies:
   version: 0.27.4
 - name: zookeeper
   repository: file://../zookeeper
-  version: 0.0.1
+  version: 0.0.2
 - name: signoz-otel-gateway
   repository: https://charts.signoz.io
   version: 0.0.4
@@ -14,5 +14,5 @@ dependencies:
 - name: postgresql
   repository: https://charts.signoz.io
   version: 0.0.2
-digest: sha256:b97d0d3d0490407e01842bcd8684730f2824c45312eb53e34e20d8e4bf4443b7
-generated: "2026-11-04T04:49:14.577774+05:30"
+digest: sha256:06f3fa2d44eb3364351038b5722ca010f0cd971cba6e2c0846c3724ff5830834
+generated: "2026-11-17T03:18:23.216163+05:30"

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: keeper/env
+templates:
+  - templates/keeper/clickhousekeeperinstallation.yaml
+tests:
+  - it: gives the clickhouse-keeper container the variables in keeper.env in the order written, a plain value and one read from a Secret
+    set:
+      keeper.env:
+        - name: TZ
+          value: Europe/Berlin
+        - name: KEEPER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: keeper-token
+              key: token
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.containers[?(@.name == "clickhouse-keeper")].env
+          value:
+            - name: TZ
+              value: Europe/Berlin
+            - name: KEEPER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: keeper-token
+                  key: token
+
+  - it: gives the clickhouse-keeper container the sources in keeper.envFrom
+    set:
+      keeper.envFrom:
+        - secretRef:
+            name: keeper-env
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.containers[?(@.name == "clickhouse-keeper")].envFrom
+          content:
+            secretRef:
+              name: keeper-env
+
+  - it: fails the render on a variable named twice in keeper.env, naming the variable
+    set:
+      keeper.env:
+        - name: TZ
+          value: Europe/Berlin
+        - name: TZ
+          value: UTC
+    asserts:
+      - failedTemplate:
+          errorPattern: "TZ"

@@ -1,5 +1,7 @@
 <!--- app-name: Apache ZooKeeper -->
 
+> This chart is deprecated: the signoz chart's ClickHouse Keeper (`keeper.*`) replaces it. It is kept only for existing installs until they migrate; see [ClickHouse Keeper replaces ZooKeeper](https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade).
+
 # Apache ZooKeeper packaged by Bitnami
 
 Apache ZooKeeper provides a reliable, centralized register of configuration data and services for distributed applications.

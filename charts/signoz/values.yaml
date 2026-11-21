@@ -257,8 +257,8 @@ clickhouse:
     - "192.0.0.0/24"
     - "198.18.0.0/15"
     - "192.168.0.0/16"
-  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled one.
-  # Set `zookeeper.enabled` to false with it, or the bundled ZooKeeper is still installed.
+  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled store, ClickHouse Keeper or ZooKeeper, whichever is on.
+  # Set that store's own `enabled` (`keeper.enabled`, `zookeeper.enabled`) to false with it, or the bundled store is still installed.
   # @raw
   # One `servers` entry per ZooKeeper node:
   #
@@ -837,13 +837,171 @@ clickhouse:
   # @section -- ClickHouse
   envFrom: []
 
-# zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through; its keys follow Bitnami's chart:
+# ClickHouse Keeper, the default coordination store of the ClickHouse installation, rendered as a ClickHouseKeeperInstallation when `clickhouse.enabled` and `keeper.enabled` are both true.
+keeper:
+  # Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false.
+  # On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade
+  # -- Install Keeper.
+  # @section -- ClickHouse Keeper
+  enabled: true
+  # `keeper.nameOverride` takes precedence.
+  # -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects.
+  # @section -- ClickHouse Keeper
+  name: keeper
+  # Name override for ClickHouse Keeper.
+  # -- Override the chart name.
+  # @section -- ClickHouse Keeper
+  nameOverride: ""
+  # The full name of ClickHouse Keeper is the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
+  # -- Override the full resource name.
+  # @section -- ClickHouse Keeper
+  fullnameOverride: ""
+  image:
+    # May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
+    # -- Image repository.
+    # @section -- ClickHouse Keeper
+    repository: clickhouse/clickhouse-keeper
+    # The tag is pinned on its own and does not follow `clickhouse.image.tag`: a Keeper restart drops every ClickHouse session.
+    # -- Image tag.
+    # @section -- ClickHouse Keeper
+    tag: 25.12.5
+    # -- Image pull policy.
+    # @section -- ClickHouse Keeper
+    pullPolicy: IfNotPresent
+  # The Keeper pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
+  # -- Secrets for pulling images from a private registry.
+  # @section -- ClickHouse Keeper
+  imagePullSecrets: []
+  # Use an odd number: Keeper needs a majority of its replicas to work.
+  # At 3, spread the replicas with `podDistribution` (`ShardAntiAffinity` and `MaxNumberPerNode` with `number: 1`) or with `affinity` or `topologySpreadConstraints`.
+  # -- Number of replicas.
+  # @section -- ClickHouse Keeper
+  replicaCount: 1
+  # A key that names one of the chart's labels replaces its value.
+  # -- Labels to add to the ClickHouseKeeperInstallation.
+  # @section -- ClickHouse Keeper
+  labels: {}
+  # -- Annotations to add to the ClickHouseKeeperInstallation.
+  # @section -- ClickHouse Keeper
+  annotations: {}
+  pod:
+    # The chart's selector labels (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) stay; a key that names one of them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- ClickHouse Keeper
+    labels: {}
+    # Your keys merge with these per key; set a key to `null` to drop it.
+    # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
+    # -- Annotations to add to the pod.
+    # @default -- "See values.yaml"
+    # @section -- ClickHouse Keeper
+    annotations:
+      signoz.io/scrape: "true"
+      signoz.io/port: "9141"
+      signoz.io/path: /metrics
+  # Your keys merge with these per key; set a key to `null` to drop it.
+  # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.pod.annotations`; change both together.
+  # -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  settings:
+    logger/level: warning
+    logger/formatting/type: json
+    logger/console: "true"
+    listen_host: 0.0.0.0
+    keeper_server/four_letter_word_white_list: "*"
+    keeper_server/coordination_settings/raft_logs_level: information
+    prometheus/endpoint: /metrics
+    prometheus/port: "9141"
+    prometheus/metrics: "true"
+    prometheus/events: "true"
+    prometheus/asynchronous_metrics: "true"
+  # A Kubernetes PodSecurityContext object, rendered as given.
+  # Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
+  # Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
+  # -- Security context for the pod.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  podSecurityContext:
+    fsGroup: 101
+  # A Kubernetes SecurityContext object, rendered as given; rendered only when set.
+  # -- Security context for the container.
+  # @default -- "no container security context"
+  # @section -- ClickHouse Keeper
+  containerSecurityContext: {}
+  # A list of Kubernetes EnvVar objects for the clickhouse-keeper container, rendered as written.
+  # -- Extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  env: []
+  # Sources of environment variables for the clickhouse-keeper container, Kubernetes EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  envFrom: []
+  # A list of Kubernetes Volume objects, rendered as given; mount them with `keeper.extraVolumeMounts`.
+  # -- Extra volumes for the pod.
+  # @section -- ClickHouse Keeper
+  extraVolumes: []
+  # A list of Kubernetes VolumeMount objects for the clickhouse-keeper container, rendered as given.
+  # -- Extra volume mounts for the container.
+  # @section -- ClickHouse Keeper
+  extraVolumeMounts: []
+  # -- Resource requests and limits for the container.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  # An empty value sets none.
+  # -- Priority class of the pod.
+  # @default -- "no priority class"
+  # @section -- ClickHouse Keeper
+  priorityClassName: ""
+  # -- Node labels for pod assignment.
+  # @section -- ClickHouse Keeper
+  nodeSelector: {}
+  # -- Tolerations for pod assignment.
+  # @section -- ClickHouse Keeper
+  tolerations: []
+  # -- Affinity rules for pod assignment.
+  # @section -- ClickHouse Keeper
+  affinity: {}
+  # -- Topology spread constraints for pod assignment.
+  # @section -- ClickHouse Keeper
+  topologySpreadConstraints: []
+  # See `clickhouse.podDistribution`.
+  # -- Topologies for distributing the ClickHouse Keeper pods, in the operator's `podDistribution` format.
+  # @section -- ClickHouse Keeper
+  podDistribution: []
+  # Persistent volume of each ClickHouse Keeper replica. The claim is kept when the installation or a replica is removed.
+  persistence:
+    # -- Access modes of the claim.
+    # @section -- ClickHouse Keeper
+    accessModes:
+      - ReadWriteOnce
+    # -- Size of the claim.
+    # @section -- ClickHouse Keeper
+    size: 10Gi
+    # `global.storageClass` takes precedence when set. If "-", disables dynamic provisioning. If null, uses the default provisioner.
+    # -- StorageClass of the claim.
+    # @default -- "the default provisioner"
+    # @section -- ClickHouse Keeper
+    storageClass: null
+
+# zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true; its keys follow Bitnami's chart:
 # https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
 # @default -- "See values.yaml"
 # @section -- ZooKeeper
 zookeeper:
-  # zookeeper.enabled -- Install ZooKeeper. Defaults to the value of clickhouse.enabled; set it only to override that.
-  # enabled: true
+  # zookeeper.enabled -- Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off.
+  # An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade
+  # @default -- false
+  # @section -- ZooKeeper
+  enabled: false
+
+  # -- Annotations on the metadata of every ZooKeeper object (not on the pod template).
+  # @section -- ZooKeeper
+  commonAnnotations:
+    signoz.io/deprecated: "true"
 
   # -- Zookeeper image
   # @section -- ZooKeeper
