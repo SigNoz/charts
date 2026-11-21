@@ -70,8 +70,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: {{ default "signoz" .Values.signoz.name }}
 {{- end -}}
 
-
-
 {{/*
 Set signoz port
 */}}
@@ -86,38 +84,6 @@ Set signoz url
 {{- define "signoz.url" -}}
 {{ include "signoz.fullname" . }}:{{ include "signoz.port" . }}
 {{- end -}}
-
-
-
-
-
-
-
-
-
-
-
-{{/*
-Return the proper otelCollector image name
-*/}}
-{{- define "otelCollector.image" -}}
-{{- $registryName := default .Values.otelCollector.image.registry .Values.global.imageRegistry -}}
-{{- $repositoryName := .Values.otelCollector.image.repository -}}
-{{- $tag := .Values.otelCollector.image.tag | toString -}}
-{{- if $registryName -}}
-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-    {{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
-{{- end -}}
-
-
-
-
-
-
-
-
 
 
 {{/*
@@ -147,19 +113,6 @@ Return if ingress is stable.
   {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
 {{- end -}}
 
-{{/*
-Return true if Let's Encrypt ClusterIssuer of `cert-manager` should be created.
-*/}}
-{{- define "ingress.letsencrypt" -}}
-{{- $clusterIssuerEnabled := index (index .Values "cert-manager") "letsencrypt" -}}
-{{- if ne ($clusterIssuerEnabled | toString) "<nil>" -}}
-  {{ $clusterIssuerEnabled }}
-{{- else if and (index (index .Values "ingress-nginx") "enabled") (index (index .Values "cert-manager") "enabled") -}}
-  true
-{{- else -}}
-  false
-{{- end -}}
-{{- end -}}
 
 {{/*
 Common K8s environment variables used by SigNoz OtelCollector.
@@ -206,20 +159,4 @@ Common ENV variables for the telemetry store migrator containers
 - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION
   value: {{ .Values.telemetryStoreMigrator.enableReplication | quote }}
 {{- end }}
-
-{{/*
-Return the proper Image Registry Secret Names.
-*/}}
-{{- define "signoz.imagePullSecrets" -}}
-{{- if or .Values.global.imagePullSecrets .Values.imagePullSecrets }}
-imagePullSecrets:
-{{- range .Values.global.imagePullSecrets }}
-  - name: {{ . }}
-{{- end }}
-{{- range .Values.imagePullSecrets }}
-  - name: {{ . }}
-{{- end }}
-{{- end }}
-{{- end }}
-
 
