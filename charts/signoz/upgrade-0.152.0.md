@@ -709,7 +709,7 @@ You run the ClickHouse operator yourself, turn a hook off, upgrade with `--no-ho
 
 Two hooks carry this upgrade:
 
-- The chart's `pre-upgrade` Job `<release>-clickhouse-operator-upgrade` deletes the old operator Deployment, whose selector cannot change in place. Its settings are under `clickhouse.operatorUpgradeHook`.
+- The chart's `pre-upgrade` Job `<release>-clickhouse-operator-upgrade` deletes the old operator Deployment, whose selector cannot change in place. Its settings are under `clickhouse.operatorUpgradeHook`, among them the scheduling keys `clickhouse.operatorUpgradeHook.nodeSelector`, `clickhouse.operatorUpgradeHook.tolerations`, `clickhouse.operatorUpgradeHook.affinity`, `clickhouse.operatorUpgradeHook.topologySpreadConstraints` and `clickhouse.operatorUpgradeHook.priorityClassName`, and the security contexts `clickhouse.operatorUpgradeHook.podSecurityContext` and `clickhouse.operatorUpgradeHook.containerSecurityContext`, each rendered only when set.
 - Altinity's `pre-install` and `pre-upgrade` Job `<release>-clickhouse-operator-crd-install` applies the four CRDs with server-side apply on every install and upgrade, with a ClusterRole. Its settings are under `altinity-clickhouse-operator.crdHook`.
 
 With `altinity-clickhouse-operator.enabled: false`, the chart renders no operator and neither hook, and the upgrade removes the chart's operator objects.
@@ -734,6 +734,20 @@ Argo CD runs `pre-install` and `pre-upgrade` hooks as `PreSync` hooks on every s
    ```
 
 3. When you run the operator yourself, set `altinity-clickhouse-operator.enabled: false`. Your operator must have the four CRDs, `clickhousekeeperinstallations.clickhouse-keeper.altinity.com` included, and reconcile ClickHouseInstallations and ClickHouseKeeperInstallations in `<namespace>`.
+
+4. When the operator upgrade hook's pod must run on tainted or dedicated nodes, or in a namespace that enforces a Pod Security Standard, set its scheduling keys or security contexts. For example:
+
+   ```yaml
+   clickhouse:
+     operatorUpgradeHook:
+       nodeSelector:
+         pool: system
+       tolerations:
+         - key: dedicated
+           operator: Equal
+           value: system
+           effect: NoSchedule
+   ```
 
 ### You will see
 
