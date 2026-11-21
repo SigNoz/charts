@@ -714,6 +714,8 @@ Two hooks carry this upgrade:
 
 With `altinity-clickhouse-operator.enabled: false`, the chart renders no operator and neither hook, and the upgrade removes the chart's operator objects.
 
+For the schema migrator, which runs as a Job, see [section 14](#14-schema-migrator).
+
 Argo CD runs `pre-install` and `pre-upgrade` hooks as `PreSync` hooks on every sync. Terraform's `helm_release` runs them unless `disable_webhooks = true`, which is `--no-hooks`.
 
 ### You must
@@ -933,7 +935,7 @@ keeper:
 helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml
 ```
 
-ZooKeeper is still live and every table is writable, so the upgrade runs with its hooks. Argo CD users: commit the values change and sync by hand.
+ZooKeeper is still live and every table is writable, so the schema migrator runs as usual. Argo CD users: commit the values change and sync by hand.
 
 Wait for the ClickHouseKeeperInstallation (CHK) to report `Completed`, then list what it created:
 
@@ -1112,7 +1114,7 @@ A near-empty count here is expected: an idle Keeper holds only its own nodes and
 > [!WARNING]
 > From here, ClickHouse has no coordination store, and every `ReplicatedMergeTree` table is read-only until step 9 completes. This is the start of the outage window. Nothing is destroyed: both claims are retained, and you can reverse the step by scaling back up.
 >
-> Between this step and step 11, do not restart the operator pod and do not run `helm upgrade`. Until step 8, either one restarts Keeper while the converter is writing to its volume. After step 8, an upgrade with ZooKeeper still enabled writes ZooKeeper's hosts back into the CHI, and its hooks cannot run while the tables are read-only.
+> Between this step and step 11, do not restart the operator pod and do not run `helm upgrade`. Until step 8, either one restarts Keeper while the converter is writing to its volume. After step 8, an upgrade with ZooKeeper still enabled writes ZooKeeper's hosts back into the CHI, and its schema migrator cannot run while the tables are read-only.
 
 **Purpose:** The conversion is offline and file-level. Both ends must be stopped so the files are consistent and unclaimed.
 
@@ -1487,10 +1489,10 @@ zookeeper:
   enabled: true
 ```
 
-The schema migrator hook cannot run while the tables are read-only, so the upgrade below skips hooks:
+The schema migrator cannot run while the tables are read-only, so the upgrade below turns it off for this one revision with `telemetryStoreMigrator.enabled=false` ([section 14](#14-schema-migrator)). The next `helm upgrade` without that `--set` runs it again:
 
 ```bash
-helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml --no-hooks
+helm upgrade "$RELEASE" signoz/signoz --version 0.152.0 -n "$NS" -f values.yaml --set telemetryStoreMigrator.enabled=false
 kubectl -n "$NS" rollout status statefulset "$ZK_STS" --timeout=300s
 
 for P in $CH_PODS; do
@@ -1665,6 +1667,71 @@ kubectl get statefulset -n <namespace> -l app.kubernetes.io/instance=<release>,a
 ```
 
 It prints the chart's variables first, then your `signoz.env` keys, with each name once.
+
+## 14. Schema migrator
+
+### Applies to
+
+Every install that runs the schema migrator (`telemetryStoreMigrator.enabled`, on by default). The details matter when your values set a `telemetryStoreMigrator.*` key, you upgrade with `--no-hooks`, or you deploy through Argo CD.
+
+### What changes
+
+- The schema migrator is an ordinary Job named `<telemetryStoreMigrator.name>-<revision>`, `signoz-telemetrystore-migrator-<revision>` by default, where `<revision>` is the release revision. Every install and upgrade creates a new Job, and the migrations run each time. The name is the same whatever the release name. In 0.151.0 it was the Job `signoz-telemetrystore-migrator`, a `pre-upgrade` hook on upgrades under the default `telemetryStoreMigrator.upgradeHelmHooks: true`.
+- The Job is a release object, not a hook, so it also runs with `--no-hooks` and with Terraform's `disable_webhooks = true`. To skip it for one upgrade, set `telemetryStoreMigrator.enabled: false`: that revision has no migrator Job, and the collector has no `check` init container.
+- `telemetryStoreMigrator.upgradeHelmHooks` has been removed. `false` renders. Any value that turned the hooks on, `true` and a quoted `"false"` included, fails the render with a message to delete the key. The 0.151.0 default was `true`.
+- The ServiceAccount `signoz-telemetrystore-migrator` is created only with `telemetryStoreMigrator.serviceAccount.create: true`. The Job runs as `default` unless that is set or `telemetryStoreMigrator.serviceAccount.name` names an existing ServiceAccount. 0.151.0 created it by default, so the upgrade deletes it unless you set `telemetryStoreMigrator.serviceAccount.create: true`.
+- The Job always carries the annotation `argocd.argoproj.io/sync-options: Force=true,Replace=true`. Keys in `telemetryStoreMigrator.annotations` are added to it, and your value for `argocd.argoproj.io/sync-options` replaces the chart's. In 0.151.0 the annotation came only with `upgradeHelmHooks: true`.
+- `telemetryStoreMigrator.ttlSecondsAfterFinished` sets how long Kubernetes keeps a finished Job. Unset keeps it; `0` deletes it as soon as it finishes.
+- New keys for the Job, each rendered as given:
+  - `telemetryStoreMigrator.env`: Kubernetes EnvVar objects for the four migration containers and the collector's `check` init container, after the chart's variables, in the order written. An entry named like a chart variable, such as `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`, replaces its value.
+  - `telemetryStoreMigrator.envFrom`: EnvFromSource objects for the same containers.
+  - `telemetryStoreMigrator.podSecurityContext` and `telemetryStoreMigrator.containerSecurityContext`: the security contexts of the Job's pod and of the four migration containers.
+  - `telemetryStoreMigrator.extraVolumes` and `telemetryStoreMigrator.extraVolumeMounts`: volumes on the Job's pod, mounted in the four migration containers.
+  - `telemetryStoreMigrator.labels`: labels on the Job; a key the chart also sets takes your value.
+  - `telemetryStoreMigrator.pod.labels` and `telemetryStoreMigrator.pod.annotations`: labels and annotations on the Job's pod; a pod label named like a selector label is ignored.
+  - `telemetryStoreMigrator.priorityClassName`: the priority class of the Job's pod.
+
+The migrator pod's pull secrets and the registry of its image are in [section 8](#8-registry-and-pull-secrets).
+
+### You must
+
+1. Delete `telemetryStoreMigrator.upgradeHelmHooks` from your values.
+2. If something is bound to the ServiceAccount `signoz-telemetrystore-migrator`, such as a cloud identity set through `telemetryStoreMigrator.serviceAccount.annotations`, set `telemetryStoreMigrator.serviceAccount.create: true` to keep it.
+3. If the Job from 0.151.0, named `telemetryStoreMigrator.name` without a revision (`signoz-telemetrystore-migrator` by default), is still listed after the upgrade, delete it:
+
+   ```bash
+   kubectl -n <namespace> delete job signoz-telemetrystore-migrator
+   ```
+
+### You will see
+
+- A new Job `signoz-telemetrystore-migrator-<revision>` on every install and upgrade.
+- An upgrade render of the Job, `helm template signoz signoz/signoz --version 0.152.0 --is-upgrade --show-only templates/telemetrystore-migrator/job.yaml`, starts with the Argo CD annotation alone, where 0.151.0 also rendered `helm.sh/hook: pre-upgrade` and `helm.sh/hook-delete-policy: before-hook-creation`. `helm template` renders revision 1:
+
+  ```yaml
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: signoz-telemetrystore-migrator-1
+    labels:
+      app.kubernetes.io/component: signoz-telemetrystore-migrator
+      app.kubernetes.io/instance: signoz
+      app.kubernetes.io/name: signoz
+    annotations:
+      argocd.argoproj.io/sync-options: Force=true,Replace=true
+  ```
+
+### Verify
+
+```bash
+kubectl -n <namespace> wait --for=condition=complete job/signoz-telemetrystore-migrator-<revision> --timeout=15m
+```
+
+```text
+job.batch/signoz-telemetrystore-migrator-<revision> condition met
+```
+
+`<revision>` is the last revision `helm history <release> -n <namespace>` lists.
 
 ## Operator 0.27.4 behavior
 
