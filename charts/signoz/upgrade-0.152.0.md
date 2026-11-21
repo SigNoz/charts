@@ -1873,7 +1873,7 @@ volumeMounts:
     mountPath: /var/lib/postgresql/data
 ```
 
-and the chart renders the Secret, here for the release `signoz` and shown without its labels:
+and the chart renders the Secret, here for the release `signoz`, shown without its labels and with the password as a placeholder:
 
 ```yaml
 apiVersion: v1
@@ -1882,7 +1882,7 @@ metadata:
   name: signoz-postgresql-auth
 type: Opaque
 stringData:
-  password: "signoz123"
+  password: "<postgresql.auth.password>"
 ```
 
 ### Verify
@@ -1894,10 +1894,14 @@ kubectl -n <namespace> exec <release>-postgresql-0 -- psql -U <postgresql.auth.u
 It lists the same tables as step 1 of "You must".
 
 ```bash
-kubectl -n <namespace> get secret <release>-postgresql-auth -o jsonpath='{.data.password}' | base64 -d
+kubectl get statefulset -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz -o jsonpath='{.items[0].spec.template.spec.containers[0].env[?(@.name=="POSTGRES_PASSWORD")].valueFrom.secretKeyRef.name} {.items[0].spec.template.spec.containers[0].env[?(@.name=="POSTGRES_PASSWORD")].valueFrom.secretKeyRef.key}'
 ```
 
-It prints `postgresql.auth.password`.
+It prints the Secret and the key that the SigNoz container's `POSTGRES_PASSWORD` reads:
+
+```text
+<release>-postgresql-auth password
+```
 
 ## Operator 0.27.4 behavior
 
