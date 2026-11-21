@@ -1814,6 +1814,80 @@ kubectl get deployment -n <namespace> -l app.kubernetes.io/instance=<release>,ap
 
 It prints the chart's variables, `CLICKHOUSE_HOST` to `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION`, then the names in `telemetryStoreMigrator.env`.
 
+## 16. Bundled Postgres
+
+### Applies to
+
+Your values set `postgresql.enabled: true`.
+
+### What changes
+
+- The bundled Postgres chart ships inside the SigNoz chart, at version `0.0.3`; 0.151.0 pulled `0.0.2` from `https://charts.signoz.io`. Its objects carry `helm.sh/chart: postgresql-0.0.3`.
+- The data claim `pgdata-<release>-postgresql-0` is mounted at `/var/lib/postgresql/data`, and `PGDATA` is `/var/lib/postgresql/data/pgdata`. In 0.151.0 the claim was mounted at `/var/lib/postgresql` and `PGDATA` was `/var/lib/postgresql/data`. The database directory is now `pgdata` at the root of the claim, a path the 0.151.0 pod never wrote to. The Postgres pod rolls once.
+- The chart stores `postgresql.auth.password` in the Secret `<release>-postgresql-auth`, under the key `password`, unless `postgresql.auth.existingSecret` is set.
+- SigNoz reads `POSTGRES_PASSWORD` from the Secret `<release>-postgresql-auth` through a `secretKeyRef`, in place of the literal value in its pod spec. With `postgresql.auth.existingSecret` set, SigNoz and Postgres read the password from that Secret, as in 0.151.0.
+
+> [!IMPORTANT]
+> Dump the SigNoz database before the upgrade and compare its tables after it, as below. Postgres starts on a directory of the claim that 0.151.0 never wrote to.
+
+### You must
+
+1. Before the upgrade, list the tables and dump the database. `--clean --if-exists` lets the dump replace the tables a restore finds:
+
+   ```bash
+   kubectl -n <namespace> exec <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
+   kubectl -n <namespace> exec <release>-postgresql-0 -- pg_dump --clean --if-exists -U <postgresql.auth.username> <postgresql.auth.database> > signoz-db.sql
+   ```
+
+2. After the upgrade, run the Verify command below. If tables from step 1 are missing, or SigNoz shows none of your users, dashboards or alerts, stop SigNoz, restore the dump and start SigNoz again:
+
+   ```bash
+   kubectl -n <namespace> scale statefulset -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz --replicas=0
+   kubectl -n <namespace> exec -i <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> < signoz-db.sql
+   kubectl -n <namespace> scale statefulset -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=signoz --replicas=<signoz.replicaCount>
+   ```
+
+### You will see
+
+The Postgres container renders with the new paths:
+
+```yaml
+env:
+  - name: POSTGRESQL_VOLUME_DIR
+    value: "/var/lib/postgresql/data"
+  - name: PGDATA
+    value: "/var/lib/postgresql/data/pgdata"
+volumeMounts:
+  - name: pgdata
+    mountPath: /var/lib/postgresql/data
+```
+
+and the chart renders the Secret, here for the release `signoz`:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: signoz-postgresql-auth
+type: Opaque
+stringData:
+  password: "signoz123"
+```
+
+### Verify
+
+```bash
+kubectl -n <namespace> exec <release>-postgresql-0 -- psql -U <postgresql.auth.username> -d <postgresql.auth.database> -c '\dt'
+```
+
+It lists the same tables as step 1 of "You must".
+
+```bash
+kubectl -n <namespace> get secret <release>-postgresql-auth -o jsonpath='{.data.password}' | base64 -d
+```
+
+It prints `postgresql.auth.password`.
+
 ## Operator 0.27.4 behavior
 
 The 0.27.4 operator does the following on its own:
