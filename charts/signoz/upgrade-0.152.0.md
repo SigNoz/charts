@@ -529,6 +529,8 @@ With the default values, Keeper on and ZooKeeper off, the five ZooKeeper objects
 
 A diff of the first upgrade also shows changes in text only. The ClickHouse, SigNoz and collector pods render `priorityClassName` only when `clickhouse.priorityClassName`, `signoz.priorityClassName` or `otelCollector.priorityClassName` is set. The SigNoz, collector, `check` and schema migrator containers render environment values with plain YAML quoting, with the same values except the numbers in [section 13](#13-the-signoz-container). Probe fields render in key order, with the same values.
 
+Every component that connects to ClickHouse reads the ClickHouse password from the Secret `<clickhouse.fullname>-credentials` (table below), which the chart writes from `clickhouse.password`. To use a Secret of your own, set `clickhouse.existingSecret`. The chart then creates no Secret and reads the password under `clickhouse.existingSecretPasswordKey`, `password` by default. Also store the SHA-256 hex of the password in that Secret and name its key in `clickhouse.existingSecretPasswordSha256Key`; the ClickHouseInstallation then reads the hash instead of the plain password. Make the hash with `printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1`. With `clickhouse.existingSecretPasswordSha256Key` empty, ClickHouse reads the plain key through an environment substitution that is parsed as XML, so the password must not contain `&`, `<` or an `&name;` sequence. With `clickhouse.namespace` set to another namespace, the Secret must exist there as well as in the release namespace.
+
 | Object | Old | New | Update outside the chart |
 | --- | --- | --- | --- |
 | Operator Deployment | `<clickhouse.fullname>-operator` (`<release>-clickhouse-operator` by default); selector `app.kubernetes.io/name: <clickhouse.name>`, `app.kubernetes.io/instance`, `app.kubernetes.io/component: operator` | `<release>-clickhouse-operator`; selector `app.kubernetes.io/name: clickhouse-operator`, `app.kubernetes.io/instance`; deleted and created again in this upgrade | Anything that names it or patches it |
@@ -542,6 +544,7 @@ A diff of the first upgrade also shows changes in text only. The ClickHouse, Sig
 | Hook objects | None | `<release>-clickhouse-operator-upgrade` Job, ServiceAccount, Role and RoleBinding (`pre-upgrade`); `<release>-clickhouse-operator-crd-install` Job, ServiceAccount, ClusterRole, ClusterRoleBinding and ConfigMaps `-crds-1` to `-crds-4` (`pre-install`, `pre-upgrade`) | Admission policies: the image `registry.k8s.io/kubectl:v1.36.3` and a ClusterRole for the CRD hook |
 | ClickHouseInstallation, its ConfigMap `<clickhouse.fullname>-custom-functions`, its ServiceAccount, and the Service from its template | Labels `helm.sh/chart: clickhouse-24.1.18`, `app.kubernetes.io/version: 24.1.2` | Labels `helm.sh/chart: signoz-<chart version>`, `app.kubernetes.io/version: <clickhouse.image.tag>`; names unchanged; a key in `clickhouse.labels` that matches a chart label is rendered once on the ClickHouseInstallation, with your value | Selectors on `helm.sh/chart` or `app.kubernetes.io/version` |
 | Ports of the ClickHouse Service from the ClickHouseInstallation's template | `http` and `tcp` with no `targetPort`, so they target `clickhouse.service.httpPort` and `clickhouse.service.tcpPort` on the pod | `targetPort: http` and `targetPort: client`, ClickHouse's own ports 8123 and 9000; `clickhouse.service.httpPort` and `clickhouse.service.tcpPort` move only the Service port | Nothing |
+| ClickHouse password | Written into each pod spec and, as `<clickhouse.user>/password`, into the ClickHouseInstallation; with external ClickHouse also stored in the Secret `<release>-clickhouse-external`, key `clickhouse-password` | `Secret/<clickhouse.fullname>-credentials` (`<release>-clickhouse-credentials` by default) with `password`, which every component that connects to ClickHouse reads, and `password_sha256_hex`, which the ClickHouseInstallation reads as `<clickhouse.user>/password_sha256_hex`; with external ClickHouse, `password` only; no Secret with `clickhouse.existingSecret` or `externalClickhouse.existingSecret` | Anything that read the password from a pod spec or from `<release>-clickhouse-external` |
 | ClickHouse pod template labels | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`, `helm.sh/chart`, `app.kubernetes.io/version`, `app.kubernetes.io/managed-by` | `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component` | Selectors, affinity and topology spread rules on `helm.sh/chart`, `app.kubernetes.io/version` or `app.kubernetes.io/managed-by` |
 | ClickHouse init container `<clickhouse.fullname>-udf-init` | Image `docker.io/alpine:3.18.2` | Same name; image `clickhouse.image`, `clickhouse/clickhouse-server:25.12.5` by default | Admission policies: the init container image |
 | ClickHouse container | Mount `/scripts` from the pod volume `scripts`; with `clickhouse.logs.system.enabled: true`, a `lifecycle.postStart` hook running `/scripts/wait-until-ready.sh` | No `/scripts` mount, no `scripts` volume and no `lifecycle.postStart` | Anything that runs `/scripts/wait-until-ready.sh` or expects the mount |
@@ -1646,6 +1649,8 @@ Every install: the SigNoz pod rolls once on the first upgrade. The details matte
 - The SigNoz container lists the chart's variables first: `CLICKHOUSE_*`, then `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN` and `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER`, then, with `postgresql.enabled: true`, `POSTGRES_*` and `SIGNOZ_SQLSTORE_*`. Your `signoz.env` keys follow, sorted by the key as you write it, so upper-case keys come before lower-case ones. In 0.151.0 the chart's variables and yours were interleaved.
 - A variable whose value references another through `$(NAME)` is placed after it, so Kubernetes expands it.
 - A number in `signoz.env` renders in full: `signoz.env.signoz_cache_memory_max__cost: 1000000` gives `"1000000"`, where 0.151.0 gave `"1e+06"`. Other values render with plain YAML quoting and keep their value.
+- The ClickHouse variables changed in the SigNoz container, and the same way in the collector, its `check` init container and the schema migrator. `CLICKHOUSE_PASSWORD` reads the key `password` of the Secret `<clickhouse.fullname>-credentials` through a `secretKeyRef`, or the key `clickhouse.existingSecretPasswordKey` of `clickhouse.existingSecret` ([section 7](#7-objects)), where 0.151.0 wrote the password into the pod spec. `CLICKHOUSE_HTTP_PORT` is gone. `CLICKHOUSE_VERIFY` is `"false"`, as the collector already had it.
+- SigNoz's connection string `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN` is `tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)`, the form the collector's `check` and the schema migrator already used, and `SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER` is `$(CLICKHOUSE_CLUSTER)`. In 0.151.0 they were `tcp://<host>:<port>/?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)` and the cluster name. The components put the password into their connection strings unescaped, so it must not contain `/`, `?` or `#`, and a `%` is read as an escape.
 - A `signoz.env` key with the name of a chart variable replaces that variable's value in place, and no name is listed twice. This covers `CLICKHOUSE_*` (such as `signoz.env.CLICKHOUSE_USER`), `POSTGRES_*` (such as `signoz.env.postgres_user`), `SIGNOZ_SQLSTORE_PROVIDER` and `SIGNOZ_SQLSTORE_POSTGRES_DSN`.
 - The container always declares ports 8080 (`http`), 8085 (`http-internal`) and 4320 (`opamp-internal`), the ports SigNoz listens on. `signoz.service.port`, `signoz.service.internalPort` and `signoz.service.opampPort` move only the Service port, and the Service targets the container ports by name. In 0.151.0 they also set the container ports.
 - The pod has no `dashboards` volume, which nothing mounted, so with the default claim template (`signoz.persistence.enabled: true`) and with `postgresql.enabled: true` it has no `volumes` key. Its `volumeMounts` are unchanged. The container has no `args` key while `signoz.extraArgs` is empty.
@@ -1659,6 +1664,7 @@ Every install: the SigNoz pod rolls once on the first upgrade. The details matte
 ### You must
 
 1. If your values hold a key the note above names, delete it before the upgrade, or keep it to apply its value.
+2. If your `otelCollector.config`, a `signoz.env` value or anything else reads `CLICKHOUSE_HTTP_PORT`, write the HTTP port itself: `clickhouse.service.httpPort`, or `externalClickhouse.httpPort` for external ClickHouse, `8123` by default.
 
 ### You will see
 
@@ -1716,7 +1722,7 @@ Every install that runs the schema migrator (`telemetryStoreMigrator.enabled`, o
   - `telemetryStoreMigrator.pod.labels` and `telemetryStoreMigrator.pod.annotations`: labels and annotations on the Job's pod; a pod label named like a selector label is ignored.
   - `telemetryStoreMigrator.priorityClassName`: the priority class of the Job's pod.
 
-The migrator pod's pull secrets and the registry of its image are in [section 8](#8-registry-and-pull-secrets).
+The migrator containers' ClickHouse variables changed as [section 13](#13-the-signoz-container) describes. The migrator pod's pull secrets and the registry of its image are in [section 8](#8-registry-and-pull-secrets).
 
 ### You must
 
@@ -1772,7 +1778,7 @@ Your values set an `otelCollector.*` key, `telemetryStoreMigrator.env`, `telemet
 - A key in `otelCollector.service.labels` that matches a chart label is rendered once, with your value.
 - New keys: `otelCollector.envFrom`, `otelCollector.startupProbe` and `otelCollector.labels` for the Deployment's labels. `otelCollector.env`, `otelCollector.extraArgs`, `otelCollector.pod.labels` and `otelCollector.pod.annotations` replace old keys, in [section 5](#5-moved-keys).
 
-The collector pod's pull secrets and the registry of its images are in [section 8](#8-registry-and-pull-secrets).
+The ClickHouse variables of the collector and its `check` init container changed as [section 13](#13-the-signoz-container) describes. The collector pod's pull secrets and the registry of its images are in [section 8](#8-registry-and-pull-secrets).
 
 ### You must
 
