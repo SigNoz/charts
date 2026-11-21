@@ -2540,9 +2540,10 @@ otelCollector:
           exporters: [signozclickhousemeter]
 # @section -- Postgres
 postgresql:
-  # postgresql.enabled -- Enable or disable the PostgreSQL for signoz.
-  # For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql
-  # @default -- false
+  # The SQL store is an install-time choice: switching an existing release from
+  # SQLite to Postgres means a new release. See the postgresql chart:
+  # https://github.com/SigNoz/charts/tree/main/charts/postgresql
+  # -- Install PostgreSQL.
   # @section -- Postgres
   enabled: false
 # -- This component is configurable with licensed version of SigNoz.

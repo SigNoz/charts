@@ -42,8 +42,7 @@ auth:
   # auth.username -- Username for the custom user to create.
   # @default -- "signoz"
   username: "signoz"
-  # auth.password -- Password for the custom user to create. Ignored if `auth.existingSecret` is provided.
-  # @default -- "signoz@123"
+  # auth.password -- Password for the custom user to create, stored in the Secret `<fullname>-auth` under the key `password`. Ignored if `auth.existingSecret` is provided, and then no Secret is created.
   password: "signoz123"
   # auth.database -- Name for a custom database to create.
   # @default -- ""
@@ -153,15 +152,15 @@ persistence:
   # @default -- ["ReadWriteOnce"]
   accessModes:
     - ReadWriteOnce
-  # persistence.mountPath -- Mount path for Postgres data.
-  # @default -- "/signoz/postgresql"
-  mountPath: /var/lib/postgresql
+  # persistence.mountPath -- Mount path for the Postgres data claim. It must match the image's data volume (`/var/lib/postgresql/data` for postgres:15); any other path leaves the database in an anonymous volume outside the claim.
+  # @default -- "/var/lib/postgresql/data"
+  mountPath: /var/lib/postgresql/data
   # persistence.subPath -- Subpath within the volume for Postgres data.
   # @default -- ""
   subPath: ""
-  # persistence.dataDir -- Data directory for Postgres data.
-  # @default -- "/signoz/postgresql/data"
-  dataDir: /var/lib/postgresql/data
+  # persistence.dataDir -- Data directory for Postgres data (`PGDATA`). Keep it a subdirectory of `persistence.mountPath`, since initdb refuses a mount point that holds `lost+found`.
+  # @default -- "/var/lib/postgresql/data/pgdata"
+  dataDir: /var/lib/postgresql/data/pgdata
 
 # additionalArgs -- Additional command-line arguments for Postgres containers.
 # @default -- []
