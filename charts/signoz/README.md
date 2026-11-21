@@ -63,6 +63,9 @@ kubectl delete namespace platform
 
 > [!WARNING]
 > ### Breaking Changes
+> #### Version 0.152.0
+> Upgrading to 0.152.0: see [`upgrade-0.152.0.md`](./upgrade-0.152.0.md).
+>
 > #### Version 0.131.0
 > ClickHouse has been upgraded from `25.5.6` to `25.12.5`. This is a significant ClickHouse version jump, so review the upgrade guide before upgrading to avoid issues with your existing data.
 >
