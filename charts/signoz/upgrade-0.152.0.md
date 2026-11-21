@@ -1747,6 +1747,73 @@ job.batch/signoz-telemetrystore-migrator-<revision> condition met
 
 `<revision>` is the last revision `helm history <release> -n <namespace>` lists.
 
+## 15. The collector
+
+### Applies to
+
+Your values set an `otelCollector.*` key, `telemetryStoreMigrator.env`, `telemetryStoreMigrator.envFrom` or `signoz.service.opampPort`.
+
+### What changes
+
+- The collector's `check` init container waits for the schema migrator's sync migrations ([section 14](#14-schema-migrator)). It takes `telemetryStoreMigrator.env`, `telemetryStoreMigrator.envFrom` and `telemetryStoreMigrator.resources` from the migrator, and `otelCollector.extraVolumeMounts` and `otelCollector.containerSecurityContext` from the collector. In 0.151.0 it took only `telemetryStoreMigrator.resources` of these.
+- The collector reaches SigNoz's OpAMP endpoint on `signoz.service.opampPort`, as in `ws://signoz:4320/v1/opamp` with the defaults. In 0.151.0 it always dialed port 4320.
+- `otelCollector.clusterRole.clusterRoleBinding.annotations` reach the ClusterRoleBinding.
+- A key in `otelCollector.service.labels` that matches a chart label is rendered once, with your value.
+- New keys: `otelCollector.envFrom`, `otelCollector.startupProbe` and `otelCollector.labels` for the Deployment's labels. `otelCollector.env`, `otelCollector.extraArgs`, `otelCollector.pod.labels` and `otelCollector.pod.annotations` replace old keys, in [section 5](#5-moved-keys).
+
+The collector pod's pull secrets and the registry of its images are in [section 8](#8-registry-and-pull-secrets).
+
+### You must
+
+1. If the `check` init container needs a variable or a secret, such as a proxy setting, set it in `telemetryStoreMigrator.env` or `telemetryStoreMigrator.envFrom`.
+2. If `check` must read a file, such as a CA certificate for ClickHouse, put its volume in `otelCollector.extraVolumes` and mount it with `otelCollector.extraVolumeMounts`. The collector container mounts it too.
+
+### You will see
+
+With these values:
+
+```yaml
+telemetryStoreMigrator:
+  env:
+    - name: HTTPS_PROXY
+      value: http://proxy:3128
+otelCollector:
+  extraVolumes:
+    - name: certs
+      secret:
+        secretName: ch-ca
+  extraVolumeMounts:
+    - name: certs
+      mountPath: /etc/ssl/ch
+  containerSecurityContext:
+    runAsNonRoot: true
+```
+
+the `check` init container renders with:
+
+```yaml
+name: check
+securityContext:
+  runAsNonRoot: true
+volumeMounts:
+  - mountPath: /etc/ssl/ch
+    name: certs
+```
+
+and its variables end with `HTTPS_PROXY`:
+
+```text
+CLICKHOUSE_HOST CLICKHOUSE_PORT CLICKHOUSE_CLUSTER CLICKHOUSE_USER CLICKHOUSE_PASSWORD CLICKHOUSE_SECURE CLICKHOUSE_VERIFY SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER SIGNOZ_OTEL_COLLECTOR_TIMEOUT SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION HTTPS_PROXY
+```
+
+### Verify
+
+```bash
+kubectl get deployment -n <namespace> -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=otel-collector -o jsonpath='{.items[0].spec.template.spec.initContainers[0].env[*].name}'
+```
+
+It prints the chart's variables, `CLICKHOUSE_HOST` to `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION`, then the names in `telemetryStoreMigrator.env`.
+
 ## Operator 0.27.4 behavior
 
 The 0.27.4 operator does the following on its own:
