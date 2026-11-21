@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/images
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: pulls the collector and check image from global.imageRegistry over otelCollector.image.registry
+    template: templates/otel-collector/deployment.yaml
+    set:
+      global.imageRegistry: mirror.example.com
+      telemetryStoreMigrator.enabled: true
+      otelCollector.image.registry: registry.example.org
+      otelCollector.image.repository: signoz/signoz-otel-collector
+      otelCollector.image.tag: t1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:t1
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:t1
+
+  - it: pulls the collector and check image from otelCollector.image with its pullPolicy
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      otelCollector.image.registry: registry.example.org
+      otelCollector.image.repository: example/otelcol
+      otelCollector.image.tag: t2
+      otelCollector.image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].image
+          value: registry.example.org/example/otelcol:t2
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].imagePullPolicy
+          value: Always
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: registry.example.org/example/otelcol:t2
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].imagePullPolicy
+          value: Always
+
+  - it: pulls the collector and check image without a registry prefix when otelCollector.image.registry is empty
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      otelCollector.image.registry: ""
+      otelCollector.image.repository: example/otelcol
+      otelCollector.image.tag: t2
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].image
+          value: example/otelcol:t2
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: example/otelcol:t2
+
+  - it: pulls the collector pod's images with otelCollector.imagePullSecrets
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.imagePullSecrets: [collector-pull]
+    asserts:
+      - contains:
+          path: spec.template.spec.imagePullSecrets
+          content: {name: collector-pull}
