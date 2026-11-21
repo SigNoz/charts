@@ -3,7 +3,8 @@ The SigNoz server's variables for the postgresql subchart; the DSN refers to the
 */}}
 {{- define "signoz.postgresqlEnv" }}
 {{- $postgresql := .Values.postgresql }}
-{{- $host := include "signoz.lib.fullname" (dict "release" .Release.Name "name" "postgresql" "nameOverride" $postgresql.nameOverride "fullnameOverride" $postgresql.fullnameOverride) }}
+{{- $fullname := include "signoz.lib.fullname" (dict "release" .Release.Name "name" "postgresql" "nameOverride" $postgresql.nameOverride "fullnameOverride" $postgresql.fullnameOverride) }}
+{{- $host := $fullname }}
 {{- if and $postgresql.namespace (ne $postgresql.namespace .Release.Namespace) }}
 {{- $host = printf "%s.%s.svc.%s" $host $postgresql.namespace (include "signoz.clusterDomain" .) }}
 {{- end }}
@@ -15,7 +16,8 @@ The SigNoz server's variables for the postgresql subchart; the DSN refers to the
 {{- if $postgresql.auth.existingSecret }}
   {{- include "signoz.lib.secretKeyRef" (dict "name" $postgresql.auth.existingSecret "key" (default "password" (get (default dict $postgresql.auth.secretKeys) "userPasswordKey"))) | nindent 2 }}
 {{- else }}
-  value: {{ $postgresql.auth.password | quote }}
+  {{- /* The name the postgresql chart's postgresql.authSecretName gives the Secret it renders. */}}
+  {{- include "signoz.lib.secretKeyRef" (dict "name" (printf "%s-auth" $fullname | trunc 63 | trimSuffix "-") "key" "password") | nindent 2 }}
 {{- end }}
 {{- with $postgresql.auth.database }}
 - name: POSTGRES_DB
