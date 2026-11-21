@@ -1,27 +1,36 @@
+{{- $service := .Values.otelCollector.service }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "otelCollector.fullname" . }}
   labels:
-    {{- include "otelCollector.labels" . | nindent 4 }}
-{{- with .Values.otelCollector }}
-    {{- if .service.labels }}
-      {{- toYaml .service.labels | nindent 4 }}
-    {{- end}}
-{{- if .service.annotations }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "otelCollector.labels" . | fromYaml) $service.labels)) | nindent 4 }}
+  {{- with $service.annotations }}
   annotations:
-    {{- toYaml .service.annotations | nindent 4 }}
-{{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  type: {{ .service.type }}
-  {{- if and (eq .service.type "LoadBalancer") .service.loadBalancerSourceRanges }}
+  type: {{ $service.type }}
+  {{- if and (eq $service.type "LoadBalancer") $service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
-    {{- range .service.loadBalancerSourceRanges }}
+    {{- range $service.loadBalancerSourceRanges }}
     - {{ . }}
     {{- end }}
   {{- end }}
   ports:
-    {{- include "otelCollector.portsConfig" . | indent 4 -}}
-{{- end }}
+    {{- range $name, $port := .Values.otelCollector.ports }}
+    {{- if $port.enabled }}
+    - name: {{ $name }}
+      port: {{ $port.servicePort }}
+      targetPort: {{ $name }}
+      protocol: {{ $port.protocol }}
+      {{- if eq $service.type "ClusterIP" }}
+      {{- /* null clears a nodePort the API server kept from an earlier NodePort type */}}
+      nodePort: null
+      {{- else if eq $service.type "NodePort" }}
+      nodePort: {{ $port.nodePort }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
   selector:
     {{- include "otelCollector.selectorLabels" . | nindent 4 }}

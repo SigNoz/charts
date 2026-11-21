@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: upgrade-contract/collector
+templates:
+  - templates/validate.yaml
+tests:
+  - it: rejects otelCollector.podAnnotations, naming otelCollector.pod.annotations
+    set:
+      otelCollector.podAnnotations: {example.com/team: observability}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.podAnnotations.*otelCollector\\.pod\\.annotations"
+  - it: rejects otelCollector.podLabels, naming otelCollector.pod.labels
+    set:
+      otelCollector.podLabels: {team: observability}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.podLabels.*otelCollector\\.pod\\.labels"
+  - it: rejects otelCollector.securityContext, naming otelCollector.containerSecurityContext
+    set:
+      otelCollector.securityContext: {runAsNonRoot: true}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.securityContext.*otelCollector\\.containerSecurityContext"
+  - it: renders the pod metadata and the container security context in their new keys
+    set:
+      otelCollector.pod.annotations: {example.com/team: observability}
+      otelCollector.pod.labels: {team: observability}
+      otelCollector.containerSecurityContext: {runAsNonRoot: true}
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders an old values file that keeps the released empty otelCollector.podLabels and securityContext
+    set:
+      otelCollector.podLabels: {}
+      otelCollector.securityContext: {}
+    asserts:
+      - notFailedTemplate: {}
+  - it: rejects otelCollector.additionalEnvs, naming otelCollector.env
+    set:
+      otelCollector.additionalEnvs: {UPSTREAM_REGION: eu-west-1}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.additionalEnvs.*otelCollector\\.env"
+  - it: renders the collector env in otelCollector.env and envFrom
+    set:
+      otelCollector.env: [{name: UPSTREAM_REGION, value: eu-west-1}]
+      otelCollector.envFrom: [{secretRef: {name: collector-extra}}]
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders an old values file that keeps the released empty otelCollector.additionalEnvs
+    set:
+      otelCollector.additionalEnvs: {}
+    asserts:
+      - notFailedTemplate: {}
+  - it: rejects otelCollector.command.extraArgs, naming otelCollector.extraArgs
+    set:
+      otelCollector.command.extraArgs: [--feature-gates=-pkg.translator.prometheus.NormalizeName]
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.command\\.extraArgs.*otelCollector\\.extraArgs"
+  - it: rejects otelCollector.livenessProbe.enabled, naming otelCollector.livenessProbe
+    set: {otelCollector.livenessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.enabled.*otelCollector\\.livenessProbe"}}]
+  - it: rejects otelCollector.livenessProbe.port, naming otelCollector.livenessProbe.httpGet.port
+    set: {otelCollector.livenessProbe.port: 13134}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.port.*otelCollector\\.livenessProbe\\.httpGet\\.port"}}]
+  - it: rejects otelCollector.livenessProbe.path, naming otelCollector.livenessProbe.httpGet.path
+    set: {otelCollector.livenessProbe.path: /healthz}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.path.*otelCollector\\.livenessProbe\\.httpGet"}}]
+  - it: rejects otelCollector.readinessProbe.enabled, naming otelCollector.readinessProbe
+    set: {otelCollector.readinessProbe.enabled: false}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.enabled.*otelCollector\\.readinessProbe"}}]
+  - it: rejects otelCollector.readinessProbe.port, naming otelCollector.readinessProbe.httpGet.port
+    set: {otelCollector.readinessProbe.port: 13134}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.port.*otelCollector\\.readinessProbe\\.httpGet\\.port"}}]
+  - it: rejects otelCollector.readinessProbe.path, naming otelCollector.readinessProbe.httpGet.path
+    set: {otelCollector.readinessProbe.path: /healthz}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.path.*otelCollector\\.readinessProbe\\.httpGet"}}]
+  - it: rejects otelCollector.customLivenessProbe, naming otelCollector.livenessProbe
+    set:
+      otelCollector.customLivenessProbe: {tcpSocket: {port: 13133}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.customLivenessProbe.*otelCollector\\.livenessProbe"
+  - it: rejects otelCollector.customReadinessProbe, naming otelCollector.readinessProbe
+    set:
+      otelCollector.customReadinessProbe: {tcpSocket: {port: 13133}}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otelCollector\\.customReadinessProbe.*otelCollector\\.readinessProbe"
+  - it: renders the probes in the Kubernetes shape
+    set:
+      otelCollector.livenessProbe: {httpGet: {port: 13133, path: /}, periodSeconds: 10}
+      otelCollector.readinessProbe: {httpGet: {port: 13133, path: /}, periodSeconds: 10}
+      otelCollector.startupProbe: {httpGet: {port: 13133, path: /}, failureThreshold: 30}
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders otelCollector.extraArgs
+    set:
+      otelCollector.extraArgs: [--feature-gates=-pkg.translator.prometheus.NormalizeName]
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders an old values file that keeps the released empty custom probes and command.extraArgs
+    set:
+      otelCollector.customLivenessProbe: {}
+      otelCollector.customReadinessProbe: {}
+      otelCollector.command.extraArgs: null
+    asserts:
+      - notFailedTemplate: {}
