@@ -111,7 +111,7 @@ Your values set any key under `clickhouse.zookeeper`.
 
 ### What changes
 
-The bundled ZooKeeper is a dependency of `charts/signoz` itself, so its values live at the top-level `zookeeper` key, under the same names as before. Any key under `clickhouse.zookeeper` fails the render with a message naming `zookeeper.*`. ClickHouse's coordination hosts render as before.
+The bundled ZooKeeper is a dependency of `charts/signoz` itself, so its values live at the top-level `zookeeper` key, under the same names as before. `clickhouse.zookeeper` set to anything other than `null`, an empty map included, fails the render with a message naming the top-level `zookeeper` key. ClickHouse's coordination hosts render as before.
 
 ### You must
 
@@ -143,7 +143,7 @@ Your values set any key under `clickhouse.clickhouseOperator`.
 
 ### What changes
 
-The operator comes from Altinity's chart `altinity-clickhouse-operator` 0.27.4. It takes its settings under the top-level `altinity-clickhouse-operator` key, in Altinity's key names. Any key under `clickhouse.clickhouseOperator` fails the render with a message naming `altinity-clickhouse-operator.*`. The operator and metrics-exporter images are `0.27.4`.
+The operator comes from Altinity's chart `altinity-clickhouse-operator` 0.27.4. It takes its settings under the top-level `altinity-clickhouse-operator` key, in Altinity's key names. `clickhouse.clickhouseOperator` set to anything other than `null`, an empty map included, fails the render with a message naming the top-level `altinity-clickhouse-operator` key. The operator and metrics-exporter images are `0.27.4`.
 
 The pre-upgrade hook deletes the old operator Deployment. It selects that Deployment by the presence of its `app.kubernetes.io/component` label, whatever value `clickhouse.clickhouseOperator.name` gave it.
 
@@ -276,32 +276,42 @@ Your values set a key in the table below.
 
 ### What changes
 
-ClickHouse values take the Kubernetes shape and are rendered as given:
+ClickHouse, SigNoz (`signoz.*`) and collector (`otelCollector.*`) values take the Kubernetes shape and are rendered as given:
 
 - Probes are probe objects.
-- The pod and container security contexts are two keys.
-- Extra volumes are `extraVolumes` and `extraVolumeMounts`.
-- An image block is `repository`, `tag` and `pullPolicy`, with any registry at the front of `repository`.
-- Your own init containers are `clickhouse.extraInitContainers`, a list of Container objects.
+- The pod and container security contexts are two keys, `podSecurityContext` and `containerSecurityContext`.
+- Pod labels and annotations are `pod.labels` and `pod.annotations`.
+- Extra volumes are `extraVolumes` and `extraVolumeMounts`, and the SigNoz and collector arguments are `extraArgs`.
+- A ClickHouse image block is `repository`, `tag` and `pullPolicy`, with any registry at the front of `repository`.
+- Your own ClickHouse init containers are `clickhouse.extraInitContainers`, a list of Container objects.
 
 `zookeeper.enabled` unset now means no ZooKeeper. Keys under `clickhouse.zookeeper` are in [section 2](#2-zookeeper-values), and keys under `clickhouse.clickhouseOperator` are in [sections 3](#3-operator-values) and [4](#4-system-log-tables).
+
+An old values file fails the render once, with one line for every old key it holds, naming the key that replaces it and what to write. "You will see" below shows the output.
 
 > [!NOTE]
 > A probe or security context set to `null` renders none, while an empty map keeps the defaults, because Helm merges maps. A probe has one handler, so a non-HTTP probe also sets `httpGet: null`.
 
-The histogramQuantile download is `clickhouse.udf`, and it runs on the ClickHouse image. Its init container, `<clickhouse.fullname>-udf-init`, mounts the user scripts volume `shared-binary-volume` at `/var/lib/clickhouse/user_scripts`. Entries in `clickhouse.extraInitContainers` run after it and mount only the volumes they list. Any key under `clickhouse.initContainers` fails the render with a message naming `clickhouse.udf` and `clickhouse.extraInitContainers`.
+> [!NOTE]
+> A values file that copies the whole `values.yaml` of 0.151.0 holds twelve old keys, and the render lists all twelve. For `clickhouse.podAnnotations`, `otelCollector.podAnnotations` and the old shape of `signoz.livenessProbe`, `signoz.readinessProbe`, `otelCollector.livenessProbe` and `otelCollector.readinessProbe`, the 0.152.0 defaults hold the same values, so delete those keys.
 
-The system logs sidecar (`clickhouse.logs.system`, off by default) runs `signoz/signoz-otel-collector:v0.144.15` with the command `/signoz-otel-collector`. Its default config has no `service.telemetry.metrics` block, because `v0.144.15` rejects that block's `address` key. Overrides of existing keys under `clickhouse.logs.system.config`, such as an exporter endpoint or a batch size, merge as before. With the default config, the sidecar logs one warning on start: `"otlp" alias is deprecated; use "otlp_grpc" instead`.
+The histogramQuantile download is `clickhouse.udf`, and it runs on the ClickHouse image. Its init container, `<clickhouse.fullname>-udf-init`, mounts the user scripts volume `shared-binary-volume` at `/var/lib/clickhouse/user_scripts`, and `clickhouse.udf.extraVolumeMounts` adds mounts of `clickhouse.extraVolumes` to it. Entries in `clickhouse.extraInitContainers` run after it and mount only the volumes they list. `clickhouse.initContainers` set to anything other than `null`, an empty map included, fails the render with a message naming `clickhouse.udf` and `clickhouse.extraInitContainers`.
+
+The ClickHouse container takes `clickhouse.env` and `clickhouse.envFrom`, lists of Kubernetes EnvVar and EnvFromSource objects.
+
+The system logs sidecar (`clickhouse.logs.system`, off by default) runs `signoz/signoz-otel-collector:v0.144.15` with the command `/signoz-otel-collector`. Its default config has no `service.telemetry.metrics` block, because `v0.144.15` rejects that block's `address` key. Overrides of existing keys under `clickhouse.logs.system.config`, such as an exporter endpoint or a batch size, merge as before. With the default config, the sidecar logs one warning on start: `"otlp" alias is deprecated; use "otlp_grpc" instead`. `clickhouse.logs.system.env`, `clickhouse.logs.system.envFrom` and `clickhouse.logs.system.extraVolumeMounts` reach the sidecar container.
 
 | Old key | New key | What to write | If you keep the old key |
 | --- | --- | --- | --- |
 | `clickhouse.securityContext` | `clickhouse.podSecurityContext`, `clickhouse.containerSecurityContext` | The pod fields, without `enabled`, under `podSecurityContext`; the container fields under `containerSecurityContext` | Fails the render when set |
-| `clickhouse.startupProbe.enabled`, `.port`, `.path` | `clickhouse.startupProbe.httpGet.port`, `.httpGet.path` | The probe object; `clickhouse.startupProbe: null` for `enabled: false` | Fails the render when any of the three is present |
-| `clickhouse.livenessProbe.enabled`, `.port`, `.path` | `clickhouse.livenessProbe.httpGet.port`, `.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
-| `clickhouse.readinessProbe.enabled`, `.port`, `.path` | `clickhouse.readinessProbe.httpGet.port`, `.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
+| `clickhouse.startupProbe.enabled`, `clickhouse.startupProbe.port`, `clickhouse.startupProbe.path` | `clickhouse.startupProbe.httpGet.port`, `clickhouse.startupProbe.httpGet.path` | The probe object; `clickhouse.startupProbe: null` for `enabled: false` | Fails the render when any of the three is present |
+| `clickhouse.livenessProbe.enabled`, `clickhouse.livenessProbe.port`, `clickhouse.livenessProbe.path` | `clickhouse.livenessProbe.httpGet.port`, `clickhouse.livenessProbe.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
+| `clickhouse.readinessProbe.enabled`, `clickhouse.readinessProbe.port`, `clickhouse.readinessProbe.path` | `clickhouse.readinessProbe.httpGet.port`, `clickhouse.readinessProbe.httpGet.path` | As for `startupProbe` | Fails the render when any of the three is present |
 | `clickhouse.customStartupProbe`, `clickhouse.customLivenessProbe`, `clickhouse.customReadinessProbe` | `clickhouse.startupProbe`, `clickhouse.livenessProbe`, `clickhouse.readinessProbe` | The probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe | Fails the render when set |
 | `clickhouse.additionalVolumes` | `clickhouse.extraVolumes` | The same list | Fails the render when set |
 | `clickhouse.additionalVolumeMounts` | `clickhouse.extraVolumeMounts` | The same list | Fails the render when set |
+| `clickhouse.podAnnotations` | `clickhouse.pod.annotations` | The same map; the `signoz.io/scrape`, `signoz.io/port` and `signoz.io/path` defaults moved with it | Fails the render when non-empty |
+| `clickhouse.podLabels` | `clickhouse.pod.labels` | The same map; a key named like a selector label (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) is ignored | Fails the render when non-empty |
 | `clickhouse.image.registry` | None | The registry at the front of `clickhouse.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
 | `clickhouse.logs.system.image.registry` | None | The registry at the front of `clickhouse.logs.system.image.repository`, or `global.imageRegistry` | Fails the render when non-empty |
 | `clickhouse.initContainers.enabled` | `clickhouse.udf.enabled` | `clickhouse.udf.enabled: false` for `enabled: false` | Fails the render when present |
@@ -314,6 +324,22 @@ The system logs sidecar (`clickhouse.logs.system`, off by default) runs `signoz/
 | `clickhouse.replicasCount`, `clickhouse.shardsCount` | `clickhouse.layout.replicasCount`, `clickhouse.layout.shardsCount` | Nothing; `clickhouse.layout.*` was already the key in use | Goes through silently |
 | `clickhouse.global.*` | `global.*` | Nothing; `global.*` was already the key in use | Goes through silently |
 | `zookeeper.enabled`, unset (was `clickhouse.zookeeper.enabled`, default `true`) | `zookeeper.enabled`, default `false` | `true` while ClickHouse runs on the bundled ZooKeeper ([section 1](#1-the-first-upgrade)) | Goes through and renders no ZooKeeper |
+| `signoz.additionalArgs` | `signoz.extraArgs` | The same list | Fails the render when non-empty |
+| `signoz.livenessProbe.enabled`, `signoz.livenessProbe.port`, `signoz.livenessProbe.path` | `signoz.livenessProbe.httpGet.port`, `signoz.livenessProbe.httpGet.path` | The probe object; `signoz.livenessProbe: null` for `enabled: false` | Fails the render when any of the three is present |
+| `signoz.readinessProbe.enabled`, `signoz.readinessProbe.port`, `signoz.readinessProbe.path` | `signoz.readinessProbe.httpGet.port`, `signoz.readinessProbe.httpGet.path` | As for `signoz.livenessProbe` | Fails the render when any of the three is present |
+| `signoz.customLivenessProbe`, `signoz.customReadinessProbe` | `signoz.livenessProbe`, `signoz.readinessProbe` | The probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe; the default timings stay unless you set each to `null` | Fails the render when non-empty |
+| `signoz.podAnnotations` | `signoz.pod.annotations` | The same map | Fails the render when non-empty |
+| `signoz.securityContext` | `signoz.containerSecurityContext` | The same map | Fails the render when non-empty |
+| `signoz.additionalVolumeMounts` | `signoz.extraVolumeMounts` | The same list | Fails the render when non-empty |
+| `signoz.additionalVolumes` | `signoz.extraVolumes` | The same list | Fails the render when non-empty |
+| `otelCollector.additionalEnvs` | `otelCollector.env` | A list of Kubernetes EnvVar objects, `- name: <NAME>` with `value` or `valueFrom`, rendered after the chart's variables in the order you write them; an entry named like a chart variable, such as `CLICKHOUSE_USER`, replaces its value; quote a `value` that YAML reads as a number or boolean | Fails the render when non-empty |
+| `otelCollector.command.extraArgs` | `otelCollector.extraArgs` | The same list | Fails the render when non-empty |
+| `otelCollector.livenessProbe.enabled`, `otelCollector.livenessProbe.port`, `otelCollector.livenessProbe.path` | `otelCollector.livenessProbe.httpGet.port`, `otelCollector.livenessProbe.httpGet.path` | The probe object; `otelCollector.livenessProbe: null` for `enabled: false` | Fails the render when any of the three is present |
+| `otelCollector.readinessProbe.enabled`, `otelCollector.readinessProbe.port`, `otelCollector.readinessProbe.path` | `otelCollector.readinessProbe.httpGet.port`, `otelCollector.readinessProbe.httpGet.path` | As for `otelCollector.livenessProbe` | Fails the render when any of the three is present |
+| `otelCollector.customLivenessProbe`, `otelCollector.customReadinessProbe` | `otelCollector.livenessProbe`, `otelCollector.readinessProbe` | The probe object itself, with `httpGet: null` for an `exec`, `tcpSocket` or `grpc` probe; the default timings stay unless you set each to `null` | Fails the render when non-empty |
+| `otelCollector.podAnnotations` | `otelCollector.pod.annotations` | The same map; the `signoz.io/scrape` and `signoz.io/port` defaults moved with it; a `checksum/config` key is ignored, because the chart sets it | Fails the render when non-empty |
+| `otelCollector.podLabels` | `otelCollector.pod.labels` | The same map; a key named like a selector label (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) is ignored | Fails the render when non-empty |
+| `otelCollector.securityContext` | `otelCollector.containerSecurityContext` | The same map; it also applies to the collector's `check` init container | Fails the render when non-empty |
 
 For example:
 
@@ -338,6 +364,35 @@ clickhouse:
     repository: my.registry/clickhouse/clickhouse-server   # was registry: my.registry
 ```
 
+For the SigNoz server and the collector:
+
+```yaml
+signoz:
+  pod:
+    annotations:                             # was podAnnotations
+      backup.velero.io/backup-volumes: signoz-db
+  containerSecurityContext:                  # was securityContext
+    runAsNonRoot: true
+  livenessProbe:                             # was enabled, port and path
+    httpGet:
+      path: /api/v1/health
+    initialDelaySeconds: 30
+  readinessProbe: null                       # was enabled: false
+otelCollector:
+  env:                                       # was additionalEnvs
+    - name: GOMEMLIMIT
+      value: "800MiB"
+  extraArgs:                                 # was command.extraArgs
+    - --feature-gates=-pkg.translator.prometheus.NormalizeName
+  pod:
+    labels:                                  # was podLabels
+      team: observability
+  livenessProbe:                             # was customLivenessProbe
+    httpGet: null
+    tcpSocket:
+      port: 13133
+```
+
 ### You must
 
 1. Rewrite each old key in your values as the table says.
@@ -345,7 +400,33 @@ clickhouse:
 
 ### You will see
 
-- An old key stops the render with `Error: execution error at (signoz/templates/validate.yaml:...)` and a message naming its new key.
+- A values file with one old key for each of ClickHouse, the schema migrator, SigNoz and the collector:
+
+  ```yaml
+  clickhouse:
+    podAnnotations:
+      signoz.io/scrape: "true"
+  signoz:
+    readinessProbe:
+      enabled: false
+  otelCollector:
+    additionalEnvs:
+      GOMEMLIMIT: "800MiB"
+  telemetryStoreMigrator:
+    upgradeHelmHooks: true
+  ```
+
+  stops the render once, listing all four:
+
+  ```text
+  Error: execution error at (signoz/templates/validate.yaml:22:4): 4 values must change before the chart can be installed:
+  - `clickhouse.podAnnotations` has moved to `clickhouse.pod.annotations`: the same map of annotations.
+  - `telemetryStoreMigrator.upgradeHelmHooks` has been removed: delete it, since the migrator now runs as a Job named with the release revision on every install and upgrade; set `telemetryStoreMigrator.enabled: false` to skip it.
+  - `signoz.readinessProbe.enabled` has moved to `signoz.readinessProbe.httpGet.port` and `signoz.readinessProbe.httpGet.path`: write the probe object, and `signoz.readinessProbe: null` for no probe.
+  - `otelCollector.additionalEnvs` has moved to `otelCollector.env`: a list of Kubernetes EnvVar objects, `- name: <NAME>` with `value` or `valueFrom`.
+  ```
+
+  The first line counts the lines that follow; with one old key it reads `1 value must change`.
 - With `clickhouse.containerSecurityContext` set to `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `runAsNonRoot: true` and `seccompProfile.type: RuntimeDefault`, the block reached the ClickHouseInstallation, the StatefulSet and the pod. ClickHouse ran as uid 101 with every replica writable.
 - Setting `clickhouse.containerSecurityContext` to `null` removed the block and rolled the pod once.
 
