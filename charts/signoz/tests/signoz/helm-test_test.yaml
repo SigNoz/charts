@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/helm-test
+templates:
+  - templates/signoz/tests/test-connection.yaml
+  - templates/signoz/service.yaml
+tests:
+  - it: checks the health of the SigNoz Service on signoz.service.port with helm test
+    set:
+      fullnameOverride: foo
+      signoz.service.port: 9090
+    asserts:
+      - template: templates/signoz/tests/test-connection.yaml
+        contains:
+          path: spec.containers[*].args
+          content: http://foo:9090/api/v1/health?live=1
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: foo
+      - template: templates/signoz/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "http")].port
+          value: 9090
