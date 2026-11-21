@@ -14,11 +14,15 @@ Chart 0.152.0 folds `charts/clickhouse` into `charts/signoz`, renders ClickHouse
 | Set `clickhouse.logs.system.enabled: true` in your values | [5. Moved keys](#5-moved-keys) |
 | Set `clickhouse.fullnameOverride`, `clickhouse.nameOverride` or `clickhouse.namespace` in your values, or use a release name that contains `clickhouse` | [6. Names and namespaces](#6-names-and-namespaces) |
 | Have something outside the chart that names, selects or watches chart objects | [7. Objects](#7-objects) |
-| Set `global.imageRegistry` or `global.imagePullSecrets` | [8. Registry and pull secrets](#8-registry-and-pull-secrets) |
+| Set `global.imageRegistry`, `global.imagePullSecrets`, `imagePullSecrets` or a component's `imagePullSecrets` | [8. Registry and pull secrets](#8-registry-and-pull-secrets) |
 | Run the operator yourself, turn a hook off, or deploy through Argo CD or Terraform | [9. Hooks and deployers](#9-hooks-and-deployers) |
 | Run an external ZooKeeper | [10. External ZooKeeper](#10-external-zookeeper) |
 | Plan to move from ZooKeeper to ClickHouse Keeper | [11. ZooKeeper to ClickHouse Keeper](#11-zookeeper-to-clickhouse-keeper) |
 | Plan to uninstall or roll back | [12. Uninstall and rollback](#12-uninstall-and-rollback) |
+| Set `signoz.env`, a port under `signoz.service`, `signoz.service.labels` or `signoz.ingress.hosts` in your values | [13. The SigNoz container](#13-the-signoz-container) |
+| Run the schema migrator (on by default), set a `telemetryStoreMigrator.*` key, or upgrade with `--no-hooks` | [14. Schema migrator](#14-schema-migrator) |
+| Set an `otelCollector.*` key or `signoz.service.opampPort` in your values | [15. The collector](#15-the-collector) |
+| Set `postgresql.enabled: true` in your values | [16. Bundled Postgres](#16-bundled-postgres) |
 
 Commands in this guide use these placeholders:
 
