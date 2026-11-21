@@ -591,7 +591,7 @@ The operator, metrics-exporter and CRD hook images, and the operator pod's pull 
 
 The operator upgrade hook pulls `<global.imageRegistry>/kubectl:v1.36.3`, because `global.imageRegistry` replaces the registry at the front of its repository, `registry.k8s.io/kubectl`.
 
-The pods below list their pull secrets in their own spec: `global.imagePullSecrets`, then `imagePullSecrets`, then the list of their component, with each name once. The chart's ServiceAccounts carry no pull secrets.
+The pods below list their pull secrets in their own spec: `global.imagePullSecrets`, then `imagePullSecrets`, then the list of their component, with each name once. The ServiceAccounts of these components carry no pull secrets.
 
 | Pod | Component list |
 | --- | --- |
@@ -690,7 +690,7 @@ The histogramQuantile download (`clickhouse.udf`) runs the ClickHouse container'
     imagePullSecrets: ["clickhouse-pull"]
   ```
 
-  the ClickHouse pod and the operator upgrade hook list `shared`, `signoz-pull` and `clickhouse-pull`. The SigNoz, collector, schema migrator and ClickHouse Keeper pods list `shared` and `signoz-pull`. No chart ServiceAccount lists a pull secret.
+  the ClickHouse pod and the operator upgrade hook list `shared`, `signoz-pull` and `clickhouse-pull`. The SigNoz, collector, schema migrator and ClickHouse Keeper pods list `shared` and `signoz-pull`. None of their ServiceAccounts lists a pull secret.
 
 ### Verify
 
