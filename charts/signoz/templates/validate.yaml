@@ -10,6 +10,7 @@ A component adds its `<component>.validate` define to the list below on a line o
   "telemetryStoreMigrator.validate"
   "signoz.validate"
   "otelCollector.validate"
+  "postgresql.validate"
 }}
 {{- range $define := $defines }}
 {{- range splitList "\n" (include $define $) }}

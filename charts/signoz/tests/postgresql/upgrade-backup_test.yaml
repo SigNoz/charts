@@ -1,28 +1,29 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: postgresql/upgrade-backup
 templates:
-  - templates/upgrade-backup-job.yaml
-  - templates/statefulset.yaml
-  - templates/restore-configmap.yaml
+  - templates/postgresql/upgrade-backup-job.yaml
+  - templates/postgresql/statefulset.yaml
+  - templates/postgresql/restore-configmap.yaml
 set:
-  replicaCount: 1
-  image: {repository: postgres, tag: "15"}
-  auth: {username: signoz, password: signoz123, database: signoz, existingSecret: ""}
-  persistence:
+  postgresql.enabled: true
+  postgresql.replicaCount: 1
+  postgresql.image: {repository: postgres, tag: "15"}
+  postgresql.auth: {username: signoz, password: signoz123, database: signoz, existingSecret: ""}
+  postgresql.persistence:
     enabled: true
     existingClaim: ""
     accessModes: [ReadWriteOnce]
     mountPath: /var/lib/postgresql
     subPath: ""
     dataDir: /var/lib/postgresql/data
-  upgradeBackupHook.enabled: true
-  startupProbe.enabled: true
+  postgresql.upgradeBackupHook.enabled: true
+  postgresql.startupProbe.enabled: true
 tests:
   - it: runs a backup Job on helm upgrade with the default layout
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         isKind:
           of: Job
 
@@ -30,7 +31,7 @@ tests:
     release:
       upgrade: false
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -38,20 +39,20 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook.enabled: false
+      postgresql.upgradeBackupHook.enabled: false
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
           any: true
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         exists:
           path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         exists:
           path: data["00-signoz-restore.sh"]
 
@@ -59,9 +60,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.enabled: false
+      postgresql.persistence.enabled: false
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -69,10 +70,10 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.mountPath: /var/lib/postgresql/data
-      persistence.dataDir: /var/lib/postgresql/data/pgdata
+      postgresql.persistence.mountPath: /var/lib/postgresql/data
+      postgresql.persistence.dataDir: /var/lib/postgresql/data/pgdata
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -80,9 +81,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.dataDir: /srv/postgresql/data
+      postgresql.persistence.dataDir: /srv/postgresql/data
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -90,11 +91,11 @@ tests:
     release:
       upgrade: true
     set:
-      extraEnv:
+      postgresql.extraEnv:
         - name: PGDATA
           value: /srv/postgresql/data
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -102,9 +103,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.accessModes: [ReadWriteOncePod]
+      postgresql.persistence.accessModes: [ReadWriteOncePod]
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -112,9 +113,9 @@ tests:
     release:
       upgrade: true
     set:
-      replicaCount: 0
+      postgresql.replicaCount: 0
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -122,17 +123,17 @@ tests:
     release:
       upgrade: true
     set:
-      additionalVolumes:
+      postgresql.additionalVolumes:
         - name: fast-data
           persistentVolumeClaim: {claimName: postgres-fast-data}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: fast-data
           mountPath: /var/lib/postgresql/data
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {name: pgdata, mountPath: /var/lib/postgresql/data}
@@ -142,15 +143,15 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.dataDir: /var/lib/postgresql/fast/pgdata
-      additionalVolumes:
+      postgresql.persistence.dataDir: /var/lib/postgresql/fast/pgdata
+      postgresql.additionalVolumes:
         - name: fast-data
           persistentVolumeClaim: {claimName: postgres-fast-data}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: fast-data
           mountPath: /var/lib/postgresql/fast
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -158,14 +159,14 @@ tests:
     release:
       upgrade: true
     set:
-      additionalVolumes:
+      postgresql.additionalVolumes:
         - name: backup
           persistentVolumeClaim: {claimName: postgres-backup}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: backup
           mountPath: /backup
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         isKind:
           of: Job
 
@@ -173,14 +174,14 @@ tests:
     release:
       upgrade: true
     set:
-      additionalVolumes:
+      postgresql.additionalVolumes:
         - name: fast-data
           persistentVolumeClaim: {claimName: postgres-fast-data}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: fast-data
           mountPath: /var/lib/postgresql/data/
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         hasDocuments:
           count: 0
 
@@ -188,12 +189,12 @@ tests:
     release:
       upgrade: true
     set:
-      image.tag: "18"
+      postgresql.image.tag: "18"
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         isKind:
           of: Job
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /var/lib/postgresql/data}
@@ -204,7 +205,7 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: metadata.annotations
           value:
@@ -216,11 +217,11 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.backoffLimit
           value: 0
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.restartPolicy
           value: Never
@@ -229,9 +230,9 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook.activeDeadlineSeconds: 600
+      postgresql.upgradeBackupHook.activeDeadlineSeconds: 600
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.activeDeadlineSeconds
           value: 600
@@ -240,9 +241,9 @@ tests:
     release:
       upgrade: true
     set:
-      image: {registry: registry.example.com, repository: mirror/postgres, tag: "15.10"}
+      postgresql.image: {registry: registry.example.com, repository: mirror/postgres, tag: "15.10"}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].image
           value: registry.example.com/mirror/postgres:15.10
@@ -251,14 +252,14 @@ tests:
     release:
       upgrade: true
     set:
-      imagePullSecrets: [regcred]
-      serviceAccount: {create: false, name: postgres-sa}
+      postgresql.imagePullSecrets: [regcred]
+      postgresql.serviceAccount: {create: false, name: postgres-sa}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.imagePullSecrets
           value: [{name: regcred}]
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.serviceAccountName
           value: postgres-sa
@@ -267,15 +268,15 @@ tests:
     release:
       upgrade: true
     set:
-      nodeSelector: {node-role.example.com/db: "true"}
-      priorityClassName: signoz-critical
-      upgradeBackupHook: {nodeSelector: {}, priorityClassName: ""}
+      postgresql.nodeSelector: {node-role.example.com/db: "true"}
+      postgresql.priorityClassName: signoz-critical
+      postgresql.upgradeBackupHook: {nodeSelector: {}, priorityClassName: ""}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.nodeSelector
           value: {node-role.example.com/db: "true"}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.priorityClassName
           value: signoz-critical
@@ -284,17 +285,17 @@ tests:
     release:
       upgrade: true
     set:
-      nodeSelector: {node-role.example.com/db: "true"}
-      priorityClassName: signoz-critical
-      upgradeBackupHook:
+      postgresql.nodeSelector: {node-role.example.com/db: "true"}
+      postgresql.priorityClassName: signoz-critical
+      postgresql.upgradeBackupHook:
         nodeSelector: {kubernetes.io/hostname: db-node-1}
         priorityClassName: signoz-hooks
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.nodeSelector
           value: {kubernetes.io/hostname: db-node-1}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.priorityClassName
           value: signoz-hooks
@@ -304,66 +305,46 @@ tests:
     release:
       upgrade: true
     set:
-      tolerations:
+      postgresql.tolerations:
         - {key: dedicated, operator: Equal, value: db, effect: NoSchedule}
-      upgradeBackupHook.tolerations:
+      postgresql.upgradeBackupHook.tolerations:
         - {key: maintenance, operator: Exists, effect: NoSchedule}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.tolerations
           content: {key: dedicated, operator: Equal, value: db, effect: NoSchedule}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.tolerations
           content: {key: maintenance, operator: Exists, effect: NoSchedule}
 
   # The Job reads the claim's data directory, which belongs to the Postgres pod's user.
-  - it: runs the Job with the Postgres pod's security contexts when upgradeBackupHook sets none
+  - it: runs the Job with the Postgres pod's security contexts
     release:
       upgrade: true
     set:
-      podSecurityContext: {runAsUser: 999, runAsGroup: 999, fsGroup: 999, runAsNonRoot: true}
-      securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
-      upgradeBackupHook: {podSecurityContext: {}, containerSecurityContext: {}}
+      postgresql.podSecurityContext: {runAsUser: 999, runAsGroup: 999, fsGroup: 999, runAsNonRoot: true}
+      postgresql.securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.securityContext
           value: {runAsUser: 999, runAsGroup: 999, fsGroup: 999, runAsNonRoot: true}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].securityContext
           value: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
-
-  - it: uses upgradeBackupHook.podSecurityContext and upgradeBackupHook.containerSecurityContext when set
-    release:
-      upgrade: true
-    set:
-      podSecurityContext: {runAsUser: 999, fsGroup: 999}
-      securityContext: {allowPrivilegeEscalation: false}
-      upgradeBackupHook:
-        podSecurityContext: {runAsUser: 1001, runAsGroup: 1001, fsGroup: 1001}
-        containerSecurityContext: {readOnlyRootFilesystem: true}
-    asserts:
-      - template: templates/upgrade-backup-job.yaml
-        equal:
-          path: spec.template.spec.securityContext
-          value: {runAsUser: 1001, runAsGroup: 1001, fsGroup: 1001}
-      - template: templates/upgrade-backup-job.yaml
-        equal:
-          path: spec.template.spec.containers[?(@.name == "upgrade-backup")].securityContext
-          value: {readOnlyRootFilesystem: true}
 
   - it: sets the container's resources from upgradeBackupHook.resources
     release:
       upgrade: true
     set:
-      upgradeBackupHook.resources:
+      postgresql.upgradeBackupHook.resources:
         requests: {cpu: 100m, memory: 128Mi}
         limits: {cpu: "2", memory: 1Gi}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].resources
           value:
@@ -374,9 +355,9 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook.resources: null
+      postgresql.upgradeBackupHook.resources: null
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         notExists:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].resources
 
@@ -384,15 +365,15 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook:
+      postgresql.upgradeBackupHook:
         podAnnotations: {sidecar.istio.io/inject: "false"}
         podLabels: {team: database}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.metadata.annotations
           value: {sidecar.istio.io/inject: "false"}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.metadata.labels.team
           value: database
@@ -402,20 +383,20 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook.podLabels:
+      postgresql.upgradeBackupHook.podLabels:
         app.kubernetes.io/name: postgres
         app.kubernetes.io/instance: RELEASE-NAME
         team: database
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.metadata.labels["app.kubernetes.io/name"]
           value: postgres-upgrade-backup
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         notEqual:
           path: spec.template.metadata.labels["app.kubernetes.io/name"]
           value: postgres
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.metadata.labels.team
           value: database
@@ -425,13 +406,13 @@ tests:
     release:
       upgrade: true
     set:
-      upgradeBackupHook.annotations:
+      postgresql.upgradeBackupHook.annotations:
         helm.sh/hook: post-upgrade
         helm.sh/hook-weight: "5"
         helm.sh/hook-delete-policy: hook-succeeded
         example.com/owner: platform
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: metadata.annotations
           value:
@@ -445,7 +426,7 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.affinity.podAffinity
           value:
@@ -460,7 +441,7 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         notEqual:
           path: spec.template.metadata.labels["app.kubernetes.io/name"]
           value: postgres
@@ -470,26 +451,26 @@ tests:
     release:
       upgrade: true
     set:
-      service.port: 5432
-      auth: {username: signoz, password: pg-s3cret, database: signoz, existingSecret: ""}
+      postgresql.service.port: 5432
+      postgresql.auth: {username: signoz, password: pg-s3cret, database: signoz, existingSecret: ""}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGHOST, value: RELEASE-NAME-postgresql}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGPORT, value: "5432"}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGUSER, value: signoz}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGDATABASE, value: signoz}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGPASSWORD, value: pg-s3cret}
@@ -498,9 +479,9 @@ tests:
     release:
       upgrade: true
     set:
-      auth: {existingSecret: my-pg, secretKeys: {userPasswordKey: pw}}
+      postgresql.auth: {existingSecret: my-pg, secretKeys: {userPasswordKey: pw}}
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content:
@@ -511,14 +492,14 @@ tests:
     release:
       upgrade: true
     set:
-      auth: {username: metadata, database: ""}
+      postgresql.auth: {username: metadata, database: ""}
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].env
           content: {name: POSTGRES_DB}
           any: true
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGDATABASE, value: metadata}
@@ -527,9 +508,9 @@ tests:
     release:
       upgrade: true
     set:
-      fullnameOverride: pg
+      postgresql.fullnameOverride: pg
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: PGHOST, value: pg}
@@ -538,7 +519,7 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
           value: {claimName: pgdata-RELEASE-NAME-postgresql-0}
@@ -547,9 +528,9 @@ tests:
     release:
       upgrade: true
     set:
-      fullnameOverride: pg
+      postgresql.fullnameOverride: pg
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
           value: {claimName: pgdata-pg-0}
@@ -558,9 +539,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.existingClaim: postgres-data
+      postgresql.persistence.existingClaim: postgres-data
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         equal:
           path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
           value: {claimName: postgres-data}
@@ -569,7 +550,7 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_PGDATA, value: /claim/data}
@@ -578,9 +559,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.dataDir: /var/lib/postgresql/pgdata
+      postgresql.persistence.dataDir: /var/lib/postgresql/pgdata
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_PGDATA, value: /claim/pgdata}
@@ -589,13 +570,13 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.dataDir: /var/lib/postgresql/
+      postgresql.persistence.dataDir: /var/lib/postgresql/
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_PGDATA, value: /claim}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_BACKUPS, value: /claim/backups}
@@ -604,9 +585,9 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.subPath: signoz
+      postgresql.persistence.subPath: signoz
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_PGDATA, value: /claim/signoz/data}
@@ -615,11 +596,11 @@ tests:
     release:
       upgrade: true
     set:
-      extraEnv:
+      postgresql.extraEnv:
         - name: PGDATA
           value: /var/lib/postgresql/pg15
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_PGDATA, value: /claim/pg15}
@@ -628,18 +609,18 @@ tests:
     release:
       upgrade: true
     set:
-      persistence.subPath: signoz
-      persistence.dataDir: /var/lib/postgresql/pgdata
+      postgresql.persistence.subPath: signoz
+      postgresql.persistence.dataDir: /var/lib/postgresql/pgdata
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: CLAIM_BACKUPS, value: /claim/signoz/backups}
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         matchRegex:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].args[0]
-          pattern: "mv \"\\$tmp\" \"\\$CLAIM_BACKUPS/pre-upgrade\\.sql\""
-      - template: templates/restore-configmap.yaml
+          pattern: "mv \"\\$CLAIM_BACKUPS/\\.pre-upgrade\\.tmp\" \"\\$CLAIM_BACKUPS/pre-upgrade\\.sql\""
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "(?m)^dump='/var/lib/postgresql/backups/pre-upgrade\\.sql'$"
@@ -648,12 +629,12 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
           any: true
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: RESTORE_LOADER, value: "true"}
@@ -663,19 +644,19 @@ tests:
     release:
       upgrade: true
     set:
-      additionalVolumes:
+      postgresql.additionalVolumes:
         - name: init-scripts
           configMap: {name: postgres-init-scripts}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
           any: true
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
           content: {name: RESTORE_LOADER, value: "false"}
@@ -684,16 +665,16 @@ tests:
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         matchRegex:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].args[0]
-          pattern: "\\{ echo 'BEGIN;' && pg_dump -w && echo 'COMMIT;'; \\} > \"\\$tmp\""
+          pattern: "\\{ echo 'BEGIN;' && pg_dump -w && echo 'COMMIT;'; \\} > \"\\$CLAIM_BACKUPS/\\.pre-upgrade\\.tmp\""
 
   - it: names postgresql.upgradeBackupHook.enabled as the way past a backup it cannot take
     release:
       upgrade: true
     asserts:
-      - template: templates/upgrade-backup-job.yaml
+      - template: templates/postgresql/upgrade-backup-job.yaml
         matchRegex:
           path: spec.template.spec.containers[?(@.name == "upgrade-backup")].args[0]
           pattern: "postgresql\\.upgradeBackupHook\\.enabled=false"

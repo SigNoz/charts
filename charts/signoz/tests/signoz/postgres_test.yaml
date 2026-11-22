@@ -1,15 +1,15 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: signoz/postgres_subchart
+suite: signoz/postgres
 templates:
   - templates/signoz/statefulset.yaml
-  - charts/postgresql/templates/service.yaml
-  - charts/postgresql/templates/statefulset.yaml
+  - templates/postgresql/service.yaml
+  - templates/postgresql/statefulset.yaml
 tests:
   - it: stores SigNoz's data in the bundled Postgres with postgresql.enabled, dialling the Service it renders
     set:
       postgresql.enabled: true
     asserts:
-      - template: charts/postgresql/templates/service.yaml
+      - template: templates/postgresql/service.yaml
         equal:
           path: metadata.name
           value: RELEASE-NAME-postgresql
@@ -31,15 +31,15 @@ tests:
       postgresql.auth.username: app
       postgresql.auth.database: sigdb
     asserts:
-      - template: charts/postgresql/templates/service.yaml
+      - template: templates/postgresql/service.yaml
         equal:
           path: spec.ports[?(@.name == "tcp-postgresql")].port
           value: 5433
-      - template: charts/postgresql/templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].env
           content: {name: POSTGRES_USER, value: app}
-      - template: charts/postgresql/templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].env
           content: {name: POSTGRES_DB, value: sigdb}
@@ -62,7 +62,7 @@ tests:
       postgresql.auth.existingSecret: pg-sec
       postgresql.auth.secretKeys.userPasswordKey: pw
     asserts:
-      - template: charts/postgresql/templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].env
           content: &password
@@ -78,7 +78,7 @@ tests:
       postgresql.enabled: true
       postgresql.fullnameOverride: pg
     asserts:
-      - template: charts/postgresql/templates/service.yaml
+      - template: templates/postgresql/service.yaml
         equal:
           path: metadata.name
           value: pg
@@ -94,7 +94,7 @@ tests:
       postgresql.enabled: true
       postgresql.nameOverride: pgx
     asserts:
-      - template: charts/postgresql/templates/service.yaml
+      - template: templates/postgresql/service.yaml
         equal:
           path: metadata.name
           value: RELEASE-NAME-pgx
@@ -111,7 +111,7 @@ tests:
     set:
       postgresql.enabled: true
     asserts:
-      - template: charts/postgresql/templates/service.yaml
+      - template: templates/postgresql/service.yaml
         equal:
           path: metadata.name
           value: mypostgresql

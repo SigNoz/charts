@@ -1,50 +1,52 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: postgresql/startup-probe
 templates:
-  - templates/statefulset.yaml
+  - templates/postgresql/statefulset.yaml
+set:
+  postgresql.enabled: true
 tests:
   - it: holds the pod back until Postgres answers on TCP and no dump waits in backups under persistence.mountPath
     set:
-      service.port: 5432
-      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: ""}
-      startupProbe.enabled: true
+      postgresql.service.port: 5432
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: ""}
+      postgresql.startupProbe.enabled: true
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ]
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
 
   - it: looks for the dump under persistence.mountPath, which already shows the claim at persistence.subPath
     set:
-      service.port: 5432
-      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
-      startupProbe.enabled: true
+      postgresql.service.port: 5432
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
+      postgresql.startupProbe.enabled: true
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ]
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
 
   - it: looks for the dump in backups under a custom persistence.mountPath
     set:
-      service.port: 5432
-      persistence: {enabled: true, mountPath: /var/lib/postgresql/data, dataDir: /var/lib/postgresql/data/pgdata}
-      startupProbe.enabled: true
+      postgresql.service.port: 5432
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql/data, dataDir: /var/lib/postgresql/data/pgdata}
+      postgresql.startupProbe.enabled: true
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/data/backups/pre-upgrade.sql' ]
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/data/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/data/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
 
   - it: times the startup probe from the startupProbe values
     set:
-      startupProbe:
+      postgresql.startupProbe:
         enabled: true
         initialDelaySeconds: 5
         periodSeconds: 30
@@ -67,7 +69,7 @@ tests:
 
   - it: renders no startup probe when startupProbe.enabled is false
     set:
-      startupProbe.enabled: false
+      postgresql.startupProbe.enabled: false
     asserts:
       - notExists:
           path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe

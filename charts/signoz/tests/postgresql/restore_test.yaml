@@ -1,95 +1,97 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: postgresql/restore
 templates:
-  - templates/statefulset.yaml
-  - templates/restore-configmap.yaml
+  - templates/postgresql/statefulset.yaml
+  - templates/postgresql/restore-configmap.yaml
+set:
+  postgresql.enabled: true
 tests:
   - it: mounts the loader as the single file /docker-entrypoint-initdb.d/00-signoz-restore.sh
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql}
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         contains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh, subPath: 00-signoz-restore.sh, readOnly: true}
           any: true
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         exists:
           path: data["00-signoz-restore.sh"]
 
   # The image's entrypoint sources an init .sh that is not executable instead of running it.
   - it: mounts the loader with mode 0755 so the entrypoint executes it
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql}
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         equal:
           path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/docker-entrypoint-initdb.d/00-signoz-restore.sh")].name)].configMap.defaultMode
           value: 0o755
 
   - it: loads the dump from backups/pre-upgrade.sql under persistence.mountPath
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: ""}
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: ""}
     asserts:
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "(?m)^dump='/var/lib/postgresql/backups/pre-upgrade\\.sql'$"
 
   - it: loads the dump under persistence.mountPath, which already shows the claim at persistence.subPath
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
     asserts:
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "(?m)^dump='/var/lib/postgresql/backups/pre-upgrade\\.sql'$"
 
   - it: loads only a dump whose last line is COMMIT;, stopping at the first SQL error, and renames it to .loaded
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql}
     asserts:
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "\"\\$\\(tail -n 1 \"\\$dump\"\\)\" != 'COMMIT;'"
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "psql -v ON_ERROR_STOP=1 --no-psqlrc .*-f \"\\$dump\""
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         matchRegex:
           path: data["00-signoz-restore.sh"]
           pattern: "mv \"\\$dump\" \"\\$dump\\.loaded\""
 
   - it: leaves /docker-entrypoint-initdb.d to an additionalVolumeMounts entry at that path
     set:
-      persistence: {enabled: true, mountPath: /var/lib/postgresql}
-      additionalVolumes:
+      postgresql.persistence: {enabled: true, mountPath: /var/lib/postgresql}
+      postgresql.additionalVolumes:
         - name: init-scripts
           configMap: {name: postgres-init-scripts}
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
           any: true
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         hasDocuments:
           count: 0
 
   - it: adds no loader without persistence
     set:
-      persistence: {enabled: false, mountPath: /var/lib/postgresql}
+      postgresql.persistence: {enabled: false, mountPath: /var/lib/postgresql}
     asserts:
-      - template: templates/statefulset.yaml
+      - template: templates/postgresql/statefulset.yaml
         notContains:
           path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
           content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
           any: true
-      - template: templates/restore-configmap.yaml
+      - template: templates/postgresql/restore-configmap.yaml
         hasDocuments:
           count: 0

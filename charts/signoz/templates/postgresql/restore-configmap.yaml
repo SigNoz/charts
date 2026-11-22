@@ -1,3 +1,4 @@
+{{- if .Values.postgresql.enabled }}
 {{- if include "postgresql.restoreLoader" . }}
 apiVersion: v1
 kind: ConfigMap
@@ -44,4 +45,5 @@ data:
       exit 1
     fi
     echo "Loaded $dump into database $db and renamed it to $dump.loaded"
+{{- end }}
 {{- end }}

@@ -11,10 +11,10 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "postgresql.fullname" -}}
-{{- if .Values.fullnameOverride -}}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.postgresql.fullnameOverride -}}
+{{- .Values.postgresql.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $name := default "postgresql" .Values.postgresql.nameOverride -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -29,8 +29,9 @@ Standard labels for postgres resources
 {{- define "postgresql.labels" -}}
 helm.sh/chart:  {{ include "postgresql.chart" . }}
 {{ include "postgresql.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- $version := default "" .Values.postgresql.image.tag | toString | splitList "@" | first | trunc 63 }}
+{{- if $version }}
+app.kubernetes.io/version: {{ $version | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -47,27 +48,27 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Base name for the chart
 */}}
 {{- define "postgresql.name" -}}
-{{- default "postgres" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- default "postgres" .Values.postgresql.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 ServiceAccount name
 */}}
 {{- define "postgresql.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{ default (include "postgresql.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.postgresql.serviceAccount.create -}}
+    {{ default (include "postgresql.fullname" .) .Values.postgresql.serviceAccount.name }}
 {{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
+    {{ default "default" .Values.postgresql.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
 {{- define "postgresql.imagePullSecrets" -}}
-{{- if .Values.imagePullSecrets }}
+{{- if .Values.postgresql.imagePullSecrets }}
 imagePullSecrets:
 {{- range .Values.global.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
-{{- range .Values.imagePullSecrets }}
+{{- range .Values.postgresql.imagePullSecrets }}
   - name: {{ . }}
 {{- end }}
 {{- end }}  
@@ -77,9 +78,9 @@ imagePullSecrets:
 Return the proper signoz image name
 */}}
 {{- define "postgresql.image" -}}
-{{- $registryName := .Values.image.registry -}}
-{{- $repositoryName := .Values.image.repository -}}
-{{- $tag := default .Chart.AppVersion .Values.image.tag | toString -}}
+{{- $registryName := .Values.postgresql.image.registry -}}
+{{- $repositoryName := .Values.postgresql.image.repository -}}
+{{- $tag := default "15.0.0" .Values.postgresql.image.tag | toString -}}
 {{- if $registryName -}}
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- else -}}
@@ -91,14 +92,14 @@ Return the proper signoz image name
 persistence.subPath without leading or trailing slashes.
 */}}
 {{- define "postgresql.subPath" -}}
-{{- trimAll "/" (default "" .Values.persistence.subPath | toString) -}}
+{{- trimAll "/" (default "" .Values.postgresql.persistence.subPath | toString) -}}
 {{- end -}}
 
 {{/*
 "true" when persistence is on and the claim is mounted at /var/lib/postgresql, the parent of the image's data volume.
 */}}
 {{- define "postgresql.defaultLayout" -}}
-{{- if and .Values.persistence.enabled (eq (clean (default "" .Values.persistence.mountPath | toString)) "/var/lib/postgresql") -}}
+{{- if and .Values.postgresql.persistence.enabled (eq (clean (default "" .Values.postgresql.persistence.mountPath | toString)) "/var/lib/postgresql") -}}
 true
 {{- end -}}
 {{- end -}}
@@ -108,13 +109,13 @@ true
 */}}
 {{- define "postgresql.dataMount" -}}
 {{- $userMount := false -}}
-{{- range .Values.additionalVolumeMounts -}}
+{{- range .Values.postgresql.additionalVolumeMounts -}}
 {{- if eq (clean (default "" .mountPath | toString)) "/var/lib/postgresql/data" -}}
 {{- $userMount = true -}}
 {{- end -}}
 {{- end -}}
-{{- $official := has (toString .Values.image.repository) (list "postgres" "docker.io/library/postgres") -}}
-{{- $major := regexFind "^(pg)?[0-9]+" (default .Chart.AppVersion .Values.image.tag | toString) | trimPrefix "pg" | atoi -}}
+{{- $official := has (toString .Values.postgresql.image.repository) (list "postgres" "docker.io/library/postgres") -}}
+{{- $major := regexFind "^(pg)?[0-9]+" (default "15.0.0" .Values.postgresql.image.tag | toString) | trimPrefix "pg" | atoi -}}
 {{- if and (include "postgresql.defaultLayout" .) (not $userMount) (not (and $official (ge $major 18))) -}}
 true
 {{- end -}}
@@ -124,7 +125,7 @@ true
 Path of the dump the loader reads, under the claim as the postgres container mounts it.
 */}}
 {{- define "postgresql.restoreFile" -}}
-{{- printf "%s/backups/pre-upgrade.sql" (clean (default "" .Values.persistence.mountPath | toString) | trimSuffix "/") -}}
+{{- printf "%s/backups/pre-upgrade.sql" (clean (default "" .Values.postgresql.persistence.mountPath | toString) | trimSuffix "/") -}}
 {{- end -}}
 
 {{/*
@@ -135,16 +136,27 @@ Name of the ConfigMap that holds the loader script.
 {{- end -}}
 
 {{/*
+persistence.existingClaim through tpl, or the raw value when postgresql.validate refuses it, so validate.yaml reports the refusal instead of a tpl error.
+*/}}
+{{- define "postgresql.existingClaim" -}}
+{{- if include "postgresql.validate" . -}}
+{{- .Values.postgresql.persistence.existingClaim -}}
+{{- else -}}
+{{- tpl .Values.postgresql.persistence.existingClaim . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 "true" when the loader script is mounted into /docker-entrypoint-initdb.d.
 */}}
 {{- define "postgresql.restoreLoader" -}}
 {{- $userMount := false -}}
-{{- range .Values.additionalVolumeMounts -}}
+{{- range .Values.postgresql.additionalVolumeMounts -}}
 {{- if eq (clean (default "" .mountPath | toString)) "/docker-entrypoint-initdb.d" -}}
 {{- $userMount = true -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.persistence.enabled (not $userMount) -}}
+{{- if and .Values.postgresql.persistence.enabled (not $userMount) -}}
 true
 {{- end -}}
 {{- end -}}
@@ -153,8 +165,8 @@ true
 Data directory of the postgres container: an extraEnv PGDATA replaces persistence.dataDir, as in postgresql.env.
 */}}
 {{- define "postgresql.pgdata" -}}
-{{- $pgdata := .Values.persistence.dataDir -}}
-{{- range .Values.extraEnv -}}
+{{- $pgdata := .Values.postgresql.persistence.dataDir -}}
+{{- range .Values.postgresql.extraEnv -}}
 {{- if and (eq (upper (toString .name)) "PGDATA") .value -}}
 {{- $pgdata = .value -}}
 {{- end -}}
@@ -173,7 +185,7 @@ persistence.mountPath as the upgrade backup Job sees the claim at /claim.
 Data directory as the upgrade backup Job sees the claim at /claim; empty when it is not under persistence.mountPath.
 */}}
 {{- define "postgresql.claimDataDir" -}}
-{{- $mount := clean (default "" .Values.persistence.mountPath | toString) -}}
+{{- $mount := clean (default "" .Values.postgresql.persistence.mountPath | toString) -}}
 {{- $pgdata := include "postgresql.pgdata" . -}}
 {{- $claim := include "postgresql.claimRoot" . -}}
 {{- if eq $pgdata $mount -}}
@@ -189,7 +201,7 @@ Data directory as the upgrade backup Job sees the claim at /claim; empty when it
 {{- define "postgresql.userDataMount" -}}
 {{- $pgdata := include "postgresql.pgdata" . -}}
 {{- $userMount := false -}}
-{{- range .Values.additionalVolumeMounts -}}
+{{- range .Values.postgresql.additionalVolumeMounts -}}
 {{- $path := clean (default "" .mountPath | toString) -}}
 {{- if or (eq $path $pgdata) (hasPrefix (printf "%s/" $path) $pgdata) -}}
 {{- $userMount = true -}}
@@ -204,7 +216,7 @@ true
 "true" when an upgrade runs the backup Job.
 */}}
 {{- define "postgresql.upgradeBackup" -}}
-{{- if and .Values.upgradeBackupHook.enabled (include "postgresql.defaultLayout" .) (include "postgresql.claimDataDir" .) (not (include "postgresql.userDataMount" .)) (not (has "ReadWriteOncePod" .Values.persistence.accessModes)) (ne (int .Values.replicaCount) 0) -}}
+{{- if and .Values.postgresql.upgradeBackupHook.enabled (include "postgresql.defaultLayout" .) (include "postgresql.claimDataDir" .) (not (include "postgresql.userDataMount" .)) (not (has "ReadWriteOncePod" .Values.postgresql.persistence.accessModes)) (ne (int .Values.postgresql.replicaCount) 0) -}}
 true
 {{- end -}}
 {{- end -}}
@@ -222,23 +234,23 @@ Postgres ENV
 */}}
 {{- define "postgresql.env" -}}
 {{- $env := dict -}}
-{{- $_ := set $env "POSTGRESQL_PORT_NUMBER" (.Values.service.port | toString) -}}
-{{- $_ := set $env "POSTGRESQL_VOLUME_DIR" .Values.persistence.mountPath -}}
-{{- $_ := set $env "PGDATA" .Values.persistence.dataDir -}}
+{{- $_ := set $env "POSTGRESQL_PORT_NUMBER" (.Values.postgresql.service.port | toString) -}}
+{{- $_ := set $env "POSTGRESQL_VOLUME_DIR" .Values.postgresql.persistence.mountPath -}}
+{{- $_ := set $env "PGDATA" .Values.postgresql.persistence.dataDir -}}
 
-{{- $_ := set $env "POSTGRES_USER" .Values.auth.username -}}
-{{- if .Values.auth.existingSecret }}
-  {{- $secretCfg := default dict .Values.auth.secretKeys -}}
+{{- $_ := set $env "POSTGRES_USER" .Values.postgresql.auth.username -}}
+{{- if .Values.postgresql.auth.existingSecret }}
+  {{- $secretCfg := default dict .Values.postgresql.auth.secretKeys -}}
   {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") -}}
-  {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.auth.existingSecret "key" $secretKey ))) -}}
+  {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.postgresql.auth.existingSecret "key" $secretKey ))) -}}
 {{- else }}
   {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" (include "postgresql.authSecretName" .) "key" "password"))) -}}
 {{- end }}
-{{- if .Values.auth.database }}
-  {{- $_ := set $env "POSTGRES_DB" .Values.auth.database -}}
+{{- if .Values.postgresql.auth.database }}
+  {{- $_ := set $env "POSTGRES_DB" .Values.postgresql.auth.database -}}
 {{- end }}
-{{- if .Values.extraEnv }}
-  {{- range .Values.extraEnv }}
+{{- if .Values.postgresql.extraEnv }}
+  {{- range .Values.postgresql.extraEnv }}
     {{- $_ := set $env .name .value -}}
   {{- end }}
 {{- end }}

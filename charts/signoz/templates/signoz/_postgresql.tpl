@@ -1,5 +1,5 @@
 {{/*
-The SigNoz server's variables for the postgresql subchart; the DSN refers to the variables before it.
+The SigNoz server's variables for the bundled Postgres; the DSN refers to the variables before it.
 */}}
 {{- define "signoz.postgresqlEnv" }}
 {{- $postgresql := .Values.postgresql }}
@@ -16,7 +16,7 @@ The SigNoz server's variables for the postgresql subchart; the DSN refers to the
 {{- if $postgresql.auth.existingSecret }}
   {{- include "signoz.lib.secretKeyRef" (dict "name" $postgresql.auth.existingSecret "key" (default "password" (get (default dict $postgresql.auth.secretKeys) "userPasswordKey"))) | nindent 2 }}
 {{- else }}
-  {{- /* The name the postgresql chart's postgresql.authSecretName gives the Secret it renders. */}}
+  {{- /* The name postgresql.authSecretName gives the Secret templates/postgresql/secret.yaml renders. */}}
   {{- include "signoz.lib.secretKeyRef" (dict "name" (printf "%s-auth" $fullname | trunc 63 | trimSuffix "-") "key" "password") | nindent 2 }}
 {{- end }}
 {{- with $postgresql.auth.database }}

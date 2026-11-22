@@ -5,7 +5,6 @@ debug: true
 charts:
   - charts/k8s-infra
   - charts/signoz
-  - charts/postgresql
   - charts/signoz-operator
   - charts/signoz-mcp-server
 check-version-increment: false
