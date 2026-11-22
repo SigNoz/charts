@@ -2003,7 +2003,13 @@ otelCollector:
       # otelCollector.clusterRole.clusterRoleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
       # @default -- ""
       name: ""
-  # otelCollector.ports -- Port configurations for the Otel Collector.
+  # Each entry is a port of the collector container and of its Service. For a
+  # receiver of your own, add an entry of any name with `enabled`,
+  # `containerPort`, `servicePort` and `protocol`; the receiver's `endpoint` in
+  # `otelCollector.config` must listen on that port. A pipeline's `receivers`
+  # list is replaced whole, so restate the receivers you keep. The entry's name
+  # is a port name of at most 15 characters.
+  # -- Port configurations for the Otel Collector.
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
   ports:
@@ -2043,24 +2049,6 @@ otelCollector:
       # otelCollector.ports.otlp-http.protocol - Protocol for OTLP HTTP.
       # @default -- "TCP"
       protocol: TCP
-    # otelCollector.ports.jaeger-compact -- Jaeger Compact port configuration.
-    # @section -- Otel Collector Ports
-    jaeger-compact:
-      # otelCollector.ports.jaeger-compact.enabled - Whether to enable the service port for Jaeger Compact.
-      # @default -- false
-      enabled: false
-      # otelCollector.ports.jaeger-compact.containerPort - Container port for Jaeger Compact.
-      # @default -- 6831
-      containerPort: 6831
-      # otelCollector.ports.jaeger-compact.servicePort - Service port for Jaeger Compact.
-      # @default -- 6831
-      servicePort: 6831
-      # otelCollector.ports.jaeger-compact.nodePort - Node port for Jaeger Compact.
-      # @default -- ""
-      nodePort: ""
-      # otelCollector.ports.jaeger-compact.protocol - Protocol for Jaeger Compact.
-      # @default -- "UDP"
-      protocol: UDP
     # otelCollector.ports.jaeger-thrift -- Jaeger Thrift port configuration.
     # @section -- Otel Collector Ports
     jaeger-thrift:
@@ -2095,24 +2083,6 @@ otelCollector:
       # @default -- ""
       nodePort: ""
       # otelCollector.ports.jaeger-grpc.protocol - Protocol for Jaeger gRPC.
-      # @default -- "TCP"
-      protocol: TCP
-    # otelCollector.ports.zipkin -- Zipkin port configuration.
-    # @section -- Otel Collector Ports
-    zipkin:
-      # otelCollector.ports.zipkin.enabled - Whether to enable the service port for Zipkin.
-      # @default -- false
-      enabled: false
-      # otelCollector.ports.zipkin.containerPort - Container port for Zipkin.
-      # @default -- 9411
-      containerPort: 9411
-      # otelCollector.ports.zipkin.servicePort - Service port for Zipkin.
-      # @default -- 9411
-      servicePort: 9411
-      # otelCollector.ports.zipkin.nodePort - Node port for Zipkin.
-      # @default -- ""
-      nodePort: ""
-      # otelCollector.ports.zipkin.protocol - Protocol for Zipkin.
       # @default -- "TCP"
       protocol: TCP
     # otelCollector.ports.metrics -- Internal metrics port configuration.
