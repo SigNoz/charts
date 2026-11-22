@@ -1536,12 +1536,14 @@ signoz:
 # @section -- Telemetry Store Migrator
 # @default -- "Please checkout the default values in values.yml"
 telemetryStoreMigrator:
-  # telemetryStoreMigrator.enabled -- Enable the Telemetry Store Migrator component.
-  # @default -- true
+  # The migrator runs as a Job on every install and upgrade, named `telemetryStoreMigrator.name` plus
+  # `-<release revision>`, and the collector's `check` init container waits for its sync migrations.
+  # -- Enable the Telemetry Store Migrator component.
   # @section -- Telemetry Store Migrator
   enabled: true
-  # telemetryStoreMigrator.name -- The name of the Telemetry Store Migrator component.
-  # @default -- "signoz-telemetrystore-migrator"
+  # The Job name appends `-<release revision>` to this name and must stay within 63 characters, so
+  # this name can have at most 57.
+  # -- The name of the Telemetry Store Migrator component.
   # @section -- Telemetry Store Migrator
   name: "signoz-telemetrystore-migrator"
   # telemetryStoreMigrator.annotations -- Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`; a value for that key replaces the chart's.

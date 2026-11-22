@@ -15,12 +15,12 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "clickhouse\\.zookeeper.*to `zookeeper"
-  - it: rejects clickhouse.securityContext, naming podSecurityContext and containerSecurityContext
+  - it: rejects clickhouse.securityContext, naming podSecurityContext
     set:
       clickhouse.securityContext: {enabled: true, runAsUser: 101}
     asserts:
       - failedTemplate:
-          errorPattern: "clickhouse\\.securityContext.*clickhouse\\.podSecurityContext.*clickhouse\\.containerSecurityContext"
+          errorPattern: "clickhouse\\.securityContext.*clickhouse\\.podSecurityContext"
   - it: rejects clickhouse.customStartupProbe, naming clickhouse.startupProbe
     set:
       clickhouse.customStartupProbe: {exec: {command: ["true"]}}

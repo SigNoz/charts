@@ -9,7 +9,7 @@ Values keys that no longer do anything at these paths (removed, or moved to a ne
 Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
 */ -}}
 {{- if dig "upgradeHelmHooks" false (.Values.telemetryStoreMigrator | default dict) }}
-{{ "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: the migrator runs as an ordinary Job on install and upgrade, named with the release revision, and the otel-collector waits for its sync migrations in its `check` init container; `telemetryStoreMigrator.enabled: false` skips it." }}
+{{ "`telemetryStoreMigrator.upgradeHelmHooks` has been removed: delete it." }}
 {{- end }}
 {{- /*
 The migrator Job is named `telemetryStoreMigrator.name` plus `-<release revision>`, and its pods carry that name in their `job-name` label, which must stay within 63 characters.
@@ -18,7 +18,7 @@ The budget reserves six characters for the suffix (up to five digits) instead of
 {{- if .Values.telemetryStoreMigrator.enabled }}
 {{- $migratorName := include "telemetryStoreMigrator.fullname" . }}
 {{- if gt (len $migratorName) 57 }}
-{{ printf "`telemetryStoreMigrator.name` %q is %d characters; the migrator Job name appends `-<release revision>` and must stay within 63 characters, so the name can have at most 57: shorten it." $migratorName (len $migratorName) }}
+{{ printf "`telemetryStoreMigrator.name` %q is %d characters: shorten it to at most 57." $migratorName (len $migratorName) }}
 {{- end }}
 {{- end }}
 {{- end -}}
