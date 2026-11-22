@@ -8,13 +8,10 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 Values keys that no longer do anything at these paths (removed, or moved to a new path).
 Fail the render instead of ignoring them, so an old values file is caught at `helm upgrade` time rather than silently misapplied.
 `clickhouse.clickhouseOperator` and `clickhouse.zookeeper` fail when present with a non-null value, an empty map included, so a
-null placeholder passes; `clickhouse.altinity-clickhouse-operator`, never released, fails only when it holds an entry.
+null placeholder passes.
 */ -}}
 {{- if not (kindIs "invalid" (index (.Values.clickhouse | default dict) "clickhouseOperator")) }}
 {{ "`clickhouse.clickhouseOperator` has moved to `altinity-clickhouse-operator`: the operator's settings in the keys of Altinity's chart, at the top level; `altinity-clickhouse-operator.enabled: false` skips the operator." }}
-{{- end }}
-{{- if dig "altinity-clickhouse-operator" dict (.Values.clickhouse | default dict) }}
-{{ "`clickhouse.altinity-clickhouse-operator` has moved to `altinity-clickhouse-operator`: the same keys, at the top level." }}
 {{- end }}
 {{- if not (kindIs "invalid" (index (.Values.clickhouse | default dict) "zookeeper")) }}
 {{ "`clickhouse.zookeeper` has moved to `zookeeper`: the same keys, at the top level; `clickhouse.externalZookeeper` is unchanged." }}

@@ -124,14 +124,3 @@ tests:
       clickhouse.pod.annotations: {cluster-autoscaler.kubernetes.io/safe-to-evict: "false"}
     asserts:
       - notFailedTemplate: {}
-  - it: rejects clickhouse.altinity-clickhouse-operator, naming the top-level altinity-clickhouse-operator
-    set:
-      clickhouse.altinity-clickhouse-operator: {namespaceOverride: db}
-    asserts:
-      - failedTemplate:
-          errorPattern: "clickhouse\\.altinity-clickhouse-operator.* `altinity-clickhouse-operator"
-  - it: accepts an empty clickhouse.altinity-clickhouse-operator, which sets nothing
-    set:
-      clickhouse.altinity-clickhouse-operator: {}
-    asserts:
-      - notFailedTemplate: {}
