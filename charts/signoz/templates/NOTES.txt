@@ -34,4 +34,22 @@ Forward a local port to SigNoz, then open http://127.0.0.1:{{ .Values.signoz.ser
   export POD_NAME=$(kubectl get pods --namespace {{ include "signoz.namespace" . }} -l "{{ include "signoz.selectorLabels" . | replace ": " "=" | replace "\n" "," }}" -o jsonpath="{.items[0].metadata.name}")
   kubectl --namespace {{ include "signoz.namespace" . }} port-forward $POD_NAME {{ .Values.signoz.service.port }}:8080
 {{- end }}
+{{- if .Values.clickhouse.enabled }}
+{{- if .Values.clickhouse.externalZookeeper }}
+
+ClickHouse coordinates through the servers in clickhouse.externalZookeeper.servers.
+{{- else if .Values.zookeeper.enabled }}
+
+ClickHouse coordinates through ZooKeeper.
+{{- else if .Values.keeper.enabled }}
+
+ClickHouse coordinates through ClickHouse Keeper at {{ include "keeper.clientHost" . }}:2181.
+{{- end }}
+{{- end }}
+{{- if .Values.zookeeper.enabled }}
+
+The bundled ZooKeeper is deprecated; ClickHouse Keeper replaces it.
+Keep zookeeper.enabled: true until you migrate. Migrate with section 11 of the upgrade guide:
+  https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#11-zookeeper-to-clickhouse-keeper
+{{- end }}
 Docs: https://signoz.io/docs/install/kubernetes/
