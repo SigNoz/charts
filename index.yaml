@@ -18945,6 +18945,26 @@ entries:
   zookeeper:
   - apiVersion: v2
     appVersion: 3.8.1
+    created: "2026-11-22T15:15:23.329940735Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 0.0.1
+    deprecated: true
+    description: Deprecated. The signoz chart's ClickHouse Keeper (`keeper.*`) replaces
+      this chart, which is kept for installs that have not migrated.
+    digest: cdbdfef335144d0e32e12f5762b66ad6678be2b3992270bc830a1399584ac58e
+    icon: https://bitnami.com/assets/stacks/zookeeper/img/zookeeper-stack-220x234.png
+    name: zookeeper
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/zookeeper
+    urls:
+    - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.2/zookeeper-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v2
+    appVersion: 3.8.1
     created: "2025-08-11T13:01:15.196946926Z"
     dependencies:
     - name: common
@@ -18965,4 +18985,4 @@ entries:
     urls:
     - https://github.com/SigNoz/charts/releases/download/zookeeper-0.0.1/zookeeper-0.0.1.tgz
     version: 0.0.1
-generated: "2026-11-18T12:05:15.457269594Z"
+generated: "2026-11-22T15:15:23.330499962Z"
