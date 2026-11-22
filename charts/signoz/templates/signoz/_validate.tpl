@@ -14,15 +14,14 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- end }}
 {{- end }}
 {{- if $old }}
-{{- $named := ternary (first $old) (printf "%s and %s" (join ", " (initial $old)) (last $old)) (eq (len $old) 1) }}
-{{ printf "%s %s moved to `signoz.%s.httpGet.port` and `signoz.%s.httpGet.path`: write the probe object, and `signoz.%s: null` for no probe." $named (ternary "has" "have" (eq (len $old) 1)) $probe $probe $probe }}
+{{ printf "`signoz.%s` no longer takes the enabled/port/path shape: write the probe object, or `null` for no probe." $probe }}
 {{- end }}
 {{- end }}
 {{- if dig "customLivenessProbe" dict $signoz }}
-{{ "`signoz.customLivenessProbe` has moved to `signoz.livenessProbe`: write the probe object itself, with `httpGet: null` for another handler." }}
+{{ "`signoz.customLivenessProbe` has moved to `signoz.livenessProbe`: the probe object itself." }}
 {{- end }}
 {{- if dig "customReadinessProbe" dict $signoz }}
-{{ "`signoz.customReadinessProbe` has moved to `signoz.readinessProbe`: write the probe object itself, with `httpGet: null` for another handler." }}
+{{ "`signoz.customReadinessProbe` has moved to `signoz.readinessProbe`: the probe object itself." }}
 {{- end }}
 {{- if dig "additionalArgs" list $signoz }}
 {{ "`signoz.additionalArgs` has moved to `signoz.extraArgs`: the same list of arguments." }}
@@ -31,7 +30,7 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{ "`signoz.podAnnotations` has moved to `signoz.pod.annotations`: the same map of annotations." }}
 {{- end }}
 {{- if dig "securityContext" dict $signoz }}
-{{ "`signoz.securityContext` has moved to `signoz.containerSecurityContext`: the same Kubernetes SecurityContext of the container." }}
+{{ "`signoz.securityContext` has moved to `signoz.containerSecurityContext`: the same SecurityContext." }}
 {{- end }}
 {{- if dig "additionalVolumeMounts" list $signoz }}
 {{ "`signoz.additionalVolumeMounts` has moved to `signoz.extraVolumeMounts`: the same list of Kubernetes VolumeMount objects." }}

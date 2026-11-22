@@ -5,22 +5,22 @@ templates:
 tests:
   - it: rejects signoz.livenessProbe.enabled, naming signoz.livenessProbe
     set: {signoz.livenessProbe.enabled: false}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.enabled.*signoz\\.livenessProbe: null"}}]
-  - it: rejects signoz.livenessProbe.port, naming signoz.livenessProbe.httpGet.port
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects signoz.livenessProbe.port, the old probe shape
     set: {signoz.livenessProbe.port: 8080}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.port.*signoz\\.livenessProbe\\.httpGet\\.port"}}]
-  - it: rejects signoz.livenessProbe.path, naming signoz.livenessProbe.httpGet.path
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects signoz.livenessProbe.path, the old probe shape
     set: {signoz.livenessProbe.path: /api/v1/health}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe\\.path.*signoz\\.livenessProbe\\.httpGet\\.path"}}]
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.livenessProbe.*enabled/port/path"}}]
   - it: rejects signoz.readinessProbe.enabled, naming signoz.readinessProbe
     set: {signoz.readinessProbe.enabled: false}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.enabled.*signoz\\.readinessProbe: null"}}]
-  - it: rejects signoz.readinessProbe.port, naming signoz.readinessProbe.httpGet.port
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects signoz.readinessProbe.port, the old probe shape
     set: {signoz.readinessProbe.port: 8080}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.port.*signoz\\.readinessProbe\\.httpGet\\.port"}}]
-  - it: rejects signoz.readinessProbe.path, naming signoz.readinessProbe.httpGet.path
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects signoz.readinessProbe.path, the old probe shape
     set: {signoz.readinessProbe.path: "/api/v1/health?live=1"}
-    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe\\.path.*signoz\\.readinessProbe\\.httpGet\\.path"}}]
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.readinessProbe.*enabled/port/path"}}]
   - it: rejects signoz.customLivenessProbe, naming signoz.livenessProbe
     set:
       signoz.customLivenessProbe: {exec: {command: [/bin/true]}}
