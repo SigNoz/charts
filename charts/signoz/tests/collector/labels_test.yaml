@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/labels
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/service.yaml
+tests:
+  - it: labels the Deployment with otelCollector.labels and keeps them off the selector and the pod
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.labels: {team: observability}
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: observability
+      - notExists:
+          path: spec.selector.matchLabels.team
+      - notExists:
+          path: spec.template.metadata.labels.team
+  - it: labels the Deployment once with an otelCollector.labels key that repeats a chart label, taking the user's value, and keeps the other chart labels
+    template: templates/otel-collector/deployment.yaml
+    release:
+      name: obs
+    set:
+      otelCollector.labels: {app.kubernetes.io/component: ingest-gateway}
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: ingest-gateway
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: obs
+  - it: labels the Service once with an otelCollector.service.labels key that repeats a chart label, taking the user's value, and keeps it off the selector
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.name: otel-collector
+      otelCollector.service.labels:
+        exposure: public
+        app.kubernetes.io/component: ingest-gateway
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: ingest-gateway
+      - equal:
+          path: metadata.labels.exposure
+          value: public
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: otel-collector

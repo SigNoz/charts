@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/check
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: holds the collector in the check init container until the sync migrations are done, with telemetryStoreMigrator.enabled
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].command
+          value: [/signoz-otel-collector]
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].args
+          value: [migrate, sync, check]
+
+  - it: starts the collector without the check init container with telemetryStoreMigrator.enabled false
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: false
+    asserts:
+      - exists:
+          path: spec.template.spec.containers[?(@.name == "collector")]
+      - notExists:
+          path: spec.template.spec.initContainers[?(@.name == "check")]
+
+  - it: gives check the telemetryStoreMigrator.timeout and enableReplication the migrations run with
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      telemetryStoreMigrator.timeout: 30m
+      telemetryStoreMigrator.enableReplication: false
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT, value: 30m}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION, value: "false"}
+
+  - it: connects check over TLS without certificate verification with externalClickhouse.secure
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.tcpPort: 9440
+      externalClickhouse.secure: true
+      externalClickhouse.verify: false
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+
+  - it: connects check over TLS and verifies the certificate with externalClickhouse.secure and externalClickhouse.verify
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.tcpPort: 9440
+      externalClickhouse.secure: true
+      externalClickhouse.verify: true
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true
+
+  - it: connects check to the bundled ClickHouse without TLS parameters in its DSN, also with clickhouse.secure
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.enabled: true
+      clickhouse.secure: true
+      clickhouse.verify: false
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content:
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: sizes check with telemetryStoreMigrator.resources and the collector with otelCollector.resources
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      telemetryStoreMigrator.resources:
+        limits:
+          cpu: 500m
+          memory: 256Mi
+      otelCollector.resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].resources
+          value:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].resources
+          value:
+            requests:
+              cpu: 250m
+              memory: 512Mi

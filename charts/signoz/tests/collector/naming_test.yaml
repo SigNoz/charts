@@ -1,0 +1,155 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/naming
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/service.yaml
+  - templates/otel-collector/serviceaccount.yaml
+tests:
+  - it: names the collector's Deployment, Service and ServiceAccount <release>-signoz-<otelCollector.name>
+    release:
+      name: acme
+    set:
+      otelCollector.name: otel-collector
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: ""
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.name
+          value: acme-signoz-otel-collector
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.name
+          value: acme-signoz-otel-collector
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: acme-signoz-otel-collector
+
+  - it: names the collector after the release alone when the release name contains signoz
+    release:
+      name: signoz
+    set:
+      otelCollector.name: otel-collector
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: ""
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.name
+          value: signoz-otel-collector
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.name
+          value: signoz-otel-collector
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: signoz-otel-collector
+
+  - it: names the collector <fullnameOverride>-<otelCollector.name>
+    set:
+      fullnameOverride: obs
+      otelCollector.name: otel-collector
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: ""
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.name
+          value: obs-otel-collector
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.name
+          value: obs-otel-collector
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: obs-otel-collector
+
+  - it: replaces signoz in the collector's names and in its name selector label with nameOverride
+    set:
+      nameOverride: so
+      otelCollector.name: otel-collector
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: ""
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-so-otel-collector
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-so-otel-collector
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-so-otel-collector
+      - template: templates/otel-collector/deployment.yaml
+        isSubset:
+          path: spec.selector.matchLabels
+          content:
+            app.kubernetes.io/name: so
+      - template: templates/otel-collector/service.yaml
+        isSubset:
+          path: spec.selector
+          content:
+            app.kubernetes.io/name: so
+
+  - it: names the collector and its component selector label after otelCollector.name
+    set:
+      otelCollector.name: ingest
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-signoz-ingest
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-signoz-ingest
+      - template: templates/otel-collector/deployment.yaml
+        isSubset:
+          path: spec.selector.matchLabels
+          content:
+            app.kubernetes.io/component: ingest
+      - template: templates/otel-collector/deployment.yaml
+        isSubset:
+          path: spec.template.metadata.labels
+          content:
+            app.kubernetes.io/component: ingest
+      - template: templates/otel-collector/service.yaml
+        isSubset:
+          path: spec.selector
+          content:
+            app.kubernetes.io/component: ingest
+
+  - it: selects the collector pods by the name, instance and component labels alone, on the Deployment and the Service
+    release:
+      name: acme
+    set:
+      otelCollector.name: otel-collector
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: signoz
+            app.kubernetes.io/instance: acme
+            app.kubernetes.io/component: otel-collector
+      - template: templates/otel-collector/deployment.yaml
+        isSubset:
+          path: spec.template.metadata.labels
+          content:
+            app.kubernetes.io/name: signoz
+            app.kubernetes.io/instance: acme
+            app.kubernetes.io/component: otel-collector
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: signoz
+            app.kubernetes.io/instance: acme
+            app.kubernetes.io/component: otel-collector

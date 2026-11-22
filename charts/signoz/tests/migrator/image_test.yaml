@@ -10,8 +10,7 @@ tests:
       revision: 1
     set:
       global.imageRegistry: ""
-      otelCollector.image.registry: docker.io
-      otelCollector.image.repository: acme/otelcol
+      otelCollector.image.repository: docker.io/acme/otelcol
       otelCollector.image.tag: v0.200.0
       otelCollector.image.pullPolicy: Always
     asserts:
@@ -60,13 +59,12 @@ tests:
           path: spec.template.spec.initContainers[?(@.name == "check")].imagePullPolicy
           value: Always
 
-  - it: pulls every migration and the collector's check from global.imageRegistry instead of otelCollector.image.registry
+  - it: pulls every migration and the collector's check from global.imageRegistry instead of the registry in otelCollector.image.repository
     release:
       revision: 1
     set:
       global.imageRegistry: mirror.example.com
-      otelCollector.image.registry: docker.io
-      otelCollector.image.repository: signoz/signoz-otel-collector
+      otelCollector.image.repository: docker.io/signoz/signoz-otel-collector
       otelCollector.image.tag: v0.200.0
     asserts:
       - template: templates/telemetrystore-migrator/job.yaml
@@ -95,7 +93,6 @@ tests:
       revision: 1
     set:
       global.imageRegistry: ""
-      otelCollector.image.registry: ""
       otelCollector.image.repository: signoz/signoz-otel-collector
       otelCollector.image.tag: v0.200.0
     asserts:

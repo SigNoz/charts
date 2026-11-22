@@ -1,0 +1,191 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/autoscaling
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/hpa.yaml
+  - templates/otel-collector/keda-autoscaler.yaml
+tests:
+  - it: leaves the collector's replica count to the HPA with otelCollector.autoscaling.enabled
+    set:
+      otelCollector.replicaCount: 3
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+    asserts:
+      - template: templates/otel-collector/hpa.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/otel-collector/deployment.yaml
+        notExists:
+          path: spec.replicas
+
+  - it: leaves the collector's replica count to KEDA with otelCollector.autoscaling.keda.enabled
+    set:
+      otelCollector.replicaCount: 3
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: true
+    asserts:
+      - template: templates/otel-collector/keda-autoscaler.yaml
+        hasDocuments:
+          count: 1
+      - template: templates/otel-collector/deployment.yaml
+        notExists:
+          path: spec.replicas
+
+  - it: runs otelCollector.replicaCount collector replicas, with no autoscaler, without otelCollector.autoscaling.enabled
+    set:
+      otelCollector.replicaCount: 3
+      otelCollector.autoscaling.enabled: false
+      otelCollector.autoscaling.keda.enabled: false
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.replicas
+          value: 3
+      - template: templates/otel-collector/hpa.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/keda-autoscaler.yaml
+        hasDocuments:
+          count: 0
+
+  - it: creates no autoscaler from otelCollector.autoscaling.keda.enabled while otelCollector.autoscaling.enabled is false
+    set:
+      otelCollector.replicaCount: 3
+      otelCollector.autoscaling.enabled: false
+      otelCollector.autoscaling.keda.enabled: true
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.replicas
+          value: 3
+      - template: templates/otel-collector/hpa.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/keda-autoscaler.yaml
+        hasDocuments:
+          count: 0
+
+  - it: scales the collector Deployment between otelCollector.autoscaling.minReplicas and maxReplicas with an HPA
+    template: templates/otel-collector/hpa.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+      otelCollector.autoscaling.minReplicas: 2
+      otelCollector.autoscaling.maxReplicas: 8
+    asserts:
+      - equal:
+          path: spec.scaleTargetRef
+          value: {apiVersion: apps/v1, kind: Deployment, name: RELEASE-NAME-signoz-otel-collector}
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 8
+
+  - it: scales the collector on otelCollector.autoscaling.targetCPUUtilizationPercentage and targetMemoryUtilizationPercentage
+    template: templates/otel-collector/hpa.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+      otelCollector.autoscaling.targetCPUUtilizationPercentage: 60
+      otelCollector.autoscaling.targetMemoryUtilizationPercentage: 70
+    asserts:
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource: {name: cpu, target: {type: Utilization, averageUtilization: 60}}
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource: {name: memory, target: {type: Utilization, averageUtilization: 70}}
+
+  - it: drops the CPU target from the HPA with otelCollector.autoscaling.targetCPUUtilizationPercentage null
+    template: templates/otel-collector/hpa.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+      otelCollector.autoscaling.targetCPUUtilizationPercentage: null
+      otelCollector.autoscaling.targetMemoryUtilizationPercentage: 70
+    asserts:
+      - exists:
+          path: spec.metrics[?(@.resource.name == "memory")]
+      - notExists:
+          path: spec.metrics[?(@.resource.name == "cpu")]
+
+  - it: adds the otelCollector.autoscaling.autoscalingTemplate metrics beside the utilization targets
+    template: templates/otel-collector/hpa.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+      otelCollector.autoscaling.targetMemoryUtilizationPercentage: 70
+      otelCollector.autoscaling.autoscalingTemplate:
+        - type: Pods
+          pods:
+            metric:
+              name: otelcol_receiver_accepted_spans
+            target:
+              type: AverageValue
+              averageValue: "1000"
+    asserts:
+      - contains:
+          path: spec.metrics
+          content:
+            type: Pods
+            pods:
+              metric: {name: otelcol_receiver_accepted_spans}
+              target: {type: AverageValue, averageValue: "1000"}
+      - contains:
+          path: spec.metrics
+          content:
+            type: Resource
+            resource: {name: memory, target: {type: Utilization, averageUtilization: 70}}
+
+  - it: scales the collector Deployment with a KEDA ScaledObject, and no HPA, with otelCollector.autoscaling.keda.enabled
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: true
+      otelCollector.autoscaling.keda.triggers:
+        - type: cpu
+          metricType: Utilization
+          metadata:
+            value: "60"
+    asserts:
+      - template: templates/otel-collector/keda-autoscaler.yaml
+        equal:
+          path: spec.scaleTargetRef
+          value: {apiVersion: apps/v1, kind: Deployment, name: RELEASE-NAME-signoz-otel-collector}
+      - template: templates/otel-collector/hpa.yaml
+        hasDocuments:
+          count: 0
+
+  - it: gives the ScaledObject the KEDA polling interval, cooldown and replica bounds as the numbers KEDA requires
+    template: templates/otel-collector/keda-autoscaler.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: true
+      otelCollector.autoscaling.keda.pollingInterval: "15"
+      otelCollector.autoscaling.keda.cooldownPeriod: "120"
+      otelCollector.autoscaling.keda.minReplicaCount: "2"
+      otelCollector.autoscaling.keda.maxReplicaCount: "6"
+      otelCollector.autoscaling.keda.triggers:
+        - type: cpu
+          metricType: Utilization
+          metadata:
+            value: "60"
+    asserts:
+      - equal:
+          path: spec.pollingInterval
+          value: 15
+      - equal:
+          path: spec.cooldownPeriod
+          value: 120
+      - equal:
+          path: spec.minReplicaCount
+          value: 2
+      - equal:
+          path: spec.maxReplicaCount
+          value: 6

@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/image-registry
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: replaces the registry otelCollector.image.repository carries with global.imageRegistry, in the collector and its check container
+    template: templates/otel-collector/deployment.yaml
+    set:
+      global.imageRegistry: mirror.example.com
+      otelCollector.image.repository: registry.example.org/signoz/signoz-otel-collector
+      otelCollector.image.tag: v0.144.16
+      telemetryStoreMigrator.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.144.16
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.144.16
