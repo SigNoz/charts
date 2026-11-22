@@ -102,9 +102,9 @@ spec:
           {{- end }}
           args:
             {{- if .Values.otelCollector.configMap.create }}
-            - --config=/conf/otel-collector-config.yaml
-            - --manager-config=/conf/otel-collector-opamp-config.yaml
-            - --copy-path=/var/tmp/collector-config.yaml
+            - "--config=/conf/otel-collector-config.yaml"
+            - "--manager-config=/conf/otel-collector-opamp-config.yaml"
+            - "--copy-path=/var/tmp/collector-config.yaml"
             {{- end }}
             {{- range .Values.otelCollector.extraArgs }}
             - {{ . | quote }}
