@@ -43,6 +43,71 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 
 ## Values
 
+<h3>Pod Configuration</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="startupProbe--enabled"><a href="./values.yaml#L145">startupProbe.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable the startup probe.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe--initialDelaySeconds"><a href="./values.yaml#L149">startupProbe.initialDelaySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">0</pre>
+</div>
+            </td>
+            <td>Delay before the first startup probe.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe--periodSeconds"><a href="./values.yaml#L153">startupProbe.periodSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">10</pre>
+</div>
+            </td>
+            <td>Interval between startup probes.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe--timeoutSeconds"><a href="./values.yaml#L157">startupProbe.timeoutSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Timeout of each startup probe.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe--successThreshold"><a href="./values.yaml#L161">startupProbe.successThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>Consecutive successes for the startup probe to pass.</td>
+        </tr>
+        <tr>
+            <td id="startupProbe--failureThreshold"><a href="./values.yaml#L166">startupProbe.failureThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">180</pre>
+</div>
+            </td>
+            <td>Consecutive failures before the container is restarted.</td>
+        </tr>
+    </tbody>
+</table>
 <h3>Persistence Configuration</h3>
 <table>
     <thead>
@@ -53,7 +118,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
     </thead>
     <tbody>
         <tr>
-            <td id="persistence--mountPath"><a href="./values.yaml#L163">persistence.mountPath</a></td>
+            <td id="persistence--mountPath"><a href="./values.yaml#L193">persistence.mountPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
@@ -62,7 +127,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
             <td>Mount path of the data claim.</td>
         </tr>
         <tr>
-            <td id="persistence--dataDir"><a href="./values.yaml#L176">persistence.dataDir</a></td>
+            <td id="persistence--dataDir"><a href="./values.yaml#L206">persistence.dataDir</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
@@ -434,7 +499,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Failure threshold for readiness probe.</td>
 	</tr>
 	<tr>
-		<td id="persistence--enabled"><a href="./values.yaml#L141">persistence.enabled</a></td>
+		<td id="persistence--enabled"><a href="./values.yaml#L171">persistence.enabled</a></td>
 		<td>bool</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -443,7 +508,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Enable persistent storage for Postgres.</td>
 	</tr>
 	<tr>
-		<td id="persistence--existingClaim"><a href="./values.yaml#L144">persistence.existingClaim</a></td>
+		<td id="persistence--existingClaim"><a href="./values.yaml#L174">persistence.existingClaim</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -452,7 +517,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Use an existing PVC for Postgres data.</td>
 	</tr>
 	<tr>
-		<td id="persistence--size"><a href="./values.yaml#L147">persistence.size</a></td>
+		<td id="persistence--size"><a href="./values.yaml#L177">persistence.size</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">10Gi</pre>
@@ -461,7 +526,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Size of the persistent volume claim.</td>
 	</tr>
 	<tr>
-		<td id="persistence--storageClass"><a href="./values.yaml#L150">persistence.storageClass</a></td>
+		<td id="persistence--storageClass"><a href="./values.yaml#L180">persistence.storageClass</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -470,7 +535,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Storage class for the persistent volume claim.</td>
 	</tr>
 	<tr>
-		<td id="persistence--accessModes"><a href="./values.yaml#L153">persistence.accessModes</a></td>
+		<td id="persistence--accessModes"><a href="./values.yaml#L183">persistence.accessModes</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -479,7 +544,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Access modes for the persistent volume claim.</td>
 	</tr>
 	<tr>
-		<td id="persistence--subPath"><a href="./values.yaml#L166">persistence.subPath</a></td>
+		<td id="persistence--subPath"><a href="./values.yaml#L196">persistence.subPath</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -488,7 +553,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Subpath within the volume for Postgres data.</td>
 	</tr>
 	<tr>
-		<td id="additionalArgs"><a href="./values.yaml#L180">additionalArgs</a></td>
+		<td id="additionalArgs"><a href="./values.yaml#L210">additionalArgs</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -497,7 +562,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional command-line arguments for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumes"><a href="./values.yaml#L184">additionalVolumes</a></td>
+		<td id="additionalVolumes"><a href="./values.yaml#L214">additionalVolumes</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -506,7 +571,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volumes for Postgres pods.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumeMounts"><a href="./values.yaml#L188">additionalVolumeMounts</a></td>
+		<td id="additionalVolumeMounts"><a href="./values.yaml#L218">additionalVolumeMounts</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -515,7 +580,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volume mounts for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="extraEnv"><a href="./values.yaml#L192">extraEnv</a></td>
+		<td id="extraEnv"><a href="./values.yaml#L222">extraEnv</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -524,7 +589,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Extra environment variables for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--create"><a href="./values.yaml#L197">serviceAccount.create</a></td>
+		<td id="serviceAccount--create"><a href="./values.yaml#L227">serviceAccount.create</a></td>
 		<td>bool</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -533,7 +598,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Specifies whether a service account should be created.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--annotations"><a href="./values.yaml#L200">serviceAccount.annotations</a></td>
+		<td id="serviceAccount--annotations"><a href="./values.yaml#L230">serviceAccount.annotations</a></td>
 		<td>object</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -542,7 +607,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Annotations to add to the service account.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--name"><a href="./values.yaml#L203">serviceAccount.name</a></td>
+		<td id="serviceAccount--name"><a href="./values.yaml#L233">serviceAccount.name</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">null</pre>

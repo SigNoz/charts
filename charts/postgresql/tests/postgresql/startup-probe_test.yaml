@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: postgresql/startup-probe
+templates:
+  - templates/statefulset.yaml
+tests:
+  - it: holds the pod back until Postgres answers on TCP and no dump waits in backups under persistence.mountPath
+    set:
+      service.port: 5432
+      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: ""}
+      startupProbe.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
+          value:
+            - /bin/sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ]
+
+  - it: looks for the dump under persistence.mountPath, which already shows the claim at persistence.subPath
+    set:
+      service.port: 5432
+      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
+      startupProbe.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
+          value:
+            - /bin/sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ]
+
+  - it: looks for the dump in backups under a custom persistence.mountPath
+    set:
+      service.port: 5432
+      persistence: {enabled: true, mountPath: /var/lib/postgresql/data, dataDir: /var/lib/postgresql/data/pgdata}
+      startupProbe.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.exec.command
+          value:
+            - /bin/sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && [ ! -e '/var/lib/postgresql/data/backups/pre-upgrade.sql' ]
+
+  - it: times the startup probe from the startupProbe values
+    set:
+      startupProbe:
+        enabled: true
+        initialDelaySeconds: 5
+        periodSeconds: 30
+        timeoutSeconds: 3
+        successThreshold: 1
+        failureThreshold: 360
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.periodSeconds
+          value: 30
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.failureThreshold
+          value: 360
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.initialDelaySeconds
+          value: 5
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe.timeoutSeconds
+          value: 3
+
+  - it: renders no startup probe when startupProbe.enabled is false
+    set:
+      startupProbe.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "postgres")].startupProbe

@@ -121,6 +121,13 @@ true
 {{- end -}}
 
 {{/*
+Path of the dump the loader reads, under the claim as the postgres container mounts it.
+*/}}
+{{- define "postgresql.restoreFile" -}}
+{{- printf "%s/backups/pre-upgrade.sql" (clean (default "" .Values.persistence.mountPath | toString) | trimSuffix "/") -}}
+{{- end -}}
+
+{{/*
 Auth secret name
 */}}
 {{- define "postgresql.authSecretName" -}}

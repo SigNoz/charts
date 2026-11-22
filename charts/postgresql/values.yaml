@@ -135,6 +135,36 @@ readinessProbe:
   # @default -- 6
   failureThreshold: 6
 
+startupProbe:
+  # Passes once Postgres answers on TCP and no dump is waiting at
+  # `backups/pre-upgrade.sql` under `persistence.mountPath`, so a pod that has
+  # not loaded its dump never becomes Ready. The liveness and readiness probes
+  # start only after it passes.
+  # -- Enable the startup probe.
+  # @section -- Pod Configuration
+  enabled: true
+  # In seconds.
+  # -- Delay before the first startup probe.
+  # @section -- Pod Configuration
+  initialDelaySeconds: 0
+  # In seconds.
+  # -- Interval between startup probes.
+  # @section -- Pod Configuration
+  periodSeconds: 10
+  # In seconds.
+  # -- Timeout of each startup probe.
+  # @section -- Pod Configuration
+  timeoutSeconds: 5
+  # Kubernetes accepts only 1 for a startup probe.
+  # -- Consecutive successes for the startup probe to pass.
+  # @section -- Pod Configuration
+  successThreshold: 1
+  # With the default interval, 180 failures give a first start that loads a
+  # dump 30 minutes before the container is restarted.
+  # -- Consecutive failures before the container is restarted.
+  # @section -- Pod Configuration
+  failureThreshold: 180
+
 persistence:
   # persistence.enabled -- Enable persistent storage for Postgres.
   # @default -- true

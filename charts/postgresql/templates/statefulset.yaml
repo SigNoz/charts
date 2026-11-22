@@ -67,6 +67,20 @@ spec:
           env:
             {{- include "postgresql.env" . | nindent 12 }}
 
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.service.port }} && [ ! -e {{ include "postgresql.restoreFile" . | squote }} ]
+            initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- end }}
+
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             exec:
