@@ -59,22 +59,22 @@ tests:
           errorPattern: "otelCollector\\.command\\.extraArgs.*otelCollector\\.extraArgs"
   - it: rejects otelCollector.livenessProbe.enabled, naming otelCollector.livenessProbe
     set: {otelCollector.livenessProbe.enabled: false}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.enabled.*otelCollector\\.livenessProbe"}}]
-  - it: rejects otelCollector.livenessProbe.port, naming otelCollector.livenessProbe.httpGet.port
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects otelCollector.livenessProbe.port, the old probe shape
     set: {otelCollector.livenessProbe.port: 13134}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.port.*otelCollector\\.livenessProbe\\.httpGet\\.port"}}]
-  - it: rejects otelCollector.livenessProbe.path, naming otelCollector.livenessProbe.httpGet.path
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe.*enabled/port/path"}}]
+  - it: rejects otelCollector.livenessProbe.path, the old probe shape
     set: {otelCollector.livenessProbe.path: /healthz}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe\\.path.*otelCollector\\.livenessProbe\\.httpGet"}}]
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.livenessProbe.*enabled/port/path"}}]
   - it: rejects otelCollector.readinessProbe.enabled, naming otelCollector.readinessProbe
     set: {otelCollector.readinessProbe.enabled: false}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.enabled.*otelCollector\\.readinessProbe"}}]
-  - it: rejects otelCollector.readinessProbe.port, naming otelCollector.readinessProbe.httpGet.port
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects otelCollector.readinessProbe.port, the old probe shape
     set: {otelCollector.readinessProbe.port: 13134}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.port.*otelCollector\\.readinessProbe\\.httpGet\\.port"}}]
-  - it: rejects otelCollector.readinessProbe.path, naming otelCollector.readinessProbe.httpGet.path
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe.*enabled/port/path"}}]
+  - it: rejects otelCollector.readinessProbe.path, the old probe shape
     set: {otelCollector.readinessProbe.path: /healthz}
-    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe\\.path.*otelCollector\\.readinessProbe\\.httpGet"}}]
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.readinessProbe.*enabled/port/path"}}]
   - it: rejects otelCollector.customLivenessProbe, naming otelCollector.livenessProbe
     set:
       otelCollector.customLivenessProbe: {tcpSocket: {port: 13133}}

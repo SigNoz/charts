@@ -6,16 +6,16 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- define "otelCollector.validate" -}}
 {{- $oc := .Values.otelCollector | default dict }}
 {{- if dig "podAnnotations" dict $oc }}
-{{ "`otelCollector.podAnnotations` has moved to `otelCollector.pod.annotations`: the same map of pod annotations, with the same defaults." }}
+{{ "`otelCollector.podAnnotations` has moved to `otelCollector.pod.annotations`: the same map." }}
 {{- end }}
 {{- if dig "podLabels" dict $oc }}
-{{ "`otelCollector.podLabels` has moved to `otelCollector.pod.labels`: the same map of pod labels." }}
+{{ "`otelCollector.podLabels` has moved to `otelCollector.pod.labels`: the same map." }}
 {{- end }}
 {{- if dig "additionalEnvs" dict $oc }}
-{{ "`otelCollector.additionalEnvs` has moved to `otelCollector.env`: a list of Kubernetes EnvVar objects, `- name: <NAME>` with `value` or `valueFrom`." }}
+{{ "`otelCollector.additionalEnvs` has moved to `otelCollector.env`: a list of Kubernetes EnvVar objects." }}
 {{- end }}
 {{- if dig "securityContext" dict $oc }}
-{{ "`otelCollector.securityContext` has moved to `otelCollector.containerSecurityContext`: the same Kubernetes SecurityContext, which also applies to the `check` init container." }}
+{{ "`otelCollector.securityContext` has moved to `otelCollector.containerSecurityContext`: the same SecurityContext." }}
 {{- end }}
 {{- if dig "command" "extraArgs" list $oc }}
 {{ "`otelCollector.command.extraArgs` has moved to `otelCollector.extraArgs`: the same list of arguments." }}
@@ -34,17 +34,13 @@ The old probe keys are refused whenever they hold a value, because `enabled: fal
 {{- end }}
 {{- end }}
 {{- if $present }}
-{{- $names := first $present }}
-{{- if gt (len $present) 1 }}
-{{- $names = printf "%s and %s" (initial $present | join ", ") (last $present) }}
-{{- end }}
-{{ printf "%s %s moved to `otelCollector.%s.httpGet.port` and `.httpGet.path`: write the probe object, and `otelCollector.%s: null` for no probe." $names (ternary "has" "have" (eq (len $present) 1)) $probe $probe }}
+{{ printf "`otelCollector.%s` no longer takes the enabled/port/path shape: write the probe object, or `null` for no probe." $probe }}
 {{- end }}
 {{- end }}
 {{- if dig "customLivenessProbe" dict $oc }}
-{{ "`otelCollector.customLivenessProbe` has moved to `otelCollector.livenessProbe`: write the probe object itself there, with `httpGet: null` for another handler." }}
+{{ "`otelCollector.customLivenessProbe` has moved to `otelCollector.livenessProbe`: the probe object itself." }}
 {{- end }}
 {{- if dig "customReadinessProbe" dict $oc }}
-{{ "`otelCollector.customReadinessProbe` has moved to `otelCollector.readinessProbe`: write the probe object itself there, with `httpGet: null` for another handler." }}
+{{ "`otelCollector.customReadinessProbe` has moved to `otelCollector.readinessProbe`: the probe object itself." }}
 {{- end }}
 {{- end -}}
