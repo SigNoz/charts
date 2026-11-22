@@ -1850,12 +1850,9 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- "Please checkout the default values in values.yml"
   image:
-    # otelCollector.image.registry - The container image registry.
-    # @default -- "docker.io"
-    registry: docker.io
-    # otelCollector.image.repository - The container image repository.
-    # @default -- "signoz/signoz-otel-collector"
-    repository: signoz/signoz-otel-collector
+    # otelCollector.image.repository - The container image repository, its registry included; `global.imageRegistry` replaces that registry when set.
+    # @default -- "docker.io/signoz/signoz-otel-collector"
+    repository: docker.io/signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.144.0"
     tag: v0.144.16

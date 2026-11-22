@@ -116,3 +116,10 @@ tests:
     set: {otelCollector.command.name: /signoz-otel-collector}
     asserts:
       - notFailedTemplate: {}
+  - it: rejects otelCollector.image.registry, naming otelCollector.image.repository
+    set: {otelCollector.image.registry: docker.io}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.image\\.registry.*otelCollector\\.image\\.repository"}}]
+  - it: accepts an empty otelCollector.image.registry from an old values file
+    set: {otelCollector.image.registry: ""}
+    asserts:
+      - notFailedTemplate: {}

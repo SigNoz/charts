@@ -27,6 +27,9 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- if and $commandName (ne (toString $commandName) "/signoz-otel-collector") }}
 {{ "`otelCollector.command.name` has been removed: the collector always runs `/signoz-otel-collector`." }}
 {{- end }}
+{{- if dig "image" "registry" "" $oc }}
+{{ "`otelCollector.image.registry` has been removed: put the registry in front of `otelCollector.image.repository`." }}
+{{- end }}
 {{- /*
 The old probe keys are refused whenever they hold a value, because `enabled: false` meant "no probe".
 */ -}}

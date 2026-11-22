@@ -6,7 +6,6 @@ tests:
   - it: pulls every migration from global.imageRegistry in place of a registry written at the front of otelCollector.image.repository
     set:
       global.imageRegistry: mirror.example.com
-      otelCollector.image.registry: ""
       otelCollector.image.repository: registry.example.com/signoz/signoz-otel-collector
       otelCollector.image.tag: v0.200.0
     asserts:
