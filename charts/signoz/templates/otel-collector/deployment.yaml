@@ -105,7 +105,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- include "snippet.clickhouse-env" . | nindent 12 }}
+            {{- include "clickhouse.env" . | nindent 12 }}
+            {{- include "clickhouse.databasesEnv" . | nindent 12 }}
             {{- include "snippet.k8s-env" . | nindent 12 }}
             - name: LOW_CARDINAL_EXCEPTION_GROUPING
               value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}

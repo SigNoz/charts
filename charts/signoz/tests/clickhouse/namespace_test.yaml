@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/namespace
+templates:
+  - templates/clickhouse/namespace.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/validate.yaml
+tests:
+  - it: creates clickhouse.namespace, keeps it on uninstall and from Argo CD pruning, and places ClickHouse in it
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.namespaceOverride: db
+    asserts:
+      - template: templates/clickhouse/namespace.yaml
+        isKind:
+          of: Namespace
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.name
+          value: db
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+      - template: templates/clickhouse/namespace.yaml
+        equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-options"]
+          value: Prune=false,Delete=false
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: metadata.namespace
+          value: db
+  - it: creates no namespace when clickhouse.namespace is the release namespace
+    template: templates/clickhouse/namespace.yaml
+    set:
+      clickhouse.namespace: NAMESPACE
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: creates no namespace for an external ClickHouse
+    template: templates/clickhouse/namespace.yaml
+    set:
+      clickhouse.enabled: false
+      clickhouse.namespace: db
+      externalClickhouse.host: ch.example
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: fails the render on clickhouse.namespace when no operator watch setting reaches it
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: db
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.namespace.*watch settings"
+  - it: renders clickhouse.namespace with the operator in that namespace (altinity-clickhouse-operator.namespaceOverride)
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.namespaceOverride: db
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders clickhouse.namespace with the operator watching it (altinity-clickhouse-operator.watchNamespaces)
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.watchNamespaces: [db]
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders clickhouse.namespace with the watch list in the operator's config file
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.configs.files:
+        config.yaml:
+          watch:
+            namespaces:
+              include: [db]
+    asserts:
+      - notFailedTemplate: {}
+  - it: renders clickhouse.namespace when you run the operator yourself
+    template: templates/validate.yaml
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.enabled: false
+    asserts:
+      - notFailedTemplate: {}

@@ -2,21 +2,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "telemetryStoreMigrator.fullname" . }}
+  name: {{ include "telemetryStoreMigrator.fullname" . }}-{{ .Release.Revision }}
   labels:
     {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
   annotations:
-    {{- with .Values.telemetryStoreMigrator.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-    {{- if .Values.telemetryStoreMigrator.upgradeHelmHooks }}
-    argocd.argoproj.io/sync-options: Force=true,Replace=true
-    {{- if .Release.IsUpgrade }}
-    helm.sh/hook: pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
-    {{- end }}
-    {{- end }}
+    {{- toYaml (mergeOverwrite (dict "argocd.argoproj.io/sync-options" "Force=true,Replace=true") (.Values.telemetryStoreMigrator.annotations | default dict)) | nindent 4 }}
 spec:
+  {{- if not (kindIs "invalid" .Values.telemetryStoreMigrator.ttlSecondsAfterFinished) }}
+  ttlSecondsAfterFinished: {{ .Values.telemetryStoreMigrator.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       labels:
@@ -39,6 +33,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
+      {{- with include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.otelCollector.imagePullSecrets)) }}
+      {{- . | nindent 6 }}
+      {{- end }}
       initContainers:
         - name: ready
           image: {{ include "otelCollector.image" . }}

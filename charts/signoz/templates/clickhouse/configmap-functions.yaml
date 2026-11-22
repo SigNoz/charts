@@ -1,0 +1,32 @@
+{{- if .Values.clickhouse.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clickhouse.fullname" . }}-custom-functions
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+data:
+  custom-functions.xml: |
+    <functions>
+        <function>
+            <type>executable</type>
+            <name>histogramQuantile</name>
+            <return_type>Float64</return_type>
+            <argument>
+                <type>Array(Float64)</type>
+                <name>buckets</name>
+            </argument>
+            <argument>
+                <type>Array(Float64)</type>
+                <name>counts</name>
+            </argument>
+            <argument>
+                <type>Float64</type>
+                <name>quantile</name>
+            </argument>
+            <format>CSV</format>
+            <command>./histogramQuantile</command>
+        </function>
+    </functions>
+{{- end }}

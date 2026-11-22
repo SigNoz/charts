@@ -1,0 +1,21 @@
+{{- /*
+Every component's values rules live in its `<component>.validate` define, which emits one line per
+rule the values break. Gather the lines of every component and fail once, listing them all, so an
+old values file is fixed in one pass instead of one failed render per key.
+A component adds its `<component>.validate` define to the list below on a line of its own.
+*/ -}}
+{{- $hits := list }}
+{{- $defines := list
+  "clickhouse.validate"
+  "telemetryStoreMigrator.validate"
+}}
+{{- range $define := $defines }}
+{{- range splitList "\n" (include $define $) }}
+{{- if . }}
+{{- $hits = append $hits . }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if $hits }}
+{{- fail (printf "%d %s must change before the chart can be installed:\n- %s" (len $hits) (ternary "value" "values" (eq (len $hits) 1)) (join "\n- " $hits)) }}
+{{- end }}

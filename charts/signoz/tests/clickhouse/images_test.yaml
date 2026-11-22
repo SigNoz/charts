@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/images
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: pulls every container of the ClickHouse pod from global.imageRegistry
+    set:
+      global.imageRegistry: mirror.example.com
+      clickhouse.image.repository: clickhouse/clickhouse-server
+      clickhouse.image.tag: t1
+      clickhouse.logs.system.enabled: true
+      clickhouse.logs.system.image.repository: signoz/signoz-otel-collector
+      clickhouse.logs.system.image.tag: t2
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].image
+          value: mirror.example.com/clickhouse/clickhouse-server:t1
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "logs-system-exporter")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:t2
+      - matchRegex:
+          path: spec.templates.podTemplates[0].spec.initContainers[0].image
+          pattern: ^mirror\.example\.com/
+  - it: replaces the registry a repository carries with global.imageRegistry
+    set:
+      global.imageRegistry: mirror.example.com
+      clickhouse.image.repository: registry.example.org/clickhouse/clickhouse-server
+      clickhouse.image.tag: t1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].image
+          value: mirror.example.com/clickhouse/clickhouse-server:t1
+  - it: keeps the registry a repository carries without global.imageRegistry
+    set:
+      clickhouse.image.repository: registry.example.org:5000/clickhouse/clickhouse-server
+      clickhouse.image.tag: t1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].image
+          value: registry.example.org:5000/clickhouse/clickhouse-server:t1
+  - it: treats localhost as a registry that global.imageRegistry replaces
+    set:
+      global.imageRegistry: mirror.example.com
+      clickhouse.image.repository: localhost/clickhouse/clickhouse-server
+      clickhouse.image.tag: t1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].image
+          value: mirror.example.com/clickhouse/clickhouse-server:t1
+  - it: pulls the ClickHouse images with both global.imagePullSecrets and clickhouse.imagePullSecrets
+    set:
+      global.imagePullSecrets: [global-pull]
+      clickhouse.imagePullSecrets: [ch-pull]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: ch-pull
+  - it: lists global.imagePullSecrets first, then clickhouse.imagePullSecrets, each in the order written, on the ClickHouse pod
+    set:
+      global.imagePullSecrets: [registry-mirror, corp-pull]
+      clickhouse.imagePullSecrets: [ch-vendor, ch-backup]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: registry-mirror
+            - name: corp-pull
+            - name: ch-vendor
+            - name: ch-backup
+  - it: pulls the ClickHouse images with global.imagePullSecrets, then imagePullSecrets, then clickhouse.imagePullSecrets, in that order
+    set:
+      global.imagePullSecrets: [registry-mirror]
+      imagePullSecrets: [corp-pull]
+      clickhouse.imagePullSecrets: [ch-vendor]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: registry-mirror
+            - name: corp-pull
+            - name: ch-vendor
+  - it: lists a pull secret named in more than one list once, at its first place, on the ClickHouse pod
+    set:
+      global.imagePullSecrets: [registry-mirror, shared-pull]
+      clickhouse.imagePullSecrets: [ch-vendor, registry-mirror, ch-backup]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: registry-mirror
+            - name: shared-pull
+            - name: ch-vendor
+            - name: ch-backup
+  - it: lists a pull secret named like a number under that name, as a string, on the ClickHouse pod
+    set:
+      global.imagePullSecrets: ["123"]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.imagePullSecrets
+          value:
+            - name: "123"
