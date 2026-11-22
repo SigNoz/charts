@@ -1,0 +1,128 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/env
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: gives every migration the variables in telemetryStoreMigrator.env after the chart's, in the order written
+    set:
+      telemetryStoreMigrator.env:
+        - name: SSL_CERT_FILE
+          value: /etc/ssl/clickhouse/ca.crt
+        - name: GOMAXPROCS
+          value: "2"
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env[-2]
+          value: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.crt}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env[-1]
+          value: {name: GOMAXPROCS, value: "2"}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env[-2]
+          value: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.crt}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env[-1]
+          value: {name: GOMAXPROCS, value: "2"}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env[-2]
+          value: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.crt}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env[-1]
+          value: {name: GOMAXPROCS, value: "2"}
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "async")].env[-2]
+          value: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.crt}
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "async")].env[-1]
+          value: {name: GOMAXPROCS, value: "2"}
+  - it: replaces a chart variable that telemetryStoreMigrator.env names with your value, listed once, in every migration
+    set:
+      telemetryStoreMigrator.env:
+        - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+          value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?dial_timeout=30s
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?dial_timeout=30s"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN}
+          any: true
+          count: 1
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?dial_timeout=30s"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN}
+          any: true
+          count: 1
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?dial_timeout=30s"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN}
+          any: true
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?dial_timeout=30s"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN}
+          any: true
+          count: 1
+  - it: places a chart variable that telemetryStoreMigrator.env points at another of your variables through $(NAME) after that variable, in every migration
+    set:
+      telemetryStoreMigrator.env:
+        - name: CLICKHOUSE_MIGRATOR_USER
+          valueFrom:
+            secretKeyRef:
+              name: clickhouse-migrator
+              key: username
+        - name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+          value: tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env[-1]
+          value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env[-1]
+          value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env[-1]
+          value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "async")].env[-1]
+          value: {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN, value: "tcp://$(CLICKHOUSE_MIGRATOR_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: {name: CLICKHOUSE_MIGRATOR_USER, valueFrom: {secretKeyRef: {name: clickhouse-migrator, key: username}}}
+  - it: gives every migration the sources in telemetryStoreMigrator.envFrom
+    set:
+      telemetryStoreMigrator.envFrom:
+        - secretRef:
+            name: migrator-env
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].envFrom
+          content: {secretRef: {name: migrator-env}}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].envFrom
+          content: {secretRef: {name: migrator-env}}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].envFrom
+          content: {secretRef: {name: migrator-env}}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "async")].envFrom
+          content: {secretRef: {name: migrator-env}}

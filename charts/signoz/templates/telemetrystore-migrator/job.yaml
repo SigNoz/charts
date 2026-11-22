@@ -1,20 +1,62 @@
+{{/*
+telemetryStoreMigrator.migration: one migration container of the Job.
+Takes: name (the container name), args (the migrate command's arguments), context (the root context).
+Every migration runs the collector's image, so it applies the schema that collector version expects, and
+shares the migrator's security context and extra mounts.
+Emits: the container as one list item, with no leading indentation; include it with nindent.
+*/}}
+{{- define "telemetryStoreMigrator.migration" -}}
+{{- $values := .context.Values -}}
+- name: {{ .name }}
+  image: {{ include "signoz.lib.image" (dict "registry" $values.global.imageRegistry "image" $values.otelCollector.image "name" "otelCollector.image") }}
+  imagePullPolicy: {{ $values.otelCollector.image.pullPolicy }}
+  {{- with include "signoz.lib.env" (dict "chart" (list (include "snippet.telemetryStoreMigrator-env" .context | fromYamlArray)) "user" $values.telemetryStoreMigrator.env) }}
+  env:
+    {{- . | trim | nindent 4 }}
+  {{- end }}
+  {{- with $values.telemetryStoreMigrator.envFrom }}
+  envFrom:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  args:
+    {{- toYaml .args | nindent 4 }}
+  {{- with $values.telemetryStoreMigrator.containerSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $values.telemetryStoreMigrator.extraVolumeMounts }}
+  volumeMounts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $values.telemetryStoreMigrator.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end -}}
+
 {{- if .Values.telemetryStoreMigrator.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
+  {{- /* A Job's pod template is immutable, so every release revision gets a new Job, and the migrations run again on every upgrade. */}}
   name: {{ include "telemetryStoreMigrator.fullname" . }}-{{ .Release.Revision }}
   labels:
-    {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 4 }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "telemetryStoreMigrator.selectorLabels" . | fromYaml) .Values.telemetryStoreMigrator.labels)) | nindent 4 }}
   annotations:
     {{- toYaml (mergeOverwrite (dict "argocd.argoproj.io/sync-options" "Force=true,Replace=true") (.Values.telemetryStoreMigrator.annotations | default dict)) | nindent 4 }}
 spec:
+  {{- /* 0 deletes the Job as soon as it finishes; only an unset value keeps it. */}}
   {{- if not (kindIs "invalid" .Values.telemetryStoreMigrator.ttlSecondsAfterFinished) }}
   ttlSecondsAfterFinished: {{ .Values.telemetryStoreMigrator.ttlSecondsAfterFinished }}
   {{- end }}
   template:
     metadata:
       labels:
-        {{- include "telemetryStoreMigrator.selectorLabels" . | nindent 8 }}
+        {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.telemetryStoreMigrator.pod.labels) "keep" (include "telemetryStoreMigrator.selectorLabels" . | fromYaml)) | nindent 8 }}
+      {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.telemetryStoreMigrator.pod.annotations)) }}
+      annotations:
+        {{- . | nindent 8 }}
+      {{- end }}
     spec:
       {{- with .Values.telemetryStoreMigrator.affinity }}
       affinity:
@@ -32,61 +74,27 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.telemetryStoreMigrator.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.telemetryStoreMigrator.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "telemetryStoreMigrator.serviceAccountName" . }}
       {{- with include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.otelCollector.imagePullSecrets)) }}
       {{- . | nindent 6 }}
       {{- end }}
+      {{- /* The steps run in this order, and the Job completes when async does; the collector's check waits only for sync. */}}
       initContainers:
-        - name: ready
-          image: {{ include "otelCollector.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
-          env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
-          args:
-            - "migrate"
-            - "ready"
-          {{- with .Values.telemetryStoreMigrator.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-        - name: bootstrap
-          image: {{ include "otelCollector.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
-          env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
-          args:
-            - "migrate"
-            - "bootstrap"
-          {{- with .Values.telemetryStoreMigrator.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-        - name: sync
-          image: {{ include "otelCollector.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
-          env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
-          args:
-            - "migrate"
-            - "sync"
-            - "up"
-          {{- with .Values.telemetryStoreMigrator.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+        {{- include "telemetryStoreMigrator.migration" (dict "name" "ready" "args" (list "migrate" "ready") "context" $) | nindent 8 }}
+        {{- include "telemetryStoreMigrator.migration" (dict "name" "bootstrap" "args" (list "migrate" "bootstrap") "context" $) | nindent 8 }}
+        {{- include "telemetryStoreMigrator.migration" (dict "name" "sync" "args" (list "migrate" "sync" "up") "context" $) | nindent 8 }}
       containers:
-        - name: async
-          image: {{ include "otelCollector.image" . }}
-          imagePullPolicy: {{ .Values.otelCollector.image.pullPolicy }}
-          env:
-            {{- include "snippet.telemetryStoreMigrator-env" . | nindent 12 }}
-          args:
-            - "migrate"
-            - "async"
-            - "up"
-          {{- with .Values.telemetryStoreMigrator.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+        {{- include "telemetryStoreMigrator.migration" (dict "name" "async" "args" (list "migrate" "async" "up") "context" $) | nindent 8 }}
+      {{- with .Values.telemetryStoreMigrator.extraVolumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: OnFailure
 {{- end }}
