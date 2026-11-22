@@ -221,7 +221,7 @@ upgradeBackupHook:
   # `upgradeBackupHook.activeDeadlineSeconds` with DeadlineExceeded; set this
   # to false for that upgrade. When false and the database is not on the
   # claim, take the dump yourself before upgrading, with the manual command in
-  # the upgrade guide.
+  # the upgrade guide: https://signoz.io/docs/operate/migration/upgrade-0-152/
   # -- Run the hook on `helm upgrade`.
   # @section -- Upgrade Backup Hook Configuration
   enabled: true

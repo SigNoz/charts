@@ -124,7 +124,7 @@ spec:
                   fail "ERROR: the release mounts its own /docker-entrypoint-initdb.d, so the chart cannot load the dump on the upgraded pod's first start." \
                     "The upgrade stopped before anything changed. To go on, either:" \
                     "- remove the postgresql.additionalVolumeMounts entry at /docker-entrypoint-initdb.d for this upgrade, and run helm upgrade again; or" \
-                    "- take the dump by hand as the upgrade guide describes, upgrade with postgresql.upgradeBackupHook.enabled=false, and load the dump by hand." \
+                    "- take the dump by hand as the upgrade guide at https://signoz.io/docs/operate/migration/upgrade-0-152/ describes, upgrade with postgresql.upgradeBackupHook.enabled=false, and load the dump by hand." \
                     "Values are named as in the signoz chart; drop the postgresql. prefix when this chart is installed on its own."
                 fi
                 mkdir -p "$CLAIM_BACKUPS" ||
@@ -160,7 +160,7 @@ spec:
                 '' | *[!0-9]*)
                   fail "ERROR: cannot tell which Postgres major version the image runs: PG_MAJOR is '${PG_MAJOR:-}', postgres -V printed '${version:-}'." \
                     "The upgrade stopped before anything changed. Use an image that sets PG_MAJOR or answers postgres -V," \
-                    "or take the dump by hand with the manual command in the upgrade guide and upgrade with postgresql.upgradeBackupHook.enabled=false." ;;
+                    "or take the dump by hand with the manual command in the upgrade guide at https://signoz.io/docs/operate/migration/upgrade-0-152/ and upgrade with postgresql.upgradeBackupHook.enabled=false." ;;
               esac
 
               # A folder on the way that cannot be searched would make a present data directory read as missing.
@@ -206,7 +206,7 @@ spec:
                   "The claim has no Postgres $major data directory at $CLAIM_PGDATA (PG_VERSION: ${on_claim:-none}), so the database may live only inside the container, and the upgrade would lose it." \
                   "The upgrade stopped before anything changed. To go on, either:" \
                   "- start Postgres, or fix the password in postgresql.auth, and run helm upgrade again; or" \
-                  "- take the dump by hand with the manual command in the upgrade guide, then upgrade with postgresql.upgradeBackupHook.enabled=false." \
+                  "- take the dump by hand with the manual command in the upgrade guide at https://signoz.io/docs/operate/migration/upgrade-0-152/, then upgrade with postgresql.upgradeBackupHook.enabled=false." \
                   "Values are named as in the signoz chart; drop the postgresql. prefix when this chart is installed on its own."
               fi
           {{- with $hook.resources }}
