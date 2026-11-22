@@ -58,6 +58,13 @@ tests:
     set:
       signoz.additionalVolumes: [{name: cfg, configMap: {name: signoz-cfg}}]
     asserts: [{failedTemplate: {errorPattern: "signoz\\.additionalVolumes.*signoz\\.extraVolumes"}}]
+  - it: rejects signoz.image.registry, naming signoz.image.repository
+    set: {signoz.image.registry: docker.io}
+    asserts: [{failedTemplate: {errorPattern: "signoz\\.image\\.registry.*signoz\\.image\\.repository"}}]
+  - it: accepts an empty signoz.image.registry from an old values file
+    set: {signoz.image.registry: ""}
+    asserts:
+      - notFailedTemplate: {}
   - it: accepts the moved SigNoz keys at their new paths, beside the empty old keys of an old values file
     set:
       signoz.extraArgs: [--use-logs-new-schema=true]

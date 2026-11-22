@@ -1439,14 +1439,11 @@ signoz:
   # @section -- SigNoz
   replicaCount: 1
   image:
-    # `global.imageRegistry` takes precedence over it.
-    # -- Image registry.
-    # @section -- SigNoz
-    registry: docker.io
-    # It may start with a registry, which `global.imageRegistry` replaces.
+    # The registry is part of the repository, as `docker.io` here;
+    # `global.imageRegistry` replaces it when set.
     # -- Image repository.
     # @section -- SigNoz
-    repository: signoz/signoz
+    repository: docker.io/signoz/signoz
     # Empty means the chart's appVersion.
     # -- Image tag.
     # @section -- SigNoz

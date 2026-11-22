@@ -38,4 +38,7 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- if dig "additionalVolumes" list $signoz }}
 {{ "`signoz.additionalVolumes` has moved to `signoz.extraVolumes`: the same list of Kubernetes Volume objects." }}
 {{- end }}
+{{- if dig "image" "registry" "" $signoz }}
+{{ "`signoz.image.registry` has been removed: put the registry in front of `signoz.image.repository`." }}
+{{- end }}
 {{- end -}}
