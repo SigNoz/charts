@@ -18,7 +18,10 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: POSTGRES_PASSWORD
-            value: "signoz123"
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql-auth
+                key: password
       - contains: 
           path: spec.template.spec.containers[0].env
           content: 
@@ -46,7 +49,10 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: POSTGRES_PASSWORD
-            value: "123"
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql-auth
+                key: password
       - contains: 
           path: spec.template.spec.containers[0].env
           content: 

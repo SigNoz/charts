@@ -143,7 +143,7 @@ Postgres ENV
   {{- $secretKey := default "password" (get $secretCfg "userPasswordKey") -}}
   {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" .Values.auth.existingSecret "key" $secretKey ))) -}}
 {{- else }}
-  {{- $_ := set $env "POSTGRES_PASSWORD" .Values.auth.password -}}
+  {{- $_ := set $env "POSTGRES_PASSWORD" (dict "valueFrom" (dict "secretKeyRef" (dict "name" (include "postgresql.authSecretName" .) "key" "password"))) -}}
 {{- end }}
 {{- if .Values.auth.database }}
   {{- $_ := set $env "POSTGRES_DB" .Values.auth.database -}}
