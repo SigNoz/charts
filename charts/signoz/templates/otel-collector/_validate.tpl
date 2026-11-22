@@ -14,6 +14,9 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- if dig "additionalEnvs" dict $oc }}
 {{ "`otelCollector.additionalEnvs` has moved to `otelCollector.env`: a list of Kubernetes EnvVar objects." }}
 {{- end }}
+{{- if eq (toString (dig "lowCardinalityExceptionGrouping" false $oc)) "true" }}
+{{ "`otelCollector.lowCardinalityExceptionGrouping` has moved to `otelCollector.env`: set `LOW_CARDINAL_EXCEPTION_GROUPING` there." }}
+{{- end }}
 {{- if dig "securityContext" dict $oc }}
 {{ "`otelCollector.securityContext` has moved to `otelCollector.containerSecurityContext`: the same SecurityContext." }}
 {{- end }}

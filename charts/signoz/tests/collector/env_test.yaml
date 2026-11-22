@@ -4,10 +4,10 @@ templates:
   - templates/otel-collector/deployment.yaml
   - templates/otel-collector/configmap.yaml
 tests:
-  - it: hands otelCollector.lowCardinalityExceptionGrouping to the collector as LOW_CARDINAL_EXCEPTION_GROUPING, which its trace exporter reads
+  - it: hands LOW_CARDINAL_EXCEPTION_GROUPING from otelCollector.env to the collector, which its trace exporter reads
     template: templates/otel-collector/deployment.yaml
     set:
-      otelCollector.lowCardinalityExceptionGrouping: true
+      otelCollector.env: [{name: LOW_CARDINAL_EXCEPTION_GROUPING, value: "true"}]
     asserts:
       - contains:
           path: spec.template.spec.containers[?(@.name == "collector")].env

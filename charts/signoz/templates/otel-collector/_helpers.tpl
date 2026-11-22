@@ -33,7 +33,7 @@ The collector's own environment variables, after the ClickHouse and pod identity
 */}}
 {{- define "otelCollector.chartEnv" }}
 - name: LOW_CARDINAL_EXCEPTION_GROUPING
-  value: {{ default "false" .Values.otelCollector.lowCardinalityExceptionGrouping | quote }}
+  value: "false"
 {{- end }}
 
 {{/*
