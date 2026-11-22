@@ -128,6 +128,28 @@ Path of the dump the loader reads, under the claim as the postgres container mou
 {{- end -}}
 
 {{/*
+Name of the ConfigMap that holds the loader script.
+*/}}
+{{- define "postgresql.restoreConfigMapName" -}}
+{{- printf "%s-restore" (include "postgresql.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+"true" when the loader script is mounted into /docker-entrypoint-initdb.d.
+*/}}
+{{- define "postgresql.restoreLoader" -}}
+{{- $userMount := false -}}
+{{- range .Values.additionalVolumeMounts -}}
+{{- if eq (clean (default "" .mountPath | toString)) "/docker-entrypoint-initdb.d" -}}
+{{- $userMount = true -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.persistence.enabled (not $userMount) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Auth secret name
 */}}
 {{- define "postgresql.authSecretName" -}}
