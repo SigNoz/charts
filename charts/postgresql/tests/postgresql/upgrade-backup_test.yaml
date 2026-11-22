@@ -644,6 +644,42 @@ tests:
           path: data["00-signoz-restore.sh"]
           pattern: "(?m)^dump='/var/lib/postgresql/backups/pre-upgrade\\.sql'$"
 
+  - it: tells the Job that the loader is mounted
+    release:
+      upgrade: true
+    asserts:
+      - template: templates/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
+          any: true
+      - template: templates/upgrade-backup-job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
+          content: {name: RESTORE_LOADER, value: "true"}
+
+  # Without the loader a dump stays on the claim unloaded, and the startup probe keeps the pod from becoming Ready.
+  - it: tells the Job that the loader is not mounted when an additionalVolumeMounts entry takes /docker-entrypoint-initdb.d
+    release:
+      upgrade: true
+    set:
+      additionalVolumes:
+        - name: init-scripts
+          configMap: {name: postgres-init-scripts}
+      additionalVolumeMounts:
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+    asserts:
+      - template: templates/statefulset.yaml
+        notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh}
+          any: true
+      - template: templates/upgrade-backup-job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "upgrade-backup")].env
+          content: {name: RESTORE_LOADER, value: "false"}
+
   - it: wraps the dump in BEGIN; and COMMIT;, the last line the loader checks for
     release:
       upgrade: true

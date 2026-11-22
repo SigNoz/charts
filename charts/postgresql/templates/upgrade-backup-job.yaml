@@ -97,6 +97,8 @@ spec:
               value: {{ $claimDataDir | quote }}
             - name: CLAIM_BACKUPS
               value: {{ printf "%s/backups" (include "postgresql.claimRoot" .) | quote }}
+            - name: RESTORE_LOADER
+              value: {{ include "postgresql.restoreLoader" . | default "false" | quote }}
           command:
             - /bin/sh
             - -c
@@ -118,6 +120,13 @@ spec:
               }
 
               dump() {
+                if [ "$RESTORE_LOADER" != true ]; then
+                  fail "ERROR: the release mounts its own /docker-entrypoint-initdb.d, so the chart cannot load the dump on the upgraded pod's first start." \
+                    "The upgrade stopped before anything changed. To go on, either:" \
+                    "- remove the postgresql.additionalVolumeMounts entry at /docker-entrypoint-initdb.d for this upgrade, and run helm upgrade again; or" \
+                    "- take the dump by hand as the upgrade guide describes, upgrade with postgresql.upgradeBackupHook.enabled=false, and load the dump by hand." \
+                    "Values are named as in the signoz chart; drop the postgresql. prefix when this chart is installed on its own."
+                fi
                 mkdir -p "$CLAIM_BACKUPS" ||
                   fail "ERROR: cannot create $CLAIM_BACKUPS on the claim as user $(id -u) (error above)." \
                     "The upgrade stopped before anything changed."
