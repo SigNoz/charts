@@ -1,0 +1,214 @@
+{{- if and .Release.IsUpgrade (include "postgresql.upgradeBackup" .) }}
+{{- $hook := .Values.upgradeBackupHook }}
+{{- $claimDataDir := include "postgresql.claimDataDir" . }}
+{{- $name := printf "%s-upgrade-backup" (include "postgresql.name" . | trunc 48 | trimSuffix "-") }}
+{{- $nodeSelector := default .Values.nodeSelector $hook.nodeSelector }}
+{{- $tolerations := concat (default list .Values.tolerations) (default list $hook.tolerations) }}
+{{- $priorityClassName := default .Values.priorityClassName $hook.priorityClassName }}
+{{- $podSecurityContext := default .Values.podSecurityContext $hook.podSecurityContext }}
+{{- $containerSecurityContext := default .Values.securityContext $hook.containerSecurityContext }}
+{{- /* Labels differ from the StatefulSet selector, so the Service never routes to this pod. */}}
+{{- $podLabels := merge (dict "app.kubernetes.io/name" $name "app.kubernetes.io/instance" .Release.Name) (deepCopy (default dict $hook.podLabels)) }}
+{{- $annotations := merge (dict "helm.sh/hook" "pre-upgrade" "helm.sh/hook-weight" "-11" "helm.sh/hook-delete-policy" "before-hook-creation,hook-succeeded") (deepCopy (default dict $hook.annotations)) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-upgrade-backup" (include "postgresql.fullname" . | trunc 48 | trimSuffix "-") }}
+  labels:
+    helm.sh/chart: {{ include "postgresql.chart" . }}
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ $hook.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml $podLabels | nindent 8 }}
+      {{- with $hook.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 5
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "postgresql.serviceAccountName" . }}
+      {{- with $priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  {{- include "postgresql.selectorLabels" . | nindent 18 }}
+              topologyKey: kubernetes.io/hostname
+      {{- with $podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: upgrade-backup
+          {{- with $containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ template "postgresql.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PGHOST
+              value: {{ include "postgresql.fullname" . | quote }}
+            - name: PGPORT
+              value: {{ .Values.service.port | toString | quote }}
+            - name: PGUSER
+              value: {{ default "postgres" .Values.auth.username | quote }}
+            - name: PGDATABASE
+              value: {{ default (default "postgres" .Values.auth.username) .Values.auth.database | quote }}
+            - name: PGPASSWORD
+            {{- if .Values.auth.existingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret | quote }}
+                  key: {{ default "password" (get (default dict .Values.auth.secretKeys) "userPasswordKey") | quote }}
+            {{- else }}
+              {{- /* The <fullname>-auth Secret does not exist yet when the first upgrade that adds it runs this hook. */}}
+              value: {{ .Values.auth.password | quote }}
+            {{- end }}
+            - name: PGCONNECT_TIMEOUT
+              value: "10"
+            - name: CLAIM_PGDATA
+              value: {{ $claimDataDir | quote }}
+            - name: CLAIM_BACKUPS
+              value: {{ printf "%s/backups" (include "postgresql.claimRoot" .) | quote }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -eu
+
+              fail() {
+                for line in "$@"; do
+                  echo "$line" >&2
+                done
+                exit 1
+              }
+
+              must_run_as_postgres() {
+                fail "ERROR: running as user $(id -u), the hook cannot $1." \
+                  "The upgrade stopped before anything changed. The hook must run as the Postgres pod's user:" \
+                  "leave postgresql.upgradeBackupHook.podSecurityContext and containerSecurityContext empty, or set them to match the Postgres pod."
+              }
+
+              dump() {
+                mkdir -p "$CLAIM_BACKUPS" ||
+                  fail "ERROR: cannot create $CLAIM_BACKUPS on the claim as user $(id -u) (error above)." \
+                    "The upgrade stopped before anything changed."
+                if [ "$(id -u)" != 0 ] && [ -z "$(find "$CLAIM_BACKUPS" -prune -user "$(id -u)")" ]; then
+                  must_run_as_postgres "make $CLAIM_BACKUPS usable by the Postgres user, because another user owns it"
+                fi
+                tmp="$CLAIM_BACKUPS/.pre-upgrade.tmp"
+                if ! { echo 'BEGIN;' && pg_dump -w && echo 'COMMIT;'; } > "$tmp"; then
+                  fail "ERROR: dumping database $PGDATABASE failed (error above)." \
+                    "The upgrade stopped before anything changed. Fix the cause and run helm upgrade again." \
+                    "If pg_dump refuses a newer server, keep postgresql.image.tag at the major version that runs now."
+                fi
+                mv "$tmp" "$CLAIM_BACKUPS/pre-upgrade.sql" ||
+                  fail "ERROR: cannot move the dump to $CLAIM_BACKUPS/pre-upgrade.sql (error above)." \
+                    "The upgrade stopped before anything changed."
+                if [ "$(id -u)" = 0 ]; then
+                  if ! owner=$(id -u postgres):$(id -g postgres) || ! chown -R "$owner" "$CLAIM_BACKUPS"; then
+                    fail "ERROR: cannot hand $CLAIM_BACKUPS to the image's postgres user (error above)." \
+                      "The upgrade stopped before anything changed."
+                  fi
+                fi
+                echo "Dumped database $PGDATABASE to $CLAIM_BACKUPS/pre-upgrade.sql ($(wc -c < "$CLAIM_BACKUPS/pre-upgrade.sql") bytes)."
+              }
+
+              major=${PG_MAJOR:-}
+              if [ -z "$major" ]; then
+                version=$(postgres -V 2>&1 || true)
+                major=$(echo "$version" | sed -n '1s/^[^0-9]*\([0-9][0-9]*\).*/\1/p')
+              fi
+              case "$major" in
+                '' | *[!0-9]*)
+                  fail "ERROR: cannot tell which Postgres major version the image runs: PG_MAJOR is '${PG_MAJOR:-}', postgres -V printed '${version:-}'." \
+                    "The upgrade stopped before anything changed. Use an image that sets PG_MAJOR or answers postgres -V," \
+                    "or take the dump by hand with the manual command in the upgrade guide and upgrade with postgresql.upgradeBackupHook.enabled=false." ;;
+              esac
+
+              # A folder on the way that cannot be searched would make a present data directory read as missing.
+              dir=
+              old_ifs=$IFS
+              IFS=/
+              for part in ${CLAIM_PGDATA#/}; do
+                dir="$dir/$part"
+                [ -d "$dir" ] || break
+                [ -x "$dir" ] || must_run_as_postgres "read the Postgres data folder: $dir cannot be searched"
+              done
+              IFS=$old_ifs
+              if [ -e "$CLAIM_PGDATA/PG_VERSION" ] && [ ! -r "$CLAIM_PGDATA/PG_VERSION" ]; then
+                must_run_as_postgres "read the Postgres data folder: $CLAIM_PGDATA/PG_VERSION cannot be read"
+              fi
+
+              on_claim=
+              if [ -s "$CLAIM_PGDATA/PG_VERSION" ]; then
+                on_claim=$(cat "$CLAIM_PGDATA/PG_VERSION")
+              fi
+
+              if err=$(psql -X -w -A -t -c 'SELECT 1' 2>&1 > /dev/null); then
+                reachable=yes
+              else
+                reachable=no
+              fi
+
+              if [ "$reachable" = yes ] && [ -z "$on_claim" ]; then
+                echo "No Postgres data directory at $CLAIM_PGDATA on the claim: the running database is stored outside the claim and is lost when the pod restarts."
+                echo "Dumping it so the upgraded pod loads it on its first start."
+                dump
+              elif [ "$reachable" = yes ] && [ "$on_claim" = "$major" ]; then
+                echo "The claim holds the Postgres $major data directory at $CLAIM_PGDATA. Nothing to back up."
+              elif [ "$reachable" = yes ]; then
+                echo "The claim holds a Postgres $on_claim data directory at $CLAIM_PGDATA, but the image runs Postgres $major."
+                echo "Dumping the running database before the upgrade."
+                dump
+              elif [ "$on_claim" = "$major" ]; then
+                echo "Postgres at $PGHOST:$PGPORT is not reachable ($err), but the claim holds the Postgres $major data directory at $CLAIM_PGDATA. Nothing to back up."
+              else
+                fail "ERROR: cannot back up Postgres before the upgrade." \
+                  "Connecting to database $PGDATABASE at $PGHOST:$PGPORT as $PGUSER failed: $err" \
+                  "The claim has no Postgres $major data directory at $CLAIM_PGDATA (PG_VERSION: ${on_claim:-none}), so the database may live only inside the container, and the upgrade would lose it." \
+                  "The upgrade stopped before anything changed. To go on, either:" \
+                  "- start Postgres, or fix the password in postgresql.auth, and run helm upgrade again; or" \
+                  "- take the dump by hand with the manual command in the upgrade guide, then upgrade with postgresql.upgradeBackupHook.enabled=false." \
+                  "Values are named as in the signoz chart; drop the postgresql. prefix when this chart is installed on its own."
+              fi
+          {{- with $hook.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: claim
+              mountPath: /claim
+      volumes:
+        - name: claim
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ tpl .Values.persistence.existingClaim $ }}{{ else }}{{ printf "pgdata-%s-0" (include "postgresql.fullname" .) }}{{ end }}
+{{- end }}

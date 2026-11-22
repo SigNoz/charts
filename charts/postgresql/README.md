@@ -137,6 +137,116 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
         </tr>
     </tbody>
 </table>
+<h3>Upgrade Backup Hook Configuration</h3>
+<table>
+    <thead>
+        <th>Key</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="upgradeBackupHook--enabled"><a href="./values.yaml#L227">upgradeBackupHook.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Run the hook on `helm upgrade`.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L233">upgradeBackupHook.activeDeadlineSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">240</pre>
+</div>
+            </td>
+            <td>Time limit of the Job before it, and with it the upgrade, is marked failed.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--resources"><a href="./values.yaml#L239">upgradeBackupHook.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory</pre>
+</div>
+            </td>
+            <td>Resource requests and limits for the container.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--nodeSelector"><a href="./values.yaml#L251">upgradeBackupHook.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `nodeSelector`</pre>
+</div>
+            </td>
+            <td>Node labels for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--tolerations"><a href="./values.yaml#L256">upgradeBackupHook.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--priorityClassName"><a href="./values.yaml#L260">upgradeBackupHook.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `priorityClassName`</pre>
+</div>
+            </td>
+            <td>Priority class of the pod.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--podSecurityContext"><a href="./values.yaml#L266">upgradeBackupHook.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `podSecurityContext`</pre>
+</div>
+            </td>
+            <td>Security context for the pod.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--containerSecurityContext"><a href="./values.yaml#L273">upgradeBackupHook.containerSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `securityContext`</pre>
+</div>
+            </td>
+            <td>Security context for the container.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--podAnnotations"><a href="./values.yaml#L276">upgradeBackupHook.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the pod.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--podLabels"><a href="./values.yaml#L280">upgradeBackupHook.podLabels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels to add to the pod.</td>
+        </tr>
+        <tr>
+            <td id="upgradeBackupHook--annotations"><a href="./values.yaml#L285">upgradeBackupHook.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the Job.</td>
+        </tr>
+    </tbody>
+</table>
 
 <h3>Other Values</h3>
 <table>
@@ -553,7 +663,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Subpath within the volume for Postgres data.</td>
 	</tr>
 	<tr>
-		<td id="additionalArgs"><a href="./values.yaml#L210">additionalArgs</a></td>
+		<td id="additionalArgs"><a href="./values.yaml#L289">additionalArgs</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -562,7 +672,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional command-line arguments for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumes"><a href="./values.yaml#L214">additionalVolumes</a></td>
+		<td id="additionalVolumes"><a href="./values.yaml#L293">additionalVolumes</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -571,7 +681,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volumes for Postgres pods.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumeMounts"><a href="./values.yaml#L218">additionalVolumeMounts</a></td>
+		<td id="additionalVolumeMounts"><a href="./values.yaml#L297">additionalVolumeMounts</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -580,7 +690,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volume mounts for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="extraEnv"><a href="./values.yaml#L222">extraEnv</a></td>
+		<td id="extraEnv"><a href="./values.yaml#L301">extraEnv</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -589,7 +699,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Extra environment variables for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--create"><a href="./values.yaml#L227">serviceAccount.create</a></td>
+		<td id="serviceAccount--create"><a href="./values.yaml#L306">serviceAccount.create</a></td>
 		<td>bool</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -598,7 +708,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Specifies whether a service account should be created.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--annotations"><a href="./values.yaml#L230">serviceAccount.annotations</a></td>
+		<td id="serviceAccount--annotations"><a href="./values.yaml#L309">serviceAccount.annotations</a></td>
 		<td>object</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -607,7 +717,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Annotations to add to the service account.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--name"><a href="./values.yaml#L233">serviceAccount.name</a></td>
+		<td id="serviceAccount--name"><a href="./values.yaml#L312">serviceAccount.name</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">null</pre>

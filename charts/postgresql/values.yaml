@@ -205,6 +205,85 @@ persistence:
   # @section -- Persistence Configuration
   dataDir: /var/lib/postgresql/data
 
+# The pre-upgrade backup Job. It always runs the Postgres image, so pg_dump
+# matches the server, on the Postgres pod's node, with no retry: its image,
+# affinity, topology spread and backoffLimit are not settable. `nodeSelector`,
+# `priorityClassName` and the security contexts below take the Postgres pod's
+# values when left empty.
+upgradeBackupHook:
+  # On `helm upgrade` with the default `persistence.mountPath`, the Job checks
+  # the claim for the data directory at `persistence.dataDir`. When it is
+  # missing, the Job dumps the running database to `backups/pre-upgrade.sql` on
+  # the claim, and the upgraded pod loads that dump on its first start; a failed
+  # dump stops the upgrade before anything changes. When the Postgres pod is
+  # absent or cannot be scheduled, the Job stays Pending ("didn't match pod
+  # affinity rules") and Helm fails the upgrade after
+  # `upgradeBackupHook.activeDeadlineSeconds` with DeadlineExceeded; set this
+  # to false for that upgrade. When false and the database is not on the
+  # claim, take the dump yourself before upgrading, with the manual command in
+  # the upgrade guide.
+  # -- Run the hook on `helm upgrade`.
+  # @section -- Upgrade Backup Hook Configuration
+  enabled: true
+  # In seconds. A large database needs more time. A value of 300 or more needs
+  # `helm upgrade --timeout` raised with it, or Helm's own wait, 5 minutes by
+  # default, ends first with a generic timeout.
+  # -- Time limit of the Job before it, and with it the upgrade, is marked failed.
+  # @section -- Upgrade Backup Hook Configuration
+  activeDeadlineSeconds: 240
+  # Requests and limits let the Job start in a namespace with a ResourceQuota.
+  # `null` sets none; `{}` keeps these, because Helm merges maps.
+  # -- Resource requests and limits for the container.
+  # @default -- "requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory"
+  # @section -- Upgrade Backup Hook Configuration
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: "1"
+      memory: 256Mi
+  # The Job has to run on the node of the Postgres pod, so a selector set here
+  # must match that node.
+  # -- Node labels for pod assignment.
+  # @default -- "the value of `nodeSelector`"
+  # @section -- Upgrade Backup Hook Configuration
+  nodeSelector: {}
+  # Added to the Postgres pod's `tolerations`, which the Job always carries so
+  # it can run on that pod's node.
+  # -- Tolerations for pod assignment.
+  # @section -- Upgrade Backup Hook Configuration
+  tolerations: []
+  # -- Priority class of the pod.
+  # @default -- "the value of `priorityClassName`"
+  # @section -- Upgrade Backup Hook Configuration
+  priorityClassName: ""
+  # A Kubernetes PodSecurityContext, rendered as given. The Job must run as the
+  # Postgres pod's user to read the data directory; empty means exactly that.
+  # -- Security context for the pod.
+  # @default -- "the value of `podSecurityContext`"
+  # @section -- Upgrade Backup Hook Configuration
+  podSecurityContext: {}
+  # A Kubernetes SecurityContext for the backup container, rendered as given.
+  # The Job must run as the Postgres pod's user to read the data directory;
+  # empty means exactly that.
+  # -- Security context for the container.
+  # @default -- "the value of `securityContext`"
+  # @section -- Upgrade Backup Hook Configuration
+  containerSecurityContext: {}
+  # -- Annotations to add to the pod.
+  # @section -- Upgrade Backup Hook Configuration
+  podAnnotations: {}
+  # The chart's own labels win over a key set here.
+  # -- Labels to add to the pod.
+  # @section -- Upgrade Backup Hook Configuration
+  podLabels: {}
+  # The chart's `helm.sh/hook`, `helm.sh/hook-weight` and
+  # `helm.sh/hook-delete-policy` win over the same keys set here.
+  # -- Annotations to add to the Job.
+  # @section -- Upgrade Backup Hook Configuration
+  annotations: {}
+
 # additionalArgs -- Additional command-line arguments for Postgres containers.
 # @default -- []
 additionalArgs: []

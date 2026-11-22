@@ -150,6 +150,49 @@ true
 {{- end -}}
 
 {{/*
+Data directory of the postgres container: an extraEnv PGDATA replaces persistence.dataDir, as in postgresql.env.
+*/}}
+{{- define "postgresql.pgdata" -}}
+{{- $pgdata := .Values.persistence.dataDir -}}
+{{- range .Values.extraEnv -}}
+{{- if and (eq (upper (toString .name)) "PGDATA") .value -}}
+{{- $pgdata = .value -}}
+{{- end -}}
+{{- end -}}
+{{- clean (default "" $pgdata | toString) -}}
+{{- end -}}
+
+{{/*
+persistence.mountPath as the upgrade backup Job sees the claim at /claim.
+*/}}
+{{- define "postgresql.claimRoot" -}}
+{{- printf "/claim/%s" (include "postgresql.subPath" .) | trimSuffix "/" -}}
+{{- end -}}
+
+{{/*
+Data directory as the upgrade backup Job sees the claim at /claim; empty when it is not under persistence.mountPath.
+*/}}
+{{- define "postgresql.claimDataDir" -}}
+{{- $mount := clean (default "" .Values.persistence.mountPath | toString) -}}
+{{- $pgdata := include "postgresql.pgdata" . -}}
+{{- $claim := include "postgresql.claimRoot" . -}}
+{{- if eq $pgdata $mount -}}
+{{- $claim -}}
+{{- else if hasPrefix (printf "%s/" $mount) $pgdata -}}
+{{- printf "%s/%s" $claim (trimPrefix (printf "%s/" $mount) $pgdata) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+"true" when an upgrade runs the backup Job.
+*/}}
+{{- define "postgresql.upgradeBackup" -}}
+{{- if and .Values.upgradeBackupHook.enabled (include "postgresql.defaultLayout" .) (include "postgresql.claimDataDir" .) (not (has "ReadWriteOncePod" .Values.persistence.accessModes)) (ne (int .Values.replicaCount) 0) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Auth secret name
 */}}
 {{- define "postgresql.authSecretName" -}}
