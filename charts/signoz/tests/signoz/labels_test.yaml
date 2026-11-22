@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/labels
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/signoz/service.yaml
+tests:
+  - it: labels the StatefulSet once with a signoz.labels key that repeats a chart label, taking the user's value
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.labels:
+        app.kubernetes.io/component: query-service
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: query-service
+      - equal:
+          path: metadata.labels.team
+          value: observability
+  - it: keeps a signoz.labels key off the StatefulSet's selector and its pod labels
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.name: query
+      signoz.labels:
+        app.kubernetes.io/component: query-service
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: query
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: query
+  - it: labels the Service once with a signoz.service.labels key that repeats a chart label, taking the user's value
+    template: templates/signoz/service.yaml
+    set:
+      signoz.service.labels:
+        app.kubernetes.io/component: query-service
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: query-service
+      - equal:
+          path: metadata.labels.team
+          value: observability
+  - it: keeps a signoz.service.labels key off the Service's selector
+    template: templates/signoz/service.yaml
+    set:
+      signoz.name: query
+      signoz.service.labels:
+        app.kubernetes.io/component: query-service
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: query

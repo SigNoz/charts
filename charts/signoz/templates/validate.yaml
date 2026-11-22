@@ -8,6 +8,7 @@ A component adds its `<component>.validate` define to the list below on a line o
 {{- $defines := list
   "clickhouse.validate"
   "telemetryStoreMigrator.validate"
+  "signoz.validate"
 }}
 {{- range $define := $defines }}
 {{- range splitList "\n" (include $define $) }}

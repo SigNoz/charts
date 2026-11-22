@@ -1427,112 +1427,123 @@ externalClickhouse:
   # @default -- 9000
   # @section -- External ClickHouse
   tcpPort: 9000
-# signoz -- Default values for SigNoz.
-# @section -- SigNoz
-# @default -- "Please checkout the default values in values.yml"
 signoz:
-  # signoz.name -- The name of the SigNoz component.
-  # @default -- "signoz"
+  # It feeds only the `app.kubernetes.io/component` selector label, which an
+  # upgrade cannot change; it names no object.
+  # -- Name of the SigNoz component.
   # @section -- SigNoz
   name: "signoz"
-  # signoz.replicaCount -- The number of pod replicas for SigNoz.
-  # @default -- 1
+  # With SQLite, each replica gets its own `signoz-db` claim, so replicas do
+  # not share one database.
+  # -- Number of replicas.
   # @section -- SigNoz
   replicaCount: 1
-  # signoz.image -- Image configuration for SigNoz.
-  # @section -- SigNoz
   image:
-    # signoz.image.registry - The container image registry.
-    # @default -- "docker.io"
+    # The registry is part of the repository, as `docker.io` here;
+    # `global.imageRegistry` replaces it when set.
+    # -- Image repository.
     # @section -- SigNoz
-    registry: docker.io
-    # signoz.image.repository - The container image repository.
-    # @default -- "signoz/signoz"
-    repository: signoz/signoz
-    # signoz.image.tag - The container image tag.
-    # @default -- "v0.110.1"
+    repository: docker.io/signoz/signoz
+    # Empty means the chart's appVersion.
+    # -- Image tag.
+    # @section -- SigNoz
     tag: v0.151.0
-    # signoz.image.pullPolicy - The image pull policy.
-    # @default -- "IfNotPresent"
+    # -- Image pull policy.
+    # @section -- SigNoz
     pullPolicy: IfNotPresent
-  # signoz.imagePullSecrets -- Image pull secrets for SigNoz.
-  # This has higher precedence than the root level or global value.
+  # The SigNoz pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
+  # -- Secrets for pulling images from a private registry.
   # @section -- SigNoz
-  # @default -- []
   imagePullSecrets: []
-  # signoz.serviceAccount -- Service Account configuration for SigNoz.
-  # @section -- SigNoz
   serviceAccount:
-    # signoz.serviceAccount.create - Specifies whether a service account should be created.
-    # @default -- true
+    # -- Create a ServiceAccount.
+    # @section -- SigNoz
     create: true
-    # signoz.serviceAccount.annotations - Annotations to add to the service account.
-    # @default -- {}
+    # -- Annotations to add to the ServiceAccount.
+    # @section -- SigNoz
     annotations: {}
-    # signoz.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
-    # @default -- null
+    # Empty means the release's full name when the chart creates the
+    # ServiceAccount, and `default` when it does not.
+    # -- Name of the ServiceAccount.
+    # @default -- "the release's full name, or default"
+    # @section -- SigNoz
     name:
-  # signoz.service -- Service configuration for SigNoz.
-  # This allows you to configure how SigNoz is exposed within the Kubernetes cluster.
-  # @section -- SigNoz Networking
   service:
-    # signoz.service.annotations - Annotations for the SigNoz service object.
-    # @default -- {}
+    # -- Annotations to add to the Service.
+    # @section -- SigNoz Networking
     annotations: {}
-    # signoz.service.labels - Labels for the SigNoz service object.
-    # @default -- {}
+    # A key that matches a chart label replaces it; the selector never takes
+    # these.
+    # -- Labels to add to the Service.
+    # @section -- SigNoz Networking
     labels: {}
-    # signoz.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
-    # @default -- "ClusterIP"
+    # `ClusterIP`, `NodePort` or `LoadBalancer`.
+    # -- Kubernetes Service type.
+    # @section -- SigNoz Networking
     type: ClusterIP
-    # signoz.service.port - The external HTTP port for SigNoz.
-    # @default -- 8080
+    # The port of the HTTP API and UI. It moves only the Service: the container
+    # always listens on 8080, and the Service targets it by name.
+    # -- Service port.
+    # @section -- SigNoz Networking
     port: 8080
-    # signoz.service.internalPort - The internal gRPC port for SigNoz.
-    # @default -- 8085
+    # It moves only the Service: the container always listens on 8085.
+    # -- Service port for the internal API.
+    # @section -- SigNoz Networking
     internalPort: 8085
-    # signoz.service.opampPort - The internal OpAMP port for SigNoz.
-    # @default -- 4320
+    # It moves only the Service: the container always listens on 4320.
+    # -- Service port for OpAMP.
+    # @section -- SigNoz Networking
     opampPort: 4320
-    # signoz.service.nodePort - Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for HTTP.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     nodePort: null
-    # signoz.service.internalNodePort - Manually specify the nodePort for the internal port when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for the internal API.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     internalNodePort: null
-    # signoz.service.opampInternalNodePort - Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for OpAMP.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     opampInternalNodePort: null
-  # signoz.annotations -- Annotations for the SigNoz pod.
+  # -- Annotations to add to the StatefulSet.
+  # @default -- "no annotations"
   # @section -- SigNoz
-  # @default -- null
   annotations:
-  # signoz.additionalArgs -- Additional command-line arguments for SigNoz.
+  # A key that matches a chart label replaces it; the selector and the pod
+  # labels never take these.
+  # -- Labels to add to the StatefulSet.
   # @section -- SigNoz
-  # @default -- []
-  additionalArgs: []
-  # Environment variables for the SigNoz.
-  # You can specify variables in two ways:
-  # 1. Flexible structure for advanced configurations (recommended):
-  #    Example:
-  #      env:
-  #        MY_KEY:
-  #          value: my-value  # Direct value
-  #        SECRET_KEY:
-  #          valueFrom:       # Reference from a Secret or ConfigMap
-  #            secretKeyRef:
-  #              name: my-secret
-  #              key: my-key
-  # 2. Simple key-value pairs (backward-compatible):
-  #    Example:
-  #      env:
-  #        MY_KEY: my-value
-
-  # signoz.env -- Environment variables for SigNoz.
-  # Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
-  # Note on Variable Naming: Environment variables are derived from the YAML configuration.
-  # For example, a key `provider` under the `telemetry_store` section becomes
-  # `signoz_telemetrystore_provider`.
+  labels: {}
+  # Command-line arguments for the SigNoz container, rendered in order after
+  # the image's own; the container gets no `args` when this is empty.
+  # -- Extra arguments for the container.
+  # @section -- SigNoz
+  extraArgs: []
+  # Environment variables for the SigNoz container, as `NAME: value`. A key is
+  # upper-cased. A string, number or boolean becomes the variable's value; a map
+  # is the rest of the EnvVar, such as `valueFrom` with a `secretKeyRef`:
+  #   env:
+  #     MY_KEY: my-value
+  #     SECRET_KEY:
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: my-secret
+  #           key: my-key
+  # A key with the name of a variable the chart sets, such as `CLICKHOUSE_USER`
+  # or `POSTGRES_USER`, replaces that variable's value. The other keys follow
+  # the chart's variables in alphabetical order, and a variable is placed after
+  # any variable its value references through `$(NAME)`. When a key is set in
+  # both cases, the lower-case one wins: change a default below by its
+  # lower-case name, or set it to null to remove it.
+  # The names follow the SigNoz configuration: a key `provider` under the
+  # `telemetry_store` section becomes `signoz_telemetrystore_provider`. The
+  # full list is https://github.com/SigNoz/signoz/blob/main/conf/example.yaml.
+  # -- Extra environment variables for the container.
+  # @default -- "the five SigNoz settings in values.yaml"
   # @section -- SigNoz
   env:
     signoz_telemetrystore_provider: clickhouse
@@ -1548,83 +1559,110 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
-  # signoz.podSecurityContext -- Pod-level security context.
+  # Kubernetes EnvFromSource objects for the SigNoz container, rendered as
+  # given. A variable of the same name in `signoz.env` or set by the chart
+  # takes precedence over one from these sources.
+  # -- Sources of extra environment variables for the container.
   # @section -- SigNoz
-  # @default -- {}
+  envFrom: []
+  # A Kubernetes PodSecurityContext, rendered as given, for example
+  # `fsGroup: 2000`.
+  # -- Security context for the pod.
+  # @section -- SigNoz
   podSecurityContext: {}
-  # fsGroup: 2000
-
-  # signoz.podAnnotations -- Annotations for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- {}
-  podAnnotations: {}
-  # signoz.securityContext -- Container-level security context.
-  # @section -- SigNoz
-  # @default -- {}
-  securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-  # signoz.additionalVolumeMounts -- Additional volume mounts for the SigNoz container.
-  # @section -- SigNoz
-  # @default -- []
-  additionalVolumeMounts: []
-  # signoz.additionalVolumes -- Additional volumes for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- []
-  additionalVolumes: []
-  # signoz.livenessProbe -- Liveness probe configuration.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  livenessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  # signoz.readinessProbe -- Readiness probe configuration.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  readinessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health?live=1
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  # signoz.customLivenessProbe -- Custom liveness probe to override the default.
-  # @section -- SigNoz
-  # @default -- {}
-  customLivenessProbe: {}
-  # signoz.customReadinessProbe -- Custom readiness probe to override the default.
-  # @section -- SigNoz
-  # @default -- {}
-  customReadinessProbe: {}
-  # signoz.ingress -- (object) Ingress configuration for SigNoz.
-  # @section -- SigNoz Networking
-  ingress:
-    # signoz.ingress.enabled - Enable ingress controller resource.
-    # @default -- false
-    enabled: false
-    # signoz.ingress.className - Ingress class name.
-    # @default -- ""
-    className: ""
-    # signoz.ingress.annotations - Annotations for the ingress resource.
-    # @default -- {}
+  pod:
+    # -- Annotations to add to the pod.
+    # @section -- SigNoz
     annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # signoz.ingress.hosts - Hostname and path configurations for the ingress.
+    # The selector labels stay the chart's: a key here with the name of one of
+    # them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- SigNoz
+    labels: {}
+  # A Kubernetes SecurityContext for the signoz container, rendered as given,
+  # for example:
+  #   capabilities:
+  #     drop: [ALL]
+  #   readOnlyRootFilesystem: true
+  #   runAsNonRoot: true
+  #   runAsUser: 1000
+  # -- Security context for the container.
+  # @section -- SigNoz
+  containerSecurityContext: {}
+  # Kubernetes VolumeMount objects for the signoz container only, rendered as
+  # given after the chart's database mount.
+  # -- Extra volume mounts for the container.
+  # @section -- SigNoz
+  extraVolumeMounts: []
+  # Kubernetes Volume objects for the SigNoz pod, rendered as given.
+  # -- Extra volumes for the pod.
+  # @section -- SigNoz
+  extraVolumes: []
+  # Kubernetes Container objects run before the signoz container, rendered as
+  # given, such as a restore of the SQLite database.
+  # -- Extra init containers for the pod.
+  # @section -- SigNoz
+  extraInitContainers: []
+  # Kubernetes Container objects run beside the signoz container, rendered as
+  # given. A sidecar that must share the SQLite database, such as a backup,
+  # mounts the claim `signoz-db` at `/var/lib/signoz`.
+  # -- Extra containers for the pod.
+  # @section -- SigNoz
+  extraContainers: []
+  # A Kubernetes probe object, rendered as given. Your values merge into these
+  # defaults: set a field to null to drop it, switch the handler with
+  # `httpGet: null` beside another one such as `tcpSocket`, or set the whole key
+  # to null for no probe.
+  # -- Liveness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health on port http"
+  # @section -- SigNoz
+  livenessProbe:
+    httpGet:
+      port: http
+      path: /api/v1/health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  # A Kubernetes probe object, rendered as given, merged and dropped like
+  # `signoz.livenessProbe`.
+  # -- Readiness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health?live=1 on port http"
+  # @section -- SigNoz
+  readinessProbe:
+    httpGet:
+      port: http
+      path: /api/v1/health?live=1
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  # A Kubernetes probe object, rendered as given; none by default.
+  # -- Startup probe for the container.
+  # @default -- "no startup probe"
+  # @section -- SigNoz
+  startupProbe: {}
+  ingress:
+    # -- Create an Ingress for SigNoz.
+    # @section -- SigNoz Networking
+    enabled: false
+    # Rendered on Kubernetes 1.18 and later.
+    # -- IngressClass of the Ingress.
+    # @section -- SigNoz Networking
+    className: ""
+    # For example `kubernetes.io/ingress.class: nginx`,
+    # `kubernetes.io/tls-acme: "true"` or
+    # `cert-manager.io/cluster-issuer: letsencrypt-prod`.
+    # -- Annotations to add to the Ingress.
+    # @section -- SigNoz Networking
+    annotations: {}
+    # Each path routes to the SigNoz Service on its `port`, or on
+    # `signoz.service.port` when the path sets none; a path without `pathType`
+    # gets `ImplementationSpecific`.
+    # -- Hosts and paths of the Ingress.
+    # @default -- "the host signoz.domain.com, with the path / on port 8080"
     # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
@@ -1632,63 +1670,62 @@ signoz:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # signoz.ingress.tls - TLS configuration for the ingress.
-    # @default -- []
+    # Each entry has `hosts` and an optional `secretName`, for example:
+    #   - secretName: chart-example-tls
+    #     hosts:
+    #       - signoz.domain.com
+    # -- TLS settings of the Ingress.
     # @section -- SigNoz Networking
     tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - signoz.domain.com
-  # signoz.resources -- Resource requests and limits.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # For example `limits: {cpu: 750m, memory: 1000Mi}`. See
+  # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/.
+  # -- Resource requests and limits for the container.
+  # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
-  # @default -- '{ requests: { cpu: "100m", memory: "100Mi" } }'
   resources:
     requests:
       cpu: 100m
       memory: 100Mi
-  #   limits:
-  #     cpu: 750m
-  #     memory: 1000Mi
-
-  # signoz.priorityClassName -- Priority class for the SigNoz pods.
+  # -- Priority class of the pod.
+  # @default -- "no priority class"
   # @section -- SigNoz
-  # @default -- ""
   priorityClassName: ""
-  # signoz.nodeSelector -- Node selector for pod assignment.
+  # -- Node labels for pod assignment.
   # @section -- SigNoz
-  # @default -- {}
   nodeSelector: {}
-  # signoz.tolerations -- Tolerations for pod assignment.
+  # -- Tolerations for pod assignment.
   # @section -- SigNoz
-  # @default -- []
   tolerations: []
-  # signoz.affinity -- Affinity settings for pod assignment.
+  # -- Affinity rules for pod assignment.
   # @section -- SigNoz
-  # @default -- {}
   affinity: {}
-  # signoz.topologySpreadConstraints -- Topology spread constraints for pod distribution.
+  # -- Topology spread constraints for pod assignment.
   # @section -- SigNoz
-  # @default -- []
   topologySpreadConstraints: []
-  # signoz.persistence -- Persistence configuration for the internal SQLite database.
-  # @section -- SigNoz
   persistence:
-    # signoz.persistence.enabled - Enable data persistence using a PVC.
-    # @default -- true
+    # SigNoz keeps its SQLite database at `/var/lib/signoz/`: on the claim
+    # template `signoz-db`, on `existingClaim`, or in an emptyDir when this is
+    # false. With `postgresql.enabled`, SigNoz mounts no database volume.
+    # -- Enable persistence with a PersistentVolumeClaim.
+    # @section -- SigNoz
     enabled: true
-    # signoz.persistence.existingClaim - Use a manually managed PVC.
-    # @default -- ""
+    # Used only when `signoz.persistence.enabled` is true.
+    # -- Name of an existing claim to use.
+    # @default -- "none, the chart's claim template"
+    # @section -- SigNoz
     existingClaim: ""
-    # signoz.persistence.storageClass - The storage class for the PVC. If "-", disables dynamic provisioning.
-    # @default -- null
+    # `-` sets an empty `storageClassName`, which disables dynamic
+    # provisioning; `global.storageClass` overrides this value.
+    # -- StorageClass of the claim.
+    # @default -- "the cluster's default StorageClass"
+    # @section -- SigNoz
     storageClass: null
-    # signoz.persistence.accessModes - Access modes for the persistent volume.
-    # @default -- ["ReadWriteOnce"]
+    # -- Access modes of the claim.
+    # @section -- SigNoz
     accessModes:
       - ReadWriteOnce
-    # signoz.persistence.size - The size of the persistent volume.
-    # @default -- "1Gi"
+    # -- Size of the claim.
+    # @section -- SigNoz
     size: 1Gi
 # telemetryStoreMigrator -- Default values for the Telemetry Store Migrator.
 # @section -- Telemetry Store Migrator

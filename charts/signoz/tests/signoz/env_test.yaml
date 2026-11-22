@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/env
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: lists the seven CLICKHOUSE_* variables first, in that order, before every variable that references them
+    set:
+      clickhouse.enabled: true
+      signoz.env:
+        a_clickhouse_url: http://$(CLICKHOUSE_HOST):8123
+        z_clickhouse_dsn: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[0].name
+          value: CLICKHOUSE_HOST
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[1].name
+          value: CLICKHOUSE_PORT
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[2].name
+          value: CLICKHOUSE_CLUSTER
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[3].name
+          value: CLICKHOUSE_USER
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[4].name
+          value: CLICKHOUSE_PASSWORD
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[5].name
+          value: CLICKHOUSE_SECURE
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env[6].name
+          value: CLICKHOUSE_VERIFY
+
+  - it: renders each signoz.env key upper-cased, with its string, number or boolean value as a string
+    set:
+      signoz.env:
+        my_simple: hello
+        my_int: 42
+        my_flag: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: MY_SIMPLE, value: hello}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: MY_INT, value: "42"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: MY_FLAG, value: "true"}
+
+  - it: renders a map value in signoz.env as the rest of the variable, so a secret reaches SigNoz through valueFrom
+    set:
+      signoz.env:
+        signoz_emailing_smtp_password:
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: password
+        signoz_emailing_smtp_address:
+          value: smtp.example.com:587
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_EMAILING_SMTP_PASSWORD
+            valueFrom: {secretKeyRef: {name: smtp, key: password}}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_EMAILING_SMTP_ADDRESS, value: smtp.example.com:587}
+
+  - it: changes a values.yaml variable through its lower-case signoz.env key, listing it once
+    set:
+      signoz.env.signoz_emailing_enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_EMAILING_ENABLED, value: "true"}
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_EMAILING_ENABLED, value: "false"}
+
+  - it: keeps the lower-case key when signoz.env sets one name in both cases
+    set:
+      signoz.env:
+        FOO: upper
+        foo: lower
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: FOO, value: lower}
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: FOO, value: upper}
+
+  - it: lets a lower-case signoz_telemetrystore_clickhouse_dsn in signoz.env replace the chart's connection string
+    set:
+      signoz.env.signoz_telemetrystore_clickhouse_dsn: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@clickhouse.example.com:9440?secure=true
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: runs SigNoz on the cluster a SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER in signoz.env names, instead of the chart's
+    set:
+      signoz.env.SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER: other
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER, value: other}
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER, value: $(CLICKHOUSE_CLUSTER)}

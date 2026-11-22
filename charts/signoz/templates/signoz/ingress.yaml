@@ -1,24 +1,26 @@
-{{- if .Values.signoz.ingress.enabled -}}
-{{- $fullName := include "signoz.fullname" . -}}
-{{- $ingressApiIsStable := eq (include "ingress.isStable" .) "true" -}}
-{{- $ingressSupportsPathType := eq (include "ingress.supportsPathType" .) "true" -}}
+{{- if .Values.signoz.ingress.enabled }}
+{{- $ingress := .Values.signoz.ingress }}
+{{- $fullName := include "signoz.fullname" . }}
+{{- $servicePort := .Values.signoz.service.port }}
+{{- $apiIsStable := eq (include "ingress.isStable" .) "true" }}
+{{- $supportsPathType := eq (include "ingress.supportsPathType" .) "true" }}
 apiVersion: {{ include "ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
     {{- include "signoz.labels" . | nindent 4 }}
-  {{- with .Values.signoz.ingress.annotations }}
+  {{- with $ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.signoz.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.signoz.ingress.className }}
+  {{- if and $ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ $ingress.className }}
   {{- end }}
-  {{- if .Values.signoz.ingress.tls }}
+  {{- with $ingress.tls }}
   tls:
-    {{- range .Values.signoz.ingress.tls }}
+    {{- range . }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -29,24 +31,24 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.signoz.ingress.hosts }}
+    {{- range $ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- if $ingressSupportsPathType }}
-            pathType: {{ .pathType }}
+            {{- if $supportsPathType }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
             {{- end }}
             backend:
-              {{- if $ingressApiIsStable }}
+              {{- if $apiIsStable }}
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ .port }}
+                  number: {{ .port | default $servicePort }}
               {{- else }}
               serviceName: {{ $fullName }}
-              servicePort: {{ .port }}
+              servicePort: {{ .port | default $servicePort }}
               {{- end }}
           {{- end }}
     {{- end }}

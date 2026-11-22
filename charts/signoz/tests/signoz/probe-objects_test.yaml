@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/probe-objects
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: probes SigNoz's readiness with the tcpSocket written in signoz.readinessProbe, its httpGet set to null, which Helm drops from the default
+    set:
+      signoz.readinessProbe:
+        httpGet: null
+        tcpSocket:
+          port: http
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.tcpSocket
+          value: {port: http}
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "signoz")].readinessProbe.httpGet
+  - it: runs SigNoz without a liveness probe with signoz.livenessProbe set to null
+    set:
+      signoz.livenessProbe: null
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "signoz")].livenessProbe
