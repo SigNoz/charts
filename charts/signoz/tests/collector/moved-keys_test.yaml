@@ -109,3 +109,10 @@ tests:
   - it: rejects otelCollector.lowCardinalityExceptionGrouping, naming otelCollector.env
     set: {otelCollector.lowCardinalityExceptionGrouping: true}
     asserts: [{failedTemplate: {errorPattern: "otelCollector\\.lowCardinalityExceptionGrouping.*otelCollector\\.env"}}]
+  - it: rejects an otelCollector.command.name other than /signoz-otel-collector
+    set: {otelCollector.command.name: /otelcol-contrib}
+    asserts: [{failedTemplate: {errorPattern: "otelCollector\\.command\\.name"}}]
+  - it: renders an old values file that keeps otelCollector.command.name at /signoz-otel-collector
+    set: {otelCollector.command.name: /signoz-otel-collector}
+    asserts:
+      - notFailedTemplate: {}

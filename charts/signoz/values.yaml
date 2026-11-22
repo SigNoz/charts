@@ -1871,12 +1871,6 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- "RollingUpdate"
   strategy: ""
-  # otelCollector.command -- Configuration for the Otel Collector executable.
-  # @section -- Otel Collector
-  command:
-    # otelCollector.command.name - Otel Collector command name.
-    # @default -- "/signoz-otel-collector"
-    name: /signoz-otel-collector
   # Appended after the chart's `--config`, `--manager-config` and
   # `--copy-path` flags, which `configMap.create: false` drops.
   # -- Extra command-line arguments for the collector.

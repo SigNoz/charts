@@ -23,6 +23,10 @@ holds. validate.yaml gathers these lines with every other component's and fails 
 {{- if dig "command" "extraArgs" list $oc }}
 {{ "`otelCollector.command.extraArgs` has moved to `otelCollector.extraArgs`: the same list of arguments." }}
 {{- end }}
+{{- $commandName := dig "command" "name" "" $oc }}
+{{- if and $commandName (ne (toString $commandName) "/signoz-otel-collector") }}
+{{ "`otelCollector.command.name` has been removed: the collector always runs `/signoz-otel-collector`." }}
+{{- end }}
 {{- /*
 The old probe keys are refused whenever they hold a value, because `enabled: false` meant "no probe".
 */ -}}
