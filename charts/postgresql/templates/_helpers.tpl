@@ -184,10 +184,27 @@ Data directory as the upgrade backup Job sees the claim at /claim; empty when it
 {{- end -}}
 
 {{/*
+"true" when an additionalVolumeMounts entry is mounted at the data directory or a folder above it.
+*/}}
+{{- define "postgresql.userDataMount" -}}
+{{- $pgdata := include "postgresql.pgdata" . -}}
+{{- $userMount := false -}}
+{{- range .Values.additionalVolumeMounts -}}
+{{- $path := clean (default "" .mountPath | toString) -}}
+{{- if or (eq $path $pgdata) (hasPrefix (printf "%s/" $path) $pgdata) -}}
+{{- $userMount = true -}}
+{{- end -}}
+{{- end -}}
+{{- if $userMount -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 "true" when an upgrade runs the backup Job.
 */}}
 {{- define "postgresql.upgradeBackup" -}}
-{{- if and .Values.upgradeBackupHook.enabled (include "postgresql.defaultLayout" .) (include "postgresql.claimDataDir" .) (not (has "ReadWriteOncePod" .Values.persistence.accessModes)) (ne (int .Values.replicaCount) 0) -}}
+{{- if and .Values.upgradeBackupHook.enabled (include "postgresql.defaultLayout" .) (include "postgresql.claimDataDir" .) (not (include "postgresql.userDataMount" .)) (not (has "ReadWriteOncePod" .Values.persistence.accessModes)) (ne (int .Values.replicaCount) 0) -}}
 true
 {{- end -}}
 {{- end -}}

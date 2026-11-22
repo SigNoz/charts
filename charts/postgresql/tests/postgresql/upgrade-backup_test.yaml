@@ -118,6 +118,72 @@ tests:
         hasDocuments:
           count: 0
 
+  - it: runs no backup Job, and adds no data mount, when an additionalVolumeMounts entry is mounted at /var/lib/postgresql/data
+    release:
+      upgrade: true
+    set:
+      additionalVolumes:
+        - name: fast-data
+          persistentVolumeClaim: {claimName: postgres-fast-data}
+      additionalVolumeMounts:
+        - name: fast-data
+          mountPath: /var/lib/postgresql/data
+    asserts:
+      - template: templates/upgrade-backup-job.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/statefulset.yaml
+        notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data}
+          any: true
+
+  - it: runs no backup Job when an additionalVolumeMounts entry is mounted at a folder above a moved persistence.dataDir
+    release:
+      upgrade: true
+    set:
+      persistence.dataDir: /var/lib/postgresql/fast/pgdata
+      additionalVolumes:
+        - name: fast-data
+          persistentVolumeClaim: {claimName: postgres-fast-data}
+      additionalVolumeMounts:
+        - name: fast-data
+          mountPath: /var/lib/postgresql/fast
+    asserts:
+      - template: templates/upgrade-backup-job.yaml
+        hasDocuments:
+          count: 0
+
+  - it: runs the backup Job when an additionalVolumeMounts entry is mounted outside the data directory's path
+    release:
+      upgrade: true
+    set:
+      additionalVolumes:
+        - name: backup
+          persistentVolumeClaim: {claimName: postgres-backup}
+      additionalVolumeMounts:
+        - name: backup
+          mountPath: /backup
+    asserts:
+      - template: templates/upgrade-backup-job.yaml
+        isKind:
+          of: Job
+
+  - it: runs no backup Job when an additionalVolumeMounts entry is mounted at /var/lib/postgresql/data/ with a trailing slash
+    release:
+      upgrade: true
+    set:
+      additionalVolumes:
+        - name: fast-data
+          persistentVolumeClaim: {claimName: postgres-fast-data}
+      additionalVolumeMounts:
+        - name: fast-data
+          mountPath: /var/lib/postgresql/data/
+    asserts:
+      - template: templates/upgrade-backup-job.yaml
+        hasDocuments:
+          count: 0
+
   - it: runs the backup Job for the official postgres:18, which gets no data mount
     release:
       upgrade: true
