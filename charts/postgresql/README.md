@@ -53,7 +53,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
     </thead>
     <tbody>
         <tr>
-            <td id="persistence--mountPath"><a href="./values.yaml#L157">persistence.mountPath</a></td>
+            <td id="persistence--mountPath"><a href="./values.yaml#L163">persistence.mountPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
@@ -62,7 +62,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
             <td>Mount path of the data claim.</td>
         </tr>
         <tr>
-            <td id="persistence--dataDir"><a href="./values.yaml#L165">persistence.dataDir</a></td>
+            <td id="persistence--dataDir"><a href="./values.yaml#L176">persistence.dataDir</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
@@ -479,7 +479,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Access modes for the persistent volume claim.</td>
 	</tr>
 	<tr>
-		<td id="persistence--subPath"><a href="./values.yaml#L160">persistence.subPath</a></td>
+		<td id="persistence--subPath"><a href="./values.yaml#L166">persistence.subPath</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -488,7 +488,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Subpath within the volume for Postgres data.</td>
 	</tr>
 	<tr>
-		<td id="additionalArgs"><a href="./values.yaml#L169">additionalArgs</a></td>
+		<td id="additionalArgs"><a href="./values.yaml#L180">additionalArgs</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -497,7 +497,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional command-line arguments for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumes"><a href="./values.yaml#L173">additionalVolumes</a></td>
+		<td id="additionalVolumes"><a href="./values.yaml#L184">additionalVolumes</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -506,7 +506,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volumes for Postgres pods.</td>
 	</tr>
 	<tr>
-		<td id="additionalVolumeMounts"><a href="./values.yaml#L177">additionalVolumeMounts</a></td>
+		<td id="additionalVolumeMounts"><a href="./values.yaml#L188">additionalVolumeMounts</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -515,7 +515,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Additional volume mounts for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="extraEnv"><a href="./values.yaml#L181">extraEnv</a></td>
+		<td id="extraEnv"><a href="./values.yaml#L192">extraEnv</a></td>
 		<td>list</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -524,7 +524,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Extra environment variables for Postgres containers.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--create"><a href="./values.yaml#L186">serviceAccount.create</a></td>
+		<td id="serviceAccount--create"><a href="./values.yaml#L197">serviceAccount.create</a></td>
 		<td>bool</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -533,7 +533,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Specifies whether a service account should be created.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--annotations"><a href="./values.yaml#L189">serviceAccount.annotations</a></td>
+		<td id="serviceAccount--annotations"><a href="./values.yaml#L200">serviceAccount.annotations</a></td>
 		<td>object</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -542,7 +542,7 @@ See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation
 		<td>Annotations to add to the service account.</td>
 	</tr>
 	<tr>
-		<td id="serviceAccount--name"><a href="./values.yaml#L192">serviceAccount.name</a></td>
+		<td id="serviceAccount--name"><a href="./values.yaml#L203">serviceAccount.name</a></td>
 		<td>string</td>
 		<td>
 			<div style="max-width: 300px;"><pre lang="yaml">null</pre>

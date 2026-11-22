@@ -88,6 +88,39 @@ Return the proper signoz image name
 {{- end -}}
 
 {{/*
+persistence.subPath without leading or trailing slashes.
+*/}}
+{{- define "postgresql.subPath" -}}
+{{- trimAll "/" (default "" .Values.persistence.subPath | toString) -}}
+{{- end -}}
+
+{{/*
+"true" when persistence is on and the claim is mounted at /var/lib/postgresql, the parent of the image's data volume.
+*/}}
+{{- define "postgresql.defaultLayout" -}}
+{{- if and .Values.persistence.enabled (eq (clean (default "" .Values.persistence.mountPath | toString)) "/var/lib/postgresql") -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+"true" when the claim's data folder is also mounted at the image's data volume, /var/lib/postgresql/data.
+*/}}
+{{- define "postgresql.dataMount" -}}
+{{- $userMount := false -}}
+{{- range .Values.additionalVolumeMounts -}}
+{{- if eq (clean (default "" .mountPath | toString)) "/var/lib/postgresql/data" -}}
+{{- $userMount = true -}}
+{{- end -}}
+{{- end -}}
+{{- $official := has (toString .Values.image.repository) (list "postgres" "docker.io/library/postgres") -}}
+{{- $major := regexFind "^(pg)?[0-9]+" (default .Chart.AppVersion .Values.image.tag | toString) | trimPrefix "pg" | atoi -}}
+{{- if and (include "postgresql.defaultLayout" .) (not $userMount) (not (and $official (ge $major 18))) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Auth secret name
 */}}
 {{- define "postgresql.authSecretName" -}}

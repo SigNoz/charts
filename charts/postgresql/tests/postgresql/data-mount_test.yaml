@@ -1,0 +1,171 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: postgresql/data-mount
+templates:
+  - templates/statefulset.yaml
+tests:
+  - it: stores the database on the claim by mounting the claim's data folder at /var/lib/postgresql/data for postgres:15
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: "", dataDir: /var/lib/postgresql/data}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for postgres:16
+    set:
+      image: {repository: postgres, tag: "16"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for postgres:17
+    set:
+      image: {repository: postgres, tag: "17.6"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for a pg16 tag
+    set:
+      image: {repository: postgres, tag: pg16}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for postgres pinned by digest below 18
+    set:
+      image:
+        repository: postgres
+        tag: "16@sha256:0d9624535618a135c5453258fd629f4963390338b11aaffb92292c12df3a6c17"
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for a custom repository at tag 18
+    set:
+      image: {repository: ghcr.io/acme/postgres, tag: "18"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: mounts the claim's data folder for a mirror named in image.repository at tag 18
+    set:
+      image: {repository: mirror.example.com/library/postgres, tag: "18"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: adds no data mount for the official postgres:18
+    set:
+      image: {repository: postgres, tag: "18"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /var/lib/postgresql/data}
+          any: true
+
+  - it: adds no data mount for docker.io/library/postgres at tag 18.1
+    set:
+      image: {repository: docker.io/library/postgres, tag: "18.1"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /var/lib/postgresql/data}
+          any: true
+
+  - it: adds no data mount for the official postgres:18 pulled through a mirror set in image.registry
+    set:
+      image: {registry: mirror.example.com, repository: postgres, tag: "18"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /var/lib/postgresql/data}
+          any: true
+
+  - it: puts the data folder under persistence.subPath
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql, subPath: signoz}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: signoz/data}
+
+  - it: mounts the claim's data folder when persistence.mountPath ends with a slash
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql/}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data, subPath: data}
+
+  - it: leaves /var/lib/postgresql/data to an additionalVolumeMounts entry at that path
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql}
+      additionalVolumes:
+        - name: fast-data
+          persistentVolumeClaim: {claimName: postgres-fast-data}
+      additionalVolumeMounts:
+        - name: fast-data
+          mountPath: /var/lib/postgresql/data
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {name: pgdata, mountPath: /var/lib/postgresql/data}
+          any: true
+
+  - it: adds no data mount when the claim is mounted at /var/lib/postgresql/data
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql/data, dataDir: /var/lib/postgresql/data/pgdata}
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /var/lib/postgresql/data, subPath: data}
+          any: true
+
+  - it: keeps PGDATA at persistence.dataDir when the claim is mounted at /var/lib/postgresql/data
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql/data, dataDir: /var/lib/postgresql/data/pgdata}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].env
+          content: {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+
+  - it: keeps PGDATA at persistence.dataDir when only persistence.dataDir moves
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: true, mountPath: /var/lib/postgresql, dataDir: /var/lib/postgresql/pgdata}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].env
+          content: {name: PGDATA, value: /var/lib/postgresql/pgdata}
+
+  - it: adds no data mount without persistence
+    set:
+      image: {repository: postgres, tag: "15"}
+      persistence: {enabled: false, mountPath: /var/lib/postgresql}
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].volumeMounts
+          content: {mountPath: /var/lib/postgresql/data}
+          any: true

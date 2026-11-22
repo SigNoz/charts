@@ -119,6 +119,11 @@ spec:
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
+            {{- if include "postgresql.dataMount" . }}
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+              subPath: {{ printf "%s/data" (include "postgresql.subPath" .) | trimPrefix "/" }}
+            {{- end }}
             {{- if .Values.additionalVolumeMounts }}
               {{- toYaml .Values.additionalVolumeMounts | nindent 12 }}
             {{- end }}

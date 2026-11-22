@@ -152,6 +152,12 @@ persistence:
   # @default -- ["ReadWriteOnce"]
   accessModes:
     - ReadWriteOnce
+  # At `/var/lib/postgresql` the chart also mounts the claim's `data` folder,
+  # under `persistence.subPath`, at `/var/lib/postgresql/data`, the image's data
+  # volume, so the database is stored on the claim. It skips that mount for the
+  # official `postgres` or `docker.io/library/postgres` repository at tag 18 or
+  # later, and when an `additionalVolumeMounts` entry uses that path. At any
+  # other path, keep `persistence.dataDir` under this one.
   # -- Mount path of the data claim.
   # @section -- Persistence Configuration
   mountPath: /var/lib/postgresql
@@ -159,7 +165,12 @@ persistence:
   # @default -- ""
   subPath: ""
   # Keep it a subdirectory of `persistence.mountPath`, so the database is
-  # stored on the claim.
+  # stored on the claim. A container that does not run as root, such as one
+  # under OpenShift's restricted policy, cannot initialize the `data` folder
+  # created for the mount described under `persistence.mountPath`: set
+  # `/var/lib/postgresql/pgdata` instead. This applies to any image that gets
+  # that mount, including an official image pulled through a mirror named in
+  # `image.repository`.
   # -- Data directory of Postgres (`PGDATA`).
   # @section -- Persistence Configuration
   dataDir: /var/lib/postgresql/data
