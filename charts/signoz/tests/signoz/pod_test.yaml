@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/pod
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: runs signoz.replicaCount replicas
+    set:
+      signoz.replicaCount: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  - it: schedules the SigNoz pods with signoz.priorityClassName
+    set:
+      signoz.priorityClassName: high
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: high

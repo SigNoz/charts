@@ -1,0 +1,257 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/job
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+  - templates/telemetrystore-migrator/serviceaccount.yaml
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: runs the migrator Job, and holds the collector in its check init container, with telemetryStoreMigrator.enabled
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.enabled: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        isKind:
+          of: Job
+      - template: templates/otel-collector/deployment.yaml
+        exists:
+          path: spec.template.spec.initContainers[?(@.name == "check")]
+  - it: renders neither the migrator Job nor the collector's check init container with telemetryStoreMigrator.enabled false
+    set:
+      telemetryStoreMigrator.enabled: false
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/deployment.yaml
+        notExists:
+          path: spec.template.spec.initContainers[?(@.name == "check")]
+  - it: holds the collector until the sync migrations have landed, in a check init container running /signoz-otel-collector migrate sync check
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].command
+          value: [/signoz-otel-collector]
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].args
+          value: [migrate, sync, check]
+  - it: runs a new migrator Job named <telemetryStoreMigrator.name>-<revision> on every install and upgrade
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 3
+      upgrade: true
+    set:
+      telemetryStoreMigrator.name: migr
+    asserts:
+      - equal:
+          path: metadata.name
+          value: migr-3
+  - it: renders a 57-character telemetryStoreMigrator.name
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.name: abcdefghij-abcdefghij-abcdefghij-abcdefghij-abcdefghij-ab
+    asserts:
+      - equal:
+          path: metadata.name
+          value: abcdefghij-abcdefghij-abcdefghij-abcdefghij-abcdefghij-ab-1
+  - it: runs the ready, bootstrap and sync migrations, in that order, before the async one
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].args
+          value: [migrate, ready]
+      - equal:
+          path: spec.template.spec.initContainers[1].args
+          value: [migrate, bootstrap]
+      - equal:
+          path: spec.template.spec.initContainers[2].args
+          value: [migrate, sync, up]
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: [migrate, async, up]
+  - it: runs the Job as default, with no ServiceAccount of its own, unless serviceAccount.create
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.serviceAccount.create: false
+      telemetryStoreMigrator.serviceAccount.name: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+  - it: runs the Job as the ServiceAccount telemetryStoreMigrator.serviceAccount.create makes
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.serviceAccount.create: true
+      telemetryStoreMigrator.serviceAccount.name: migr-sa
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: migr-sa
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: migr-sa
+  - it: names the ServiceAccount it creates after telemetryStoreMigrator.name, without the revision suffix, and runs the Job as it
+    release:
+      revision: 5
+    set:
+      telemetryStoreMigrator.name: migr
+      telemetryStoreMigrator.serviceAccount.create: true
+      telemetryStoreMigrator.serviceAccount.name: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: migr
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: migr
+  - it: runs the Job as telemetryStoreMigrator.serviceAccount.name, made outside the chart, without creating a ServiceAccount
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.serviceAccount.create: false
+      telemetryStoreMigrator.serviceAccount.name: existing-sa
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: existing-sa
+      - template: templates/telemetrystore-migrator/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+  - it: pulls the migrator image with the global, root and otelCollector imagePullSecrets
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      global.imagePullSecrets: [g]
+      imagePullSecrets: [r]
+      otelCollector.imagePullSecrets: [o]
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value: [{name: g}, {name: r}, {name: o}]
+  - it: merges telemetryStoreMigrator.annotations into the Job's, a key you set replacing the chart's
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.annotations:
+        example.com/team: observability
+        argocd.argoproj.io/sync-options: Replace=true
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/team: observability
+            argocd.argoproj.io/sync-options: Replace=true
+  - it: keeps the Argo CD sync options Force=true,Replace=true on the Job beside the keys of telemetryStoreMigrator.annotations
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.annotations:
+        example.com/team: observability
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/sync-options: Force=true,Replace=true
+            example.com/team: observability
+  - it: keeps the Argo CD sync options Force=true,Replace=true on the Job with telemetryStoreMigrator.annotations left empty
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.annotations: null
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/sync-options: Force=true,Replace=true
+  - it: keeps a ttlSecondsAfterFinished of 0, which deletes the Job as soon as it finishes
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.ttlSecondsAfterFinished: 0
+    asserts:
+      - equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 0
+  - it: keeps a finished Job, and its logs, without telemetryStoreMigrator.ttlSecondsAfterFinished
+    template: templates/telemetrystore-migrator/job.yaml
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.enabled: true
+      telemetryStoreMigrator.ttlSecondsAfterFinished: null
+    asserts:
+      - hasDocuments:
+          count: 1
+      - notExists:
+          path: spec.ttlSecondsAfterFinished
+  - it: gives every migration, and the collector's check, telemetryStoreMigrator.timeout and enableReplication
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.timeout: 45m
+      telemetryStoreMigrator.enableReplication: false
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &timeout {name: SIGNOZ_OTEL_COLLECTOR_TIMEOUT, value: 45m}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &replication {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION, value: "false"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *timeout
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *replication
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *timeout
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *replication
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *timeout
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *replication
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *timeout
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *replication

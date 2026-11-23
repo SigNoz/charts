@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/image
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: runs every migration and the collector's check on the collector's own image and pull policy from otelCollector.image
+    release:
+      revision: 1
+    set:
+      global.imageRegistry: ""
+      otelCollector.image.repository: docker.io/acme/otelcol
+      otelCollector.image.tag: v0.200.0
+      otelCollector.image.pullPolicy: Always
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].imagePullPolicy
+          value: Always
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].imagePullPolicy
+          value: Always
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].imagePullPolicy
+          value: Always
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "async")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "async")].imagePullPolicy
+          value: Always
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: docker.io/acme/otelcol:v0.200.0
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].imagePullPolicy
+          value: Always
+
+  - it: pulls every migration and the collector's check from global.imageRegistry instead of the registry in otelCollector.image.repository
+    release:
+      revision: 1
+    set:
+      global.imageRegistry: mirror.example.com
+      otelCollector.image.repository: docker.io/signoz/signoz-otel-collector
+      otelCollector.image.tag: v0.200.0
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "async")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+
+  - it: pulls every migration and the collector's check by repository and tag alone when no registry is set
+    release:
+      revision: 1
+    set:
+      global.imageRegistry: ""
+      otelCollector.image.repository: signoz/signoz-otel-collector
+      otelCollector.image.tag: v0.200.0
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].image
+          value: signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].image
+          value: signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].image
+          value: signoz/signoz-otel-collector:v0.200.0
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "async")].image
+          value: signoz/signoz-otel-collector:v0.200.0
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].image
+          value: signoz/signoz-otel-collector:v0.200.0

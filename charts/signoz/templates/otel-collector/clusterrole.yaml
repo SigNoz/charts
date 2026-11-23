@@ -1,4 +1,4 @@
-{{- if .Values.otelCollector.clusterRole.create -}}
+{{- if .Values.otelCollector.clusterRole.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -8,5 +8,6 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-rules: {{ toYaml .Values.otelCollector.clusterRole.rules | nindent 2 -}}
+rules:
+  {{- toYaml .Values.otelCollector.clusterRole.rules | nindent 2 }}
 {{- end }}

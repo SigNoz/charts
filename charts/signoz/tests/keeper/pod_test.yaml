@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: keeper/pod
+templates:
+  - templates/keeper/clickhousekeeperinstallation.yaml
+tests:
+  - it: labels the Keeper pods with the selector labels and keeper.pod.labels only
+    set:
+      keeper.pod.labels:
+        team: db
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels
+          value:
+            app.kubernetes.io/name: keeper
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: keeper
+            team: db
+
+  - it: pulls the Keeper image from global.imageRegistry
+    set:
+      global.imageRegistry: mirror.example.com
+      keeper.image.repository: clickhouse/clickhouse-keeper
+      keeper.image.tag: t1
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.containers[?(@.name == "clickhouse-keeper")].image
+          value: mirror.example.com/clickhouse/clickhouse-keeper:t1
+
+  - it: pulls the Keeper image with both global.imagePullSecrets and keeper.imagePullSecrets
+    set:
+      global.imagePullSecrets: [global-pull]
+      keeper.imagePullSecrets: [keeper-pull]
+    asserts:
+      - contains:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          content: {name: global-pull}
+      - contains:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          content: {name: keeper-pull}
+
+  - it: runs the Keeper pod as a non-root user with runAsUser and runAsGroup added to keeper.podSecurityContext
+    set:
+      keeper.podSecurityContext.runAsUser: 101
+      keeper.podSecurityContext.runAsGroup: 101
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.securityContext
+          value: {fsGroup: 101, runAsUser: 101, runAsGroup: 101}
+
+  - it: renders no pod security context with keeper.podSecurityContext null
+    set:
+      keeper.podSecurityContext: null
+    asserts:
+      - exists:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.containers
+      - notExists:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.securityContext
+
+  - it: runs the Keeper container with keeper.containerSecurityContext
+    set:
+      keeper.containerSecurityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.containers[?(@.name == "clickhouse-keeper")].securityContext
+          value: {runAsNonRoot: true, allowPrivilegeEscalation: false}
+
+  - it: merges keeper.settings per key and keeps the chart's other settings
+    set:
+      keeper.settings:
+        logger/level: trace
+        keeper_server/max_requests_batch_size: "100"
+    asserts:
+      - equal:
+          path: spec.configuration.settings["logger/level"]
+          value: trace
+      - equal:
+          path: spec.configuration.settings["keeper_server/max_requests_batch_size"]
+          value: "100"
+      - exists:
+          path: spec.configuration.settings["prometheus/endpoint"]
+
+  - it: drops a keeper.settings key set to null
+    set:
+      keeper.settings:
+        logger/console: null
+    asserts:
+      - notExists:
+          path: spec.configuration.settings["logger/console"]
+      - exists:
+          path: spec.configuration.settings["logger/level"]
+
+  - it: annotates the Keeper pods for scraping on the port Keeper serves its metrics on
+    set:
+      keeper.pod.annotations:
+        signoz.io/scrape: "true"
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.metadata.annotations["signoz.io/port"] == $.spec.configuration.settings["prometheus/port"])].metadata.annotations["signoz.io/scrape"]
+          value: "true"
+
+  - it: lists global.imagePullSecrets first, then keeper.imagePullSecrets, on the Keeper pod
+    set:
+      global.imagePullSecrets: [global-pull]
+      imagePullSecrets: []
+      keeper.imagePullSecrets: [keeper-pull]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: keeper-pull
+
+  - it: annotates the Keeper pods with keeper.pod.annotations
+    set:
+      keeper.pod.annotations:
+        example.com/owner: platform
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.annotations["example.com/owner"]
+          value: platform
+
+  - it: keeps the selector labels on the Keeper pods when keeper.pod.labels names one of them
+    set:
+      keeper.pod.labels:
+        app.kubernetes.io/component: coordination
+        team: db
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels["app.kubernetes.io/component"]
+          value: keeper
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].metadata.labels.team
+          value: db
+
+  - it: lists global.imagePullSecrets, then imagePullSecrets, then keeper.imagePullSecrets, on the Keeper pod
+    set:
+      global.imagePullSecrets: [global-pull]
+      imagePullSecrets: [root-pull]
+      keeper.imagePullSecrets: [keeper-pull]
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[?(@.name == $.spec.defaults.templates.podTemplate)].spec.imagePullSecrets
+          value:
+            - name: global-pull
+            - name: root-pull
+            - name: keeper-pull

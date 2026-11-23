@@ -1,5 +1,7 @@
 <!--- app-name: Apache ZooKeeper -->
 
+> This chart is deprecated: the signoz chart's ClickHouse Keeper (`keeper.*`) replaces it. It is kept only for existing installs until they migrate; see [ClickHouse Keeper replaces ZooKeeper](https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade).
+
 # Apache ZooKeeper packaged by Bitnami
 
 Apache ZooKeeper provides a reliable, centralized register of configuration data and services for distributed applications.
@@ -65,7 +67,7 @@ The command removes all the Kubernetes components associated with the chart and 
 | `kubeVersion`            | Override Kubernetes version                                                                  | `""`            |
 | `nameOverride`           | String to partially override common.names.fullname template (will maintain the release name) | `""`            |
 | `fullnameOverride`       | String to fully override common.names.fullname template                                      | `""`            |
-| `clusterDomain`          | Kubernetes Cluster Domain                                                                    | `cluster.local` |
+| `clusterDomain`          | Kubernetes Cluster Domain (falls back to `global.clusterDomain`, then `cluster.local`)       | `""`            |
 | `extraDeploy`            | Extra objects to deploy (evaluated as a template)                                            | `[]`            |
 | `commonLabels`           | Add labels to all the deployed resources                                                     | `{}`            |
 | `commonAnnotations`      | Add annotations to all the deployed resources                                                | `{}`            |
@@ -100,7 +102,7 @@ The command removes all the Kubernetes components associated with the chart and 
 | `tickTime`                    | Basic time unit (in milliseconds) used by ZooKeeper for heartbeats                                                         | `2000`                  |
 | `initLimit`                   | ZooKeeper uses to limit the length of time the ZooKeeper servers in quorum have to connect to a leader                     | `10`                    |
 | `syncLimit`                   | How far out of date a server can be from a leader                                                                          | `5`                     |
-| `preAllocSize`                | Block size for transaction log file                                                                                        | `65536`                 |
+| `preAllocSize`                | Block size, in kilobytes, preallocated for each transaction log file; 0 turns preallocation off                            | `0`                     |
 | `snapCount`                   | The number of transactions recorded in the transaction log before a snapshot can be taken (and the transaction log rolled) | `100000`                |
 | `maxClientCnxns`              | Limits the number of concurrent connections that a single client may make to a single member of the ZooKeeper ensemble     | `60`                    |
 | `maxSessionTimeout`           | Maximum session timeout (in milliseconds) that the server will allow the client to negotiate                               | `40000`                 |

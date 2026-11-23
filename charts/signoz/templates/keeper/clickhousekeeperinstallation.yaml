@@ -1,0 +1,112 @@
+{{- if and .Values.clickhouse.enabled .Values.keeper.enabled }}
+apiVersion: clickhouse-keeper.altinity.com/v1
+kind: ClickHouseKeeperInstallation
+metadata:
+  name: {{ include "keeper.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "keeper.labels" . | fromYaml) .Values.keeper.labels)) | nindent 4 }}
+  {{- with .Values.keeper.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $clusterDomain := include "signoz.clusterDomain" . }}
+  {{- if ne $clusterDomain "cluster.local" }}
+  namespaceDomainPattern: {{ printf "%%s.svc.%s" $clusterDomain | quote }}
+  {{- end }}
+  configuration:
+    clusters:
+      - name: "cluster"
+        layout:
+          replicasCount: {{ .Values.keeper.replicaCount }}
+    {{- with .Values.keeper.settings }}
+    settings:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  reconciling:
+    cleanup:
+      unknownObjects:
+        pvc: Retain
+  defaults:
+    templates:
+      podTemplate: default
+      dataVolumeClaimTemplate: default
+  templates:
+    podTemplates:
+      - name: default
+        metadata:
+          labels:
+            {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.keeper.pod.labels) "keep" (include "keeper.podLabels" . | fromYaml)) | nindent 12 }}
+          {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.keeper.pod.annotations)) }}
+          annotations:
+            {{- . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.keeper.podDistribution }}
+        podDistribution:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        spec:
+          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.keeper.imagePullSecrets)) | nindent 10 }}
+          {{- with .Values.keeper.priorityClassName }}
+          priorityClassName: {{ . | quote }}
+          {{- end }}
+          {{- with .Values.keeper.affinity }}
+          affinity: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.tolerations }}
+          tolerations: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.nodeSelector }}
+          nodeSelector: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.topologySpreadConstraints }}
+          topologySpreadConstraints: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.podSecurityContext }}
+          securityContext: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.keeper.extraVolumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: clickhouse-keeper
+              image: {{ include "keeper.image" . }}
+              imagePullPolicy: {{ .Values.keeper.image.pullPolicy }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.keeper.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.extraVolumeMounts }}
+              volumeMounts:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.resources }}
+              resources: {{ toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.keeper.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
+    volumeClaimTemplates:
+      - name: default
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            {{- toYaml .Values.keeper.persistence.accessModes | nindent 12 }}
+          resources:
+            requests:
+              storage: {{ .Values.keeper.persistence.size }}
+          {{- $storageClass := default .Values.keeper.persistence.storageClass .Values.global.storageClass }}
+          {{- if $storageClass }}
+          {{- if eq "-" $storageClass }}
+          storageClassName: ""
+          {{- else }}
+          storageClassName: {{ $storageClass }}
+          {{- end }}
+          {{- end }}
+{{- end }}

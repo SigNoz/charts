@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/env-values
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: renders a large number in signoz.env in full, without an exponent
+    set:
+      signoz.env:
+        signoz_cache_memory_max__cost: 67108864
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_CACHE_MEMORY_MAX__COST, value: "67108864"}

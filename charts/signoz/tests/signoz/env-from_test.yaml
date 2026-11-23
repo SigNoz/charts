@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/env-from
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: gives the SigNoz container the sources in signoz.envFrom
+    set:
+      signoz.envFrom:
+        - secretRef:
+            name: signoz-smtp
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].envFrom
+          content: {secretRef: {name: signoz-smtp}}

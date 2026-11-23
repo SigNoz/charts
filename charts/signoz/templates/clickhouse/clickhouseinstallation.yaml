@@ -1,0 +1,369 @@
+{{- if .Values.clickhouse.enabled }}
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: {{ include "clickhouse.fullname" . }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "clickhouse.labels" . | fromYaml) .Values.clickhouse.labels)) | nindent 4 }}
+  {{- if .Values.clickhouse.annotations }}
+  annotations:
+    {{- toYaml .Values.clickhouse.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $clusterDomain := include "signoz.clusterDomain" . }}
+  {{- if ne $clusterDomain "cluster.local" }}
+  namespaceDomainPattern: {{ printf "%%s.svc.%s" $clusterDomain | quote }}
+  {{- end }}
+  defaults:
+    templates:
+      {{- if and (.Values.clickhouse.persistence.enabled) (not .Values.clickhouse.persistence.existingClaim) }}
+      dataVolumeClaimTemplate: data-volumeclaim-template
+      # logVolumeClaimTemplate: log-volumeclaim-template
+      {{- end }}
+      serviceTemplate: service-template
+
+  reconciling:
+    cleanup:
+      unknownObjects:
+        pvc: Retain
+
+  configuration:
+    users:
+      {{- $sha256Key := include "clickhouse.secretPasswordSha256Key" . }}
+      {{- if $sha256Key }}
+      {{ .Values.clickhouse.user }}/password_sha256_hex:
+        {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" $sha256Key) | nindent 8 }}
+      {{- else }}
+      {{ .Values.clickhouse.user }}/password:
+        {{- include "signoz.lib.secretKeyRef" (dict "name" (include "clickhouse.secretName" .) "key" (include "clickhouse.secretPasswordKey" .)) | nindent 8 }}
+      {{- end }}
+      {{ .Values.clickhouse.user }}/networks/ip:
+        {{- range $.Values.clickhouse.allowedNetworkIps }}
+        - {{ . | quote }}
+        {{- end }}
+      {{ .Values.clickhouse.user }}/profile: default
+      {{ .Values.clickhouse.user }}/quota: default
+
+    profiles:
+      {{- merge dict .Values.clickhouse.profiles .Values.clickhouse.defaultProfiles | toYaml | nindent 6 }}
+
+    clusters:
+      - name: {{ .Values.clickhouse.cluster | quote }}
+        templates:
+          podTemplate: pod-template
+        layout:
+          {{- toYaml .Values.clickhouse.layout | nindent 10 }}
+
+    settings:
+      {{- merge dict .Values.clickhouse.settings .Values.clickhouse.defaultSettings | toYaml | nindent 6 }}
+
+    files:
+      {{- if .Values.clickhouse.coldStorage.enabled }}
+      config.d/storage.xml: |
+        <clickhouse>
+          <storage_configuration>
+            <disks>
+              <!--
+                default disk is special, it always exists even if not explicitly configured here,
+                but you can't change it's path here (you should use <path> on top level config instead)
+              -->
+              <default>
+                <!--
+                  You can reserve some amount of free space on any disk (including default) by adding
+                  keep_free_space_bytes tag.
+                -->
+                <keep_free_space_bytes>{{ .Values.clickhouse.coldStorage.defaultKeepFreeSpaceBytes }}</keep_free_space_bytes>
+              </default>
+              {{- if eq .Values.clickhouse.coldStorage.type "s3" }}
+              <s3>
+                <type>s3</type>
+                <endpoint>{{ .Values.clickhouse.coldStorage.endpoint }}</endpoint>
+                {{- if .Values.clickhouse.coldStorage.role.enabled }}
+                <use_environment_credentials>true</use_environment_credentials>
+                {{- else }}
+                <access_key_id>{{ .Values.clickhouse.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.clickhouse.coldStorage.secretAccess }}</secret_access_key>
+                {{- end }}
+              </s3>
+              {{- else if eq .Values.clickhouse.coldStorage.type "gcs" }}
+              <gcs>
+                <support_batch_delete>false</support_batch_delete>
+                <type>s3</type>
+                <endpoint>{{ .Values.clickhouse.coldStorage.endpoint }}</endpoint>
+                <access_key_id>{{ .Values.clickhouse.coldStorage.accessKey }}</access_key_id>
+                <secret_access_key>{{ .Values.clickhouse.coldStorage.secretAccess }}</secret_access_key>
+              </gcs>
+              {{- end }}
+            </disks>
+            <policies>
+              <tiered>
+                <volumes>
+                  <default>
+                    <disk>default</disk>
+                  </default>
+                  <s3>
+                    <disk>{{ .Values.clickhouse.coldStorage.type }}</disk>
+                    <perform_ttl_move_on_insert>0</perform_ttl_move_on_insert>
+                    <prefer_not_to_merge>1</prefer_not_to_merge>
+                  </s3>
+                </volumes>
+                <move_factor>0</move_factor>
+              </tiered>
+            </policies>
+          </storage_configuration>
+        </clickhouse>
+      {{- end }}
+      {{- include "clickhouse.files" . | nindent 6 }}
+
+    zookeeper:
+      nodes:
+        {{- include "clickhouse.coordinationHosts" . | nindent 8 }}
+
+  templates:
+    podTemplates:
+      - name: pod-template
+        metadata:
+          labels:
+            {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.clickhouse.pod.labels) "keep" (include "clickhouse.podLabels" . | fromYaml)) | nindent 12 }}
+          {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.clickhouse.pod.annotations)) }}
+          annotations:
+            {{- . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.clickhouse.podDistribution }}
+        podDistribution:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        spec:
+          {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 10 }}
+          serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
+          {{- with .Values.clickhouse.priorityClassName }}
+          priorityClassName: {{ . | quote }}
+          {{- end }}
+          {{- if .Values.clickhouse.affinity }}
+          affinity: {{ toYaml .Values.clickhouse.affinity | nindent 12 }}
+          {{- end }}
+          {{- if .Values.clickhouse.tolerations }}
+          tolerations: {{ toYaml .Values.clickhouse.tolerations | nindent 12 }}
+          {{- end }}
+          {{- if .Values.clickhouse.nodeSelector }}
+          nodeSelector: {{ toYaml .Values.clickhouse.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.topologySpreadConstraints }}
+          topologySpreadConstraints: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.podSecurityContext }}
+          securityContext: {{ toYaml . | nindent 12 }}
+          {{- end }}
+
+          volumes:
+            - name: shared-binary-volume
+              emptyDir: {}
+            - name: custom-functions-volume
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-custom-functions
+          {{- if and (not .Values.clickhouse.templates.volumeClaimTemplates) (not .Values.clickhouse.persistence.enabled) }}
+            - name: data-volume
+              emptyDir: {}
+          {{- else if .Values.clickhouse.persistence.existingClaim }}
+            - name: existing-volumeclaim
+              persistentVolumeClaim:
+                claimName: {{ .Values.clickhouse.persistence.existingClaim }}
+          {{- end }}
+          {{- if .Values.clickhouse.logs.system.enabled }}
+            - name: logs-system-config
+              configMap:
+                name: {{ include "clickhouse.fullname" . }}-logs-system-config
+          {{- end }}
+          {{- if .Values.clickhouse.extraVolumes }}
+            {{- toYaml .Values.clickhouse.extraVolumes | nindent 12 }}
+          {{- end }}
+
+          {{- if or .Values.clickhouse.udf.enabled .Values.clickhouse.extraInitContainers }}
+          initContainers:
+            {{- if .Values.clickhouse.udf.enabled }}
+            - name: {{ include "clickhouse.fullname" . }}-udf-init
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.image "name" "clickhouse.image") }}
+              imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.clickhouse.udf.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.udf.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              command:
+                {{- toYaml .Values.clickhouse.udf.command | nindent 16 }}
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                {{- with .Values.clickhouse.udf.extraVolumeMounts }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              {{- with .Values.clickhouse.udf.resources }}
+              resources: {{ toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
+            {{- end }}
+            {{- with .Values.clickhouse.extraInitContainers }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          containers:
+            - name: clickhouse
+              # KEEP CLICKHOUSE-SERVER VERSION IN SYNC WITH
+              # https://github.com/SigNoz/signoz/blob/main/deploy/docker/clickhouse-setup/docker-compose.yaml#L5
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.image "name" "clickhouse.image") }}
+              imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
+              {{- with include "signoz.lib.env" (dict "chart" (list) "user" .Values.clickhouse.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              command:
+                - /bin/bash
+                - -c
+                - /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml
+              ports:
+                - name: http
+                  containerPort: 8123
+                - name: client
+                  containerPort: 9000
+                - name: interserver
+                  containerPort: 9009
+              
+              {{- with .Values.clickhouse.startupProbe }}
+              startupProbe: {{ toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.livenessProbe }}
+              livenessProbe: {{ toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.readinessProbe }}
+              readinessProbe: {{ toYaml . | nindent 16 }}
+              {{- end }}
+
+              volumeMounts:
+                - name: shared-binary-volume
+                  mountPath: /var/lib/clickhouse/user_scripts
+                - name: custom-functions-volume
+                  mountPath: /etc/clickhouse-server/functions
+              {{- if and (not .Values.clickhouse.templates.volumeClaimTemplates) (not .Values.clickhouse.persistence.enabled) }}
+                - name: data-volume
+                  mountPath: /var/lib/clickhouse
+              {{- end }}
+              {{- if and (.Values.clickhouse.persistence.enabled) (.Values.clickhouse.persistence.existingClaim) }}
+                - name: existing-volumeclaim
+                  mountPath: /var/lib/clickhouse
+              {{- else if .Values.clickhouse.persistence.enabled }}
+                - name: data-volumeclaim-template
+                  mountPath: /var/lib/clickhouse
+              {{- end }}
+              {{- if .Values.clickhouse.extraVolumeMounts }}
+                {{- toYaml .Values.clickhouse.extraVolumeMounts | nindent 16 }}
+              {{- end }}
+              {{- if .Values.clickhouse.resources }}
+              resources: {{ toYaml .Values.clickhouse.resources | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
+            {{- if .Values.clickhouse.logs.system.enabled }}
+            - name: logs-system-exporter
+              image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.logs.system.image "name" "clickhouse.logs.system.image") }}
+              imagePullPolicy: {{ .Values.clickhouse.logs.system.image.pullPolicy }}
+              command:
+                - /signoz-otel-collector
+              args:
+                - --config=/conf/config.yaml
+              {{- $logsEnv := list (include "snippet.k8s-env" . | fromYamlArray) (list (dict "name" "OTEL_RESOURCE_ATTRIBUTES" "value" "k8s.pod.uid=$(K8S_POD_UID),k8s.pod.ip=$(K8S_POD_IP)")) }}
+              {{- with include "signoz.lib.env" (dict "chart" $logsEnv "user" .Values.clickhouse.logs.system.env) }}
+              env:
+                {{- . | trim | nindent 16 }}
+              {{- end }}
+              {{- with .Values.clickhouse.logs.system.envFrom }}
+              envFrom:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if .Values.clickhouse.logs.system.resources }}
+              resources: {{ toYaml .Values.clickhouse.logs.system.resources | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: logs-system-config
+                  mountPath: /conf
+                {{- with .Values.clickhouse.logs.system.extraVolumeMounts }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              {{- with .Values.clickhouse.containerSecurityContext }}
+              securityContext: {{ toYaml . | nindent 16 }}
+              {{- end }}
+            {{- end }}
+
+            {{- if .Values.clickhouse.extraContainers }}
+              {{- toYaml .Values.clickhouse.extraContainers | nindent 12 }}
+            {{- end }}
+
+    serviceTemplates:
+      - name: service-template
+        generateName: {{ include "clickhouse.fullname" . }}
+        {{- with .Values.clickhouse.service }}
+        metadata:
+          labels:
+            {{- include "clickhouse.labels" $ | nindent 12 }}
+          {{- with .annotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          type: {{ .type }}
+          ports:
+            - name: http
+              port: {{ .httpPort }}
+              targetPort: http
+              {{ if eq .type "ClusterIP" }}nodePort: null{{- end }}
+            - name: tcp
+              port: {{ .tcpPort }}
+              targetPort: client
+              {{ if eq .type "ClusterIP" }}nodePort: null{{- end -}}
+        {{- end }}
+
+    {{- if and (.Values.clickhouse.persistence.enabled) (not .Values.clickhouse.persistence.existingClaim) }}
+    volumeClaimTemplates:
+      - name: data-volumeclaim-template
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            {{- toYaml .Values.clickhouse.persistence.accessModes | nindent 12 }}
+          resources:
+            requests:
+              storage: {{ .Values.clickhouse.persistence.size }}
+        {{- $storageClass := default .Values.clickhouse.persistence.storageClass .Values.global.storageClass -}}
+        {{- if $storageClass -}}
+        {{- if (eq "-" $storageClass) }}
+          storageClassName: ""
+        {{- else }}
+          storageClassName: {{ $storageClass }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
+
+  {{- if and (.Values.clickhouse.templates.volumeClaimTemplates) (not .Values.clickhouse.persistence.enabled) }}
+    volumeClaimTemplates:
+    {{- range .Values.clickhouse.templates.volumeClaimTemplates }}
+      - name: {{ .name }}
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            {{- toYaml .accessModes | nindent 12 }}
+          resources:
+            requests:
+              storage: {{ .resources.requests.storage }}
+          storageClassName: {{ .storageClassName }}
+    {{- end }}
+  {{- end }}
+{{- end }}

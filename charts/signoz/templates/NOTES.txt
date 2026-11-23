@@ -1,78 +1,55 @@
-1. You have just deployed SigNoz cluster:
+SigNoz release {{ .Release.Name }} in namespace {{ include "signoz.namespace" . }}:
 
-- signoz version: '{{ .Values.signoz.image.tag }}'
-- otel-collector version: '{{ .Values.otelCollector.image.tag }}'
+  signoz          {{ default .Chart.AppVersion .Values.signoz.image.tag }}
+  otel-collector  {{ .Values.otelCollector.image.tag }}
+{{- if .Values.signoz.ingress.enabled }}
 
-2. Get the application URL by running these commands:
-
-{{- if .Values.signoz.ingress.enabled -}}
+Open SigNoz at:
 {{- range $host := .Values.signoz.ingress.hosts }}
-
-  {{- range .paths }}
-  http{{ if $.Values.signoz.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
-  {{- end }}
-
+{{- $scheme := "http" }}
+{{- range $.Values.signoz.ingress.tls }}
+{{- if has $host.host .hosts }}{{ $scheme = "https" }}{{ end }}
+{{- end }}
+{{- range .paths }}
+  {{ $scheme }}://{{ $host.host }}{{ .path }}
+{{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.signoz.service.type }}
 
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "signoz.fullname" . }})
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
+Get the SigNoz URL:
 
+  export NODE_PORT=$(kubectl get --namespace {{ include "signoz.namespace" . }} services {{ include "signoz.fullname" . }} -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
+  export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+  echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.signoz.service.type }}
 
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "signoz.fullname" . }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "signoz.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.signoz.service.port }}
+Once the load balancer has an address, get the SigNoz URL:
 
+  export SERVICE_HOST=$(kubectl get --namespace {{ include "signoz.namespace" . }} services {{ include "signoz.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}{.status.loadBalancer.ingress[0].hostname}')
+  echo http://$SERVICE_HOST:{{ .Values.signoz.service.port }}
 {{- else if contains "ClusterIP" .Values.signoz.service.type }}
 
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component={{ .Values.signoz.name }}" -o jsonpath="{.items[0].metadata.name}")
-  echo "Visit http://127.0.0.1:{{ .Values.signoz.service.port }} to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.signoz.service.port }}:{{ .Values.signoz.service.port }}
+Forward a local port to SigNoz, then open http://127.0.0.1:{{ .Values.signoz.service.port }}:
 
+  export POD_NAME=$(kubectl get pods --namespace {{ include "signoz.namespace" . }} -l "{{ include "signoz.selectorLabels" . | replace ": " "=" | replace "\n" "," }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "signoz.namespace" . }} port-forward $POD_NAME {{ .Values.signoz.service.port }}:8080
 {{- end }}
+{{- if .Values.clickhouse.enabled }}
+{{- if .Values.clickhouse.externalZookeeper }}
 
-{{/*
-Generates deprecation notices for NOTES.txt
-*/}}
-{{- define "signoz.deprecationNotices" -}}
-{{- $messages := list -}}
-{{- if .Values.signoz.additionalEnvs -}}
-  {{- $messages = append $messages "The '.Values.signoz.additionalEnvs' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
-{{- end -}}
-{{- if (dig "configVars" nil .Values.signoz) -}}
-  {{- $messages = append $messages "The '.Values.signoz.configVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
-{{- end -}}
-{{- if (dig "smtpVars" nil .Values.signoz) -}}
-  {{- $messages = append $messages "The '.Values.signoz.smtpVars' key is deprecated. Please move these values to '.Values.signoz.env'." -}}
-{{- end -}}
-{{- if .Values.schemaMigrator -}}
-  {{- $messages = append $messages "The '.Values.schemaMigrator.*' key is deprecated. Please move your overrides to telemetryStoreMigrator.*" }}
-{{- end -}}
-{{- if (dig "initContainers" "init" nil .Values.signoz) -}}
-  {{- $messages = append $messages "The '.Values.signoz.initContainers.init' has been removed as it is no longer required. Please remove it from your values overrides." }}
-{{- end -}}
-{{- if (dig "initContainers" "migration" nil .Values.signoz) -}}
-  {{- $messages = append $messages "The '.Values.signoz.initContainers.migration' has been removed as it is no longer required. Please remove it from your values overrides." }}
-{{- end }}
-{{- if (dig "initContainers" "init" nil .Values.otelCollector) -}}
-  {{- $messages = append $messages "The '.Values.otelCollector.initContainers.init' has been removed as it is no longer required. Please remove it from your values overrides." }}
-{{- end }}
-{{- if not (empty $messages) -}}
-DEPRECATION NOTICE:
-{{- range $messages }}
-- {{ . }}
-{{- end }}
-Please update your values.yaml file. These keys will be removed in a future release.
-{{- end -}}
-{{- end -}}
-{{ include "signoz.deprecationNotices" . }}
+ClickHouse coordinates through the servers in clickhouse.externalZookeeper.servers.
+{{- else if .Values.zookeeper.enabled }}
 
-{{- if .Release.IsUpgrade }}
-NOTES:
-- We no longer bundle K8s-Infra chart with the SigNoz chart installation. For any existing set up, please install k8s-infra chart separately with the relevant override values.
-- OtelCollectorMetrics is no longer bundled with the SigNoz chart and has been removed. See https://github.com/SigNoz/charts/issues/593 for more details.
-- Frontend is deprecated and has been removed as it is now bundled with the signoz component. See https://github.com/SigNoz/signoz/issues/6762 for more details.
+ClickHouse coordinates through ZooKeeper.
+{{- else if .Values.keeper.enabled }}
+
+ClickHouse coordinates through ClickHouse Keeper at {{ include "keeper.clientHost" . }}:2181.
 {{- end }}
+{{- end }}
+{{- if .Values.zookeeper.enabled }}
+
+The bundled ZooKeeper is deprecated; ClickHouse Keeper replaces it.
+Keep zookeeper.enabled: true until you migrate. Migrate with section 11 of the upgrade guide:
+  https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#11-zookeeper-to-clickhouse-keeper
+{{- end }}
+Docs: https://signoz.io/docs/install/kubernetes/

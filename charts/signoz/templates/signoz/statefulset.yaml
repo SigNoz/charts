@@ -1,12 +1,23 @@
+{{- $persistence := .Values.signoz.persistence }}
+{{- $sqliteVolume := "" }}
+{{- if not .Values.postgresql.enabled }}
+{{- if not $persistence.enabled }}
+{{- $sqliteVolume = "signoz-db-volume" }}
+{{- else if $persistence.existingClaim }}
+{{- $sqliteVolume = "signoz-db-existing-claim" }}
+{{- else }}
+{{- $sqliteVolume = "signoz-db" }}
+{{- end }}
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "signoz.fullname" . }}
   labels:
-    {{- include "signoz.labels" . | nindent 4 }}
-  {{- if .Values.signoz.annotations }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "signoz.labels" . | fromYaml) .Values.signoz.labels)) | nindent 4 }}
+  {{- with .Values.signoz.annotations }}
   annotations:
-    {{- toYaml .Values.signoz.annotations | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   serviceName: {{ include "signoz.fullname" . }}
@@ -16,21 +27,20 @@ spec:
       {{- include "signoz.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- if .Values.signoz.podAnnotations }}
+      {{- with include "signoz.lib.mergedMap" (dict "maps" (list .Values.signoz.pod.annotations)) }}
       annotations:
-        {{- toYaml .Values.signoz.podAnnotations | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "signoz.selectorLabels" . | nindent 8 }}
+        {{- include "signoz.lib.mergedMap" (dict "maps" (list .Values.signoz.pod.labels) "keep" (include "signoz.selectorLabels" . | fromYaml)) | nindent 8 }}
     spec:
-      {{- with .Values.signoz.imagePullSecrets }}
-      imagePullSecrets:
-      {{- range . }}
-        - name: {{ . | quote }}
+      {{- with include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.signoz.imagePullSecrets)) }}
+      {{- . | nindent 6 }}
       {{- end }}
+      serviceAccountName: {{ include "signoz.lib.serviceAccountName" (dict "serviceAccount" .Values.signoz.serviceAccount "fullname" (include "signoz.fullname" .)) }}
+      {{- with .Values.signoz.priorityClassName }}
+      priorityClassName: {{ . | quote }}
       {{- end }}
-      serviceAccountName: {{ include "signoz.serviceAccountName" . }}
-      priorityClassName: {{ .Values.signoz.priorityClassName | quote }}
       {{- with .Values.signoz.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -49,104 +59,95 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.signoz.podSecurityContext | nindent 8 }}
+      {{- with .Values.signoz.extraInitContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: signoz
           securityContext:
-            {{- toYaml .Values.signoz.securityContext | nindent 12 }}
-          image: {{ template "signoz.image" . }}
+            {{- toYaml .Values.signoz.containerSecurityContext | nindent 12 }}
+          image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.signoz.image "defaultTag" .Chart.AppVersion "name" "signoz.image") }}
           imagePullPolicy: {{ .Values.signoz.image.pullPolicy }}
+          {{- with .Values.signoz.extraArgs }}
           args:
-            {{- range .Values.signoz.additionalArgs }}
+            {{- range . }}
             - {{ . | quote }}
             {{- end }}
+          {{- end }}
+          {{- /* SigNoz binds these ports itself; signoz.service ports move only the Service, which targets them by name. */}}
           ports:
             - name: http
-              containerPort: {{ default 8080  .Values.signoz.service.port }}
+              containerPort: 8080
               protocol: TCP
             - name: http-internal
-              containerPort: {{ default 8085 .Values.signoz.service.internalPort }}
+              containerPort: 8085
               protocol: TCP
             - name: opamp-internal
-              containerPort: {{ default 4320 .Values.signoz.service.opampPort }}
+              containerPort: 4320
               protocol: TCP
-          env:
-            {{- include "snippet.clickhouse-credentials" . | nindent 12 }}
-            {{- include "signoz.env" . | nindent 12 }}
-          {{- if .Values.signoz.livenessProbe.enabled }}
-          livenessProbe:
-            httpGet:
-              port: {{ .Values.signoz.livenessProbe.port }}
-              path: {{ .Values.signoz.livenessProbe.path }}
-            initialDelaySeconds: {{ .Values.signoz.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.signoz.livenessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.signoz.livenessProbe.timeoutSeconds }}
-            successThreshold: {{ .Values.signoz.livenessProbe.successThreshold }}
-            failureThreshold: {{ .Values.signoz.livenessProbe.failureThreshold }}
-          {{- else if .Values.signoz.customLivenessProbe }}
-          livenessProbe: {{- toYaml .Values.signoz.customLivenessProbe | nindent 12 }}
+          {{- $chartEnv := list (include "clickhouse.env" . | fromYamlArray) (include "signoz.telemetryStoreEnv" . | fromYamlArray) }}
+          {{- if .Values.postgresql.enabled }}
+          {{- $chartEnv = append $chartEnv (include "signoz.postgresqlEnv" . | fromYamlArray) }}
           {{- end }}
-          {{- if .Values.signoz.readinessProbe.enabled }}
+          {{- with include "signoz.lib.env" (dict "chart" $chartEnv "user" .Values.signoz.env) }}
+          env:
+            {{- . | trim | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.readinessProbe }}
           readinessProbe:
-            httpGet:
-              port: {{ .Values.signoz.readinessProbe.port }}
-              path: {{ .Values.signoz.readinessProbe.path }}
-            initialDelaySeconds: {{ .Values.signoz.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.signoz.readinessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.signoz.readinessProbe.timeoutSeconds }}
-            successThreshold: {{ .Values.signoz.readinessProbe.successThreshold }}
-            failureThreshold: {{ .Values.signoz.readinessProbe.failureThreshold }}
-          {{- else if .Values.signoz.customReadinessProbe }}
-          readinessProbe: {{- toYaml .Values.signoz.customReadinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.signoz.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
-          {{- if not .Values.postgresql.enabled }}
-          {{- if .Values.signoz.persistence.enabled }}
-          {{- if .Values.signoz.persistence.existingClaim }}
-            - name: signoz-db-existing-claim
-          {{- else }}
-            - name: signoz-db
-          {{- end }}
-          {{- else }}
-            - name: signoz-db-volume
-          {{- end }}
+            {{- with $sqliteVolume }}
+            - name: {{ . }}
               mountPath: /var/lib/signoz/
-          {{- end}}
-          {{- if .Values.signoz.additionalVolumeMounts }}
-            {{- toYaml .Values.signoz.additionalVolumeMounts | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            {{- with .Values.signoz.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           resources:
             {{- toYaml .Values.signoz.resources | nindent 12 }}
+        {{- with .Values.signoz.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if or (has $sqliteVolume (list "signoz-db-volume" "signoz-db-existing-claim")) .Values.signoz.extraVolumes }}
       volumes:
-        - name: dashboards
-          emptyDir: {}
-        {{- if and (not .Values.signoz.persistence.enabled) (not .Values.postgresql.enabled )}}
+        {{- if eq $sqliteVolume "signoz-db-volume" }}
         - name: signoz-db-volume
           emptyDir: {}
-        {{- else if and .Values.signoz.persistence.existingClaim (not .Values.postgresql.enabled )}}
+        {{- else if eq $sqliteVolume "signoz-db-existing-claim" }}
         - name: signoz-db-existing-claim
           persistentVolumeClaim:
-            claimName: {{ .Values.signoz.persistence.existingClaim }}
+            claimName: {{ $persistence.existingClaim }}
         {{- end }}
-        {{- if .Values.signoz.additionalVolumes }}
-          {{- toYaml .Values.signoz.additionalVolumes | nindent 8 }}
+        {{- with .Values.signoz.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
-
-{{- if and (.Values.signoz.persistence.enabled) (not .Values.signoz.persistence.existingClaim) ( not .Values.postgresql.enabled )}}
+      {{- end }}
+  {{- if eq $sqliteVolume "signoz-db" }}
   volumeClaimTemplates:
     - metadata:
         name: signoz-db
       spec:
         accessModes:
-          {{- toYaml .Values.signoz.persistence.accessModes | nindent 10 }}
+          {{- toYaml $persistence.accessModes | nindent 10 }}
         resources:
           requests:
-            storage: {{ .Values.signoz.persistence.size }}
-      {{- $storageClass := default .Values.signoz.persistence.storageClass .Values.global.storageClass -}}
-      {{- if $storageClass -}}
-      {{- if (eq "-" $storageClass) }}
-        storageClassName: ""
-      {{- else }}
-        storageClassName: {{ $storageClass }}
-      {{- end }}
-      {{- end }}
-{{- end }}
+            storage: {{ $persistence.size }}
+        {{- with default $persistence.storageClass .Values.global.storageClass }}
+        storageClassName: {{ if eq . "-" }}""{{ else }}{{ . }}{{ end }}
+        {{- end }}
+  {{- end }}

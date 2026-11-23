@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/ingress-paths
+templates:
+  - templates/signoz/ingress.yaml
+  - templates/signoz/service.yaml
+capabilities:
+  majorVersion: 1
+  minorVersion: 30
+  apiVersions:
+    - networking.k8s.io/v1
+tests:
+  - it: routes an Ingress path without a port to the SigNoz Service's signoz.service.port
+    set:
+      signoz.service.port: 9090
+      signoz.ingress.enabled: true
+      signoz.ingress.hosts:
+        - host: signoz.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - template: templates/signoz/ingress.yaml
+        equal:
+          path: spec.rules[?(@.host == "signoz.example.com")].http.paths[?(@.path == "/")].backend.service.port.number
+          value: 9090
+      - template: templates/signoz/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: http, port: 9090}
+          any: true
+  - it: gives an Ingress path without a pathType the ImplementationSpecific type
+    template: templates/signoz/ingress.yaml
+    set:
+      signoz.ingress.enabled: true
+      signoz.ingress.hosts:
+        - host: signoz.example.com
+          paths:
+            - path: /
+              port: 8080
+    asserts:
+      - equal:
+          path: spec.rules[?(@.host == "signoz.example.com")].http.paths[?(@.path == "/")].pathType
+          value: ImplementationSpecific

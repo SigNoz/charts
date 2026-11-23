@@ -1,0 +1,132 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/service
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/service.yaml
+tests:
+  - it: opens a collector container port for each enabled otelCollector.ports entry, named after its key, on its containerPort and protocol
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.ports.otlp:
+        enabled: true
+        containerPort: 5317
+        servicePort: 4317
+        protocol: TCP
+      otelCollector.ports.jaeger-compact:
+        enabled: true
+        containerPort: 6831
+        servicePort: 6831
+        protocol: UDP
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].ports
+          content: {name: otlp, containerPort: 5317, protocol: TCP}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].ports
+          content: {name: jaeger-compact, containerPort: 6831, protocol: UDP}
+
+  - it: exposes each enabled otelCollector.ports entry on the Service at its servicePort, targeting the container port by name
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.ports.otlp:
+        enabled: true
+        containerPort: 5317
+        servicePort: 4317
+        protocol: TCP
+      otelCollector.ports.jaeger-compact:
+        enabled: true
+        containerPort: 6831
+        servicePort: 16831
+        protocol: UDP
+    asserts:
+      - contains:
+          path: spec.ports
+          content: {name: otlp, port: 4317, targetPort: otlp, protocol: TCP}
+          any: true
+      - contains:
+          path: spec.ports
+          content: {name: jaeger-compact, port: 16831, targetPort: jaeger-compact, protocol: UDP}
+          any: true
+
+  - it: closes a disabled otelCollector.ports entry on the collector container and the Service
+    set:
+      otelCollector.ports.otlp.enabled: true
+      otelCollector.ports.jaeger-grpc.enabled: false
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        exists:
+          path: spec.template.spec.containers[?(@.name == "collector")].ports[?(@.name == "otlp")]
+      - template: templates/otel-collector/deployment.yaml
+        notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].ports[?(@.name == "jaeger-grpc")]
+      - template: templates/otel-collector/service.yaml
+        exists:
+          path: spec.ports[?(@.name == "otlp")]
+      - template: templates/otel-collector/service.yaml
+        notExists:
+          path: spec.ports[?(@.name == "jaeger-grpc")]
+
+  - it: exposes a port on its otelCollector.ports nodePort with a NodePort Service
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.service.type: NodePort
+      otelCollector.ports.otlp:
+        enabled: true
+        servicePort: 4317
+        nodePort: 30317
+        protocol: TCP
+    asserts:
+      - equal:
+          path: spec.ports[?(@.name == "otlp")].nodePort
+          value: 30317
+
+  - it: clears the nodePort of every collector Service port with a ClusterIP Service, so a NodePort Service can be switched back
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.service.type: ClusterIP
+      otelCollector.ports.otlp:
+        enabled: true
+        servicePort: 4317
+        nodePort: 30317
+        protocol: TCP
+    asserts:
+      - equal:
+          path: spec.ports[?(@.name == "otlp")].nodePort
+          value: null
+
+  - it: leaves the nodePorts of a LoadBalancer collector Service to Kubernetes
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.service.type: LoadBalancer
+      otelCollector.ports.otlp:
+        enabled: true
+        servicePort: 4317
+        nodePort: ""
+        protocol: TCP
+    asserts:
+      - exists:
+          path: spec.ports[?(@.name == "otlp")]
+      - notExists:
+          path: spec.ports[?(@.name == "otlp")].nodePort
+
+  - it: limits a LoadBalancer collector Service to otelCollector.service.loadBalancerSourceRanges
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.service.type: LoadBalancer
+      otelCollector.service.loadBalancerSourceRanges: [10.0.0.0/8, 192.168.0.0/16]
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value: [10.0.0.0/8, 192.168.0.0/16]
+
+  - it: renders no loadBalancerSourceRanges, which Kubernetes refuses, on a NodePort collector Service
+    template: templates/otel-collector/service.yaml
+    set:
+      otelCollector.service.type: NodePort
+      otelCollector.service.loadBalancerSourceRanges: [10.0.0.0/8, 192.168.0.0/16]
+    asserts:
+      - exists:
+          path: spec.ports[?(@.name == "otlp")]
+      - notExists:
+          path: spec.loadBalancerSourceRanges

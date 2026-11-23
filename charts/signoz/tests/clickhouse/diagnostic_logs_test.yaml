@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: ClickHouse diagnostic log configuration
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: omits the diagnostic log files by default
+    asserts:
+      - notExists:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+      - notExists:
+          path: spec.configuration.files["config.d/01-clickhouse-16-processors_profile_log.xml"]
+      - exists:
+          path: spec.configuration.files["config.d/formatting.xml"]
+  - it: enables ZooKeeper diagnostics independently with custom retention
+    set:
+      clickhouse.diagnosticLogs.zookeeperLog.enabled: true
+      clickhouse.diagnosticLogs.zookeeperLog.ttl: 2
+      clickhouse.diagnosticLogs.zookeeperLog.flushInterval: 1234
+    asserts:
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+          pattern: 'TTL event_date \+ interval 2 day'
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+          pattern: '<flush_interval_milliseconds>1234</flush_interval_milliseconds>'
+      - notExists:
+          path: spec.configuration.files["config.d/01-clickhouse-16-processors_profile_log.xml"]
+  - it: enables processor diagnostics independently with custom retention
+    set:
+      clickhouse.diagnosticLogs.processorsProfileLog.enabled: true
+      clickhouse.diagnosticLogs.processorsProfileLog.ttl: 3
+      clickhouse.diagnosticLogs.processorsProfileLog.flushInterval: 2345
+    asserts:
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-16-processors_profile_log.xml"]
+          pattern: 'TTL event_date \+ interval 3 day'
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-16-processors_profile_log.xml"]
+          pattern: '<flush_interval_milliseconds>2345</flush_interval_milliseconds>'
+      - notExists:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+  - it: enables both diagnostic logs with their existing defaults
+    set:
+      clickhouse.diagnosticLogs.zookeeperLog.enabled: true
+      clickhouse.diagnosticLogs.processorsProfileLog.enabled: true
+    asserts:
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+          pattern: 'TTL event_date \+ interval 30 day'
+      - matchRegex:
+          path: spec.configuration.files["config.d/01-clickhouse-16-processors_profile_log.xml"]
+          pattern: 'TTL event_date \+ interval 7 day'
+  - it: preserves an explicitly provided log file
+    set:
+      clickhouse.diagnosticLogs.zookeeperLog.enabled: true
+      clickhouse.files:
+        config.d/01-clickhouse-15-zookeeper_log.xml: "<clickhouse/>"
+    asserts:
+      - equal:
+          path: spec.configuration.files["config.d/01-clickhouse-15-zookeeper_log.xml"]
+          value: "<clickhouse/>"

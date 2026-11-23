@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/image-registry
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: replaces the registry written in signoz.image.repository with global.imageRegistry
+    set:
+      global.imageRegistry: mirror.example.com
+      signoz.image.repository: quay.io/acme/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].image
+          value: mirror.example.com/acme/signoz:v9.9.9

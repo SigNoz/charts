@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/clickhouse
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: addresses ClickHouse in clickhouse.namespace on global.clusterDomain from the collector and check
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.namespace: db
+      global.clusterDomain: corp.local
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.corp.local}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.corp.local}
+
+  - it: connects the collector and check to the ClickHouse named clickhouse.fullnameOverride, with its password Secret
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.fullnameOverride: chx
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_HOST, value: chx}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: &chxSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef: {name: chx-credentials, key: password}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_HOST, value: chx}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *chxSecret
+
+  - it: connects the collector and check to clickhouse.cluster as clickhouse.user
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.cluster: main
+      clickhouse.user: ingest
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: main}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: main}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_USER, value: ingest}
+
+  - it: reads check's password from clickhouse.existingSecret under existingSecretPasswordKey
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.existingSecret: my-ch
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef: {name: my-ch, key: pw}
+
+  - it: ignores clickhouse.existingSecretPasswordKey without clickhouse.existingSecret, so the collector and check read the chart Secret
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.existingSecret: ""
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: &chartSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom:
+              secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *chartSecret
+
+  - it: connects the collector and check to an external ClickHouse on externalClickhouse.tcpPort as its user, the collector writing to its four databases
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.user: signoz
+      externalClickhouse.tcpPort: 9001
+      externalClickhouse.database: m1
+      externalClickhouse.traceDatabase: t1
+      externalClickhouse.logDatabase: l1
+      externalClickhouse.meterDatabase: me1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_PORT, value: "9001"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_USER, value: signoz}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_DATABASE, value: m1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_TRACE_DATABASE, value: t1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_LOG_DATABASE, value: l1}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: CLICKHOUSE_METER_DATABASE, value: me1}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_HOST, value: ch.example.com}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_PORT, value: "9001"}
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: CLICKHOUSE_USER, value: signoz}

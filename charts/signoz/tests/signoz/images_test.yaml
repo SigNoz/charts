@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/images
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/signoz/tests/test-connection.yaml
+tests:
+  - it: runs signoz.image.repository, registry included, and tag in the signoz container
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.image.repository: registry.example.com/signoz/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].image
+          value: registry.example.com/signoz/signoz:v9.9.9
+
+  - it: pulls the SigNoz image and the helm test image from global.imageRegistry over the registry in signoz.image.repository
+    set:
+      global.imageRegistry: mirror.example.com
+      signoz.image.repository: docker.io/signoz/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].image
+          value: mirror.example.com/signoz/signoz:v9.9.9
+      - template: templates/signoz/tests/test-connection.yaml
+        matchRegex:
+          path: spec.containers[*].image
+          pattern: ^mirror\.example\.com/
+
+  - it: uses a repository that carries its own registry as given
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.image.repository: quay.io/acme/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].image
+          value: quay.io/acme/signoz:v9.9.9
+
+  - it: pulls the SigNoz image with signoz.image.pullPolicy
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].imagePullPolicy
+          value: Always
+
+  - it: pulls the SigNoz image with signoz.imagePullSecrets
+    template: templates/signoz/statefulset.yaml
+    set:
+      signoz.imagePullSecrets: [s-pull]
+    asserts:
+      - contains:
+          path: spec.template.spec.imagePullSecrets
+          content: {name: s-pull}

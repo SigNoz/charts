@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/extra-volumes
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: mounts a volume from telemetryStoreMigrator.extraVolumes at its telemetryStoreMigrator.extraVolumeMounts path in every migration
+    set:
+      telemetryStoreMigrator.extraVolumes:
+        - name: ca
+          secret:
+            secretName: clickhouse-ca
+      telemetryStoreMigrator.extraVolumeMounts:
+        - name: ca
+          mountPath: /etc/ssl/clickhouse
+          readOnly: true
+    asserts:
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.initContainers[?(@.name == "ready")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret.secretName
+          value: clickhouse-ca
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.initContainers[?(@.name == "bootstrap")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret.secretName
+          value: clickhouse-ca
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.initContainers[?(@.name == "sync")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret.secretName
+          value: clickhouse-ca
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "async")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret.secretName
+          value: clickhouse-ca
