@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/check-migrator-env
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: gives check the telemetryStoreMigrator.env and envFrom, and keeps them off the collector
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      telemetryStoreMigrator.env:
+        - name: SSL_CERT_FILE
+          value: /etc/ssl/clickhouse/ca.pem
+      telemetryStoreMigrator.envFrom:
+        - secretRef: {name: migrator-extra}
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.pem}
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "check")].envFrom
+          value: [{secretRef: {name: migrator-extra}}]
+      - notContains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: SSL_CERT_FILE, value: /etc/ssl/clickhouse/ca.pem}
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].envFrom
+  - it: keeps otelCollector.env and envFrom off check
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      otelCollector.env:
+        - name: UPSTREAM_REGION
+          value: eu-west-1
+      otelCollector.envFrom:
+        - secretRef: {name: collector-extra}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: UPSTREAM_REGION, value: eu-west-1}
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].envFrom
+          value: [{secretRef: {name: collector-extra}}]
+      - notContains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: {name: UPSTREAM_REGION, value: eu-west-1}
+      - notExists:
+          path: spec.template.spec.initContainers[?(@.name == "check")].envFrom

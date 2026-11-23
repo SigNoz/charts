@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/env
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: hands LOW_CARDINAL_EXCEPTION_GROUPING from otelCollector.env to the collector, which its trace exporter reads
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.env: [{name: LOW_CARDINAL_EXCEPTION_GROUPING, value: "true"}]
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].env
+          content: {name: LOW_CARDINAL_EXCEPTION_GROUPING, value: "true"}
+
+  - it: gives the collector its node, pod and namespace from the downward API as the K8S_* variables a config can read
+    template: templates/otel-collector/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_NODE_NAME")].valueFrom.fieldRef.fieldPath
+          value: spec.nodeName
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_POD_IP")].valueFrom.fieldRef.fieldPath
+          value: status.podIP
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_HOST_IP")].valueFrom.fieldRef.fieldPath
+          value: status.hostIP
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_POD_NAME")].valueFrom.fieldRef.fieldPath
+          value: metadata.name
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_POD_UID")].valueFrom.fieldRef.fieldPath
+          value: metadata.uid
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].env[?(@.name == "K8S_NAMESPACE")].valueFrom.fieldRef.fieldPath
+          value: metadata.namespace

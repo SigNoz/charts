@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/clickhouse
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/clickhouse/secret.yaml
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: addresses ClickHouse in clickhouse.namespace on global.clusterDomain from SigNoz
+    template: templates/signoz/statefulset.yaml
+    set:
+      clickhouse.namespace: db
+      global.clusterDomain: mng.local
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.mng.local}
+
+  - it: connects SigNoz to the ClickHouse Service and password Secret named after clickhouse.fullnameOverride
+    set:
+      clickhouse.fullnameOverride: ch1
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.templates.serviceTemplates[?(@.name == $.spec.defaults.templates.serviceTemplate)].generateName
+          value: ch1
+      - template: templates/clickhouse/secret.yaml
+        equal:
+          path: metadata.name
+          value: ch1-credentials
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_HOST, value: ch1}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: ch1-credentials, key: password}}
+
+  - it: runs SigNoz's queries on the ClickHouse cluster clickhouse.cluster names
+    set:
+      clickhouse.cluster: c2
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        exists:
+          path: spec.configuration.clusters[?(@.name == "c2")]
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_CLUSTER, value: c2}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER, value: $(CLICKHOUSE_CLUSTER)}
+
+  - it: connects SigNoz to the bundled ClickHouse through a DSN built from the CLICKHOUSE_* variables
+    template: templates/signoz/statefulset.yaml
+    set:
+      clickhouse.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: connects SigNoz as externalClickhouse.user to an external ClickHouse
+    template: templates/signoz/statefulset.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.user: u1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_USER, value: u1}
+
+  - it: tells SigNoz whether an external ClickHouse speaks TLS and whether to verify it, from externalClickhouse.secure and verify
+    template: templates/signoz/statefulset.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: true
+      externalClickhouse.verify: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_SECURE, value: "true"}
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: CLICKHOUSE_VERIFY, value: "true"}
+
+  - it: keeps SigNoz off TLS when externalClickhouse.secure is the string "false"
+    template: templates/signoz/statefulset.yaml
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: "false"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+
+  - it: reads key password of the chart Secret when clickhouse.existingSecretPasswordKey is set without existingSecret
+    set:
+      clickhouse.password: s3cret
+      clickhouse.existingSecret: ""
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - template: templates/clickhouse/secret.yaml
+        equal:
+          path: stringData.password
+          value: s3cret
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}}

@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/service
+templates:
+  - templates/signoz/service.yaml
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: exposes SigNoz on signoz.service.port, internalPort and opampPort
+    template: templates/signoz/service.yaml
+    set:
+      signoz.service.port: 9090
+      signoz.service.internalPort: 9095
+      signoz.service.opampPort: 4321
+    asserts:
+      - equal:
+          path: spec.ports[?(@.name == "http")].port
+          value: 9090
+      - equal:
+          path: spec.ports[?(@.name == "http-internal")].port
+          value: 9095
+      - equal:
+          path: spec.ports[?(@.name == "opamp-internal")].port
+          value: 4321
+
+  - it: fixes each port's nodePort with signoz.service.type NodePort
+    template: templates/signoz/service.yaml
+    set:
+      signoz.service.type: NodePort
+      signoz.service.nodePort: 30080
+      signoz.service.internalNodePort: 30085
+      signoz.service.opampInternalNodePort: 30320
+    asserts:
+      - equal:
+          path: spec.ports[?(@.name == "http")].nodePort
+          value: 30080
+      - equal:
+          path: spec.ports[?(@.name == "http-internal")].nodePort
+          value: 30085
+      - equal:
+          path: spec.ports[?(@.name == "opamp-internal")].nodePort
+          value: 30320
+
+  - it: exposes SigNoz through a cloud load balancer with signoz.service.type LoadBalancer
+    template: templates/signoz/service.yaml
+    set:
+      signoz.service.type: LoadBalancer
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+
+  - it: targets each Service port at the SigNoz container port of the same name
+    set:
+      signoz.service.port: 9090
+      signoz.service.internalPort: 9095
+      signoz.service.opampPort: 4321
+    asserts:
+      - template: templates/signoz/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "http")].targetPort
+          value: http
+      - template: templates/signoz/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "http-internal")].targetPort
+          value: http-internal
+      - template: templates/signoz/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "opamp-internal")].targetPort
+          value: opamp-internal
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].ports
+          content: {name: http}
+          any: true
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].ports
+          content: {name: http-internal}
+          any: true
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].ports
+          content: {name: opamp-internal}
+          any: true

@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/pod-metadata
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: adds otelCollector.pod.labels to the pod, the chart's selector labels winning over a key of the same name
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.name: otel-collector
+      otelCollector.pod.labels:
+        team: observability
+        app.kubernetes.io/component: custom
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: observability
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: otel-collector
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: otel-collector
+      - notExists:
+          path: spec.selector.matchLabels.team
+  - it: annotates the pod with otelCollector.pod.annotations, the chart's checksum/config winning over a key of the same name
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.pod.annotations:
+        example.com/team: observability
+        checksum/config: user-value
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["example.com/team"]
+          value: observability
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: ^[0-9a-f]{64}$

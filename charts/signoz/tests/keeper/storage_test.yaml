@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: keeper/storage
+templates:
+  - templates/keeper/clickhousekeeperinstallation.yaml
+tests:
+  - it: keeps each Keeper replica's data on claim template default of cluster cluster, the names its claims are derived from
+    asserts:
+      - equal:
+          path: spec.defaults.templates.dataVolumeClaimTemplate
+          value: default
+      - exists:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec
+      - exists:
+          path: spec.configuration.clusters[?(@.name == "cluster")].layout
+
+  - it: keeps the claims when the installation or a replica is removed, and the claims the operator stops tracking
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].reclaimPolicy
+          value: Retain
+      - equal:
+          path: spec.reconciling.cleanup.unknownObjects.pvc
+          value: Retain
+
+  - it: sizes the claims with keeper.persistence.size and keeper.persistence.accessModes
+    set:
+      keeper.persistence.size: 20Gi
+      keeper.persistence.accessModes: [ReadWriteOncePod]
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.resources.requests.storage
+          value: 20Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.accessModes
+          value: [ReadWriteOncePod]
+
+  - it: takes global.storageClass over keeper.persistence.storageClass
+    set:
+      global.storageClass: fast
+      keeper.persistence.storageClass: slow
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.storageClassName
+          value: fast
+
+  - it: takes keeper.persistence.storageClass without global.storageClass
+    set:
+      keeper.persistence.storageClass: slow
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.storageClassName
+          value: slow
+
+  - it: renders an empty storage class for -, which disables dynamic provisioning
+    set:
+      keeper.persistence.storageClass: "-"
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.storageClassName
+          value: ""
+
+  - it: leaves the storage class to the cluster default when neither is set
+    asserts:
+      - exists:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.accessModes
+      - notExists:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "default")].spec.storageClassName
+
+  - it: mounts a keeper.extraVolumes volume in the clickhouse-keeper container at its keeper.extraVolumeMounts path
+    set:
+      keeper.extraVolumes:
+        - name: keeper-ca
+          secret:
+            secretName: keeper-ca
+      keeper.extraVolumeMounts:
+        - name: keeper-ca
+          mountPath: /etc/keeper/ca
+          readOnly: true
+    asserts:
+      - equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse-keeper")].volumeMounts[?(@.mountPath == "/etc/keeper/ca")].name
+            )].secret
+          value: {secretName: keeper-ca}

@@ -149,9 +149,10 @@ initLimit: 10
 ## @param syncLimit How far out of date a server can be from a leader
 ##
 syncLimit: 5
-## @param preAllocSize Block size for transaction log file
+## @param preAllocSize Block size, in kilobytes, preallocated for each transaction log file; 0 turns preallocation off, which
+## keeps the logs readable after the pod moves to another node on file systems such as CephFS
 ##
-preAllocSize: 65536
+preAllocSize: 0
 ## @param snapCount The number of transactions recorded in the transaction log before a snapshot can be taken (and the transaction log rolled)
 ##
 snapCount: 100000

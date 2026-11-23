@@ -1,0 +1,160 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/rbac
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/serviceaccount.yaml
+  - templates/otel-collector/clusterrole.yaml
+  - templates/otel-collector/clusterrolebinding.yaml
+tests:
+  - it: runs the collector as the ServiceAccount <fullname> it creates, and binds the ClusterRole to it in the release namespace
+    release:
+      namespace: obs
+    set:
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: ""
+      otelCollector.clusterRole.create: true
+    asserts:
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-signoz-otel-collector
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-signoz-otel-collector
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        contains:
+          path: subjects
+          content: {kind: ServiceAccount, name: RELEASE-NAME-signoz-otel-collector, namespace: obs}
+
+  - it: runs the collector as otelCollector.serviceAccount.name, which it creates and binds the ClusterRole to
+    release:
+      namespace: obs
+    set:
+      otelCollector.serviceAccount.create: true
+      otelCollector.serviceAccount.name: collector-irsa
+      otelCollector.serviceAccount.annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/collector
+      otelCollector.clusterRole.create: true
+    asserts:
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.name
+          value: collector-irsa
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: collector-irsa
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        contains:
+          path: subjects
+          content: {kind: ServiceAccount, name: collector-irsa, namespace: obs}
+
+  - it: runs the collector as default, and binds the ClusterRole to it, without otelCollector.serviceAccount.create or a name
+    release:
+      namespace: obs
+    set:
+      otelCollector.serviceAccount.create: false
+      otelCollector.serviceAccount.name: ""
+      otelCollector.clusterRole.create: true
+    asserts:
+      - template: templates/otel-collector/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        contains:
+          path: subjects
+          content: {kind: ServiceAccount, name: default, namespace: obs}
+
+  - it: runs the collector as an existing otelCollector.serviceAccount.name without creating it, and binds the ClusterRole to it
+    release:
+      namespace: obs
+    set:
+      otelCollector.serviceAccount.create: false
+      otelCollector.serviceAccount.name: byo-collector
+      otelCollector.clusterRole.create: true
+    asserts:
+      - template: templates/otel-collector/serviceaccount.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: spec.template.spec.serviceAccountName
+          value: byo-collector
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        contains:
+          path: subjects
+          content: {kind: ServiceAccount, name: byo-collector, namespace: obs}
+
+  - it: names the ClusterRole and its binding after the release and its namespace, so two releases never share them
+    release:
+      name: acme
+      namespace: monitoring
+    set:
+      otelCollector.clusterRole.create: true
+      otelCollector.clusterRole.name: ""
+      otelCollector.clusterRole.clusterRoleBinding.name: ""
+    asserts:
+      - template: templates/otel-collector/clusterrole.yaml
+        matchRegex:
+          path: metadata.name
+          pattern: acme
+      - template: templates/otel-collector/clusterrole.yaml
+        matchRegex:
+          path: metadata.name
+          pattern: monitoring
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        matchRegex:
+          path: metadata.name
+          pattern: acme
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        matchRegex:
+          path: metadata.name
+          pattern: monitoring
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        matchRegex:
+          path: roleRef.name
+          pattern: acme
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        matchRegex:
+          path: roleRef.name
+          pattern: monitoring
+
+  - it: names the ClusterRole clusterRole.name and its binding clusterRoleBinding.name, the binding referring to that role
+    set:
+      otelCollector.clusterRole.create: true
+      otelCollector.clusterRole.name: collector-reader
+      otelCollector.clusterRole.clusterRoleBinding.name: collector-reader-binding
+    asserts:
+      - template: templates/otel-collector/clusterrole.yaml
+        equal:
+          path: metadata.name
+          value: collector-reader
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        equal:
+          path: metadata.name
+          value: collector-reader-binding
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        equal:
+          path: roleRef
+          value: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: collector-reader}
+
+  - it: creates no ClusterRole or ClusterRoleBinding with otelCollector.clusterRole.create false, and still creates the ServiceAccount
+    set:
+      otelCollector.clusterRole.create: false
+      otelCollector.serviceAccount.create: true
+    asserts:
+      - template: templates/otel-collector/clusterrole.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/clusterrolebinding.yaml
+        hasDocuments:
+          count: 0
+      - template: templates/otel-collector/serviceaccount.yaml
+        hasDocuments:
+          count: 1

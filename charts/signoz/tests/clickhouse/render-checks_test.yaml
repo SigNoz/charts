@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/render-checks
+templates:
+  - templates/signoz/statefulset.yaml
+tests:
+  - it: fails the render without externalClickhouse.host for an external ClickHouse
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.cluster: c1
+    asserts:
+      - failedTemplate:
+          errorPattern: "externalClickhouse\\.host is required"
+
+  - it: fails the render without externalClickhouse.cluster for an external ClickHouse
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example
+      externalClickhouse.cluster: ""
+    asserts:
+      - failedTemplate:
+          errorPattern: "externalClickhouse\\.cluster is required"
+
+  - it: fails the render on a name over 34 characters, naming clickhouse.fullnameOverride
+    set:
+      clickhouse.fullnameOverride: abcdefghij-abcdefghij-abcdefghij-ab
+    asserts:
+      - failedTemplate:
+          errorPattern: "at most 34.*clickhouse\\.fullnameOverride"

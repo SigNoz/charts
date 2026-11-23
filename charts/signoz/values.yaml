@@ -5,18 +5,21 @@ global:
   # @default -- null
   # @section -- Global Settings
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
-  # global.imagePullSecrets -- Global Image Pull Secrets.
-  # @default -- []
+  # Each component's pod lists these first, then the root `imagePullSecrets`,
+  # then the component's own `imagePullSecrets`; a name in more than one list
+  # is listed once. They do not reach the operator pod or its CRD hook, which
+  # read `altinity-clickhouse-operator.imagePullSecrets` and
+  # `altinity-clickhouse-operator.crdHook.imagePullSecrets`.
+  # -- Secrets for pulling images from a private registry.
   # @section -- Global Settings
   imagePullSecrets: []
-  # global.storageClass -- Overrides the storage class for all PVCs with persistence enabled.
-  # If not set, the default storage class is used.
-  # If set to "-", storageClassName will be an empty string, which disables dynamic provisioning.
+  # global.storageClass -- StorageClass of the SigNoz, ClickHouse and ZooKeeper claims; when set, it overrides their own `persistence.storageClass`.
+  # When neither is set, the cluster's default StorageClass is used; "-" renders an empty storageClassName, which disables dynamic provisioning.
   # @default -- null
   # @section -- Global Settings
   storageClass: null
   # global.clusterDomain -- The Kubernetes cluster domain.
-  # It is used only when components are installed in different namespaces.
+  # ClickHouse, its operator and ZooKeeper build their pods' host names on it, as does the address of a component in another namespace.
   # @default -- "cluster.local"
   # @section -- Global Settings
   clusterDomain: cluster.local
@@ -44,260 +47,209 @@ fullnameOverride: ""
 # @section -- General Settings
 # @default -- ""
 clusterName: ""
-# -- Image Registry Secret Names for all SigNoz components.
-# If `global.imagePullSecrets` is set, it will be merged with this list.
-# This has lower precedence than `imagePullSecrets` at the individual component level.
+# Each component's pod lists `global.imagePullSecrets` first, then these, then
+# the component's own `imagePullSecrets`; a name in more than one list is
+# listed once.
+# -- Secrets for pulling images from a private registry.
 # @section -- General Settings
-# @default -- []
 imagePullSecrets: []
 # - "signoz-pull-secret"
 
-# clickhouse -- Clickhouse default values. For a complete list of configurations, check `values.yaml` of the upstream `clickhouse` chart.
-# @default -- "Check out the clickhouse chart for default values"
-# @ignored
+# clickhouse -- The ClickHouse this chart installs, a ClickHouseInstallation that the operator from `altinity-clickhouse-operator` reconciles.
+# @default -- "See values.yaml"
+# @section -- ClickHouse
 clickhouse:
-  # clickhouse.enabled -- Whether to install ClickHouse. If false, `clickhouse.host` must be set.
-  # @section -- ClickHouse Settings
+  # clickhouse.enabled -- Install ClickHouse, with the operator and ZooKeeper it needs. When false, every component connects to
+  # `externalClickhouse` instead, and `externalClickhouse.host` must be set.
+  # @section -- ClickHouse
   # @default -- true
   enabled: true
-  # clickhouse.zookeeper -- Zookeeper default values.
-  # Ref: https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
-  # @ignored
-  zookeeper:
-    # Please DO NOT override this value. This chart installs Zookeeper separately.
-    # Only if you know what you are doing, proceed with overriding.
-    # To see default values, refer to the zookeeper section in the values.yaml of the upstream clickhouse chart.
-
-    # clickhouse.zookeeper.enabled -- Whether to install Zookeeper. If false, `clickhouse.externalZookeeper` must be set.
-    # @section -- Zookeeper Settings
-    # @default -- true
-    enabled: true
-    # clickhouse.zookeeper.podAnnotations -- Annotations for the Zookeeper pod.
-    # @section -- Zookeeper Settings
-    # @default -- { signoz.io/scrape: "true", signoz.io/port: "9141", signoz.io/path: "/metrics" }
-    podAnnotations:
-      signoz.io/scrape: "true"
-      signoz.io/port: "9141"
-      signoz.io/path: "/metrics"
-    # clickhouse.zookeeper.metrics -- Zookeeper metrics settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: true }
-    metrics:
-      enabled: true
-    # clickhouse.zookeeper.logLevel -- Zookeeper log level.
-    # @section -- Zookeeper Settings
-    # @default -- "INFO"
-    logLevel: INFO
-    # clickhouse.zookeeper.livenessProbe -- Zookeeper liveness probe settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: false }
-    livenessProbe:
-      enabled: false
-    # clickhouse.zookeeper.readinessProbe -- Zookeeper readiness probe settings.
-    # @section -- Zookeeper Settings
-    # @default -- { enabled: false }
-    readinessProbe:
-      enabled: false
-    # clickhouse.zookeeper.customLivenessProbe -- Custom liveness probe for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- "Please checkout the default values in values.yml"
-    customLivenessProbe:
-      exec:
-        command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep ruok']
-      initialDelaySeconds: 30
-      periodSeconds: 10
-      timeoutSeconds: 5
-      successThreshold: 1
-      failureThreshold: 6
-    # clickhouse.zookeeper.customReadinessProbe -- Custom readiness probe for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- "Please checkout the default values in values.yml"
-    customReadinessProbe:
-      exec:
-        command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null']
-      initialDelaySeconds: 5
-      periodSeconds: 10
-      timeoutSeconds: 5
-      successThreshold: 1
-      failureThreshold: 6
-    # clickhouse.zookeeper.image -- Zookeeper image configuration.
-    # @section -- Zookeeper Settings
-    image:
-      # clickhouse.zookeeper.image.registry -- Zookeeper image registry to use.
-      # @default -- (value of global.imageRegistry)
-      registry: *GLOBAL_IMAGE_REGISTRY
-      # clickhouse.zookeeper.image.repository -- Zookeeper image repository to use.
-      # @default -- "bitnami/zookeeper"
-      repository: signoz/zookeeper
-      # clickhouse.zookeeper.image.tag -- Zookeeper image tag. SigNoz ClickHouse does not support all versions of Zookeeper.
-      # Please override the default only if you know what you are doing.
-      # @default -- "3.7.1"
-      tag: 3.7.1
-    # clickhouse.zookeeper.replicaCount -- Replica count for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- 1
-    replicaCount: 1
-    # clickhouse.zookeeper.namespaceOverride -- Whether to install Zookeeper into a different namespace than the parent.
-    # @section -- Zookeeper Settings
-    # @default -- ""
-    namespaceOverride: ""
-    # clickhouse.zookeeper.resources -- Resources requests and limits for Zookeeper.
-    # @section -- Zookeeper Settings
-    # @default -- { limits: {}, requests: { memory: "256Mi", cpu: "100m" } }
-    resources:
-      limits: {}
-      requests:
-        memory: 256Mi
-        cpu: 100m
-  # clickhouse.namespace -- The namespace to install ClickHouse and `clickhouse-operator` into (defaults to the chart's installation namespace).
-  # @section -- ClickHouse Settings
-  # @default -- ""
-  namespace: ""
-  # clickhouse.nameOverride -- Name override for ClickHouse.
-  # @section -- ClickHouse Settings
+  # -- Value of the `app.kubernetes.io/component` label on the ClickHouse objects and pods.
+  # @section -- ClickHouse
+  name: clickhouse
+  # clickhouse.nameOverride -- Replaces `clickhouse` in the ClickHouse name `<release>-clickhouse` and in its `app.kubernetes.io/name` label.
+  # @section -- ClickHouse
   # @default -- ""
   nameOverride: ""
-  # clickhouse.fullnameOverride -- Fullname override for ClickHouse.
-  # @section -- ClickHouse Settings
+  # clickhouse.fullnameOverride -- Name of the ClickHouseInstallation and its Service in place of `<release>-clickhouse`, and the prefix of its other objects.
+  # At most 34 characters, because the operator derives longer names from it; set it when a long release name fails the render.
+  # @section -- ClickHouse
   # @default -- ""
   fullnameOverride: ""
-  # clickhouse.cluster -- ClickHouse cluster name.
-  # @section -- ClickHouse Settings
-  # @default -- "cluster"
-  cluster: cluster
-  # clickhouse.database -- ClickHouse Settings for SigNoz Metrics.
-  # @section -- ClickHouse Settings
-  # @default -- "signoz_metrics"
-  database: signoz_metrics
-  # clickhouse.traceDatabase -- ClickHouse Settings for SigNoz Traces.
-  # @section -- ClickHouse Settings
-  # @default -- "signoz_traces"
-  traceDatabase: signoz_traces
-  # clickhouse.logDatabase -- ClickHouse Settings for SigNoz Logs.
-  # @section -- ClickHouse Settings
-  # @default -- "signoz_logs"
-  logDatabase: signoz_logs
-  # clickhouse.meterDatabase -- Clickhouse meter Database (SigNoz Meter)
-  # @section -- ClickHouse Settings
-  # @default -- "signoz_meter"
-  meterDatabase: signoz_meter
-  # clickhouse.user -- ClickHouse user.
-  # @section -- ClickHouse Settings
-  # @default -- "admin"
-  user: admin
-  # clickhouse.password -- ClickHouse password.
-  # @section -- ClickHouse Settings
-  # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
-  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
-  # clickhouse.image -- ClickHouse image configuration.
-  # @section -- ClickHouse Image
+  # clickhouse.namespace -- Namespace of the ClickHouseInstallation; empty means the release namespace. Any other value makes the chart
+  # create that namespace and keep it on uninstall (`helm.sh/resource-policy: keep`), and needs the operator pointed at it.
+  # @raw
+  # For a namespace `clickhouse`, either run the operator there:
+  #
+  #   ```yaml
+  #   altinity-clickhouse-operator:
+  #     namespaceOverride: clickhouse
+  #   ```
+  #
+  # or keep it in the release namespace with the rights to watch that one:
+  #
+  #   ```yaml
+  #   altinity-clickhouse-operator:
+  #     watchNamespaces: [clickhouse]
+  #     rbac:
+  #       namespaceScoped: false
+  #   ```
+  #
+  # @section -- ClickHouse
+  # @default -- ""
+  namespace: ""
+  # clickhouse.image -- Image of the ClickHouse container, also run by the histogramQuantile download init container.
+  # @section -- ClickHouse
   image:
-    # clickhouse.image.registry -- ClickHouse image registry to use.
-    # @default -- "docker.io"
-    registry: docker.io
-    # clickhouse.image.repository -- ClickHouse image repository to use.
+    # clickhouse.image.repository -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
     # @default -- "clickhouse/clickhouse-server"
+    # @section -- ClickHouse
     repository: clickhouse/clickhouse-server
-    # clickhouse.image.tag -- ClickHouse image tag to use. SigNoz is not always tested with the latest version of ClickHouse.
-    # Only override if you know what you are doing.
+    # clickhouse.image.tag -- ClickHouse server version. SigNoz is tested against this tag; move off it only to a version SigNoz supports.
     # @default -- "25.12.5"
+    # @section -- ClickHouse
     tag: 25.12.5
     # clickhouse.image.pullPolicy -- ClickHouse image pull policy.
     # @default -- "IfNotPresent"
+    # @section -- ClickHouse
     pullPolicy: IfNotPresent
-  # clickhouse.imagePullSecrets -- Image Registry Secret Names for ClickHouse. Merged with `global.imagePullSecrets` if set.
-  # @section -- ClickHouse Image
-  # @default -- []
+  # The ClickHouse pod and the operator-upgrade hook's pod list
+  # `global.imagePullSecrets` first, then the root `imagePullSecrets`, then
+  # these; a name in more than one list is listed once.
+  # -- Secrets for pulling images from a private registry.
+  # @section -- ClickHouse
   imagePullSecrets: []
   # - "clickhouse-pull-secret"
 
-  # clickhouse.annotations -- Annotations for the ClickHouse instance.
-  # @section -- ClickHouse Settings
-  # @default -- {}
-  annotations: {}
+  # clickhouse.layout -- Shards and replicas of the ClickHouse cluster (experimental), the operator's cluster `layout` rendered as given:
+  # https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+  # @section -- ClickHouse
+  layout:
+    shardsCount: 1
+    replicasCount: 1
+  # clickhouse.cluster -- Name of the ClickHouse cluster, which the migrator creates SigNoz's tables on and SigNoz queries.
+  # @section -- ClickHouse
+  # @default -- "cluster"
+  cluster: cluster
   # clickhouse.serviceAccount -- ClickHouse Service Account configuration.
-  # @section -- ClickHouse Settings
+  # @section -- ClickHouse
   serviceAccount:
-    # clickhouse.serviceAccount.create -- Specifies whether a service account should be created.
+    # clickhouse.serviceAccount.create -- Create a ServiceAccount for the ClickHouse pod; when false the pod runs as `name`, or as `default` when `name` is empty.
     # @default -- true
+    # @section -- ClickHouse
     create: true
     # clickhouse.serviceAccount.annotations -- Annotations to add to the service account.
     # @default -- {}
+    # @section -- ClickHouse
     annotations: {}
-    # clickhouse.serviceAccount.name -- The name of the service account to use. If not set and create is true, a name is generated.
+    # clickhouse.serviceAccount.name -- Name of the ServiceAccount to create (empty: the ClickHouse name), or of an existing one to run as when `create` is false.
     # @default -- null
+    # @section -- ClickHouse
     name:
+  # -- Labels added to the ClickHouseInstallation.
+  # @section -- ClickHouse
+  labels: {}
+  # clickhouse.annotations -- Annotations added to the ClickHouseInstallation.
+  # @section -- ClickHouse
+  # @default -- {}
+  annotations: {}
+  pod:
+    # A key named like one of the chart's selector labels
+    # (`app.kubernetes.io/name`, `app.kubernetes.io/instance`,
+    # `app.kubernetes.io/component`) is ignored: the chart keeps its own value.
+    # -- Labels to add to the pod.
+    # @section -- ClickHouse
+    labels: {}
+    # The `signoz.io/*` defaults let the SigNoz collectors scrape the metrics
+    # endpoint set in `clickhouse.settings`.
+    # -- Annotations to add to the pod.
+    # @default -- "signoz.io/scrape, signoz.io/port and signoz.io/path for the metrics endpoint"
+    # @section -- ClickHouse
+    annotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '9363'
+      signoz.io/path: /metrics
   # clickhouse.service -- ClickHouse service configuration.
-  # @section -- ClickHouse Settings
+  # @section -- ClickHouse
   service:
     # clickhouse.service.annotations -- Annotations for the ClickHouse service.
     # @default -- {}
+    # @section -- ClickHouse
     annotations: {}
-    # clickhouse.service.type -- Service type. `LoadBalancer` allows external access; `NodePort` is more secure and has no extra cost.
+    # clickhouse.service.type -- Type of the ClickHouse Service; `LoadBalancer` or `NodePort` exposes ClickHouse outside the cluster.
     # @default -- "ClusterIP"
+    # @section -- ClickHouse
     type: ClusterIP
-    # clickhouse.service.httpPort -- ClickHouse HTTP port.
+    # clickhouse.service.httpPort -- HTTP port of the ClickHouse Service, which the components connect to.
     # @default -- 8123
+    # @section -- ClickHouse
     httpPort: 8123
-    # clickhouse.service.tcpPort -- ClickHouse TCP port.
+    # clickhouse.service.tcpPort -- Native TCP port of the ClickHouse Service, which SigNoz, the collector and the migrator connect to.
     # @default -- 9000
+    # @section -- ClickHouse
     tcpPort: 9000
-  # clickhouse.secure -- Whether to use a TLS connection when connecting to ClickHouse.
-  # @section -- ClickHouse Settings
+  # clickhouse.database -- Database the collector writes metrics to.
+  # @section -- ClickHouse
+  # @default -- "signoz_metrics"
+  database: signoz_metrics
+  # clickhouse.traceDatabase -- Database the collector writes traces to.
+  # @section -- ClickHouse
+  # @default -- "signoz_traces"
+  traceDatabase: signoz_traces
+  # clickhouse.logDatabase -- Database the collector writes logs to.
+  # @section -- ClickHouse
+  # @default -- "signoz_logs"
+  logDatabase: signoz_logs
+  # clickhouse.meterDatabase -- Database the collector writes meter data to.
+  # @section -- ClickHouse
+  # @default -- "signoz_meter"
+  meterDatabase: signoz_meter
+  # clickhouse.user -- ClickHouse user the installation creates and every component connects as.
+  # @section -- ClickHouse
+  # @default -- "admin"
+  user: admin
+  # Written into the Secret `<clickhouse.fullname>-credentials` twice: as
+  # `password`, which every component that connects to ClickHouse reads, and
+  # as its SHA-256 hex `password_sha256_hex`, which the ClickHouseInstallation
+  # reads. Ignored when `clickhouse.existingSecret` is set. The components put
+  # it into their connection strings unescaped, so it must not contain `/`,
+  # `?` or `#`, and a `%` is read as an escape.
+  # -- Password of `clickhouse.user`.
+  # @section -- ClickHouse
+  # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
+  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+  # When set, the chart creates no Secret and reads this one. With
+  # `clickhouse.namespace` set to another namespace, the Secret must exist
+  # there as well as in the release namespace. Recommended: also store the
+  # SHA-256 hex of the password, see `clickhouse.existingSecretPasswordSha256Key`.
+  # -- Name of a Secret you created that holds the password of `clickhouse.user`.
+  # @default -- null
+  # @section -- ClickHouse
+  existingSecret:
+  # clickhouse.existingSecretPasswordKey -- Key of the password inside `clickhouse.existingSecret`.
+  # @default -- "password"
+  # @section -- ClickHouse
+  existingSecretPasswordKey: password
+  # Make the hash with `printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1`.
+  # The ClickHouseInstallation then reads the hash instead of the plain
+  # password. When empty, ClickHouse reads the plain key through an
+  # environment substitution that is parsed as XML, so the password must not
+  # contain `&`, `<` or an `&name;` sequence.
+  # -- Key of the password's SHA-256 hex inside `clickhouse.existingSecret`.
+  # @default -- ""
+  # @section -- ClickHouse
+  existingSecretPasswordSha256Key: ""
+  # clickhouse.secure -- Passed as `CLICKHOUSE_SECURE` to the pods that connect to ClickHouse.
+  # @section -- ClickHouse
   # @default -- false
   secure: false
-  # clickhouse.verify -- Whether to verify the TLS certificate on connection to ClickHouse.
-  # @section -- ClickHouse Settings
+  # clickhouse.verify -- Passed as `CLICKHOUSE_VERIFY` to the pods that connect to ClickHouse.
+  # @section -- ClickHouse
   # @default -- false
   verify: false
-  # clickhouse.externalZookeeper -- Configuration for an external Zookeeper.
-  # @section -- Zookeeper Settings
-  # @default -- {}
-  externalZookeeper: {}
-  # servers:
-  # - host: signoz-signoz-zookeeper
-  #   port: 2181
-
-  # clickhouse.nodeSelector -- Node selector for assigning the ClickHouse pod.
-  # @section -- ClickHouse Settings
-  # @default -- {}
-  nodeSelector: {}
-  # clickhouse.tolerations -- Toleration labels for ClickHouse pod assignment.
-  # @section -- ClickHouse Settings
-  # @default -- []
-  tolerations: []
-  # clickhouse.affinity -- Affinity settings for the ClickHouse pod.
-  # @section -- ClickHouse Settings
-  # @default -- {}
-  affinity: {}
-  # clickhouse.resources -- Configure resource requests and limits. Update according to your use case.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # @section -- ClickHouse Resources
-  # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
-  resources:
-    requests:
-      cpu: 100m
-      memory: 200Mi
-  #   limits:
-  #     cpu: 2000m
-  #     memory: 4Gi
-
-  # clickhouse.securityContext -- Security context for the ClickHouse node.
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
-  securityContext:
-    enabled: true
-    runAsUser: 101
-    runAsGroup: 101
-    fsGroup: 101
-    fsGroupChangePolicy: OnRootMismatch
-  # clickhouse.allowedNetworkIps -- An allowlist of IP addresses or network masks the ClickHouse user can access from.
-  # By default, private network ranges are allowed.
-  # Refs:
-  # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
-  # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
+  # clickhouse.allowedNetworkIps -- Networks `clickhouse.user` may connect from, as addresses or CIDR ranges.
+  # The defaults are the private ranges; add any other range a client connects from.
+  # @section -- ClickHouse
   allowedNetworkIps:
     - "10.0.0.0/8"
     - "100.64.0.0/10"
@@ -305,36 +257,36 @@ clickhouse:
     - "192.0.0.0/24"
     - "198.18.0.0/15"
     - "192.168.0.0/16"
-  # clickhouse.persistence -- ClickHouse persistence configuration.
-  # @section -- ClickHouse Persistence
-  persistence:
-    # clickhouse.persistence.enabled -- Enable data persistence using a PVC for ClickHouse data.
-    # @default -- true
-    enabled: true
-    # clickhouse.persistence.existingClaim -- Use a manually managed Persistent Volume Claim. If defined, the PVC must be created manually.
-    # @default -- ""
-    existingClaim: ""
-    # clickhouse.persistence.storageClass -- Persistent Volume Storage Class. If "-", disables dynamic provisioning. If null, uses the default provisioner.
-    # @default -- null
-    storageClass: null
-    # clickhouse.persistence.accessModes -- Access Modes for the persistent volume.
-    # @default -- ["ReadWriteOnce"]
-    accessModes:
-      - ReadWriteOnce
-    # clickhouse.persistence.size -- Persistent Volume size.
-    # @default -- "20Gi"
-    size: 20Gi
-  # clickhouse.profiles -- ClickHouse user profile configuration.
-  # Use this to override profile settings, e.g., `default/max_memory_usage: 40000000000`.
-  # For the full list of settings, see:
-  # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
-  # - https://clickhouse.com/docs/en/operations/settings/settings/
-  # @section -- ClickHouse Settings
+  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled store, ClickHouse Keeper or ZooKeeper, whichever is on.
+  # Set that store's own `enabled` (`keeper.enabled`, `zookeeper.enabled`) to false with it, or the bundled store is still installed.
+  # @raw
+  # One `servers` entry per ZooKeeper node:
+  #
+  #   ```yaml
+  #   servers:
+  #     - host: signoz-signoz-zookeeper
+  #       port: 2181
+  #   ```
+  #
+  # @section -- ClickHouse
+  # @default -- {}
+  externalZookeeper: {}
+
+  # clickhouse.profiles -- ClickHouse settings profiles, one key per profile and setting; they override `defaultProfiles`.
+  # Settings: https://clickhouse.com/docs/en/operations/settings/settings/
+  # @raw
+  # A 40 GB memory cap on each query run under the default profile:
+  #
+  #   ```yaml
+  #   default/max_memory_usage: 40000000000
+  #   ```
+  #
+  # @section -- ClickHouse
   # @default -- {}
   profiles: {}
-  # clickhouse.defaultProfiles -- Default user profile configuration for ClickHouse. !!! Please DO NOT override this !!!
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
+  # clickhouse.defaultProfiles -- Profile settings SigNoz's queries rely on. Do not replace this map; override a single setting through `clickhouse.profiles`.
+  # @section -- ClickHouse
+  # @default -- "See values.yaml"
   defaultProfiles:
     default/allow_experimental_window_functions: "1"
     default/allow_nondeterministic_mutations: "1"
@@ -342,134 +294,44 @@ clickhouse:
     admin/secondary_indices_enable_bulk_filtering: "0"
     default/query_plan_max_limit_for_lazy_materialization: "0"
     admin/query_plan_max_limit_for_lazy_materialization: "0"
-  # clickhouse.initContainers -- Init container to copy the histogramQuantile UDF.
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
-  initContainers:
-    enabled: true
-    udf:
-      enabled: true
-      image:
-        registry: docker.io
-        repository: alpine
-        tag: 3.18.2
-        pullPolicy: IfNotPresent
-      command:
-        - sh
-        - -c
-        - |
-          set -e
-          version="v0.0.1"
-          node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
-          node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
-          echo "Fetching histogram-binary for ${node_os}/${node_arch}"
-          cd /tmp
-          wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
-          tar -xzf histogram-quantile.tar.gz
-          chmod +x histogram-quantile
-          mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
-          echo "histogram-quantile installed successfully"
-    init:
-      enabled: false
-      image:
-        registry: docker.io
-        repository: busybox
-        tag: 1.35
-        pullPolicy: IfNotPresent
-      command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
-          until curl -s -o /dev/null http://signoz-clickhouse:8123/
-          do sleep 1
-          done
-  # clickhouse.layout -- ClickHouse cluster layout. (Experimental, use at own risk)
-  # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
-  # @section -- ClickHouse Settings
-  # @default -- { shardsCount: 1, replicasCount: 1 }
-  layout:
-    shardsCount: 1
-    replicasCount: 1
-  # clickhouse.settings -- ClickHouse settings configuration.
-  # You can use this to override settings, e.g., `prometheus/port: 9363`.
-  # For the full list of settings, see https://clickhouse.com/docs/en/operations/settings/settings/
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
+  # clickhouse.settings -- ClickHouse server settings, keyed by their path in the server config; they override `defaultSettings`. The `prometheus/*`
+  # defaults serve the metrics that `clickhouse.pod.annotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
+  # @raw
+  # Debug logging, the `level` setting under `logger`:
+  #
+  #   ```yaml
+  #   logger/level: debug
+  #   ```
+  #
+  # @section -- ClickHouse
+  # @default -- "See values.yaml"
   settings:
-    # Uncomment those lines to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+    # ClickHouse's Prometheus endpoint; uncomment a switch below to set what it exports.
     prometheus/endpoint: /metrics
     prometheus/port: 9363
     # prometheus/metrics: true
     # prometheus/events: true
     # prometheus/asynchronous_metrics: true
-  # clickhouse.defaultSettings -- Default settings for ClickHouse. !!! Please DO NOT override this !!!
-  # @section -- ClickHouse Settings
-  # @default -- "Please checkout the default values in values.yml"
+  # clickhouse.defaultSettings -- Server settings that load the histogramQuantile function and set the format schema directory.
+  # Do not replace this map; override a single setting through `clickhouse.settings`.
+  # @section -- ClickHouse
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
     user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
-  # clickhouse.podAnnotations -- Annotations for the ClickHouse pod(s).
-  # @section -- ClickHouse Settings
-  # @default -- { signoz.io/scrape: "true", signoz.io/port: "9363", signoz.io/path: "/metrics" }
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '9363'
-    signoz.io/path: /metrics
-  # clickhouse.podDistribution -- Topologies for distributing the ClickHouse pods.
-  # Possible values can be found here: https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
-  # @section -- ClickHouse Settings
-  # @default -- []
-  podDistribution: []
-  # - type: ShardAntiAffinity
-  #   topologyKey: kubernetes.io/hostname
-  # - type: ReplicaAntiAffinity
-  #   topologyKey: kubernetes.io/hostname
-  # - type: MaxNumberPerNode
-  #   number: 2
-  #   topologyKey: kubernetes.io/hostname
-
-  # clickhouse.coldStorage -- Cold storage configuration.
-  # @section -- ClickHouse Cold Storage
-  coldStorage:
-    # clickhouse.coldStorage.enabled -- Whether to enable S3/GCS cold storage.
-    # @default -- false
-    enabled: false
-    # clickhouse.coldStorage.defaultKeepFreeSpaceBytes -- Reserve free space on the default disk (in bytes).
-    # @default -- "10485760"
-    defaultKeepFreeSpaceBytes: "10485760"
-    # clickhouse.coldStorage.type -- Type of cold storage: `s3` or `gcs`.
-    # @default -- "s3"
-    type: s3
-    # clickhouse.coldStorage.endpoint -- Endpoint for S3 or GCS.
-    # For S3 (us-east-1): https://s3.amazonaws.com
-    # For S3 (other regions): https://s3-<region>.amazonaws.com
-    # For GCS: https://storage.googleapis.com/<bucket-name>/data/
-    # @default -- "https://<bucket-name>.s3-<region>.amazonaws.com/data/"
-    endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
-    # clickhouse.coldStorage.accessKey -- Access Key ID for S3 or GCS.
-    # @default -- "<access_key_id>"
-    accessKey: <access_key_id>
-    # clickhouse.coldStorage.secretAccess -- Secret Access Key for S3 or GCS.
-    # @default -- "<secret_access_key>"
-    secretAccess: <secret_access_key>
-    # clickhouse.coldStorage.role -- AWS IAM role configuration to use environment variables instead of keys.
-    # @section -- ClickHouse Cold Storage
-    role:
-      # clickhouse.coldStorage.role.enabled -- Whether to enable using an AWS IAM ARN role.
-      # @default -- false
-      enabled: false
-      # clickhouse.coldStorage.role.annotations -- Annotations for the service account to assume the AWS role.
-      # @default -- { eks.amazonaws.com/role-arn: "arn:aws:iam::******:role/****" }
-      annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-  # clickhouse.files -- ClickHouse configuration files.
-  # Refs:
-  # - https://clickhouse.com/docs/en/operations/configuration-files/
-  # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
-  # @section -- ClickHouse Settings
-  # @default -- {}
+  # clickhouse.files -- ClickHouse configuration files, keyed by path; files under `config.d/` merge into the server config.
+  # @raw
+  # A file that sets the server name clickhouse-client shows in its prompt:
+  #
+  #   ```yaml
+  #   config.d/display_name.xml: |
+  #     <clickhouse>
+  #       <display_name>signoz</display_name>
+  #     </clickhouse>
+  #   ```
+  #
+  # @section -- ClickHouse
+  # @default -- "See values.yaml"
   files:
     config.d/formatting.xml: |
       <clickhouse>
@@ -515,338 +377,1173 @@ clickhouse:
           <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
         </query_metric_log>
       </clickhouse>
-  # clickhouse.installCustomStorageClass -- When enabled with `cloud` as `gcp` or `aws`, creates a custom storage class with volume expansion permission.
-  # @section -- ClickHouse Persistence
+  # -- Volume claim templates of the ClickHouse installation, used only when `clickhouse.persistence.enabled` is false.
+  # @section -- ClickHouse
+  templates:
+    # clickhouse.templates.volumeClaimTemplates -- Volume claim templates added when `persistence.enabled` is false. Mount each through
+    # `clickhouse.extraVolumeMounts` under the same `name`; without a mount at `/var/lib/clickhouse` the data is not kept.
+    # @raw
+    # Each entry takes these four fields, here a 50Gi claim named `data`:
+    #
+    #   ```yaml
+    #   - name: data
+    #     accessModes:
+    #       - ReadWriteOnce
+    #     resources:
+    #       requests:
+    #         storage: 50Gi
+    #     storageClassName: standard
+    #   ```
+    #
+    # @default -- []
+    # @section -- ClickHouse
+    volumeClaimTemplates: []
+
+  # clickhouse.podDistribution -- Operator rules that spread the ClickHouse pods across nodes, rendered as given; types:
+  # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
+  # @section -- ClickHouse
+  # @default -- []
+  podDistribution: []
+  # - type: ShardAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: ReplicaAntiAffinity
+  #   topologyKey: kubernetes.io/hostname
+  # - type: MaxNumberPerNode
+  #   number: 2
+  #   topologyKey: kubernetes.io/hostname
+
+  # clickhouse.coldStorage -- S3 or GCS disk added as the `s3` volume of a `tiered` storage policy, where SigNoz's retention settings move older data.
+  # @section -- ClickHouse
+  # @default -- "See values.yaml"
+  coldStorage:
+    # clickhouse.coldStorage.enabled -- Whether to enable S3/GCS cold storage.
+    # @default -- false
+    # @section -- ClickHouse
+    enabled: false
+    # clickhouse.coldStorage.defaultKeepFreeSpaceBytes -- Reserve free space on the default disk (in bytes).
+    # @default -- "10485760"
+    # @section -- ClickHouse
+    defaultKeepFreeSpaceBytes: "10485760"
+    # clickhouse.coldStorage.type -- Type of cold storage: `s3` or `gcs`.
+    # @default -- "s3"
+    # @section -- ClickHouse
+    type: s3
+    # clickhouse.coldStorage.endpoint -- Bucket URL including the path ClickHouse writes under.
+    # @raw
+    # An S3 bucket:
+    #
+    #   ```yaml
+    #   endpoint: https://my-bucket.s3-us-east-1.amazonaws.com/data/
+    #   ```
+    #
+    # or a GCS bucket:
+    #
+    #   ```yaml
+    #   endpoint: https://storage.googleapis.com/my-bucket/data/
+    #   ```
+    #
+    # @default -- "https://<bucket-name>.s3-<region>.amazonaws.com/data/"
+    # @section -- ClickHouse
+    endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+    # clickhouse.coldStorage.accessKey -- Access Key ID for S3 or GCS.
+    # Used for `gcs`, and for `s3` when `role.enabled` is false.
+    # @default -- "<access_key_id>"
+    # @section -- ClickHouse
+    accessKey: <access_key_id>
+    # clickhouse.coldStorage.secretAccess -- Secret Access Key for S3 or GCS.
+    # Used for `gcs`, and for `s3` when `role.enabled` is false.
+    # @default -- "<secret_access_key>"
+    # @section -- ClickHouse
+    secretAccess: <secret_access_key>
+    # clickhouse.coldStorage.role -- AWS IAM role that gives ClickHouse access to the `s3` bucket in place of `accessKey` and `secretAccess`.
+    # @section -- ClickHouse
+    role:
+      # clickhouse.coldStorage.role.enabled -- Use the role for `s3`: ClickHouse takes credentials from its environment instead of `accessKey` and `secretAccess`.
+      # @default -- false
+      # @section -- ClickHouse
+      enabled: false
+      # clickhouse.coldStorage.role.annotations -- ServiceAccount annotations that bind the role, added when `coldStorage.enabled` and `role.enabled` are both true.
+      # @section -- ClickHouse
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+  # -- Sidecar collector in the ClickHouse pod that sends `system.query_log` entries as logs to an OTLP receiver on the node's port 4317,
+  # such as the k8s-infra agent.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse
+  logs:
+    system:
+      # -- Enable collection of system table entries as logs
+      # @section -- ClickHouse
+      enabled: false
+      image:
+        # clickhouse.logs.system.image.repository -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
+        # @default -- "signoz/signoz-otel-collector"
+        # @section -- ClickHouse
+        repository: signoz/signoz-otel-collector
+        # clickhouse.logs.system.image.tag -- Tag of the system logs sidecar image.
+        # @default -- "v0.144.15"
+        # @section -- ClickHouse
+        tag: v0.144.15
+        # clickhouse.logs.system.image.pullPolicy -- Pull policy of the system logs sidecar image.
+        # @default -- "IfNotPresent"
+        # @section -- ClickHouse
+        pullPolicy: IfNotPresent
+      # clickhouse.logs.system.resources -- Resources of the system logs sidecar container, a Kubernetes ResourceRequirements object rendered as given.
+      # @default -- {}
+      # @section -- ClickHouse
+      resources: {}
+      # A list of Kubernetes EnvVar objects for the sidecar container, rendered
+      # as written. An entry named like one the chart sets replaces it.
+      # -- Extra environment variables for the container.
+      # @section -- ClickHouse
+      env: []
+      # Sources of environment variables for the sidecar container, Kubernetes
+      # EnvFromSource objects rendered as given.
+      # -- Sources of extra environment variables for the container.
+      # @section -- ClickHouse
+      envFrom: []
+      # Kubernetes VolumeMount objects for the sidecar container only, rendered
+      # as given; add their volumes to `clickhouse.extraVolumes`.
+      # -- Extra volume mounts for the container.
+      # @section -- ClickHouse
+      extraVolumeMounts: []
+      # -- Configuration of the sidecar collector, rendered as given into its config file.
+      # @section -- ClickHouse
+      # @default -- "See values.yaml"
+      config:
+        receivers:
+          clickhousesystemtablesreceiver:
+            dsn: tcp://localhost:9000
+            query_log_scrape_config:
+              scrape_interval_seconds: 30
+              min_scrape_delay_seconds: 10
+        processors:
+          batch:
+            send_batch_max_size: 25000
+            send_batch_size: 20000
+            timeout: 1s
+          resourcedetection:
+            detectors:
+              - env
+        extensions:
+          health_check:
+            endpoint: 0.0.0.0:13133
+        exporters:
+          otlp:
+            endpoint: ${env:K8S_HOST_IP}:4317
+            tls:
+              insecure: true
+              insecure_skip_verify: true
+            retry_on_failure:
+              enabled: true
+              initial_interval: 2s
+              max_interval: 5s
+              max_elapsed_time: 15s
+            sending_queue:
+              enabled: false
+        service:
+          telemetry:
+            logs:
+              encoding: json
+          extensions:
+            - health_check
+          pipelines:
+            logs:
+              receivers:
+                - clickhousesystemtablesreceiver
+              processors:
+                - resourcedetection
+                - batch
+              exporters:
+                - otlp
+  # clickhouse.installCustomStorageClass -- Create an expandable StorageClass: `gp2-resizable` when `global.cloud` starts with `aws`, `gce-resizable`
+  # when it starts with `gcp`. No volume uses it until `clickhouse.persistence.storageClass` names it.
+  # @section -- ClickHouse
   # @default -- false
   installCustomStorageClass: false
-  # clickhouse.clickhouseOperator -- ClickHouse Operator settings.
-  # @section -- ClickHouse Operator
-  clickhouseOperator:
-    # clickhouse.clickhouseOperator.name -- Name of the component.
-    # @default -- "operator"
-    name: operator
-    # clickhouse.clickhouseOperator.version -- Version of the operator.
-    # @default -- "0.21.2"
-    version: 0.21.2
-    # clickhouse.clickhouseOperator.image -- ClickHouse Operator image configuration.
-    # @section -- ClickHouse Operator Image
+  # -- Pre-upgrade Job that deletes the operator Deployment an older chart created, whose selector labels cannot change in place; it matches
+  # nothing afterwards. When disabled, delete that Deployment yourself before upgrading: `kubectl delete deployment <release>-clickhouse-operator -n <namespace>`.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse
+  operatorUpgradeHook:
+    # -- Run the hook on `helm upgrade`.
+    # @section -- ClickHouse
+    enabled: true
     image:
-      # clickhouse.clickhouseOperator.image.registry -- ClickHouse Operator image registry.
-      # @default -- "docker.io"
-      registry: docker.io
-      # clickhouse.clickhouseOperator.image.repository -- ClickHouse Operator image repository.
-      # @default -- "altinity/clickhouse-operator"
-      repository: altinity/clickhouse-operator
-      # clickhouse.clickhouseOperator.image.tag -- ClickHouse Operator image tag.
-      # @default -- "0.21.2"
-      tag: 0.21.2
-      # clickhouse.clickhouseOperator.image.pullPolicy -- ClickHouse Operator image pull policy.
-      # @default -- "IfNotPresent"
+      # -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
+      # @section -- ClickHouse
+      repository: registry.k8s.io/kubectl
+      # -- Tag of the kubectl image. The image publishes no `latest` tag.
+      # @section -- ClickHouse
+      tag: v1.36.3
+      # -- Pull policy of the kubectl image.
+      # @section -- ClickHouse
       pullPolicy: IfNotPresent
-    # clickhouse.clickhouseOperator.imagePullSecrets -- Image Registry Secret Names for ClickHouse Operator.
-    # @section -- ClickHouse Operator Image
-    # @default -- []
-    imagePullSecrets: []
-    # - "clickhouseOperator-pull-secret"
-
-    # clickhouse.clickhouseOperator.serviceAccount -- ClickHouse Operator Service Account configuration.
-    # @section -- ClickHouse Operator Security
-    serviceAccount:
-      # clickhouse.clickhouseOperator.serviceAccount.create -- Specifies whether a service account should be created.
-      # @default -- true
-      create: true
-      # clickhouse.clickhouseOperator.serviceAccount.annotations -- Annotations to add to the service account.
-      # @default -- {}
-      annotations: {}
-      # clickhouse.clickhouseOperator.serviceAccount.name -- The name of the service account to use.
-      # @default -- null
-      name:
-    # clickhouse.clickhouseOperator.logger -- ClickHouse logging configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- "Please checkout the default values in values.yml"
-    logger:
-      level: information
-      size: 1000M
-      count: 10
-      console: 1
-    # clickhouse.clickhouseOperator.queryLog -- Query Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    queryLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.partLog -- Part Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    partLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.traceLog -- Trace Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
-    traceLog:
-      ttl: 7
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.asynchronousInsertLog -- Asynchronous Insert Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
-    asynchronousInsertLog:
-      ttl: 7
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.asynchronousMetricLog -- Asynchronous Metric Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    asynchronousMetricLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.backupLog -- Backup Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
-    backupLog:
-      ttl: 7
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.blobStorageLog -- Blob Storage Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    blobStorageLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.crashLog -- Crash Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    crashLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.metricLog -- Metric Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    metricLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.queryThreadLog -- Query Thread Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
-    queryThreadLog:
-      ttl: 7
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.queryViewsLog -- Query Views Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 15, flushInterval: 7500 }
-    queryViewsLog:
-      ttl: 15
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.sessionLog -- Session Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    sessionLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.zookeeperLog -- Zookeeper Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 30, flushInterval: 7500 }
-    zookeeperLog:
-      ttl: 30
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.processorsProfileLog -- Processors Profile Log table configuration.
-    # @section -- ClickHouse Operator Logging
-    # @default -- { ttl: 7, flushInterval: 7500 }
-    processorsProfileLog:
-      ttl: 7
-      flushInterval: 7500
-    # clickhouse.clickhouseOperator.podAnnotations -- ClickHouse Operator pod annotations.
-    # @section -- ClickHouse Operator
-    # @default -- { signoz.io/port: "8888", signoz.io/scrape: "true" }
-    podAnnotations:
-      signoz.io/port: '8888'
-      signoz.io/scrape: 'true'
-    # clickhouse.clickhouseOperator.nodeSelector -- ClickHouse Operator node selector.
-    # @section -- ClickHouse Operator Scheduling
-    # @default -- {}
+    # -- Retries before the Job, and with it the upgrade, is marked failed.
+    # @section -- ClickHouse
+    backoffLimit: 3
+    # -- Resources of the hook container.
+    # @section -- ClickHouse
+    resources: {}
+    # The hook runs before every other object of the upgrade, so on tainted or
+    # dedicated nodes it needs its own scheduling keys to start.
+    # -- Node labels for pod assignment.
+    # @section -- ClickHouse
     nodeSelector: {}
-    # clickhouse.clickhouseOperator.metricsExporter -- Metrics Exporter configuration.
-    # @section -- ClickHouse Operator Metrics
-    metricsExporter:
-      # clickhouse.clickhouseOperator.metricsExporter.name -- Name of the component.
-      # @default -- "metrics-exporter"
-      name: metrics-exporter
-      # clickhouse.clickhouseOperator.metricsExporter.service -- Metrics Exporter service configuration.
-      # @section -- ClickHouse Operator Metrics
-      service:
-        # clickhouse.clickhouseOperator.metricsExporter.service.annotations -- Annotations for the Metrics Exporter service.
-        # @default -- {}
-        annotations: {}
-        # clickhouse.clickhouseOperator.metricsExporter.service.type -- Service type.
-        # @default -- "ClusterIP"
-        type: ClusterIP
-        # clickhouse.clickhouseOperator.metricsExporter.service.port -- Metrics Exporter port.
-        # @default -- 8888
-        port: 8888
-      # clickhouse.clickhouseOperator.metricsExporter.image -- Metrics Exporter image configuration.
-      # @section -- ClickHouse Operator Metrics Image
-      image:
-        # clickhouse.clickhouseOperator.metricsExporter.image.registry -- Metrics Exporter image registry.
-        # @default -- "docker.io"
-        registry: docker.io
-        # clickhouse.clickhouseOperator.metricsExporter.image.repository -- Metrics Exporter image repository.
-        # @default -- "altinity/metrics-exporter"
-        repository: altinity/metrics-exporter
-        # clickhouse.clickhouseOperator.metricsExporter.image.tag -- Metrics Exporter image tag.
-        # @default -- "0.21.2"
-        tag: 0.21.2
-        # clickhouse.clickhouseOperator.metricsExporter.image.pullPolicy -- Metrics Exporter image pull policy.
-        # @default -- "IfNotPresent"
-        pullPolicy: IfNotPresent
+    # -- Tolerations for pod assignment.
+    # @section -- ClickHouse
+    tolerations: []
+    # -- Affinity rules for pod assignment.
+    # @section -- ClickHouse
+    affinity: {}
+    # -- Topology spread constraints for pod assignment.
+    # @section -- ClickHouse
+    topologySpreadConstraints: []
+    # Empty sets none.
+    # -- Priority class of the pod.
+    # @section -- ClickHouse
+    priorityClassName: ""
+    # A Kubernetes PodSecurityContext, rendered as given; empty sets none.
+    # -- Security context for the pod.
+    # @section -- ClickHouse
+    podSecurityContext: {}
+    # A Kubernetes SecurityContext for the operator-upgrade container, rendered
+    # as given; empty sets none.
+    # -- Security context for the container.
+    # @section -- ClickHouse
+    containerSecurityContext: {}
+  udf:
+    # clickhouse.udf.enabled -- Download the histogramQuantile binary, which SigNoz's histogram percentile queries call, from GitHub in an init container.
+    # Without GitHub access, set it to false and supply the binary through `clickhouse.extraInitContainers`.
+    # @default -- true
+    # @section -- ClickHouse
+    enabled: true
+    # clickhouse.udf.command -- Command of the download init container; by default it fetches the histogramQuantile release for the node's OS and architecture.
+    # @default -- "See values.yaml"
+    # @section -- ClickHouse
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        version="v0.0.1"
+        node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+        node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+        echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+        cd /tmp
+        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+        tar -xzf histogram-quantile.tar.gz
+        chmod +x histogram-quantile
+        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+        echo "histogram-quantile installed successfully"
+    # clickhouse.udf.env -- Environment of the download init container, Kubernetes EnvVar objects rendered as given.
+    # @raw
+    # A proxy for the download, and a credential from a Secret for a mirror that `command` fetches from:
+    #
+    #   ```yaml
+    #   - name: https_proxy
+    #     value: http://proxy.example.com:3128
+    #   - name: MIRROR_TOKEN
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: mirror-credentials
+    #         key: token
+    #   ```
+    #
+    # @default -- []
+    # @section -- ClickHouse
+    env: []
+    # clickhouse.udf.envFrom -- envFrom of the download init container, Kubernetes EnvFromSource objects rendered as given.
+    # @default -- []
+    # @section -- ClickHouse
+    envFrom: []
+    # clickhouse.udf.resources -- Resource requests and limits of the download init container; empty sets none, so set it where a policy requires limits on every container.
+    # @default -- {}
+    # @section -- ClickHouse
+    resources: {}
+    # Kubernetes VolumeMount objects for the download init container only,
+    # rendered as given; add their volumes to `clickhouse.extraVolumes`.
+    # -- Extra volume mounts for the container.
+    # @section -- ClickHouse
+    extraVolumeMounts: []
+  # clickhouse.extraInitContainers -- Init containers added to the ClickHouse pod after the histogramQuantile download, Kubernetes Container objects rendered as given. The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
+  # @default -- []
+  # @section -- ClickHouse
+  extraInitContainers: []
+  # -- Extra containers in the ClickHouse pod, Kubernetes Container objects rendered as given.
+  # @section -- ClickHouse
+  extraContainers: []
+
+  # clickhouse.startupProbe -- Startup probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse
+  startupProbe:
+    httpGet:
+      port: http
+      path: /ping
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  # clickhouse.livenessProbe -- Liveness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse
+  livenessProbe:
+    httpGet:
+      port: http
+      path: /ping
+    initialDelaySeconds: 60
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 10
+    successThreshold: 1
+  # clickhouse.readinessProbe -- Readiness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
+  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # @raw
+  # A TCP check on the native port in place of the HTTP one:
+  #
+  #   ```yaml
+  #   httpGet: null
+  #   tcpSocket:
+  #     port: 9000
+  #   ```
+  #
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse
+  readinessProbe:
+    httpGet:
+      port: http
+      path: /ping
+    initialDelaySeconds: 10
+    periodSeconds: 3
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  # clickhouse.resources -- Resources of the ClickHouse container, a Kubernetes ResourceRequirements object rendered as given; size them for your load.
+  # @section -- ClickHouse
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  #   limits:
+  #     cpu: 2000m
+  #     memory: 4Gi
+
+  # clickhouse.podSecurityContext -- Security context of the ClickHouse pod, a Kubernetes PodSecurityContext object rendered as given; `null` renders none,
+  # while `{}` keeps the defaults, since Helm merges maps.
+  # @section -- ClickHouse
+  podSecurityContext:
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+    fsGroupChangePolicy: OnRootMismatch
+  # clickhouse.containerSecurityContext -- Security context of every container the chart renders in the ClickHouse pod; rendered only when set.
+  # @raw
+  # The restricted profile ClickHouse runs under:
+  #
+  #   ```yaml
+  #   allowPrivilegeEscalation: false
+  #   capabilities:
+  #     drop: [ALL]
+  #   runAsNonRoot: true
+  #   seccompProfile:
+  #     type: RuntimeDefault
+  #   ```
+  #
+  # @section -- ClickHouse
+  # @default -- {}
+  containerSecurityContext: {}
+  # -- Priority class of the ClickHouse pods; empty sets none.
+  # @section -- ClickHouse
+  priorityClassName: ""
+  # clickhouse.nodeSelector -- Node selector for assigning the ClickHouse pod.
+  # @section -- ClickHouse
+  # @default -- {}
+  nodeSelector: {}
+  # clickhouse.tolerations -- Toleration labels for ClickHouse pod assignment.
+  # @section -- ClickHouse
+  # @default -- []
+  tolerations: []
+  # clickhouse.affinity -- Affinity settings for the ClickHouse pod.
+  # @section -- ClickHouse
+  # @default -- {}
+  affinity: {}
+  # -- Topology spread constraints of the ClickHouse pods, Kubernetes objects rendered as given.
+  # @section -- ClickHouse
+  topologySpreadConstraints: []
+
+  # clickhouse.persistence -- ClickHouse persistence configuration.
+  # @section -- ClickHouse
+  persistence:
+    # clickhouse.persistence.enabled -- Keep ClickHouse data on a PersistentVolumeClaim. When false, the data lives in an `emptyDir` and is lost
+    # with the pod, unless `clickhouse.templates.volumeClaimTemplates` provides volumes.
+    # @default -- true
+    # @section -- ClickHouse
+    enabled: true
+    # clickhouse.persistence.existingClaim -- Name of a PersistentVolumeClaim you created for the ClickHouse data, used instead of a claim from the template.
+    # @default -- ""
+    # @section -- ClickHouse
+    existingClaim: ""
+    # clickhouse.persistence.storageClass -- StorageClass of the ClickHouse data claim; `-` disables dynamic provisioning, null uses the cluster default,
+    # and `global.storageClass` overrides it.
+    # @default -- null
+    # @section -- ClickHouse
+    storageClass: null
+    # clickhouse.persistence.accessModes -- Access Modes for the persistent volume.
+    # @default -- ["ReadWriteOnce"]
+    # @section -- ClickHouse
+    accessModes:
+      - ReadWriteOnce
+    # clickhouse.persistence.size -- Persistent Volume size.
+    # @default -- "20Gi"
+    # @section -- ClickHouse
+    size: 20Gi
+  # clickhouse.extraVolumes -- Extra volumes for the ClickHouse pod, a list of Kubernetes Volume objects.
+  # @section -- ClickHouse
+  extraVolumes: []
+  # clickhouse.extraVolumeMounts -- Extra volume mounts for the ClickHouse container, a list of Kubernetes VolumeMount objects.
+  # @section -- ClickHouse
+  extraVolumeMounts: []
+  # A list of Kubernetes EnvVar objects for the clickhouse container, rendered
+  # as written. Names starting with `CONFIGURATION_` belong to the operator.
+  # -- Extra environment variables for the container.
+  # @section -- ClickHouse
+  env: []
+  # Sources of environment variables for the clickhouse container, Kubernetes
+  # EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- ClickHouse
+  envFrom: []
+
+# ClickHouse Keeper, the default coordination store of the ClickHouse installation, rendered as a ClickHouseKeeperInstallation when `clickhouse.enabled` and `keeper.enabled` are both true.
+keeper:
+  # Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false.
+  # On an existing install's first upgrade to this chart, either set this to false or apply the Keeper CRD first; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade
+  # -- Install Keeper.
+  # @section -- ClickHouse Keeper
+  enabled: true
+  # `keeper.nameOverride` takes precedence.
+  # -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects.
+  # @section -- ClickHouse Keeper
+  name: keeper
+  # Name override for ClickHouse Keeper.
+  # -- Override the chart name.
+  # @section -- ClickHouse Keeper
+  nameOverride: ""
+  # The full name of ClickHouse Keeper is the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
+  # -- Override the full resource name.
+  # @section -- ClickHouse Keeper
+  fullnameOverride: ""
+  image:
+    # May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
+    # -- Image repository.
+    # @section -- ClickHouse Keeper
+    repository: clickhouse/clickhouse-keeper
+    # The tag is pinned on its own and does not follow `clickhouse.image.tag`: a Keeper restart drops every ClickHouse session.
+    # -- Image tag.
+    # @section -- ClickHouse Keeper
+    tag: 25.12.5
+    # -- Image pull policy.
+    # @section -- ClickHouse Keeper
+    pullPolicy: IfNotPresent
+  # The Keeper pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
+  # -- Secrets for pulling images from a private registry.
+  # @section -- ClickHouse Keeper
+  imagePullSecrets: []
+  # Use an odd number: Keeper needs a majority of its replicas to work.
+  # At 3, spread the replicas with `podDistribution` (`ShardAntiAffinity` and `MaxNumberPerNode` with `number: 1`) or with `affinity` or `topologySpreadConstraints`.
+  # -- Number of replicas.
+  # @section -- ClickHouse Keeper
+  replicaCount: 1
+  # A key that names one of the chart's labels replaces its value.
+  # -- Labels to add to the ClickHouseKeeperInstallation.
+  # @section -- ClickHouse Keeper
+  labels: {}
+  # -- Annotations to add to the ClickHouseKeeperInstallation.
+  # @section -- ClickHouse Keeper
+  annotations: {}
+  pod:
+    # The chart's selector labels (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) stay; a key that names one of them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- ClickHouse Keeper
+    labels: {}
+    # Your keys merge with these per key; set a key to `null` to drop it.
+    # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
+    # -- Annotations to add to the pod.
+    # @default -- "See values.yaml"
+    # @section -- ClickHouse Keeper
+    annotations:
+      signoz.io/scrape: "true"
+      signoz.io/port: "9141"
+      signoz.io/path: /metrics
+  # Your keys merge with these per key; set a key to `null` to drop it.
+  # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.pod.annotations`; change both together.
+  # -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  settings:
+    logger/level: warning
+    logger/formatting/type: json
+    logger/console: "true"
+    listen_host: 0.0.0.0
+    keeper_server/four_letter_word_white_list: "*"
+    keeper_server/coordination_settings/raft_logs_level: information
+    prometheus/endpoint: /metrics
+    prometheus/port: "9141"
+    prometheus/metrics: "true"
+    prometheus/events: "true"
+    prometheus/asynchronous_metrics: "true"
+  # A Kubernetes PodSecurityContext object, rendered as given.
+  # Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
+  # Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
+  # -- Security context for the pod.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  podSecurityContext:
+    fsGroup: 101
+  # A Kubernetes SecurityContext object, rendered as given; rendered only when set.
+  # -- Security context for the container.
+  # @default -- "no container security context"
+  # @section -- ClickHouse Keeper
+  containerSecurityContext: {}
+  # A list of Kubernetes EnvVar objects for the clickhouse-keeper container, rendered as written.
+  # -- Extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  env: []
+  # Sources of environment variables for the clickhouse-keeper container, Kubernetes EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- ClickHouse Keeper
+  envFrom: []
+  # A list of Kubernetes Volume objects, rendered as given; mount them with `keeper.extraVolumeMounts`.
+  # -- Extra volumes for the pod.
+  # @section -- ClickHouse Keeper
+  extraVolumes: []
+  # A list of Kubernetes VolumeMount objects for the clickhouse-keeper container, rendered as given.
+  # -- Extra volume mounts for the container.
+  # @section -- ClickHouse Keeper
+  extraVolumeMounts: []
+  # -- Resource requests and limits for the container.
+  # @default -- "See values.yaml"
+  # @section -- ClickHouse Keeper
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  # An empty value sets none.
+  # -- Priority class of the pod.
+  # @default -- "no priority class"
+  # @section -- ClickHouse Keeper
+  priorityClassName: ""
+  # -- Node labels for pod assignment.
+  # @section -- ClickHouse Keeper
+  nodeSelector: {}
+  # -- Tolerations for pod assignment.
+  # @section -- ClickHouse Keeper
+  tolerations: []
+  # -- Affinity rules for pod assignment.
+  # @section -- ClickHouse Keeper
+  affinity: {}
+  # -- Topology spread constraints for pod assignment.
+  # @section -- ClickHouse Keeper
+  topologySpreadConstraints: []
+  # See `clickhouse.podDistribution`.
+  # -- Topologies for distributing the ClickHouse Keeper pods, in the operator's `podDistribution` format.
+  # @section -- ClickHouse Keeper
+  podDistribution: []
+  # Persistent volume of each ClickHouse Keeper replica. The claim is kept when the installation or a replica is removed.
+  persistence:
+    # -- Access modes of the claim.
+    # @section -- ClickHouse Keeper
+    accessModes:
+      - ReadWriteOnce
+    # -- Size of the claim.
+    # @section -- ClickHouse Keeper
+    size: 10Gi
+    # `global.storageClass` takes precedence when set. If "-", disables dynamic provisioning. If null, uses the default provisioner.
+    # -- StorageClass of the claim.
+    # @default -- "the default provisioner"
+    # @section -- ClickHouse Keeper
+    storageClass: null
+
+# zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true; its keys follow Bitnami's chart:
+# https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
+# @default -- "See values.yaml"
+# @section -- ZooKeeper
+zookeeper:
+  # zookeeper.enabled -- Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off.
+  # An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade
+  # @default -- false
+  # @section -- ZooKeeper
+  enabled: false
+
+  # -- Annotations on the metadata of every ZooKeeper object (not on the pod template).
+  # @section -- ZooKeeper
+  commonAnnotations:
+    signoz.io/deprecated: "true"
+
+  # -- Zookeeper image
+  # @section -- ZooKeeper
+  image:
+    # -- Zookeeper image registry to use.
+    # @section -- ZooKeeper
+    registry: *GLOBAL_IMAGE_REGISTRY
+    # -- Zookeeper image repository to use.
+    # @section -- ZooKeeper
+    repository: signoz/zookeeper
+    # -- ZooKeeper version; ClickHouse does not work with every ZooKeeper version, so change it only to one ClickHouse supports.
+    # @section -- ZooKeeper
+    tag: 3.7.1
+
+  # -- Replaces `zookeeper` in the ZooKeeper name `<release>-zookeeper`, by which the ClickHouse installation finds it.
+  # @section -- ZooKeeper
+  nameOverride: ""
+  # -- Name of the ZooKeeper objects in place of `<release>-zookeeper`, by which the ClickHouse installation finds it.
+  # @section -- ZooKeeper
+  fullnameOverride: ""
+
+  # -- Namespace of ZooKeeper, which must already exist; empty means the release namespace.
+  # @section -- ZooKeeper
+  namespaceOverride: ""
+
+  # -- Annotations on the ZooKeeper pods; the `signoz.io/*` defaults let the SigNoz collectors scrape its metrics on port 9141.
+  # @section -- ZooKeeper
+  podAnnotations:
+    signoz.io/scrape: "true"
+    signoz.io/port: "9141"
+    signoz.io/path: "/metrics"
+
+  # -- Periodic purge of old ZooKeeper snapshots and transaction logs.
+  # @section -- ZooKeeper
+  autopurge:
+    # -- Hours between purges; 0 disables purging.
+    # @section -- ZooKeeper
+    purgeInterval: 1
+
+  # -- ZooKeeper Prometheus Exporter configuration.
+  # @section -- ZooKeeper
+  metrics:
+    # -- Serve ZooKeeper's Prometheus metrics on port 9141, the port `podAnnotations` point the collectors at.
+    # @section -- ZooKeeper
+    enabled: true
+
+    service:
+      enabled: true
+      # -- ZooKeeper metrics service annotation
+      # @section -- ZooKeeper
+      annotations: {}
+        # signoz.io/scrape: 'true'
+        # signoz.io/port: '9141'
+        # signoz.io/path: /metrics
+
+  # -- Zookeeper log level.
+  # @section -- ZooKeeper
+  logLevel: INFO
+
+  # -- Bitnami's built-in liveness probe, off because `customLivenessProbe` replaces it.
+  # @section -- ZooKeeper
+  livenessProbe:
+    enabled: false
+  # -- Bitnami's built-in readiness probe, off because `customReadinessProbe` replaces it.
+  # @section -- ZooKeeper
+  readinessProbe:
+    enabled: false
+  # -- Liveness probe of the ZooKeeper container: the `ruok` command on its admin server at port 8080.
+  # @section -- ZooKeeper
+  customLivenessProbe:
+    exec:
+      command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep ruok']
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 6
+  # -- Readiness probe of the ZooKeeper container: ready once the admin server's `ruok` command reports no error.
+  # @section -- ZooKeeper
+  customReadinessProbe:
+    exec:
+      command: ['/bin/bash', '-c', 'curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null']
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 6
+
+  # -- ZooKeeper server ID of the first replica; each further replica takes the next ID.
+  # @section -- ZooKeeper
+  minServerId: 1
+
+  # -- Number of ZooKeeper replicas, each listed as a coordination node of the ClickHouse installation; use an odd number to keep a quorum.
+  # @section -- ZooKeeper
+  replicaCount: 1
+
+  # -- PodDisruptionBudget of the ZooKeeper pods.
+  # @section -- ZooKeeper
+  pdb:
+    # -- Specifies whether a Pod Disruption Budget should be created
+    # @section -- ZooKeeper
+    create: false
+
+  # -- Storage of the ZooKeeper data.
+  # @section -- ZooKeeper
+  persistence:
+    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
+    # @section -- ZooKeeper
+    enabled: true
+
+    # -- Name of an existing PVC to use (only when deploying a single replica)
+    # @section -- ZooKeeper
+    existingClaim: ""
+
+    # -- StorageClass of the ZooKeeper data claim; `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
+    # @section -- ZooKeeper
+    storageClass: null
+
+    # -- PVC Access modes
+    # @section -- ZooKeeper
+    accessModes:
+      - ReadWriteOnce
+
+    # -- PVC Storage Request for ZooKeeper data volume
+    # @section -- ZooKeeper
+    size: 8Gi
+
+    # -- Annotations for the PVC
+    # @section -- ZooKeeper
+    annotations: {}
+
+  # -- Resources requests and limits for zookeeper
+  # @section -- ZooKeeper
+  resources:
+    limits: {}
+    requests:
+      memory: 256Mi
+      cpu: 100m
+# altinity-clickhouse-operator -- Values of Altinity's clickhouse-operator chart, which installs the operator that reconciles the ClickHouseInstallation.
+# Only settings that differ from that chart's defaults are set here; its keys:
+# https://github.com/Altinity/clickhouse-operator/tree/release-0.27.4/deploy/helm
+# @ignored
+altinity-clickhouse-operator:
+  # `global.imagePullSecrets` and the root `imagePullSecrets` do not reach the
+  # operator pod or its CRD hook: set `imagePullSecrets` and
+  # `crdHook.imagePullSecrets` here, as lists of `name:` objects.
+  # -- Namespace of the operator; empty means the release namespace. Altinity's chart does not create it: it must exist before
+  # `helm install`, because the CRD-install hook runs before the chart's own resources (on a fresh install that uses
+  # `clickhouse.namespace` here, create it first and install with `--take-ownership`).
+  namespaceOverride: ""
+
+  # altinity-clickhouse-operator.enabled -- Install the Altinity clickhouse-operator. Defaults to the value of clickhouse.enabled; set it only to override that (external ClickHouse: leave unset).
+  # enabled: true
+
+  # -- Names the operator's Deployment, ServiceAccount, Secret and metrics Service `<release>-clickhouse-operator`, so an upgrade takes over the
+  # existing objects in place.
+  nameOverride: clickhouse-operator
+  rbac:
+    # -- Grant the operator rights in its own namespace only (Role and RoleBinding); set false, with `watchNamespaces`, to run ClickHouse in another namespace.
+    namespaceScoped: true
+  # -- Labels on the operator pod; the component label is what metrics queries and selectors on the operator match.
+  podLabels:
+    app.kubernetes.io/component: operator
+  # -- Annotations on the operator pod; the SigNoz collectors scrape pods that carry `signoz.io/scrape`.
+  podAnnotations:
+    signoz.io/port: '8888'
+    signoz.io/scrape: 'true'
+    # Altinity's default annotations, removed so the pod carries only the SigNoz scrape annotations.
+    prometheus.io/port: null
+    prometheus.io/scrape: null
+    clickhouse-operator-metrics/port: null
+    clickhouse-operator-metrics/scrape: null
+  configs:
+    files:
+      # Only the keys that differ from Altinity's config.yaml, which Helm deep-merges into its defaults; re-check them on a subchart bump.
+      config.yaml:
+        reconcile:
+          statefulSet:
+            update:
+              # Seconds the operator waits for a created or updated StatefulSet to become Ready; Altinity's 300 is too short for large ClickHouse volumes.
+              timeout: 900
+        clickhouse:
+          configuration:
+            network:
+              # Altinity's value with its `cluster.local` taken from `global.clusterDomain` (Altinity's chart templates these files),
+              # so the `default` user's host check matches the ClickHouse pods on any cluster domain.
+              hostRegexpTemplate: '(chi-{chi}-[^.]+\d+-\d+|clickhouse\-{chi})\.{namespace}\.svc\.{{ include "signoz.clusterDomain" . | replace "." "\\." }}$'
+    configdFiles:
+      # level information + JSON formatting; Altinity's default is debug text.
+      01-clickhouse-02-logger.xml: |
+        <yandex>
+            <logger>
+                <!-- Possible levels: https://github.com/pocoproject/poco/blob/devel/Foundation/include/Poco/Logger.h#L105 -->
+                <level>information</level>
+                <formatting>
+                  <type>json</type>
+                </formatting>
+                <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+                <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+                <size>1000M</size>
+                <count>10</count>
+                <!-- Default behavior is autodetection (log to console if not daemon mode and is tty) -->
+                <console>1</console>
+            </logger>
+        </yandex>
+      # query_log with a 30-day TTL; unlike Altinity's file, it leaves query_thread_log in place (file 12).
+      01-clickhouse-03-query_log.xml: |
+        <yandex>
+            <query_log replace="1">
+                <database>system</database>
+                <table>query_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </query_log>
+        </yandex>
+      # TTL 7 days; Altinity's default is 30.
+      01-clickhouse-05-trace_log.xml: |-
+        <yandex>
+            <trace_log replace="1">
+                <database>system</database>
+                <table>trace_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 7 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </trace_log>
+        </yandex>
+      # Files 06-16 are SigNoz additions with no upstream counterpart.
+      01-clickhouse-06-asynchronous_insert_log.xml: |
+        <yandex>
+            <asynchronous_insert_log replace="1">
+                <database>system</database>
+                <table>asynchronous_insert_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 7 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </asynchronous_insert_log>
+        </yandex>
+      01-clickhouse-07-asynchronous_metric_log.xml: |
+        <yandex>
+            <asynchronous_metric_log replace="1">
+                <database>system</database>
+                <table>asynchronous_metric_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </asynchronous_metric_log>
+        </yandex>
+      01-clickhouse-08-backup_log.xml: |
+        <yandex>
+            <backup_log replace="1">
+                <database>system</database>
+                <table>backup_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 7 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </backup_log>
+        </yandex>
+      01-clickhouse-09-blob_storage_log.xml: |
+        <yandex>
+            <blob_storage_log replace="1">
+                <database>system</database>
+                <table>blob_storage_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </blob_storage_log>
+        </yandex>
+      01-clickhouse-10-crash_log.xml: |
+        <yandex>
+            <crash_log replace="1">
+                <database>system</database>
+                <table>crash_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </crash_log>
+        </yandex>
+      01-clickhouse-11-metric_log.xml: |
+        <yandex>
+            <metric_log replace="1">
+                <database>system</database>
+                <table>metric_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </metric_log>
+        </yandex>
+      01-clickhouse-12-query_thread_log.xml: |
+        <yandex>
+            <query_thread_log replace="1">
+                <database>system</database>
+                <table>query_thread_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 7 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </query_thread_log>
+        </yandex>
+      01-clickhouse-13-query_views_log.xml: |
+        <yandex>
+            <query_views_log replace="1">
+                <database>system</database>
+                <table>query_views_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 15 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </query_views_log>
+        </yandex>
+      01-clickhouse-14-session_log.xml: |
+        <yandex>
+            <session_log replace="1">
+                <database>system</database>
+                <table>session_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </session_log>
+        </yandex>
+      01-clickhouse-15-zookeeper_log.xml: |
+        <yandex>
+            <zookeeper_log replace="1">
+                <database>system</database>
+                <table>zookeeper_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 30 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </zookeeper_log>
+        </yandex>
+      01-clickhouse-16-processors_profile_log.xml: |
+        <yandex>
+            <processors_profile_log replace="1">
+                <database>system</database>
+                <table>processors_profile_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 7 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </processors_profile_log>
+        </yandex>
+    usersdFiles:
+      # Replaces Altinity's default profile without its os_thread_priority, do_not_merge_across_partitions_select_final,
+      # load_balancing and prefer_localhost_replica settings, which would change how SigNoz's queries are routed and merged.
+      02-clickhouse-default-profile.xml: |
+        <yandex>
+          <profiles>
+            <default>
+              <log_queries>1</log_queries>
+              <connect_timeout_with_failover_ms>1000</connect_timeout_with_failover_ms>
+              <distributed_aggregation_memory_efficient>1</distributed_aggregation_memory_efficient>
+              <parallel_view_processing>1</parallel_view_processing>
+            </default>
+          </profiles>
+        </yandex>
+      # SigNoz-only, no upstream counterpart.
+      03-database-ordinary.xml: |
+        <yandex>
+            <profiles>
+                <default>
+                    <default_database_engine>Ordinary</default_database_engine>
+                </default>
+            </profiles>
+        </yandex>
 # externalClickhouse -- External ClickHouse configuration. Required when `clickhouse.enabled` is false.
 # @section -- External ClickHouse
 externalClickhouse:
-  # externalClickhouse.host - Host of the external ClickHouse cluster.
+  # externalClickhouse.host -- Host of the external ClickHouse cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- null
+  # @section -- External ClickHouse
   host:
-  # externalClickhouse.cluster - Name of the external cluster to run DDL queries on.
+  # externalClickhouse.cluster -- Cluster of the external ClickHouse that the migrator creates SigNoz's tables on and SigNoz queries.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "cluster"
+  # @section -- External ClickHouse
   cluster: cluster
-  # externalClickhouse.database - Database name for the external cluster.
+  # externalClickhouse.database -- Database the collector writes metrics to.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_metrics"
+  # @section -- External ClickHouse
   database: signoz_metrics
-  # externalClickhouse.traceDatabase - Database name for SigNoz Traces on the external cluster.
+  # externalClickhouse.traceDatabase -- Database the collector writes traces to.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_traces"
+  # @section -- External ClickHouse
   traceDatabase: signoz_traces
-  # externalClickhouse.logDatabase - Database name for SigNoz Logs on the external cluster.
+  # externalClickhouse.logDatabase -- Database the collector writes logs to.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_logs"
+  # @section -- External ClickHouse
   logDatabase: signoz_logs
-  # externalClickhouse.meterDatabase - Database name for SigNoz Meter on the external cluster.
+  # externalClickhouse.meterDatabase -- Database the collector writes meter data to.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- "signoz_meter"
+  # @section -- External ClickHouse
   meterDatabase: signoz_meter
-  # externalClickhouse.user - Username to connect to the external cluster.
+  # externalClickhouse.user -- Username to connect to the external cluster.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- ""
+  # @section -- External ClickHouse
   user: ""
-  # externalClickhouse.password - Password for the external cluster. Ignored if `externalClickhouse.existingSecret` is set.
+  # externalClickhouse.password -- Password of `externalClickhouse.user`, written into the Secret `<clickhouse.fullname>-credentials` that the
+  # components read; ignored when `externalClickhouse.existingSecret` is set.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- ""
+  # @section -- External ClickHouse
   password: ""
-  # externalClickhouse.existingSecret - Name of an existing Kubernetes secret containing the password.
+  # externalClickhouse.existingSecret -- Name of a Secret you created that holds the password of `externalClickhouse.user`; when set, the chart
+  # creates no Secret and the components read this one.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- null
+  # @section -- External ClickHouse
   existingSecret:
-  # externalClickhouse.existingSecretPasswordKey - Key in the existing secret that contains the password.
-  # @default -- null
-  existingSecretPasswordKey:
-  # externalClickhouse.secure - Whether to use a TLS connection when connecting to ClickHouse.
+  # externalClickhouse.existingSecretPasswordKey -- Key of the password inside `externalClickhouse.existingSecret`.
+  # Used only when `clickhouse.enabled` is false.
+  # @default -- "password"
+  # @section -- External ClickHouse
+  existingSecretPasswordKey: password
+  # externalClickhouse.secure -- Connect to an external ClickHouse behind TLS by appending `?secure=true` to the SigNoz and migrator connection strings.
+  # Set `externalClickhouse.tcpPort` to its secure port, usually 9440, and add the same parameters to the exporter connection strings in `otelCollector.config` by hand.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- false
+  # @section -- External ClickHouse
   secure: false
-  # externalClickhouse.verify - Whether to verify the TLS certificate on connection to ClickHouse.
+  # externalClickhouse.verify -- With `externalClickhouse.secure` true, whether to verify the server's TLS certificate. False appends
+  # `&skip_verify=true` to the SigNoz and migrator connection strings; add it to the exporter connection strings in `otelCollector.config` by hand.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- false
+  # @section -- External ClickHouse
   verify: false
-  # externalClickhouse.httpPort - HTTP port of the external ClickHouse instance.
+  # externalClickhouse.httpPort -- HTTP port of the external ClickHouse instance.
+  # Used only when `clickhouse.enabled` is false.
   # @default -- 8123
+  # @section -- External ClickHouse
   httpPort: 8123
-  # externalClickhouse.tcpPort - TCP port of the external ClickHouse instance.
-  # @default - 9000
+  # externalClickhouse.tcpPort -- TCP port of the external ClickHouse instance.
+  # Used only when `clickhouse.enabled` is false.
+  # @default -- 9000
+  # @section -- External ClickHouse
   tcpPort: 9000
-# signoz -- Default values for SigNoz.
-# @section -- SigNoz
-# @default -- "Please checkout the default values in values.yml"
 signoz:
-  # signoz.name -- The name of the SigNoz component.
-  # @default -- "signoz"
+  # It feeds only the `app.kubernetes.io/component` selector label, which an
+  # upgrade cannot change; it names no object.
+  # -- Name of the SigNoz component.
   # @section -- SigNoz
   name: "signoz"
-  # signoz.replicaCount -- The number of pod replicas for SigNoz.
-  # @default -- 1
+  # With SQLite, each replica gets its own `signoz-db` claim, so replicas do
+  # not share one database.
+  # -- Number of replicas.
   # @section -- SigNoz
   replicaCount: 1
-  # signoz.image -- Image configuration for SigNoz.
-  # @section -- SigNoz
   image:
-    # signoz.image.registry - The container image registry.
-    # @default -- "docker.io"
+    # The registry is part of the repository, as `docker.io` here;
+    # `global.imageRegistry` replaces it when set.
+    # -- Image repository.
     # @section -- SigNoz
-    registry: docker.io
-    # signoz.image.repository - The container image repository.
-    # @default -- "signoz/signoz"
-    repository: signoz/signoz
-    # signoz.image.tag - The container image tag.
-    # @default -- "v0.110.1"
+    repository: docker.io/signoz/signoz
+    # Empty means the chart's appVersion.
+    # -- Image tag.
+    # @section -- SigNoz
     tag: v0.151.0
-    # signoz.image.pullPolicy - The image pull policy.
-    # @default -- "IfNotPresent"
+    # -- Image pull policy.
+    # @section -- SigNoz
     pullPolicy: IfNotPresent
-  # signoz.imagePullSecrets -- Image pull secrets for SigNoz.
-  # This has higher precedence than the root level or global value.
+  # The SigNoz pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
+  # -- Secrets for pulling images from a private registry.
   # @section -- SigNoz
-  # @default -- []
   imagePullSecrets: []
-  # signoz.serviceAccount -- Service Account configuration for SigNoz.
-  # @section -- SigNoz
   serviceAccount:
-    # signoz.serviceAccount.create - Specifies whether a service account should be created.
-    # @default -- true
+    # -- Create a ServiceAccount.
+    # @section -- SigNoz
     create: true
-    # signoz.serviceAccount.annotations - Annotations to add to the service account.
-    # @default -- {}
+    # -- Annotations to add to the ServiceAccount.
+    # @section -- SigNoz
     annotations: {}
-    # signoz.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
-    # @default -- null
+    # Empty means the release's full name when the chart creates the
+    # ServiceAccount, and `default` when it does not.
+    # -- Name of the ServiceAccount.
+    # @default -- "the release's full name, or default"
+    # @section -- SigNoz
     name:
-  # signoz.service -- Service configuration for SigNoz.
-  # This allows you to configure how SigNoz is exposed within the Kubernetes cluster.
-  # @section -- SigNoz Networking
   service:
-    # signoz.service.annotations - Annotations for the SigNoz service object.
-    # @default -- {}
+    # -- Annotations to add to the Service.
+    # @section -- SigNoz Networking
     annotations: {}
-    # signoz.service.labels - Labels for the SigNoz service object.
-    # @default -- {}
+    # A key that matches a chart label replaces it; the selector never takes
+    # these.
+    # -- Labels to add to the Service.
+    # @section -- SigNoz Networking
     labels: {}
-    # signoz.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
-    # @default -- "ClusterIP"
+    # `ClusterIP`, `NodePort` or `LoadBalancer`.
+    # -- Kubernetes Service type.
+    # @section -- SigNoz Networking
     type: ClusterIP
-    # signoz.service.port - The external HTTP port for SigNoz.
-    # @default -- 8080
+    # The port of the HTTP API and UI. It moves only the Service: the container
+    # always listens on 8080, and the Service targets it by name.
+    # -- Service port.
+    # @section -- SigNoz Networking
     port: 8080
-    # signoz.service.internalPort - The internal gRPC port for SigNoz.
-    # @default -- 8085
+    # It moves only the Service: the container always listens on 8085.
+    # -- Service port for the internal API.
+    # @section -- SigNoz Networking
     internalPort: 8085
-    # signoz.service.opampPort - The internal OpAMP port for SigNoz.
-    # @default -- 4320
+    # It moves only the Service: the container always listens on 4320.
+    # -- Service port for OpAMP.
+    # @section -- SigNoz Networking
     opampPort: 4320
-    # signoz.service.nodePort - Manually specify the nodePort for HTTP when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for HTTP.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     nodePort: null
-    # signoz.service.internalNodePort - Manually specify the nodePort for the internal port when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for the internal API.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     internalNodePort: null
-    # signoz.service.opampInternalNodePort - Manually specify the nodePort for OpAMP when `service.type` is `NodePort`.
-    # @default -- null
+    # Used only when `signoz.service.type` is `NodePort`.
+    # -- Node port for OpAMP.
+    # @default -- "chosen by the cluster"
+    # @section -- SigNoz Networking
     opampInternalNodePort: null
-  # signoz.annotations -- Annotations for the SigNoz pod.
+  # -- Annotations to add to the StatefulSet.
+  # @default -- "no annotations"
   # @section -- SigNoz
-  # @default -- null
   annotations:
-  # signoz.additionalArgs -- Additional command-line arguments for SigNoz.
+  # A key that matches a chart label replaces it; the selector and the pod
+  # labels never take these.
+  # -- Labels to add to the StatefulSet.
   # @section -- SigNoz
-  # @default -- []
-  additionalArgs: []
-  # Environment variables for the SigNoz.
-  # You can specify variables in two ways:
-  # 1. Flexible structure for advanced configurations (recommended):
-  #    Example:
-  #      env:
-  #        MY_KEY:
-  #          value: my-value  # Direct value
-  #        SECRET_KEY:
-  #          valueFrom:       # Reference from a Secret or ConfigMap
-  #            secretKeyRef:
-  #              name: my-secret
-  #              key: my-key
-  # 2. Simple key-value pairs (backward-compatible):
-  #    Example:
-  #      env:
-  #        MY_KEY: my-value
-
-  # signoz.env -- Environment variables for SigNoz.
-  # Refer to the official documentation for a complete list: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
-  # Note on Variable Naming: Environment variables are derived from the YAML configuration.
-  # For example, a key `provider` under the `telemetry_store` section becomes
-  # `signoz_telemetrystore_provider`.
+  labels: {}
+  # Command-line arguments for the SigNoz container, rendered in order after
+  # the image's own; the container gets no `args` when this is empty.
+  # -- Extra arguments for the container.
+  # @section -- SigNoz
+  extraArgs: []
+  # Environment variables for the SigNoz container, as `NAME: value`. A key is
+  # upper-cased. A string, number or boolean becomes the variable's value; a map
+  # is the rest of the EnvVar, such as `valueFrom` with a `secretKeyRef`:
+  #   env:
+  #     MY_KEY: my-value
+  #     SECRET_KEY:
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: my-secret
+  #           key: my-key
+  # A key with the name of a variable the chart sets, such as `CLICKHOUSE_USER`
+  # or `POSTGRES_USER`, replaces that variable's value. The other keys follow
+  # the chart's variables in alphabetical order, and a variable is placed after
+  # any variable its value references through `$(NAME)`. When a key is set in
+  # both cases, the lower-case one wins: change a default below by its
+  # lower-case name, or set it to null to remove it.
+  # The names follow the SigNoz configuration: a key `provider` under the
+  # `telemetry_store` section becomes `signoz_telemetrystore_provider`. The
+  # full list is https://github.com/SigNoz/signoz/blob/main/conf/example.yaml.
+  # -- Extra environment variables for the container.
+  # @default -- "the five SigNoz settings in values.yaml"
   # @section -- SigNoz
   env:
     signoz_telemetrystore_provider: clickhouse
@@ -862,83 +1559,110 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
-  # signoz.podSecurityContext -- Pod-level security context.
+  # Kubernetes EnvFromSource objects for the SigNoz container, rendered as
+  # given. A variable of the same name in `signoz.env` or set by the chart
+  # takes precedence over one from these sources.
+  # -- Sources of extra environment variables for the container.
   # @section -- SigNoz
-  # @default -- {}
+  envFrom: []
+  # A Kubernetes PodSecurityContext, rendered as given, for example
+  # `fsGroup: 2000`.
+  # -- Security context for the pod.
+  # @section -- SigNoz
   podSecurityContext: {}
-  # fsGroup: 2000
-
-  # signoz.podAnnotations -- Annotations for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- {}
-  podAnnotations: {}
-  # signoz.securityContext -- Container-level security context.
-  # @section -- SigNoz
-  # @default -- {}
-  securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-  # signoz.additionalVolumeMounts -- Additional volume mounts for the SigNoz container.
-  # @section -- SigNoz
-  # @default -- []
-  additionalVolumeMounts: []
-  # signoz.additionalVolumes -- Additional volumes for the SigNoz pod.
-  # @section -- SigNoz
-  # @default -- []
-  additionalVolumes: []
-  # signoz.livenessProbe -- Liveness probe configuration.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  livenessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  # signoz.readinessProbe -- Readiness probe configuration.
-  # @section -- SigNoz
-  # @default -- "Please checkout the default values in values.yml"
-  readinessProbe:
-    enabled: true
-    port: http
-    path: /api/v1/health?live=1
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
-  # signoz.customLivenessProbe -- Custom liveness probe to override the default.
-  # @section -- SigNoz
-  # @default -- {}
-  customLivenessProbe: {}
-  # signoz.customReadinessProbe -- Custom readiness probe to override the default.
-  # @section -- SigNoz
-  # @default -- {}
-  customReadinessProbe: {}
-  # signoz.ingress -- (object) Ingress configuration for SigNoz.
-  # @section -- SigNoz Networking
-  ingress:
-    # signoz.ingress.enabled - Enable ingress controller resource.
-    # @default -- false
-    enabled: false
-    # signoz.ingress.className - Ingress class name.
-    # @default -- ""
-    className: ""
-    # signoz.ingress.annotations - Annotations for the ingress resource.
-    # @default -- {}
+  pod:
+    # -- Annotations to add to the pod.
+    # @section -- SigNoz
     annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # signoz.ingress.hosts - Hostname and path configurations for the ingress.
+    # The selector labels stay the chart's: a key here with the name of one of
+    # them is ignored.
+    # -- Labels to add to the pod.
+    # @section -- SigNoz
+    labels: {}
+  # A Kubernetes SecurityContext for the signoz container, rendered as given,
+  # for example:
+  #   capabilities:
+  #     drop: [ALL]
+  #   readOnlyRootFilesystem: true
+  #   runAsNonRoot: true
+  #   runAsUser: 1000
+  # -- Security context for the container.
+  # @section -- SigNoz
+  containerSecurityContext: {}
+  # Kubernetes VolumeMount objects for the signoz container only, rendered as
+  # given after the chart's database mount.
+  # -- Extra volume mounts for the container.
+  # @section -- SigNoz
+  extraVolumeMounts: []
+  # Kubernetes Volume objects for the SigNoz pod, rendered as given.
+  # -- Extra volumes for the pod.
+  # @section -- SigNoz
+  extraVolumes: []
+  # Kubernetes Container objects run before the signoz container, rendered as
+  # given, such as a restore of the SQLite database.
+  # -- Extra init containers for the pod.
+  # @section -- SigNoz
+  extraInitContainers: []
+  # Kubernetes Container objects run beside the signoz container, rendered as
+  # given. A sidecar that must share the SQLite database, such as a backup,
+  # mounts the claim `signoz-db` at `/var/lib/signoz`.
+  # -- Extra containers for the pod.
+  # @section -- SigNoz
+  extraContainers: []
+  # A Kubernetes probe object, rendered as given. Your values merge into these
+  # defaults: set a field to null to drop it, switch the handler with
+  # `httpGet: null` beside another one such as `tcpSocket`, or set the whole key
+  # to null for no probe.
+  # -- Liveness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health on port http"
+  # @section -- SigNoz
+  livenessProbe:
+    httpGet:
+      port: http
+      path: /api/v1/health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  # A Kubernetes probe object, rendered as given, merged and dropped like
+  # `signoz.livenessProbe`.
+  # -- Readiness probe for the container.
+  # @default -- "an HTTP GET of /api/v1/health?live=1 on port http"
+  # @section -- SigNoz
+  readinessProbe:
+    httpGet:
+      port: http
+      path: /api/v1/health?live=1
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  # A Kubernetes probe object, rendered as given; none by default.
+  # -- Startup probe for the container.
+  # @default -- "no startup probe"
+  # @section -- SigNoz
+  startupProbe: {}
+  ingress:
+    # -- Create an Ingress for SigNoz.
+    # @section -- SigNoz Networking
+    enabled: false
+    # Rendered on Kubernetes 1.18 and later.
+    # -- IngressClass of the Ingress.
+    # @section -- SigNoz Networking
+    className: ""
+    # For example `kubernetes.io/ingress.class: nginx`,
+    # `kubernetes.io/tls-acme: "true"` or
+    # `cert-manager.io/cluster-issuer: letsencrypt-prod`.
+    # -- Annotations to add to the Ingress.
+    # @section -- SigNoz Networking
+    annotations: {}
+    # Each path routes to the SigNoz Service on its `port`, or on
+    # `signoz.service.port` when the path sets none; a path without `pathType`
+    # gets `ImplementationSpecific`.
+    # -- Hosts and paths of the Ingress.
+    # @default -- "the host signoz.domain.com, with the path / on port 8080"
     # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
@@ -946,84 +1670,93 @@ signoz:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # signoz.ingress.tls - TLS configuration for the ingress.
-    # @default -- []
+    # Each entry has `hosts` and an optional `secretName`, for example:
+    #   - secretName: chart-example-tls
+    #     hosts:
+    #       - signoz.domain.com
+    # -- TLS settings of the Ingress.
     # @section -- SigNoz Networking
     tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - signoz.domain.com
-  # signoz.resources -- Resource requests and limits.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # For example `limits: {cpu: 750m, memory: 1000Mi}`. See
+  # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/.
+  # -- Resource requests and limits for the container.
+  # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
-  # @default -- '{ requests: { cpu: "100m", memory: "100Mi" } }'
   resources:
     requests:
       cpu: 100m
       memory: 100Mi
-  #   limits:
-  #     cpu: 750m
-  #     memory: 1000Mi
-
-  # signoz.priorityClassName -- Priority class for the SigNoz pods.
+  # -- Priority class of the pod.
+  # @default -- "no priority class"
   # @section -- SigNoz
-  # @default -- ""
   priorityClassName: ""
-  # signoz.nodeSelector -- Node selector for pod assignment.
+  # -- Node labels for pod assignment.
   # @section -- SigNoz
-  # @default -- {}
   nodeSelector: {}
-  # signoz.tolerations -- Tolerations for pod assignment.
+  # -- Tolerations for pod assignment.
   # @section -- SigNoz
-  # @default -- []
   tolerations: []
-  # signoz.affinity -- Affinity settings for pod assignment.
+  # -- Affinity rules for pod assignment.
   # @section -- SigNoz
-  # @default -- {}
   affinity: {}
-  # signoz.topologySpreadConstraints -- Topology spread constraints for pod distribution.
+  # -- Topology spread constraints for pod assignment.
   # @section -- SigNoz
-  # @default -- []
   topologySpreadConstraints: []
-  # signoz.persistence -- Persistence configuration for the internal SQLite database.
-  # @section -- SigNoz
   persistence:
-    # signoz.persistence.enabled - Enable data persistence using a PVC.
-    # @default -- true
+    # SigNoz keeps its SQLite database at `/var/lib/signoz/`: on the claim
+    # template `signoz-db`, on `existingClaim`, or in an emptyDir when this is
+    # false. With `postgresql.enabled`, SigNoz mounts no database volume.
+    # -- Enable persistence with a PersistentVolumeClaim.
+    # @section -- SigNoz
     enabled: true
-    # signoz.persistence.existingClaim - Use a manually managed PVC.
-    # @default -- ""
+    # Used only when `signoz.persistence.enabled` is true.
+    # -- Name of an existing claim to use.
+    # @default -- "none, the chart's claim template"
+    # @section -- SigNoz
     existingClaim: ""
-    # signoz.persistence.storageClass - The storage class for the PVC. If "-", disables dynamic provisioning.
-    # @default -- null
+    # `-` sets an empty `storageClassName`, which disables dynamic
+    # provisioning; `global.storageClass` overrides this value.
+    # -- StorageClass of the claim.
+    # @default -- "the cluster's default StorageClass"
+    # @section -- SigNoz
     storageClass: null
-    # signoz.persistence.accessModes - Access modes for the persistent volume.
-    # @default -- ["ReadWriteOnce"]
+    # -- Access modes of the claim.
+    # @section -- SigNoz
     accessModes:
       - ReadWriteOnce
-    # signoz.persistence.size - The size of the persistent volume.
-    # @default -- "1Gi"
+    # -- Size of the claim.
+    # @section -- SigNoz
     size: 1Gi
 # telemetryStoreMigrator -- Default values for the Telemetry Store Migrator.
 # @section -- Telemetry Store Migrator
 # @default -- "Please checkout the default values in values.yml"
 telemetryStoreMigrator:
-  # telemetryStoreMigrator.enabled -- Enable the Telemetry Store Migrator component.
-  # @default -- true
+  # The migrator runs as a Job on every install and upgrade, named `telemetryStoreMigrator.name` plus
+  # `-<release revision>`, and the collector's `check` init container waits for its sync migrations.
+  # -- Enable the Telemetry Store Migrator component.
   # @section -- Telemetry Store Migrator
   enabled: true
-  # telemetryStoreMigrator.name -- The name of the Telemetry Store Migrator component.
-  # @default -- "signoz-telemetrystore-migrator"
+  # The Job name appends `-<release revision>` to this name and must stay within 63 characters, so
+  # this name can have at most 57.
+  # -- The name of the Telemetry Store Migrator component.
   # @section -- Telemetry Store Migrator
   name: "signoz-telemetrystore-migrator"
-  # telemetryStoreMigrator.annotations -- Annotations for the Telemetry Store Migrator job.
+  # telemetryStoreMigrator.annotations -- Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`; a value for that key replaces the chart's.
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}
-  # telemetryStoreMigrator.upgradeHelmHooks -- Enable Helm pre-upgrade hooks and ArgoCD Sync hooks.
-  # @default -- true
+  # Merged with the chart's labels on the Job; a key the chart also sets takes your value.
+  # -- Labels to add to the Job.
   # @section -- Telemetry Store Migrator
-  upgradeHelmHooks: true
+  labels: {}
+  pod:
+    # Merged with the chart's labels on the Job's pods; a key the chart sets keeps the chart's value.
+    # -- Labels to add to the pod.
+    # @section -- Telemetry Store Migrator
+    labels: {}
+    # -- Annotations to add to the pod.
+    # @section -- Telemetry Store Migrator
+    annotations: {}
   # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
   # @default -- true
   # @section -- Telemetry Store Migrator
@@ -1032,6 +1765,12 @@ telemetryStoreMigrator:
   # @default -- "10m"
   # @section -- Telemetry Store Migrator
   timeout: "10m"
+  # telemetryStoreMigrator.ttlSecondsAfterFinished -- (int) Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it.
+  # Set it (for example `604800`) to clean up Jobs a failed upgrade leaves behind; leave it unset under Argo CD, which recreates a deleted Job
+  # and re-runs the migrator.
+  # @default -- null
+  # @section -- Telemetry Store Migrator
+  ttlSecondsAfterFinished:
   # telemetryStoreMigrator.nodeSelector -- Node selector for pod assignment.
   # @section -- Telemetry Store Migrator
   # @default -- {}
@@ -1048,20 +1787,54 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   # @default -- []
   topologySpreadConstraints: []
-  # telemetryStoreMigrator.resources -- Resource requests and limits for all migrator containers.
+  # Empty sets none.
+  # -- Priority class of the pod.
   # @section -- Telemetry Store Migrator
-  # @default -- {}
+  priorityClassName: ""
+  # A Kubernetes PodSecurityContext for the Job's pod, rendered as given; empty sets none.
+  # -- Security context for the pod.
+  # @section -- Telemetry Store Migrator
+  podSecurityContext: {}
+  # Set on the four migration containers and on the collector's `check` init container.
+  # -- Resource requests and limits for the container.
+  # @section -- Telemetry Store Migrator
   resources: {}
-  # telemetryStoreMigrator.serviceAccount -- Service Account configuration for the Telemetry Store Migrator.
+  # A Kubernetes SecurityContext for the four migration containers, rendered as given; empty sets none.
+  # -- Security context for the container.
+  # @section -- Telemetry Store Migrator
+  containerSecurityContext: {}
+  # A list of Kubernetes EnvVar objects for the four migration containers and the
+  # collector's `check` init container, rendered as written after the chart's variables.
+  # An entry named like one the chart sets, such as `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`,
+  # replaces its value.
+  # -- Extra environment variables for the container.
+  # @section -- Telemetry Store Migrator
+  env: []
+  # Sources of environment variables for the four migration containers and the collector's
+  # `check` init container, Kubernetes EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
+  # @section -- Telemetry Store Migrator
+  envFrom: []
+  # Kubernetes Volume objects added to the Job's pod, rendered as given.
+  # -- Extra volumes for the pod.
+  # @section -- Telemetry Store Migrator
+  extraVolumes: []
+  # Kubernetes VolumeMount objects added to the four migration containers, rendered as given.
+  # -- Extra volume mounts for the container.
+  # @section -- Telemetry Store Migrator
+  extraVolumeMounts: []
+  # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
+  # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 0.152.0, first delete
+  # the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.
   # @section -- Telemetry Store Migrator
   serviceAccount:
-    # telemetryStoreMigrator.serviceAccount.create - Specifies whether a service account should be created.
-    # @default -- true
-    create: true
-    # telemetryStoreMigrator.serviceAccount.annotations - Annotations to add to the service account.
+    # telemetryStoreMigrator.serviceAccount.create - Create the ServiceAccount.
+    # @default -- false
+    create: false
+    # telemetryStoreMigrator.serviceAccount.annotations - Annotations of the created ServiceAccount.
     # @default -- {}
     annotations: {}
-    # telemetryStoreMigrator.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
+    # telemetryStoreMigrator.serviceAccount.name - Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.
     # @default -- null
     name:
 # Default values for OtelCollector
@@ -1077,35 +1850,29 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- "Please checkout the default values in values.yml"
   image:
-    # otelCollector.image.registry - The container image registry.
-    # @default -- "docker.io"
-    registry: docker.io
-    # otelCollector.image.repository - The container image repository.
-    # @default -- "signoz/signoz-otel-collector"
-    repository: signoz/signoz-otel-collector
+    # otelCollector.image.repository - The container image repository, its registry included; `global.imageRegistry` replaces that registry when set.
+    # @default -- "docker.io/signoz/signoz-otel-collector"
+    repository: docker.io/signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.144.0"
     tag: v0.144.16
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
-  # otelCollector.imagePullSecrets -- Image pull secrets for the Otel Collector.
-  # This has higher precedence than the root level or global value.
+  # Names of Secrets in the release namespace. The collector pod pulls with
+  # `global.imagePullSecrets`, then the root `imagePullSecrets`, then this list.
+  # -- Secrets for pulling images from a private registry.
   # @section -- Otel Collector
-  # @default -- []
   imagePullSecrets: []
   # otelCollector.strategy -- Deployment strategy to use
   # @section -- Otel Collector
   # @default -- "RollingUpdate"
   strategy: ""
-  # otelCollector.command -- Configuration for the Otel Collector executable.
+  # Appended after the chart's `--config`, `--manager-config` and
+  # `--copy-path` flags, which `configMap.create: false` drops.
+  # -- Extra command-line arguments for the collector.
   # @section -- Otel Collector
-  command:
-    # otelCollector.command.name - Otel Collector command name.
-    # @default -- "/signoz-otel-collector"
-    name: /signoz-otel-collector
-    # otelCollector.command.extraArgs - Extra command-line arguments for the Otel Collector.
-    extraArgs:
+  extraArgs: []
   # otelCollector.configMap -- ConfigMap settings.
   # @section -- Otel Collector
   configMap:
@@ -1143,26 +1910,44 @@ otelCollector:
   # @section -- Otel Collector
   # @default -- null
   annotations:
-  # otelCollector.podAnnotations -- Annotations for the Otel Collector pod(s).
+  # A key that repeats one of the chart's labels replaces its value.
+  # -- Labels to add to the Deployment.
   # @section -- Otel Collector
-  # @default -- { signoz.io/scrape: "true", signoz.io/port: "8888" }
-  podAnnotations:
-    signoz.io/scrape: 'true'
-    signoz.io/port: '8888'
-  # otelCollector.podLabels -- Labels for the Otel Collector pod(s).
+  labels: {}
+  pod:
+    # The defaults mark the collector's own metrics on port 8888 for scraping;
+    # set a key to null to drop it. The chart sets `checksum/config` itself,
+    # and a key of that name here is ignored.
+    # -- Annotations to add to the pod.
+    # @section -- Otel Collector
+    annotations:
+      signoz.io/scrape: 'true'
+      signoz.io/port: '8888'
+    # The chart's selector labels always win over a key of the same name.
+    # -- Labels to add to the pod.
+    # @section -- Otel Collector
+    labels: {}
+  # A list of Kubernetes EnvVar objects for the collector container, rendered
+  # as written after the chart's own variables. An entry named like one the
+  # chart sets replaces its value. The chart sets `CLICKHOUSE_HOST`,
+  # `CLICKHOUSE_PORT`, `CLICKHOUSE_CLUSTER`, `CLICKHOUSE_USER`,
+  # `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_SECURE`, `CLICKHOUSE_VERIFY`,
+  # `CLICKHOUSE_DATABASE`, `CLICKHOUSE_TRACE_DATABASE`, `CLICKHOUSE_LOG_DATABASE`,
+  # `CLICKHOUSE_METER_DATABASE`, `K8S_NODE_NAME`, `K8S_POD_IP`, `K8S_HOST_IP`,
+  # `K8S_POD_NAME`, `K8S_POD_UID`, `K8S_NAMESPACE` and
+  # `LOW_CARDINAL_EXCEPTION_GROUPING`. For example, to group exceptions with
+  # low cardinality:
+  #   - name: LOW_CARDINAL_EXCEPTION_GROUPING
+  #     value: "true"
+  # -- Extra environment variables for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  podLabels: {}
-  # otelCollector.additionalEnvs -- Additional environment variables for the Otel Collector.
+  env: []
+  # Sources of environment variables for the collector container, Kubernetes
+  # EnvFromSource objects rendered as given.
+  # -- Sources of extra environment variables for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  additionalEnvs: {}
-  # env_key: env_value
+  envFrom: []
 
-  # otelCollector.lowCardinalityExceptionGrouping -- Whether to enable grouping of exceptions with the same name but different stack traces. This is a tradeoff between cardinality and accuracy.
-  # @section -- Otel Collector
-  # @default -- false
-  lowCardinalityExceptionGrouping: false
   # otelCollector.minReadySeconds -- Minimum number of seconds for a new pod to be ready.
   # @section -- Otel Collector
   # @default -- 5
@@ -1215,7 +2000,13 @@ otelCollector:
       # otelCollector.clusterRole.clusterRoleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
       # @default -- ""
       name: ""
-  # otelCollector.ports -- Port configurations for the Otel Collector.
+  # Each entry is a port of the collector container and of its Service. For a
+  # receiver of your own, add an entry of any name with `enabled`,
+  # `containerPort`, `servicePort` and `protocol`; the receiver's `endpoint` in
+  # `otelCollector.config` must listen on that port. A pipeline's `receivers`
+  # list is replaced whole, so restate the receivers you keep. The entry's name
+  # is a port name of at most 15 characters.
+  # -- Port configurations for the Otel Collector.
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
   ports:
@@ -1255,24 +2046,6 @@ otelCollector:
       # otelCollector.ports.otlp-http.protocol - Protocol for OTLP HTTP.
       # @default -- "TCP"
       protocol: TCP
-    # otelCollector.ports.jaeger-compact -- Jaeger Compact port configuration.
-    # @section -- Otel Collector Ports
-    jaeger-compact:
-      # otelCollector.ports.jaeger-compact.enabled - Whether to enable the service port for Jaeger Compact.
-      # @default -- false
-      enabled: false
-      # otelCollector.ports.jaeger-compact.containerPort - Container port for Jaeger Compact.
-      # @default -- 6831
-      containerPort: 6831
-      # otelCollector.ports.jaeger-compact.servicePort - Service port for Jaeger Compact.
-      # @default -- 6831
-      servicePort: 6831
-      # otelCollector.ports.jaeger-compact.nodePort - Node port for Jaeger Compact.
-      # @default -- ""
-      nodePort: ""
-      # otelCollector.ports.jaeger-compact.protocol - Protocol for Jaeger Compact.
-      # @default -- "UDP"
-      protocol: UDP
     # otelCollector.ports.jaeger-thrift -- Jaeger Thrift port configuration.
     # @section -- Otel Collector Ports
     jaeger-thrift:
@@ -1307,24 +2080,6 @@ otelCollector:
       # @default -- ""
       nodePort: ""
       # otelCollector.ports.jaeger-grpc.protocol - Protocol for Jaeger gRPC.
-      # @default -- "TCP"
-      protocol: TCP
-    # otelCollector.ports.zipkin -- Zipkin port configuration.
-    # @section -- Otel Collector Ports
-    zipkin:
-      # otelCollector.ports.zipkin.enabled - Whether to enable the service port for Zipkin.
-      # @default -- false
-      enabled: false
-      # otelCollector.ports.zipkin.containerPort - Container port for Zipkin.
-      # @default -- 9411
-      containerPort: 9411
-      # otelCollector.ports.zipkin.servicePort - Service port for Zipkin.
-      # @default -- 9411
-      servicePort: 9411
-      # otelCollector.ports.zipkin.nodePort - Node port for Zipkin.
-      # @default -- ""
-      nodePort: ""
-      # otelCollector.ports.zipkin.protocol - Protocol for Zipkin.
       # @default -- "TCP"
       protocol: TCP
     # otelCollector.ports.metrics -- Internal metrics port configuration.
@@ -1417,42 +2172,44 @@ otelCollector:
       # otelCollector.ports.logsjson.protocol - Protocol for JSON logs.
       # @default -- "TCP"
       protocol: TCP
-  # otelCollector.livenessProbe -- Liveness probe configuration.
+  # Kubernetes probe objects, rendered as given; your keys merge into the
+  # defaults. Set `httpGet: null` to use another handler, or the whole probe
+  # to null for none. Port 13133 is the default config's `health_check`.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  # -- Liveness probe for the container.
+  # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   livenessProbe:
-    enabled: true
-    port: 13133
-    path: /
+    httpGet:
+      port: 13133
+      path: /
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # otelCollector.readinessProbe -- Readiness probe configuration.
+  # -- Readiness probe for the container.
+  # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   readinessProbe:
-    enabled: true
-    port: 13133
-    path: /
+    httpGet:
+      port: 13133
+      path: /
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # otelCollector.customLivenessProbe -- Custom liveness probe to override the default.
+  # A probe object here holds the liveness and readiness probes back until
+  # it succeeds.
+  # -- Startup probe for the container.
+  # @default -- "no startup probe"
   # @section -- Otel Collector
-  # @default -- {}
-  customLivenessProbe: {}
-  # otelCollector.customReadinessProbe -- Custom readiness probe to override the default.
+  startupProbe: {}
+  # Mounted in the collector container and in its `check` init container,
+  # which reaches the same ClickHouse (a CA file, for example).
+  # -- Extra volume mounts for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  customReadinessProbe: {}
-  # otelCollector.extraVolumeMounts -- Extra volume mounts for the Otel Collector pod.
-  # @section -- Otel Collector
-  # @default -- []
   extraVolumeMounts: []
   # otelCollector.extraVolumes -- Extra volumes for the Otel Collector pod.
   # @section -- Otel Collector
@@ -1534,10 +2291,10 @@ otelCollector:
   podSecurityContext: {}
   # fsGroup: 2000
 
-  # otelCollector.securityContext -- Container-level security context.
+  # Applies to the collector container and to its `check` init container.
+  # -- Security context for the container.
   # @section -- Otel Collector
-  # @default -- {}
-  securityContext: {}
+  containerSecurityContext: {}
   # capabilities:
   #   drop:
   #   - ALL

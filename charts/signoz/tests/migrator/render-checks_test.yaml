@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/render-checks
+templates:
+  - templates/validate.yaml
+tests:
+  - it: fails the render on a telemetryStoreMigrator.name over 57 characters, which the revision suffix would push past 63
+    set:
+      telemetryStoreMigrator.name: abcdefghij-abcdefghij-abcdefghij-abcdefghij-abcdefghij-abc
+    asserts:
+      - failedTemplate:
+          errorPattern: "telemetryStoreMigrator\\.name.*at most 57"
+  - it: renders a telemetryStoreMigrator.name over 57 characters when telemetryStoreMigrator.enabled is false
+    set:
+      telemetryStoreMigrator.enabled: false
+      telemetryStoreMigrator.name: abcdefghij-abcdefghij-abcdefghij-abcdefghij-abcdefghij-abc
+    asserts:
+      - notFailedTemplate: {}

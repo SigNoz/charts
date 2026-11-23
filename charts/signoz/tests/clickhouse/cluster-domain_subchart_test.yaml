@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/cluster-domain_subchart
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+  - charts/zookeeper/templates/statefulset.yaml
+tests:
+  - it: builds ClickHouse, operator and ZooKeeper host names on global.clusterDomain
+    set:
+      global.clusterDomain: mng.local
+      zookeeper.enabled: true
+    asserts:
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.namespaceDomainPattern
+          value: "%s.svc.mng.local"
+      - template: charts/altinity-clickhouse-operator/templates/generated/ConfigMap-etc-clickhouse-operator-files.yaml
+        matchRegex:
+          path: data["config.yaml"]
+          pattern: 'hostRegexpTemplate: .*\\\.svc\\\.mng\\\.local\$'
+      - template: charts/zookeeper/templates/statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "zookeeper")].env[?(@.name == "ZOO_SERVERS")].value
+          value: RELEASE-NAME-zookeeper-0.RELEASE-NAME-zookeeper-headless.NAMESPACE.svc.mng.local:2888:3888::1

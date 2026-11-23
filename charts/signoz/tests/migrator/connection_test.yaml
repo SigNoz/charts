@@ -1,0 +1,885 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/connection
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  # Kubernetes expands $(VAR) only for a variable defined earlier in the list.
+  - it: defines the ClickHouse variables before the DSN and cluster variables that refer to them, in that order, in every migration and in check
+    release:
+      revision: 1
+    set:
+      telemetryStoreMigrator.enabled: true
+      clickhouse.enabled: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[0].name'
+          value: CLICKHOUSE_HOST
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[1].name'
+          value: CLICKHOUSE_PORT
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[2].name'
+          value: CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[3].name'
+          value: CLICKHOUSE_USER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[4].name'
+          value: CLICKHOUSE_PASSWORD
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[5].name'
+          value: CLICKHOUSE_SECURE
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[6].name'
+          value: CLICKHOUSE_VERIFY
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[7].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "ready")].env[8].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[0].name'
+          value: CLICKHOUSE_HOST
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[1].name'
+          value: CLICKHOUSE_PORT
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[2].name'
+          value: CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[3].name'
+          value: CLICKHOUSE_USER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[4].name'
+          value: CLICKHOUSE_PASSWORD
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[5].name'
+          value: CLICKHOUSE_SECURE
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[6].name'
+          value: CLICKHOUSE_VERIFY
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[7].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "bootstrap")].env[8].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[0].name'
+          value: CLICKHOUSE_HOST
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[1].name'
+          value: CLICKHOUSE_PORT
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[2].name'
+          value: CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[3].name'
+          value: CLICKHOUSE_USER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[4].name'
+          value: CLICKHOUSE_PASSWORD
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[5].name'
+          value: CLICKHOUSE_SECURE
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[6].name'
+          value: CLICKHOUSE_VERIFY
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[7].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "sync")].env[8].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[0].name'
+          value: CLICKHOUSE_HOST
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[1].name'
+          value: CLICKHOUSE_PORT
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[2].name'
+          value: CLICKHOUSE_CLUSTER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[3].name'
+          value: CLICKHOUSE_USER
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[4].name'
+          value: CLICKHOUSE_PASSWORD
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[5].name'
+          value: CLICKHOUSE_SECURE
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[6].name'
+          value: CLICKHOUSE_VERIFY
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[7].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+      - template: templates/telemetrystore-migrator/job.yaml
+        equal:
+          path: 'spec.template.spec.containers[?(@.name == "async")].env[8].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[0].name'
+          value: CLICKHOUSE_HOST
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[1].name'
+          value: CLICKHOUSE_PORT
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[2].name'
+          value: CLICKHOUSE_CLUSTER
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[3].name'
+          value: CLICKHOUSE_USER
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[4].name'
+          value: CLICKHOUSE_PASSWORD
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[5].name'
+          value: CLICKHOUSE_SECURE
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[6].name'
+          value: CLICKHOUSE_VERIFY
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[7].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: 'spec.template.spec.initContainers[?(@.name == "check")].env[8].name'
+          value: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER
+
+  - it: connects every migration and check to the ClickHouse clickhouse.fullnameOverride names, with the password from <fullnameOverride>-credentials
+    release:
+      revision: 1
+    set:
+      clickhouse.fullnameOverride: ch-main
+      clickhouse.existingSecret: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &fullnameHost {name: CLICKHOUSE_HOST, value: ch-main}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &fullnameSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: ch-main-credentials, key: password}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *fullnameHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *fullnameSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *fullnameHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *fullnameSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *fullnameHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *fullnameSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *fullnameHost
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *fullnameSecret
+
+  - it: connects every migration and check to <release>-<clickhouse.nameOverride>
+    release:
+      revision: 1
+    set:
+      clickhouse.nameOverride: chdb
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &nameOverrideHost {name: CLICKHOUSE_HOST, value: RELEASE-NAME-chdb}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *nameOverrideHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *nameOverrideHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *nameOverrideHost
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *nameOverrideHost
+
+  - it: connects every migration and check to ClickHouse named after the release alone when the release name contains clickhouse
+    release:
+      name: my-clickhouse
+      revision: 1
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &releaseHost {name: CLICKHOUSE_HOST, value: my-clickhouse}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *releaseHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *releaseHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *releaseHost
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *releaseHost
+
+  - it: addresses ClickHouse in clickhouse.namespace as <fullname>.<namespace>.svc.<global.clusterDomain> from every migration and check
+    release:
+      revision: 1
+    set:
+      clickhouse.namespace: db
+      altinity-clickhouse-operator.namespaceOverride: db
+      global.clusterDomain: mng.local
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &namespacedHost {name: CLICKHOUSE_HOST, value: RELEASE-NAME-clickhouse.db.svc.mng.local}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *namespacedHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *namespacedHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *namespacedHost
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *namespacedHost
+
+  - it: runs every migration and check on clickhouse.cluster
+    release:
+      revision: 1
+    set:
+      clickhouse.cluster: prod
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &cluster {name: CLICKHOUSE_CLUSTER, value: prod}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &clusterRef {name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER, value: $(CLICKHOUSE_CLUSTER)}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *cluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *clusterRef
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *cluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *clusterRef
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *cluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *clusterRef
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *cluster
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *clusterRef
+
+  - it: connects every migration and check as clickhouse.user
+    release:
+      revision: 1
+    set:
+      clickhouse.user: reader
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &user {name: CLICKHOUSE_USER, value: reader}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *user
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *user
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *user
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *user
+
+  - it: reads the ClickHouse password from Secret <fullname>-credentials in every migration and in check, never as a plain value
+    release:
+      revision: 1
+    set:
+      clickhouse.password: s3cret
+      clickhouse.existingSecret: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &chartSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *chartSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *chartSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *chartSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *chartSecret
+
+  - it: reads the password from clickhouse.existingSecret under existingSecretPasswordKey in every migration and in check
+    release:
+      revision: 1
+    set:
+      clickhouse.existingSecret: my-ch
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &userSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: my-ch, key: pw}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *userSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *userSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *userSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *userSecret
+
+  - it: keeps reading the password key of the chart's Secret when existingSecretPasswordKey is set without clickhouse.existingSecret
+    release:
+      revision: 1
+    set:
+      clickhouse.password: s3cret
+      clickhouse.existingSecret: ""
+      clickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &leftoverKeySecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *leftoverKeySecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *leftoverKeySecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *leftoverKeySecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *leftoverKeySecret
+
+  - it: tells every migration and check whether ClickHouse speaks TLS and whether to verify it, from clickhouse.secure and clickhouse.verify
+    release:
+      revision: 1
+    set:
+      clickhouse.secure: true
+      clickhouse.verify: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &secure {name: CLICKHOUSE_SECURE, value: "true"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &verify {name: CLICKHOUSE_VERIFY, value: "true"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *secure
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *verify
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *secure
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *verify
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *secure
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *verify
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *secure
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *verify
+
+  - it: connects every migration and check to externalClickhouse.host, tcpPort, cluster and user, not the clickhouse block's, for an external ClickHouse
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      clickhouse.service.tcpPort: 9100
+      clickhouse.cluster: bundled-cluster
+      clickhouse.user: bundled-user
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.tcpPort: 9440
+      externalClickhouse.cluster: c1
+      externalClickhouse.user: signoz
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extHost {name: CLICKHOUSE_HOST, value: ch.example.com}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extPort {name: CLICKHOUSE_PORT, value: "9440"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extCluster {name: CLICKHOUSE_CLUSTER, value: c1}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extUser {name: CLICKHOUSE_USER, value: signoz}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extPort
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extCluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extUser
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extPort
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extCluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extUser
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extHost
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extPort
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extCluster
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extUser
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extHost
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extPort
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extCluster
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extUser
+
+  - it: reads externalClickhouse.password from Secret <fullname>-credentials in every migration and in check, for an external ClickHouse
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.password: ext
+      externalClickhouse.existingSecret: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extChartSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: RELEASE-NAME-clickhouse-credentials, key: password}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extChartSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extChartSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extChartSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extChartSecret
+
+  - it: reads the password from externalClickhouse.existingSecret under its key in every migration and in check, for an external ClickHouse
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.existingSecret: my-ch
+      externalClickhouse.existingSecretPasswordKey: pw
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extUserSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: my-ch, key: pw}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extUserSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extUserSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extUserSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extUserSecret
+
+  - it: connects every migration and check over TLS without certificate verification with externalClickhouse.secure
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: true
+      externalClickhouse.verify: false
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &skipVerifyDsn
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true&skip_verify=true
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &extSecure {name: CLICKHOUSE_SECURE, value: "true"}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *skipVerifyDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *extSecure
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *skipVerifyDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *extSecure
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *skipVerifyDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *extSecure
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *skipVerifyDsn
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *extSecure
+
+  - it: verifies the certificate in every migration and check with externalClickhouse.secure and externalClickhouse.verify
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: true
+      externalClickhouse.verify: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &verifyDsn
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)?secure=true
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *verifyDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *verifyDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *verifyDsn
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *verifyDsn
+
+  - it: keeps every migration and check off TLS when externalClickhouse.secure is the string "false"
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: "false"
+      externalClickhouse.verify: false
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &stringFalseDsn
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *stringFalseDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *stringFalseDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *stringFalseDsn
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *stringFalseDsn
+
+  - it: keeps every migration and check off TLS with externalClickhouse.verify alone, without externalClickhouse.secure
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.secure: false
+      externalClickhouse.verify: true
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &verifyAloneDsn
+            name: SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN
+            value: tcp://$(CLICKHOUSE_USER):$(CLICKHOUSE_PASSWORD)@$(CLICKHOUSE_HOST):$(CLICKHOUSE_PORT)
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *verifyAloneDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *verifyAloneDsn
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *verifyAloneDsn
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *verifyAloneDsn
+
+  - it: renders for an external ClickHouse with a clickhouse.fullnameOverride over 34 characters, every migration and check reading <fullnameOverride>-credentials
+    release:
+      revision: 1
+    set:
+      clickhouse.enabled: false
+      clickhouse.fullnameOverride: abcdefghij-abcdefghij-abcdefghij-abc
+      externalClickhouse.host: ch.example.com
+      externalClickhouse.cluster: c1
+      externalClickhouse.existingSecret: ""
+    asserts:
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].env
+          content: &longNameSecret
+            name: CLICKHOUSE_PASSWORD
+            valueFrom: {secretKeyRef: {name: abcdefghij-abcdefghij-abcdefghij-abc-credentials, key: password}}
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].env
+          content: *longNameSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].env
+          content: *longNameSecret
+      - template: templates/telemetrystore-migrator/job.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "async")].env
+          content: *longNameSecret
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.initContainers[?(@.name == "check")].env
+          content: *longNameSecret

@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: coordination/store
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/keeper/clickhousekeeperinstallation.yaml
+  - templates/NOTES.txt
+tests:
+  - it: coordinates ClickHouse through the ClickHouse Keeper client Service by default
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    asserts:
+      - equal:
+          path: spec.configuration.zookeeper.nodes
+          value:
+            - {host: keeper-RELEASE-NAME-keeper, port: 2181}
+
+  - it: dials the Keeper client Service named after the installation, also under keeper.fullnameOverride
+    set:
+      keeper.fullnameOverride: coord
+    asserts:
+      - template: templates/keeper/clickhousekeeperinstallation.yaml
+        equal:
+          path: metadata.name
+          value: coord
+      - template: templates/clickhouse/clickhouseinstallation.yaml
+        equal:
+          path: spec.configuration.zookeeper.nodes
+          value:
+            - {host: keeper-coord, port: 2181}
+
+  - it: coordinates through ZooKeeper, not Keeper, when zookeeper.enabled and keeper.enabled are both true
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      zookeeper.enabled: true
+      keeper.enabled: true
+    asserts:
+      - equal:
+          path: spec.configuration.zookeeper.nodes
+          value:
+            - {host: RELEASE-NAME-zookeeper-0.RELEASE-NAME-zookeeper-headless, port: 2181}
+
+  - it: installs Keeper beside ZooKeeper when both are on, for the move from ZooKeeper to Keeper
+    template: templates/keeper/clickhousekeeperinstallation.yaml
+    set:
+      zookeeper.enabled: true
+      keeper.enabled: true
+    asserts:
+      - isKind:
+          of: ClickHouseKeeperInstallation
+
+  - it: coordinates through clickhouse.externalZookeeper.servers over both bundled stores
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      zookeeper.enabled: true
+      keeper.enabled: true
+      clickhouse.externalZookeeper.servers:
+        - {host: zk-a.example, port: 2181}
+        - {host: zk-b.example, port: 2182}
+    asserts:
+      - equal:
+          path: spec.configuration.zookeeper.nodes
+          value:
+            - {host: zk-a.example, port: 2181}
+            - {host: zk-b.example, port: 2182}
+
+  - it: fails the render without a coordination store, naming the three ways to set one
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      zookeeper.enabled: false
+      keeper.enabled: false
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.externalZookeeper\\.servers.*zookeeper\\.enabled.*keeper\\.enabled"
+
+  - it: tells an install on the bundled ZooKeeper that it is deprecated and links the upgrade guide's move to ClickHouse Keeper
+    template: templates/NOTES.txt
+    set:
+      zookeeper.enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "(?i)zookeeper[^\\n]*deprecated"
+      - matchRegexRaw:
+          pattern: "upgrade-0\\.152\\.0\\.md#11-zookeeper-to-clickhouse-keeper"
+
+  - it: gives no ZooKeeper deprecation notice to an install without the bundled ZooKeeper
+    template: templates/NOTES.txt
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "(?i)deprecat"

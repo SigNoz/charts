@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: migrator/image-registry
+templates:
+  - templates/telemetrystore-migrator/job.yaml
+tests:
+  - it: pulls every migration from global.imageRegistry in place of a registry written at the front of otelCollector.image.repository
+    set:
+      global.imageRegistry: mirror.example.com
+      otelCollector.image.repository: registry.example.com/signoz/signoz-otel-collector
+      otelCollector.image.tag: v0.200.0
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "ready")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "bootstrap")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name == "sync")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "async")].image
+          value: mirror.example.com/signoz/signoz-otel-collector:v0.200.0

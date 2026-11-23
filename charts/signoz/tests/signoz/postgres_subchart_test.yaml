@@ -1,0 +1,123 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/postgres_subchart
+templates:
+  - templates/signoz/statefulset.yaml
+  - charts/postgresql/templates/service.yaml
+  - charts/postgresql/templates/statefulset.yaml
+tests:
+  - it: stores SigNoz's data in the bundled Postgres with postgresql.enabled, dialling the Service it renders
+    set:
+      postgresql.enabled: true
+    asserts:
+      - template: charts/postgresql/templates/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgresql
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: SIGNOZ_SQLSTORE_PROVIDER, value: postgres}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@RELEASE-NAME-postgresql:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+
+  - it: connects SigNoz as the user, to the database and on the port the bundled Postgres serves
+    set:
+      postgresql.enabled: true
+      postgresql.service.port: 5433
+      postgresql.auth.username: app
+      postgresql.auth.database: sigdb
+    asserts:
+      - template: charts/postgresql/templates/service.yaml
+        equal:
+          path: spec.ports[?(@.name == "tcp-postgresql")].port
+          value: 5433
+      - template: charts/postgresql/templates/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].env
+          content: {name: POSTGRES_USER, value: app}
+      - template: charts/postgresql/templates/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].env
+          content: {name: POSTGRES_DB, value: sigdb}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_PORT, value: "5433"}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_USER, value: app}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: {name: POSTGRES_DB, value: sigdb}
+
+  - it: reads the Postgres password from postgresql.auth.existingSecret under userPasswordKey, as the bundled Postgres does
+    set:
+      postgresql.enabled: true
+      postgresql.auth.existingSecret: pg-sec
+      postgresql.auth.secretKeys.userPasswordKey: pw
+    asserts:
+      - template: charts/postgresql/templates/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "postgres")].env
+          content: &password
+            name: POSTGRES_PASSWORD
+            valueFrom: {secretKeyRef: {name: pg-sec, key: pw}}
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content: *password
+
+  - it: dials the Postgres Service named after postgresql.fullnameOverride
+    set:
+      postgresql.enabled: true
+      postgresql.fullnameOverride: pg
+    asserts:
+      - template: charts/postgresql/templates/service.yaml
+        equal:
+          path: metadata.name
+          value: pg
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@pg:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+
+  - it: dials the Postgres Service named <release>-<postgresql.nameOverride>
+    set:
+      postgresql.enabled: true
+      postgresql.nameOverride: pgx
+    asserts:
+      - template: charts/postgresql/templates/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-pgx
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@RELEASE-NAME-pgx:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+
+  - it: dials the Postgres Service named after the release alone when the release name contains postgresql
+    release:
+      name: mypostgresql
+    set:
+      postgresql.enabled: true
+    asserts:
+      - template: charts/postgresql/templates/service.yaml
+        equal:
+          path: metadata.name
+          value: mypostgresql
+      - template: templates/signoz/statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "signoz")].env
+          content:
+            name: SIGNOZ_SQLSTORE_POSTGRES_DSN
+            value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@mypostgresql:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable

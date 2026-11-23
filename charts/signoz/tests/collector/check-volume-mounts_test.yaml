@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/check-volume-mounts
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: mounts otelCollector.extraVolumeMounts in the collector and its check init container, which reach the same ClickHouse
+    template: templates/otel-collector/deployment.yaml
+    set:
+      telemetryStoreMigrator.enabled: true
+      otelCollector.extraVolumes:
+        - name: clickhouse-ca
+          secret:
+            secretName: clickhouse-ca
+      otelCollector.extraVolumeMounts:
+        - name: clickhouse-ca
+          mountPath: /etc/ssl/clickhouse
+          readOnly: true
+    asserts:
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.initContainers[?(@.name == "check")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret
+          value: {secretName: clickhouse-ca}
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "collector")].volumeMounts[?(@.mountPath == "/etc/ssl/clickhouse")].name
+            )].secret
+          value: {secretName: clickhouse-ca}

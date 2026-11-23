@@ -1,0 +1,134 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/config
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/signoz/service.yaml
+tests:
+  - it: runs the collector on otelCollector.config, mounted at /conf from a ConfigMap and passed with --config
+    set:
+      otelCollector.configMap.create: true
+      otelCollector.config.processors.batch.timeout: 2s
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].args
+          content: --config=/conf/otel-collector-config.yaml
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].args
+          content: --copy-path=/var/tmp/collector-config.yaml
+      - template: templates/otel-collector/deployment.yaml
+        exists:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "collector")].volumeMounts[?(@.mountPath == "/conf")].name
+            )].configMap
+      - template: templates/otel-collector/configmap.yaml
+        matchRegex:
+          path: data["otel-collector-config.yaml"]
+          pattern: 'timeout: 2s'
+
+  - it: points the collector's OpAMP client, through --manager-config, at the SigNoz Service
+    set:
+      otelCollector.configMap.create: true
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[?(@.name == "collector")].args
+          content: --manager-config=/conf/otel-collector-opamp-config.yaml
+      - template: templates/otel-collector/configmap.yaml
+        matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'server_endpoint: "?ws://RELEASE-NAME-signoz:[0-9]+/v1/opamp'
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-signoz
+
+  - it: points the collector's OpAMP client at the SigNoz Service named fullnameOverride
+    set:
+      fullnameOverride: obs
+    asserts:
+      - template: templates/otel-collector/configmap.yaml
+        matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'ws://obs:[0-9]+/v1/opamp'
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: obs
+
+  - it: points the collector's OpAMP client at the SigNoz Service named after nameOverride
+    set:
+      nameOverride: so
+    asserts:
+      - template: templates/otel-collector/configmap.yaml
+        matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'ws://RELEASE-NAME-so:[0-9]+/v1/opamp'
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-so
+
+  - it: points the collector's OpAMP client at the SigNoz Service named after the release alone when the release name contains signoz
+    release:
+      name: signoz
+    asserts:
+      - template: templates/otel-collector/configmap.yaml
+        matchRegex:
+          path: data["otel-collector-opamp-config.yaml"]
+          pattern: 'ws://signoz:[0-9]+/v1/opamp'
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.name
+          value: signoz
+
+  - it: starts the collector without the chart's --config, --manager-config and --copy-path flags with otelCollector.configMap.create false
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.configMap.create: false
+    asserts:
+      - exists:
+          path: spec.template.spec.containers[?(@.name == "collector")]
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].args[?(@ == "--config=/conf/otel-collector-config.yaml")]
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].args[?(@ == "--manager-config=/conf/otel-collector-opamp-config.yaml")]
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].args[?(@ == "--copy-path=/var/tmp/collector-config.yaml")]
+
+  - it: stamps the collector pods with a checksum/config of the rendered config, so a config change rolls them
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.config.processors.batch.timeout: 2s
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: ^[0-9a-f]{64}$
+
+  - it: mounts otelCollector.extraVolumes in the collector with otelCollector.extraVolumeMounts, keeping the config at /conf
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.extraVolumes:
+        - name: receiver-tls
+          secret:
+            secretName: collector-tls
+      otelCollector.extraVolumeMounts:
+        - name: receiver-tls
+          mountPath: /etc/collector/tls
+          readOnly: true
+    asserts:
+      - equal:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "collector")].volumeMounts[?(@.mountPath == "/etc/collector/tls")].name
+            )].secret
+          value:
+            secretName: collector-tls
+      - exists:
+          path: >-
+            spec.template.spec.volumes[?(
+            @.name == $.spec.template.spec.containers[?(@.name == "collector")].volumeMounts[?(@.mountPath == "/conf")].name
+            )].configMap

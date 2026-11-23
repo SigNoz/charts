@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/coordination
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+tests:
+  - it: coordinates ClickHouse through the bundled ZooKeeper, one node per replica on its headless Service
+    set:
+      zookeeper.enabled: true
+      zookeeper.replicaCount: 3
+    asserts:
+      - lengthEqual:
+          path: spec.configuration.zookeeper.nodes
+          count: 3
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: RELEASE-NAME-zookeeper-0.RELEASE-NAME-zookeeper-headless, port: 2181}
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: RELEASE-NAME-zookeeper-1.RELEASE-NAME-zookeeper-headless, port: 2181}
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: RELEASE-NAME-zookeeper-2.RELEASE-NAME-zookeeper-headless, port: 2181}
+  - it: addresses ZooKeeper in zookeeper.namespaceOverride as <node>.<namespace>.svc.<cluster domain>
+    set:
+      zookeeper.enabled: true
+      zookeeper.namespaceOverride: zk
+    asserts:
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: RELEASE-NAME-zookeeper-0.RELEASE-NAME-zookeeper-headless.zk.svc.cluster.local}
+          any: true
+  - it: coordinates through clickhouse.externalZookeeper.servers instead of the bundled ZooKeeper
+    set:
+      clickhouse.externalZookeeper.servers:
+        - {host: zk-a.example, port: 2181}
+        - {host: zk-b.example, port: 2181}
+    asserts:
+      - lengthEqual:
+          path: spec.configuration.zookeeper.nodes
+          count: 2
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: zk-a.example, port: 2181}
+      - contains:
+          path: spec.configuration.zookeeper.nodes
+          content: {host: zk-b.example, port: 2181}

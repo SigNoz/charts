@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/ingress
+templates:
+  - templates/signoz/ingress.yaml
+capabilities:
+  majorVersion: "1"
+  minorVersion: "30"
+  apiVersions:
+    - networking.k8s.io/v1
+tests:
+  - it: renders no Ingress without signoz.ingress.enabled
+    set:
+      signoz.ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: routes each host and path of signoz.ingress.hosts to the SigNoz Service on the path's port
+    set:
+      signoz.ingress.enabled: true
+      signoz.ingress.hosts:
+        - host: signoz.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+              port: 8080
+        - host: opamp.example.com
+          paths:
+            - path: /v1/opamp
+              pathType: Prefix
+              port: 4320
+    asserts:
+      - equal:
+          path: spec.rules[?(@.host == "signoz.example.com")].http.paths[?(@.path == "/")]
+          value:
+            path: /
+            pathType: Prefix
+            backend: {service: {name: RELEASE-NAME-signoz, port: {number: 8080}}}
+      - equal:
+          path: spec.rules[?(@.host == "opamp.example.com")].http.paths[?(@.path == "/v1/opamp")]
+          value:
+            path: /v1/opamp
+            pathType: Prefix
+            backend: {service: {name: RELEASE-NAME-signoz, port: {number: 4320}}}
+
+  - it: hands the Ingress to the controller signoz.ingress.className names
+    set:
+      signoz.ingress.enabled: true
+      signoz.ingress.className: nginx
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: terminates TLS for the hosts of signoz.ingress.tls, naming a secret only where one is set
+    set:
+      signoz.ingress.enabled: true
+      signoz.ingress.tls:
+        - secretName: signoz-tls
+          hosts: [signoz.example.com]
+        - hosts: [opamp.example.com]
+    asserts:
+      - equal:
+          path: spec.tls
+          value:
+            - hosts: [signoz.example.com]
+              secretName: signoz-tls
+            - hosts: [opamp.example.com]

@@ -1,0 +1,72 @@
+{{- if and (eq (include "clickhouse.operatorEnabled" .) "true") .Values.clickhouse.operatorUpgradeHook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "clickhouse.operatorFullname" . }}-upgrade
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "-9"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.clickhouse.operatorUpgradeHook.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "clickhouse.labels" . | nindent 8 }}
+    spec:
+      {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 6 }}
+      serviceAccountName: {{ include "clickhouse.operatorFullname" . }}-upgrade
+      restartPolicy: OnFailure
+      {{- with .Values.clickhouse.operatorUpgradeHook.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.operatorUpgradeHook.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: operator-upgrade
+          image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.clickhouse.operatorUpgradeHook.image "name" "clickhouse.operatorUpgradeHook.image") }}
+          imagePullPolicy: {{ .Values.clickhouse.operatorUpgradeHook.image.pullPolicy }}
+          # Run without a shell: registry.k8s.io/kubectl is distroless.
+          # The operator Deployment from before Altinity's chart had the component label
+          # clickhouse.clickhouseOperator.name (default operator), so the selector requires
+          # the label, not a value. Altinity's Deployment has no component label, so it
+          # never matches and later upgrades change nothing.
+          command:
+            - kubectl
+          args:
+            - delete
+            - deployment
+            - --namespace={{ include "clickhouse.namespace" . }}
+            - --selector=app.kubernetes.io/name={{ include "clickhouse.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component
+            - --ignore-not-found=true
+            - --wait=true
+          {{- with .Values.clickhouse.operatorUpgradeHook.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.operatorUpgradeHook.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

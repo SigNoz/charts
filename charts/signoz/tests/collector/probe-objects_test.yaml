@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/probe-objects
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+tests:
+  - it: renders no probe on the collector for a probe set to null
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.livenessProbe: null
+      otelCollector.readinessProbe:
+        httpGet:
+          port: 13133
+          path: /
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].livenessProbe
+      - exists:
+          path: spec.template.spec.containers[?(@.name == "collector")].readinessProbe
+  - it: renders the collector's probe as given, so a tcpSocket probe with httpGet set to null has a single handler
+    template: templates/otel-collector/deployment.yaml
+    set:
+      otelCollector.readinessProbe:
+        httpGet: null
+        tcpSocket:
+          port: 13133
+        periodSeconds: 20
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[?(@.name == "collector")].readinessProbe.httpGet
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "collector")].readinessProbe.tcpSocket.port
+          value: 13133

@@ -1,0 +1,140 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: clickhouse/storage
+templates:
+  - templates/clickhouse/clickhouseinstallation.yaml
+  - templates/clickhouse/storageclass.yaml
+tests:
+  - it: keeps ClickHouse data on claim template data-volumeclaim-template at /var/lib/clickhouse, with the size and access modes set
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.size: 50Gi
+      clickhouse.persistence.accessModes: [ReadWriteOncePod]
+    asserts:
+      - equal:
+          path: spec.defaults.templates.dataVolumeClaimTemplate
+          value: data-volumeclaim-template
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.resources.requests.storage
+          value: 50Gi
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.accessModes
+          value: [ReadWriteOncePod]
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse")].name
+          value: data-volumeclaim-template
+  - it: takes global.storageClass over clickhouse.persistence.storageClass
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      global.storageClass: fast
+      clickhouse.persistence.storageClass: slow
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.storageClassName
+          value: fast
+  - it: renders an empty storage class for -, which disables dynamic provisioning
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.storageClass: "-"
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.storageClassName
+          value: ""
+  - it: keeps the claims the operator stops tracking, and the claim when the installation is removed
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    asserts:
+      - equal:
+          path: spec.reconciling.cleanup.unknownObjects.pvc
+          value: Retain
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].reclaimPolicy
+          value: Retain
+  - it: mounts clickhouse.persistence.existingClaim at /var/lib/clickhouse instead of a claim template
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.existingClaim: my-claim
+    asserts:
+      - equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse")].name
+            )].persistentVolumeClaim
+          value: {claimName: my-claim}
+      - notExists:
+          path: spec.templates.volumeClaimTemplates
+  - it: keeps ClickHouse data in an emptyDir without persistence or claim templates
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.enabled: false
+    asserts:
+      - equal:
+          path: >-
+            spec.templates.podTemplates[0].spec.volumes[?(
+            @.name == $.spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse")].name
+            )].emptyDir
+          value: {}
+  - it: renders clickhouse.templates.volumeClaimTemplates as retained claim templates without persistence, mounted through clickhouse.extraVolumeMounts
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.enabled: false
+      clickhouse.templates.volumeClaimTemplates:
+        - name: data
+          accessModes: [ReadWriteOnce]
+          resources: {requests: {storage: 5Gi}}
+          storageClassName: fast
+      clickhouse.extraVolumeMounts:
+        - name: data
+          mountPath: /var/lib/clickhouse
+    asserts:
+      - equal:
+          path: spec.templates.podTemplates[0].spec.containers[?(@.name == "clickhouse")].volumeMounts[?(@.mountPath == "/var/lib/clickhouse")].name
+          value: data
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data")]
+          value:
+            name: data
+            reclaimPolicy: Retain
+            spec:
+              accessModes: [ReadWriteOnce]
+              resources: {requests: {storage: 5Gi}}
+              storageClassName: fast
+  - it: creates the expandable StorageClass gp2-resizable on aws
+    template: templates/clickhouse/storageclass.yaml
+    set:
+      clickhouse.installCustomStorageClass: true
+      global.cloud: aws
+    asserts:
+      - isKind:
+          of: StorageClass
+      - equal:
+          path: metadata.name
+          value: gp2-resizable
+      - equal:
+          path: provisioner
+          value: kubernetes.io/aws-ebs
+      - equal:
+          path: allowVolumeExpansion
+          value: true
+  - it: creates the expandable StorageClass gce-resizable on gcp
+    template: templates/clickhouse/storageclass.yaml
+    set:
+      clickhouse.installCustomStorageClass: true
+      global.cloud: gcp
+    asserts:
+      - isKind:
+          of: StorageClass
+      - equal:
+          path: metadata.name
+          value: gce-resizable
+      - equal:
+          path: provisioner
+          value: kubernetes.io/gce-pd
+      - equal:
+          path: allowVolumeExpansion
+          value: true
+  - it: creates no StorageClass unless clickhouse.installCustomStorageClass
+    template: templates/clickhouse/storageclass.yaml
+    set:
+      global.cloud: aws
+    asserts:
+      - hasDocuments:
+          count: 0
