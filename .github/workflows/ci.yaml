@@ -9,10 +9,20 @@ on:
       - labeled
 
 jobs:
-  # No cluster and no secrets: lint, unit tests and manifest validation.
-  # Unit tests (helm unittest) and manifest validation (kubeconform) run as
-  # ct additional-commands; see ct.yaml.
-  checks:
+  # Unit tests run on the shared primus reusable workflow (helm unittest, with
+  # the plugin pinned there). No cluster and no secrets.
+  unittest:
+    if: |
+      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
+    uses: signoz/primus.workflows/.github/workflows/helm-unittest.yaml@main
+    secrets: inherit
+    with:
+      PRIMUS_REF: main
+
+  # Lint every chart with ct (helm lint plus yamllint and Chart.yaml schema
+  # checks). No cluster and no secrets.
+  lint:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
@@ -32,6 +42,25 @@ jobs:
 
       - name: lint
         run: ct lint --config ct.yaml --all
+
+  # Fail when a chart's generated README drifts from its values.yaml.
+  docs:
+    if: |
+      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          fetch-depth: 0
+
+      - name: setup
+        uses: ./.github/actions/helm-ci-setup
 
       - name: docs-drift
         run: |

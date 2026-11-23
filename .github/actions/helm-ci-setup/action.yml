@@ -1,8 +1,8 @@
 name: helm-ci-setup
 description: >-
   Install the pinned Helm chart CI toolchain and make it the single source of
-  truth for tool versions: helm, chart-testing (ct), the helm-unittest plugin,
-  kubeconform and helm-docs. Every version below is SHA- or checksum-pinned.
+  truth for tool versions: helm, chart-testing (ct) and Go. Every version below
+  is SHA- or checksum-pinned.
 
 # Pinned versions (keep the comment and the pin in sync):
 #   azure/setup-helm             2f5e7bc67f1f9972ab16657bb795f36d8f04de0e  v5.1.0
@@ -10,9 +10,6 @@ description: >-
 #   helm/chart-testing-action    720270857a28afd41e2426521a7801db09e9b510  v2.9.0 (ct 3.15.0, yamllint, yamale)
 #   actions/setup-go             b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  v7.0.0
 #   go (via setup-go)            1.22
-#   helm-unittest plugin         b3a6ed669bdf7ea8cbf16b78b741b204798aec40  v1.0.2
-#   kubeconform                  v0.8.0 (linux-amd64, sha256 pinned below)
-#   helm-docs                    v1.14.2
 
 runs:
   using: composite
@@ -29,29 +26,3 @@ runs:
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: "1.22"
-
-    - name: install-helm-unittest
-      shell: bash
-      run: |
-        helm plugin install https://github.com/helm-unittest/helm-unittest.git --version b3a6ed669bdf7ea8cbf16b78b741b204798aec40
-
-    - name: install-kubeconform
-      shell: bash
-      env:
-        KUBECONFORM_VERSION: v0.8.0
-        KUBECONFORM_SHA256: 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883
-      run: |
-        set -euo pipefail
-        tmp="$(mktemp -d)"
-        curl -fsSL -o "${tmp}/kubeconform.tar.gz" \
-          "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
-        echo "${KUBECONFORM_SHA256}  ${tmp}/kubeconform.tar.gz" | sha256sum -c -
-        tar -xzf "${tmp}/kubeconform.tar.gz" -C "${tmp}" kubeconform
-        sudo install -m 0755 "${tmp}/kubeconform" /usr/local/bin/kubeconform
-        kubeconform -v
-
-    - name: install-helm-docs
-      shell: bash
-      run: |
-        go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
-        echo "$(go env GOPATH)/bin" >> "${GITHUB_PATH}"
