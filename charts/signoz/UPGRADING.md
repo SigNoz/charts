@@ -31,7 +31,7 @@ The step-by-step guide: [the upgrade guide][guide].
 | Argo CD or rendered manifests (`helm template --is-upgrade`, `kubectl apply`) | [Keeper switch on the first sync](#100-keeper-switch-detail), [operator Deployment](#100-operator-replaced-detail), [the Postgres backup step](#100-pg-backup-hook-detail), [hooks in order](#100-hooks) |
 | Bundled Postgres (`postgresql.enabled: true`) | [the backup step](#100-pg-backup-hook-detail), [hook stopping the upgrade](#100-pg-hook-stops-detail), [Postgres not Ready](#100-pg-loader-detail), [all Postgres changes](#100-postgres) |
 | External ClickHouse (`clickhouse.enabled: false`) | [TLS and `secure: true`](#100-external-ch-tls-detail), [the password's new Secret](#100-external-ch-secret), [all ClickHouse changes](#100-clickhouse), [keys that now do nothing](#100-ignored-keys) |
-| Private registry, pull secrets or pinned image tags | [operator images and the CRD hook](#100-operator-images), [images to mirror](#100-versions), [registry and pull-secret keys](#100-values), [tags with a digest](#100-digest-tag) |
+| Private registry, pull secrets or pinned image tags | [Registry and pull secrets](#100-registry), [images to mirror](#100-versions), [registry keys that moved](#100-values), [tags with a digest](#100-digest-tag) |
 | ZooKeeper settings or an external ZooKeeper | [switch to an empty Keeper](#100-keeper-switch-detail), [moving `clickhouse.zookeeper`](#100-zk-literal), [Keeper and ZooKeeper](#100-keeper), [moved ZooKeeper keys](#100-values) |
 | ClickHouse operator settings | [operator keys that moved or do nothing](#100-values), [operator pull secrets](#100-operator-pull-secrets), [all operator changes](#100-operator), [renamed operator objects](#100-objects-renamed) |
 | A custom ClickHouse name or namespace | [renaming a long ClickHouse name](#100-ch-name-length-detail), [`clickhouse.namespace` and name keys](#100-values), [kept claims](#100-clickhouse), [the Namespace after uninstall](#100-uninstall) |
@@ -84,7 +84,7 @@ Error: execution error at (signoz/templates/validate.yaml:22:4): 2 values must c
 |---|---|---|
 | `clickhouse.additionalVolumeMounts` | `clickhouse.extraVolumeMounts` | Same list. Refused when non-empty. |
 | `clickhouse.additionalVolumes` | `clickhouse.extraVolumes` | Same list. Refused when non-empty. |
-| `clickhouse.clickhouseOperator` | `altinity-clickhouse-operator`, in Altinity's key names | Refused with any non-null value, an empty map and the 0.151.0 default included. Old key names moved as they are do nothing ([Table 3](#100-ignored-keys)). |
+| `clickhouse.clickhouseOperator` | `altinity-clickhouse-operator`, in Altinity's key names | Refused with any non-null value, an empty map and the 0.151.0 default included. Old key names moved as they are do nothing ([Table 3](#100-ignored-keys)). System log keys: [entry](#100-operator-system-logs-detail). |
 | `clickhouse.customLivenessProbe` | `clickhouse.livenessProbe` | The probe object itself. Refused when non-empty. |
 | `clickhouse.customReadinessProbe` | `clickhouse.readinessProbe` | The probe object itself. Refused when non-empty. |
 | `clickhouse.customStartupProbe` | `clickhouse.startupProbe` | The probe object itself. Refused when non-empty. |
@@ -150,19 +150,19 @@ Error: execution error at (signoz/templates/validate.yaml:22:4): 2 values must c
 | `altinity-clickhouse-operator.image.*` | As `clickhouse.clickhouseOperator.image.*`, set the operator image. Use `altinity-clickhouse-operator.operator.image.*`. |
 | `altinity-clickhouse-operator.metricsExporter.*` | Set the metrics-exporter image, resources and Service. Use `altinity-clickhouse-operator.metrics.image.*`, `metrics.resources` and `metrics.env`. The Service port, type and annotations have no counterpart. |
 | `altinity-clickhouse-operator.name`, `altinity-clickhouse-operator.version`, `altinity-clickhouse-operator.service.enabled` | Were operator settings under `clickhouse.clickhouseOperator`. |
-| `altinity-clickhouse-operator.logger.*`, `altinity-clickhouse-operator.queryLog.ttl` and the other system log `ttl` and `flushInterval` keys | Set the logger and the system log tables' TTL and flush interval. Use files in `altinity-clickhouse-operator.configs.configdFiles` ([row](#100-operator-system-logs)). |
+| `altinity-clickhouse-operator.logger.*`, `altinity-clickhouse-operator.queryLog.ttl` and the other system log `ttl` and `flushInterval` keys | Set the logger and the system log tables' TTL and flush interval. Use files in `altinity-clickhouse-operator.configs.configdFiles` ([entry](#100-operator-system-logs-detail)). |
 | `altinity-clickhouse-operator.resources` | Set the operator container's resources. Use `altinity-clickhouse-operator.operator.resources`. |
 | `altinity-clickhouse-operator.serviceMonitor.interval`, `scrapeTimeout`, `relabelings`, `metricRelabelings` | Shaped the operator ServiceMonitor. Use `serviceMonitor.clickhouseMetrics.*` and `serviceMonitor.operatorMetrics.*`. |
 | `clickhouse.nameOverride`, `clickhouse.fullnameOverride` | Also renamed the operator objects. Now only `altinity-clickhouse-operator.fullnameOverride` does ([renamed](#100-objects-renamed)). |
-| `clickhouse.imagePullSecrets` | Was also listed on the ClickHouse ServiceAccount ([row](#100-ch-pull-secrets)). |
+| `clickhouse.imagePullSecrets` | Was also listed on the ClickHouse ServiceAccount ([details](#100-registry)). |
 | `clickhouse.password`, `externalClickhouse.password`, `postgresql.auth.password` | A change restarted the pods that use the password. Now it changes only a Secret ([row](#100-password-restart)). |
 | `clickhouse.replicasCount`, `clickhouse.shardsCount` | Nothing in chart 0.151.0 either. Use `clickhouse.layout.replicasCount` and `clickhouse.layout.shardsCount`. |
 | `clickhouse.service.httpPort` | Also set `CLICKHOUSE_HTTP_PORT` in SigNoz, the collector, `check` and the migrator. Now it moves only the Service port. |
 | `clickhouse.udf.image` | As `clickhouse.initContainers.udf.image`, set the histogramQuantile download's image ([row](#100-udf-init)). |
 | `externalClickhouse.httpPort` | Set `CLICKHOUSE_HTTP_PORT` in SigNoz, the collector, `check` and the migrator. Write the port number where a config of yours read it. |
-| `global.imagePullSecrets` | Also reached the operator pod and the SigNoz, collector, migrator and ClickHouse ServiceAccounts. For the operator, use `altinity-clickhouse-operator.imagePullSecrets` and `crdHook.imagePullSecrets` ([row](#100-operator-images)). |
-| `global.imageRegistry` | Was prefixed to every repository, keeping a registry already there (`<registry>/myreg.io/signoz/signoz`). Now it replaces that registry (`<registry>/signoz/signoz`), skips the [operator images](#100-operator-images), and leaves default images the same. |
-| `imagePullSecrets` | Was listed on the SigNoz, collector and migrator ServiceAccounts. Now it is on the pods: [SigNoz](#100-signoz-pull-secrets), [collector](#100-collector-pull-secrets), [migrator](#100-migrator-pull-secrets), [ClickHouse](#100-ch-pull-secrets). |
+| `global.imagePullSecrets` | Also reached the operator pod and the SigNoz, collector, migrator and ClickHouse ServiceAccounts ([details](#100-registry)). |
+| `global.imageRegistry` | Was prefixed to every repository, the operator images included. Now it replaces a registry written in the repository ([details](#100-registry)). |
+| `imagePullSecrets` | Was listed on the SigNoz, collector and migrator ServiceAccounts. Now it is on the pods ([details](#100-registry)). |
 | `signoz.additionalEnvs`, `signoz.configVars`, `signoz.smtpVars`, `schemaMigrator`, `signoz.initContainers.init`, `signoz.initContainers.migration`, `otelCollector.initContainers.init` | Nothing, with a `DEPRECATION NOTICE` in the notes. Now nothing is printed. Values go in `signoz.env`, and `schemaMigrator` overrides in `telemetryStoreMigrator`. |
 | `signoz.service.port`, `signoz.service.internalPort`, `signoz.service.opampPort` | Also set the container ports. Now the container always declares 8080, 8085 and 4320, and these move only the Service ports. |
 | `telemetryStoreMigrator.serviceAccount.annotations` without `create: true` | Annotated the migrator ServiceAccount, created by default ([row](#100-migrator-sa)). |
@@ -172,6 +172,107 @@ Error: execution error at (signoz/templates/validate.yaml:22:4): 2 values must c
 
 <a id="100-components"></a>
 ### Changes by component
+
+<a id="100-registry"></a>
+#### Registry and pull secrets
+
+Every pod lists its own pull secrets now, and `global.imageRegistry` reaches every image except the operator's, the CRD hook's and Postgres's.
+
+Each pod lists these, in this order, each name once:
+
+| Pod | Pull secrets |
+|---|---|
+| ClickHouse, and the operator-upgrade hook Job | `global.imagePullSecrets`, `imagePullSecrets`, `clickhouse.imagePullSecrets` |
+| ClickHouse Keeper | `global.imagePullSecrets`, `imagePullSecrets`, `keeper.imagePullSecrets` |
+| SigNoz | `global.imagePullSecrets`, `imagePullSecrets`, `signoz.imagePullSecrets` |
+| Collector, and the schema migrator | `global.imagePullSecrets`, `imagePullSecrets`, `otelCollector.imagePullSecrets` |
+| Operator | `altinity-clickhouse-operator.imagePullSecrets` only, as `name:` objects ([row](#100-operator-pull-secrets)) |
+| CRD hook Job | `altinity-clickhouse-operator.crdHook.imagePullSecrets` only, as `name:` objects |
+| Postgres, and its backup Job | `postgresql.imagePullSecrets`. Their ServiceAccount `<release>-postgresql` lists `global.imagePullSecrets` and `postgresql.imagePullSecrets`, as in chart 0.151.0. |
+| ZooKeeper, when kept | `global.imagePullSecrets`, `zookeeper.image.pullSecrets` |
+| The `helm test` pod | None |
+
+No other chart ServiceAccount lists pull secrets. A pod of yours that runs under one of them, such as `<release>-signoz`, and pulled with its pull secrets must list them in its own spec.
+
+Each image, and what to mirror with `global.imageRegistry: <registry>`:
+
+| Image | Mirror as | Set by |
+|---|---|---|
+| `clickhouse/clickhouse-server:25.12.5`, also for the histogramQuantile download | `<registry>/clickhouse/clickhouse-server:25.12.5` | `clickhouse.image` |
+| `clickhouse/clickhouse-keeper:25.12.5` | `<registry>/clickhouse/clickhouse-keeper:25.12.5` | `keeper.image` |
+| `signoz/zookeeper:3.7.1`, when kept | `<registry>/signoz/zookeeper:3.7.1` | `zookeeper.image` |
+| `signoz/signoz-otel-collector:v0.144.15`, the system-logs sidecar | `<registry>/signoz/signoz-otel-collector:v0.144.15` | `clickhouse.logs.system.image` |
+| `docker.io/signoz/signoz:<tag>` | `<registry>/signoz/signoz:<tag>` | `signoz.image` |
+| `docker.io/signoz/signoz-otel-collector:v0.144.16`, the collector, `check` and the migrator | `<registry>/signoz/signoz-otel-collector:v0.144.16` | `otelCollector.image` |
+| `registry.k8s.io/kubectl:v1.36.3`, the operator-upgrade hook | `<registry>/kubectl:v1.36.3` | `clickhouse.operatorUpgradeHook.image` |
+| `docker.io/busybox:1.35`, the `helm test` pod | `<registry>/busybox:1.35` | Fixed in the chart |
+| `registry.k8s.io/kubectl:v1.36.3`, the CRD hook | Not applied | `altinity-clickhouse-operator.crdHook.image` |
+| `altinity/clickhouse-operator:0.27.4` | Not applied | `altinity-clickhouse-operator.operator.image` |
+| `altinity/metrics-exporter:0.27.4` | Not applied | `altinity-clickhouse-operator.metrics.image` |
+| `postgres:15`, Postgres and its backup Job | Not applied | `postgresql.image` |
+
+`global.imageRegistry` replaces a registry written at the front of a repository: it renders `<registry>/signoz/signoz` where chart 0.151.0 rendered `<registry>/myreg.io/signoz/signoz`. With default repositories the images are the same as before.
+
+For the operator and its CRD hook, set Altinity's keys before you upgrade. The CRD hook runs after the old operator Deployment is deleted, so an image it cannot pull leaves no operator ([Hooks](#100-hooks)). These values render `my.registry/altinity/clickhouse-operator:0.27.4`, `my.registry/altinity/metrics-exporter:0.27.4` and `my.registry/kubectl:v1.36.3`, each pod with `my-pull-secret`:
+
+```yaml
+altinity-clickhouse-operator:
+  operator:
+    image:
+      registry: my.registry
+  metrics:
+    image:
+      registry: my.registry
+  crdHook:
+    image:
+      repository: my.registry/kubectl
+    imagePullSecrets:
+      - name: my-pull-secret
+  imagePullSecrets:
+    - name: my-pull-secret
+```
+
+The histogramQuantile init container downloads its binary from GitHub (`https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2Fv0.0.1/...`). Without GitHub access, bring the binary one of two ways. Both render as shown. Not tested on a cluster.
+
+From an image of your own, built with the binary of SigNoz's `histogram-quantile/v0.0.1` release for your nodes at `/histogramQuantile`: turn the download off and copy the binary into `shared-binary-volume`, which ClickHouse mounts at `/var/lib/clickhouse/user_scripts`.
+
+```yaml
+clickhouse:
+  udf:
+    enabled: false
+  extraInitContainers:
+    - name: histogram-quantile
+      image: my.registry/histogram-quantile:v0.0.1
+      command: ["cp", "/histogramQuantile", "/var/lib/clickhouse/user_scripts/histogramQuantile"]
+      volumeMounts:
+        - name: shared-binary-volume
+          mountPath: /var/lib/clickhouse/user_scripts
+```
+
+From a mirror: keep the download, copy the default `clickhouse.udf.command` from the chart's `values.yaml` and change its `wget` line. `clickhouse.udf.env` and `clickhouse.udf.envFrom` reach the download container, for a proxy or a mirror credential:
+
+```yaml
+clickhouse:
+  udf:
+    envFrom:
+      - secretRef:
+          name: my-mirror-credentials   # holds MIRROR_TOKEN
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        version="v0.0.1"
+        node_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+        node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+        echo "Fetching histogram-binary for ${node_os}/${node_arch}"
+        cd /tmp
+        wget --header "Authorization: Bearer ${MIRROR_TOKEN}" -O histogram-quantile.tar.gz "https://my.mirror/histogram-quantile/${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz"
+        tar -xzf histogram-quantile.tar.gz
+        chmod +x histogram-quantile
+        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+        echo "histogram-quantile installed successfully"
+```
 
 <a id="100-clickhouse"></a>
 #### ClickHouse
@@ -187,7 +288,7 @@ ClickHouse is now rendered by the SigNoz chart itself, keeps its name and data, 
 | <a id="100-logs-sidecar"></a>The system-logs sidecar now runs `signoz/signoz-otel-collector:v0.144.15` as `/signoz-otel-collector`, where it ran `0.111.16` as `/signoz-collector`. | `clickhouse.logs.system.enabled` is true. | See [the entry](#100-logs-sidecar-detail). |
 | <a id="100-events-proto"></a>The ClickHouseInstallation no longer ships `events.proto` in `spec.configuration.files`. | You use that format schema. | Add it under `clickhouse.files`. |
 | <a id="100-ch-claims-retained"></a>The operator now keeps ClickHouse claims it no longer tracks (`reconciling.cleanup.unknownObjects.pvc: Retain`) instead of deleting them. | You scale ClickHouse down or rename it. | Delete such claims by hand when the data is no longer wanted. |
-| <a id="100-ch-pull-secrets"></a>Pull secrets move from the ClickHouse ServiceAccount to the pod, which lists `global.imagePullSecrets`, the top-level `imagePullSecrets` and `clickhouse.imagePullSecrets` once each. | You use a private registry, or your own pods rely on that ServiceAccount. | List pull secrets on your own pods. |
+| <a id="100-ch-pull-secrets"></a>Pull secrets move from the ClickHouse ServiceAccount to the pod, which also lists the top-level `imagePullSecrets` ([details](#100-registry)). | You use a private registry, or your own pods rely on that ServiceAccount. | List pull secrets on your own pods. |
 | <a id="100-ch-name-length"></a>A ClickHouse name over 34 characters, such as a release name of 24 characters or more with the default `-clickhouse`, is now refused. | Your release name or `clickhouse.fullnameOverride` is long. | See [the caution](#100-ch-name-length-detail). |
 | <a id="100-external-ch-secret"></a>External ClickHouse's password moves from Secret `<release>-clickhouse-external` (key `clickhouse-password`) and the pod specs to Secret `<release>-clickhouse-credentials` (key `password`). | `clickhouse.enabled` is false. | Point anything that read the old Secret at the new one. |
 | <a id="100-external-ch-tls"></a>With `externalClickhouse.secure: true`, SigNoz, `check` and the migrator now connect over TLS, while the collector's exporters stay on plain TCP (not tested). | Your external ClickHouse has `secure: true`. | See [the entry](#100-external-ch-tls-detail). |
@@ -255,9 +356,9 @@ The operator now comes from Altinity's own chart at 0.27.4, with new object name
 | Change | Affects you if | Do |
 |---|---|---|
 | <a id="100-operator-replaced"></a>The operator Deployment's selector becomes `app.kubernetes.io/name: clickhouse-operator` and `instance`, so pre-upgrade hook Job `<release>-clickhouse-operator-upgrade` deletes the old Deployment on every upgrade. | Every existing install, and upgrades with that hook off. | See [the warning](#100-operator-replaced-detail). |
-| <a id="100-operator-images"></a>Operator, metrics-exporter and CRD-hook images and pull secrets come only from `altinity-clickhouse-operator.*`, and the CRD hook pulls `registry.k8s.io/kubectl:v1.36.3` without pull secrets ([Hooks](#100-hooks)). | You use a private registry. | Set `altinity-clickhouse-operator.operator.image`, `metrics.image`, `crdHook.image` and `imagePullSecrets` before you upgrade. |
+| <a id="100-operator-images"></a>Operator, metrics-exporter and CRD-hook images and pull secrets come only from `altinity-clickhouse-operator.*` ([details](#100-registry)). | You use a private registry. | Set them before you upgrade, as [shown](#100-registry). |
 | <a id="100-operator-pull-secrets"></a>Operator pull secrets moved as names (`[ch-pull]`) to `altinity-clickhouse-operator.imagePullSecrets` render strings where Kubernetes needs objects (rejection not tested). | You set operator pull secrets. | Write `[{name: ch-pull}]`. |
-| <a id="100-operator-system-logs"></a>System log TTLs, flush intervals and the logger move from `clickhouse.clickhouseOperator` keys to whole XML files in `altinity-clickhouse-operator.configs.configdFiles`, with the same defaults except `part_log` and the listen file. | You tuned a system log table or the logger. | Copy the default file and edit it. |
+| <a id="100-operator-system-logs"></a>System log TTLs, flush intervals and the logger move from `clickhouse.clickhouseOperator` keys to whole XML files in `altinity-clickhouse-operator.configs.configdFiles`, with the same defaults. | You tuned a system log table or the logger. | See [the entry](#100-operator-system-logs-detail). |
 | <a id="100-operator-config"></a>0.27.4's operator config: 5 s connect and 4 s query timeouts (were 2 s and 5 s), 5 shard threads, restarts on `files/*.xml` but not on coordination-node changes, and drops a deleted host's replica metadata. | Every install. | Nothing. |
 | <a id="100-operator-rbac"></a>The operator's Role adds `delete` on pods, `get`, `list` and `watch` on `endpointslices`, and ClickHouseKeeperInstallations with their finalizers and status, removing nothing. | You audit RBAC rules. | Nothing. |
 | <a id="100-operator-off"></a>New `altinity-clickhouse-operator.enabled: false` renders no operator and neither operator hook, and an upgrade then removes the chart's operator objects. | You run your own operator. | Nothing. |
@@ -274,6 +375,64 @@ The operator now comes from Altinity's own chart at 0.27.4, with new object name
 > [!WARNING]
 > With the hook off and the old operator Deployment in place, the upgrade fails on the Deployment's immutable selector. Delete Deployment `<release>-clickhouse-operator` right before the upgrade, or let the hook run.
 
+<a id="100-operator-system-logs-detail"></a>
+**System log tables are configured as whole files**
+
+- **Before:** The TTL and flush interval of each system log table, and the logger, were keys under `clickhouse.clickhouseOperator`, such as `queryLog.ttl` and `queryLog.flushInterval`.
+- **Now:** Each is one XML file under `altinity-clickhouse-operator.configs.configdFiles`, which the operator receives in ConfigMap `<release>-clickhouse-operator-configd-files`. The TTL, in days, sits in the file's `engine` line, and the flush interval, in milliseconds, in `flush_interval_milliseconds`. A file set to `null` is left out, so its table is not configured.
+- **Affects you if:** You set a `ttl`, `flushInterval` or `logger` key under `clickhouse.clickhouseOperator`.
+- **Do:** Copy the default file of each table you tuned into your values, edit it, and delete the old keys. Not tested on a cluster: the operator applying an edited file.
+
+| Old key under `clickhouse.clickhouseOperator` | File under `altinity-clickhouse-operator.configs.configdFiles` | Default TTL and flush interval | Default file in |
+|---|---|---|---|
+| `logger` | `01-clickhouse-02-logger.xml` | Not a table | This chart's `values.yaml` |
+| `queryLog` | `01-clickhouse-03-query_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `partLog` | `01-clickhouse-04-part_log.xml` | 30 days, 7500 ms | Altinity's chart |
+| `traceLog` | `01-clickhouse-05-trace_log.xml` | 7 days, 7500 ms | This chart's `values.yaml` |
+| `asynchronousInsertLog` | `01-clickhouse-06-asynchronous_insert_log.xml` | 7 days, 7500 ms | This chart's `values.yaml` |
+| `asynchronousMetricLog` | `01-clickhouse-07-asynchronous_metric_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `backupLog` | `01-clickhouse-08-backup_log.xml` | 7 days, 7500 ms | This chart's `values.yaml` |
+| `blobStorageLog` | `01-clickhouse-09-blob_storage_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `crashLog` | `01-clickhouse-10-crash_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `metricLog` | `01-clickhouse-11-metric_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `queryThreadLog` | `01-clickhouse-12-query_thread_log.xml` | 7 days, 7500 ms | This chart's `values.yaml` |
+| `queryViewsLog` | `01-clickhouse-13-query_views_log.xml` | 15 days, 7500 ms | This chart's `values.yaml` |
+| `sessionLog` | `01-clickhouse-14-session_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `zookeeperLog` | `01-clickhouse-15-zookeeper_log.xml` | 30 days, 7500 ms | This chart's `values.yaml` |
+| `processorsProfileLog` | `01-clickhouse-16-processors_profile_log.xml` | 7 days, 7500 ms | This chart's `values.yaml` |
+
+Altinity's chart also holds `01-clickhouse-01-listen.xml`. To read its defaults:
+
+```bash
+helm show values altinity-clickhouse-operator --repo https://helm.altinity.com --version 0.27.4
+```
+
+For example, `clickhouse.clickhouseOperator.zookeeperLog.ttl: 1` becomes:
+
+```yaml
+altinity-clickhouse-operator:
+  configs:
+    configdFiles:
+      01-clickhouse-15-zookeeper_log.xml: |
+        <yandex>
+            <zookeeper_log replace="1">
+                <database>system</database>
+                <table>zookeeper_log</table>
+                <engine>Engine = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + interval 1 day</engine>
+                <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+            </zookeeper_log>
+        </yandex>
+```
+
+To leave a table unconfigured:
+
+```yaml
+altinity-clickhouse-operator:
+  configs:
+    configdFiles:
+      01-clickhouse-15-zookeeper_log.xml: null
+```
+
 <a id="100-signoz"></a>
 #### SigNoz
 
@@ -285,7 +444,7 @@ The SigNoz server keeps its image, while its values keys, probes and ClickHouse 
 | <a id="100-signoz-env-override"></a>A `signoz.env` key named like a chart variable, such as `SIGNOZ_SQLSTORE_*` or `POSTGRES_*` with bundled Postgres, now replaces that variable instead of losing to it, and entries referencing each other in a circle are refused. | You set such keys. | Delete the key unless its value should apply. |
 | <a id="100-signoz-env-numbers"></a>A large number in `signoz.env` renders in full (`"1000000"`, was `"1e+06"`). | You set one. | Nothing. |
 | <a id="100-signoz-ingress"></a>An Ingress path without `port` or `pathType` now routes to `signoz.service.port` with `ImplementationSpecific` instead of rendering empty fields. | Your Ingress hosts leave them out. | Nothing. |
-| <a id="100-signoz-pull-secrets"></a>Pull secrets move from the SigNoz ServiceAccount, where repeats appeared twice, to the pod: `global.imagePullSecrets`, `imagePullSecrets` and `signoz.imagePullSecrets`, once each. | You use a private registry, or your own pods rely on that ServiceAccount. | List pull secrets on your own pods. |
+| <a id="100-signoz-pull-secrets"></a>Pull secrets move from the SigNoz ServiceAccount to the pod ([details](#100-registry)). | You use a private registry, or your own pods rely on that ServiceAccount. | List pull secrets on your own pods. |
 | <a id="100-signoz-new-keys"></a>New `signoz` keys: `envFrom`, `labels`, `pod.labels`, `extraInitContainers`, `extraContainers`, `startupProbe`. | You set one. | Nothing. |
 
 <a id="100-signoz-dsn-detail"></a>
@@ -304,7 +463,7 @@ The collector keeps its image, while its values keys, probes, ports and pull sec
 | Change | Affects you if | Do |
 |---|---|---|
 | <a id="100-collector-ports"></a>The disabled `zipkin` (9411, TCP) and `jaeger-compact` (6831, UDP) port entries are gone, so `enabled: true` alone renders a port with no number, which Kubernetes rejects (not tested). | You turned either on with `enabled: true` alone. | Also write `containerPort`, `servicePort` and `protocol`. |
-| <a id="100-collector-pull-secrets"></a>Pull secrets move from the collector's ServiceAccount to the pod: `global.imagePullSecrets`, `imagePullSecrets` and `otelCollector.imagePullSecrets`, once each. | You use a private registry. | Nothing. |
+| <a id="100-collector-pull-secrets"></a>Pull secrets move from the collector's ServiceAccount to the pod ([details](#100-registry)). | You use a private registry. | Nothing. |
 | <a id="100-collector-opamp"></a>The collector dials SigNoz's OpAMP on `signoz.service.opampPort` instead of always 4320. | You changed that port. | Nothing. |
 | <a id="100-collector-crb-annotations"></a>`otelCollector.clusterRole.clusterRoleBinding.annotations`, ignored before, now reach the ClusterRoleBinding. | You set them. | Nothing. |
 | <a id="100-collector-check"></a>The `check` init container now also takes `telemetryStoreMigrator.env`, `telemetryStoreMigrator.envFrom`, `telemetryStoreMigrator.resources` and `otelCollector.extraVolumeMounts`. | You reach ClickHouse through a proxy or with a CA file. | Set them there, with the volumes in `otelCollector.extraVolumes`. |
@@ -322,7 +481,7 @@ The migrator is a plain Job with the revision in its name, and it no longer runs
 | <a id="100-migrator-sa"></a>`telemetryStoreMigrator.serviceAccount.create` now defaults to `false`, so the Job runs as `default` and `serviceAccount.annotations` such as `eks.amazonaws.com/role-arn` are ignored. | Something is bound to ServiceAccount `signoz-telemetrystore-migrator`, such as a cloud identity. | Set `create: true` with the annotations, after deleting a [left-over](#100-migrator-leftovers) ServiceAccount or with `--take-ownership` (not tested). |
 | <a id="100-migrator-leftovers"></a>Job and ServiceAccount `signoz-telemetrystore-migrator`, made as hooks by chart 0.151.0 upgrades, are removed by Helm only at a release's install revision, and otherwise can stay (not tested). | Your release was upgraded on chart 0.151.0 or an earlier hook-based version. | Afterwards delete that Job, and the ServiceAccount unless `create` is true or `serviceAccount.name` names it, since the Job then runs as it. |
 | <a id="100-migrator-sa-name"></a>`telemetryStoreMigrator.serviceAccount.name` without `create: true` names an account nobody creates, so the Job's pods never start and on a fresh install `check` cannot pass (not tested). | You set it without `create: true`. | Add `create: true`, or create the account. |
-| <a id="100-migrator-pull-secrets"></a>The migrator pod now lists `global.imagePullSecrets`, `imagePullSecrets` and `otelCollector.imagePullSecrets`, instead of taking pull secrets from its ServiceAccount. | You use a private registry. | Nothing. |
+| <a id="100-migrator-pull-secrets"></a>The migrator pod lists its own pull secrets, `otelCollector.imagePullSecrets` included ([details](#100-registry)). | You use a private registry. | Nothing. |
 | <a id="100-migrator-new-keys"></a>New `telemetryStoreMigrator` keys: `env`, `envFrom`, `podSecurityContext`, `containerSecurityContext`, `extraVolumes`, `extraVolumeMounts`, `labels`, `pod.labels`, `pod.annotations`, `priorityClassName`, `ttlSecondsAfterFinished`. | You set one. | Nothing. |
 
 <a id="100-postgres"></a>
@@ -500,7 +659,15 @@ Helm runs the Jobs in weight order, `<release>-postgresql-upgrade-backup` at -11
 - `helm rollback` to a chart 0.151.0 revision fails on the operator Deployment's immutable selector, after Helm has reverted some objects.
 - With bundled Postgres, Postgres goes back to the old layout and SigNoz starts on an empty database, while the claim keeps the real one. Upgrading forward again finds it (`Nothing to back up.`) and brings the original organization back. Writes made while rolled back are lost.
 - After running on Keeper, StatefulSet `<release>-zookeeper` comes back on its retained claim with the coordination state from before the upgrade, and ClickHouse points at it again. Metadata written on Keeper is unknown to it. What ClickHouse then does is not tested.
-- To roll back, delete the operator Deployment right before the rollback, and the ClickHouseKeeperInstallation too with Keeper on ([guide]). Do not roll back across the switch to Keeper without a plan for the replicated tables.
+- Do not roll back once ClickHouse runs on Keeper, or across the switch, without a plan for the replicated tables.
+
+To roll back to a chart 0.151.0 revision while ClickHouse still runs on ZooKeeper, delete the ClickHouseKeeperInstallation (with Keeper on) and wait, delete the operator Deployment right before the rollback, then roll back. Not tested: no run took these steps.
+
+```bash
+kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait   # with keeper.enabled: true
+kubectl -n <namespace> delete deployment <release>-clickhouse-operator
+helm rollback <release> <revision> -n <namespace>
+```
 
 <a id="100-uninstall"></a>
 #### Uninstall
@@ -512,6 +679,21 @@ What differs from chart 0.151.0 after `helm uninstall`:
 - Bundled Postgres data stays on its claim and returns when the release is installed again.
 - Installing again over a stuck object works, and a plain `helm upgrade` with the same values then recreates the ClickHouse and Keeper objects.
 - A `clickhouse.namespace` Namespace now stays, with `helm.sh/resource-policy: keep` and `argocd.argoproj.io/sync-options: Prune=false,Delete=false`. Delete it by hand when nothing in it is wanted.
+
+A plain `helm uninstall` leaves the ClickHouseInstallation on its finalizer on chart 0.151.0 as well: the operator is removed before it can finish. To leave nothing stuck, delete the installations and wait, then uninstall. This order ran on chart 1.0.0 and left nothing behind but the claims.
+
+```bash
+kubectl -n <namespace> delete clickhouseinstallation <release>-clickhouse --wait
+kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait
+helm uninstall <release> -n <namespace>
+```
+
+If the release was uninstalled first, clear the finalizers. On both chart versions, only the claims remained 30 seconds later.
+
+```bash
+kubectl -n <namespace> patch clickhouseinstallation <release>-clickhouse --type=merge -p '{"metadata":{"finalizers":null}}'
+kubectl -n <namespace> patch clickhousekeeperinstallation <release>-keeper --type=merge -p '{"metadata":{"finalizers":null}}'
+```
 
 <a id="100-not-tested"></a>
 #### What was not tested
@@ -531,7 +713,9 @@ What differs from chart 0.151.0 after `helm uninstall`:
   - [left-over migrator objects](#100-migrator-leftovers)
   - [migrator ServiceAccount name](#100-migrator-sa-name)
   - [a failing CRD hook](#100-hooks)
-  - [ClickHouse after a rollback to ZooKeeper](#100-rollback)
+  - [ClickHouse after a rollback to ZooKeeper, and the rollback steps](#100-rollback)
+  - [edited system log files](#100-operator-system-logs-detail)
+  - [the histogramQuantile binary without GitHub](#100-registry)
 - How replicated tables behave against an empty Keeper ([switch](#100-keeper-switch)), and an idle Keeper beside a ZooKeeper in use ([idle Keeper](#100-keeper-idle)).
 - Argo CD's own handling of the hooks and of `--is-upgrade` ([backup step](#100-pg-backup-hook)).
 - `clickhouse.containerSecurityContext` at runtime, with uid 101 and writable volumes ([Table 1](#100-moved-keys)), and the hooks in a namespace that enforces the `restricted` Pod Security profile with default values ([Hooks](#100-hooks)).
@@ -557,7 +741,7 @@ What differs from chart 0.151.0 after `helm uninstall`:
 | histogramQuantile download image | `docker.io/alpine:3.18.2` | `clickhouse/clickhouse-server:25.12.5` |
 | Keeper image | None | `clickhouse/clickhouse-keeper:25.12.5`, following `global.imageRegistry` |
 | System-logs sidecar image | `docker.io/signoz/signoz-otel-collector:0.111.16` | `signoz/signoz-otel-collector:v0.144.15` |
-| Operator hook image | None | `registry.k8s.io/kubectl:v1.36.3`. The operator-upgrade hook pulls it through `global.imageRegistry` with the global, top-level and `clickhouse.imagePullSecrets`, the CRD hook with neither. |
+| Operator hook image | None | `registry.k8s.io/kubectl:v1.36.3` ([with `global.imageRegistry`](#100-registry)) |
 | Postgres backup hook image | None | `postgres:15` |
 | SigNoz | v0.151.0 (`docker.io/signoz/signoz:v0.151.0`) | v0.152.0, set when chart 1.0.0 is released |
 | Collector image, also for `check` and the migrator | `docker.io/signoz/signoz-otel-collector:v0.144.16` | Unchanged |
