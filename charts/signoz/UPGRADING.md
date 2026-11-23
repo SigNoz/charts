@@ -28,8 +28,8 @@ The step-by-step guide: [Upgrade to 0.152][guide].
 | Your setup | Start here |
 |---|---|
 | Every install | [What to know first](#0152-before), [what the upgrade does](#0152-what-happens), [keys that moved or changed](#0152-values), [Keeper replacing ZooKeeper](#0152-keeper) |
-| Argo CD or rendered manifests (`helm template`, `kubectl apply`) | [Keeper switch on the first sync](#0152-keeper-switch-detail), [operator Deployment](#0152-operator-replaced-detail), [Postgres without its hook](#0152-pg-backup-hook-detail), [how the hooks behave](#0152-hooks) |
-| Bundled Postgres (`postgresql.enabled: true`) | [Postgres without its hook](#0152-pg-backup-hook-detail), [hook stopping the upgrade](#0152-pg-hook-stops-detail), [Postgres not Ready](#0152-pg-loader-detail), [all Postgres changes](#0152-postgres) |
+| Argo CD or rendered manifests (`helm template --is-upgrade`, `kubectl apply`) | [Keeper switch on the first sync](#0152-keeper-switch-detail), [operator Deployment](#0152-operator-replaced-detail), [the Postgres backup step](#0152-pg-backup-hook-detail), [hooks in order](#0152-hooks) |
+| Bundled Postgres (`postgresql.enabled: true`) | [the backup step](#0152-pg-backup-hook-detail), [hook stopping the upgrade](#0152-pg-hook-stops-detail), [Postgres not Ready](#0152-pg-loader-detail), [all Postgres changes](#0152-postgres) |
 | External ClickHouse (`clickhouse.enabled: false`) | [TLS and `secure: true`](#0152-external-ch-tls-detail), [the password's new Secret](#0152-external-ch-secret), [all ClickHouse changes](#0152-clickhouse), [keys that now do nothing](#0152-ignored-keys) |
 | Private registry, pull secrets or pinned image tags | [operator images and the CRD hook](#0152-operator-images), [images to mirror](#0152-versions), [registry and pull-secret keys](#0152-values), [tags with a digest](#0152-digest-tag) |
 | ZooKeeper settings or an external ZooKeeper | [switch to an empty Keeper](#0152-keeper-switch-detail), [moving `clickhouse.zookeeper`](#0152-zk-literal), [Keeper and ZooKeeper](#0152-keeper), [moved ZooKeeper keys](#0152-values) |
@@ -230,7 +230,7 @@ ClickHouse Keeper replaces the bundled ZooKeeper as the default coordination sto
 | Change | Affects you if | Do |
 |---|---|---|
 | <a id="0152-keeper-default"></a>The default store moves from the bundled ZooKeeper to ClickHouseKeeperInstallation `<release>-keeper`, reached at `keeper-<release>-keeper:2181`. | You install fresh or upgrade on default values. | On an existing install, keep `zookeeper.enabled: true` and `keeper.enabled: false` until you migrate ([guide]). |
-| <a id="0152-keeper-crd"></a>With `keeper.enabled` at its default, the first upgrade is refused before anything changes, `--no-hooks` included, and `helm template` without `--include-crds` piped to `kubectl apply` needs a second apply after the CRD hook Job. | You upgrade an existing install without `keeper.enabled: false`. | Set `zookeeper.enabled: true` and `keeper.enabled: false`. |
+| <a id="0152-keeper-crd"></a>With `keeper.enabled` at its default, the first `helm upgrade` is refused before anything changes, `--no-hooks` included, because the Keeper CRD comes from a hook. Rendered manifests carry it with `--include-crds`, or in the CRD hook Job applied first. | You upgrade an existing install without `keeper.enabled: false`. | Set `zookeeper.enabled: true` and `keeper.enabled: false`. |
 | <a id="0152-keeper-switch"></a>Once the Keeper CRD exists, as with `helm template --include-crds` (Argo CD), an upgrade on default values removes ZooKeeper and moves ClickHouse to an empty Keeper. | You upgrade an existing install without `zookeeper.enabled: true`. | See [the caution](#0152-keeper-switch-detail). |
 | <a id="0152-zk-literal"></a>A `clickhouse.zookeeper` block moved to `zookeeper` without `enabled: true` is ignored, and ClickHouse moves to a one-node Keeper with a 10Gi claim, printing nothing. | You follow the `clickhouse.zookeeper` refusal literally. | Add `zookeeper.enabled: true` and `keeper.enabled: false` to the moved block. |
 | <a id="0152-keeper-idle"></a>With `clickhouse.externalZookeeper.servers`, or `zookeeper.enabled: true` alone, an idle Keeper (one node, 10Gi claim) is installed beside the store ClickHouse uses. | You use an external ZooKeeper, or keep ZooKeeper that way. | Set `keeper.enabled: false`, and with an external ZooKeeper leave `zookeeper.enabled` unset. |
@@ -261,13 +261,13 @@ The operator now comes from Altinity's own chart at 0.27.4, with new object name
 | <a id="0152-operator-config"></a>0.27.4's operator config: 5 s connect and 4 s query timeouts (were 2 s and 5 s), 5 shard threads, restarts on `files/*.xml` but not on coordination-node changes, and drops a deleted host's replica metadata. | Every install. | Nothing. |
 | <a id="0152-operator-rbac"></a>The operator's Role adds `delete` on pods, `get`, `list` and `watch` on `endpointslices`, and ClickHouseKeeperInstallations with their finalizers and status, removing nothing. | You audit RBAC rules. | Nothing. |
 | <a id="0152-operator-off"></a>New `altinity-clickhouse-operator.enabled: false` renders no operator and neither operator hook, and an upgrade then removes the chart's operator objects. | You run your own operator. | Nothing. |
-| <a id="0152-hook-jobs-kubectl"></a>`helm template` now emits the 12 operator hook objects, so under `kubectl apply` the two Jobs run once, stay, and block a later chart version that changes them. | You apply rendered manifests, or your GitOps tool skips Helm hooks. | Delete the two Jobs before applying a later chart version, or apply the CRDs yourself. |
+| <a id="0152-hook-jobs-kubectl"></a>`helm template` renders the 12 operator hook objects, with or without `--is-upgrade`, and `kubectl apply` treats them as ordinary objects: each hook Job runs once and stays. | You apply rendered manifests, or your GitOps tool does not run Helm hooks. | Apply the hook Jobs in [weight order](#0152-hooks) before the rest, and delete them before a chart version that changes them. |
 
 <a id="0152-operator-replaced-detail"></a>
 **A hook replaces the operator Deployment**
 
 - **Before:** The selector was `app.kubernetes.io/name: clickhouse`, `app.kubernetes.io/instance` and `app.kubernetes.io/component: operator`.
-- **Now:** The hook deletes the old Deployment and finds nothing after the first upgrade. Under `helm template` piped to `kubectl apply`, the new Deployment is rejected until the Job has run, and a second apply creates it.
+- **Now:** The hook deletes the old Deployment and finds nothing after the first upgrade. With rendered manifests, its Job has to finish before the new Deployment is applied, or that apply is rejected and has to be repeated.
 - **Affects you if:** You upgrade with `--no-hooks`, Argo CD without hooks, or `clickhouse.operatorUpgradeHook.enabled: false`.
 - **Do:** Delete the old Deployment by hand right before the upgrade ([guide]).
 
@@ -320,7 +320,7 @@ The migrator is a plain Job with the revision in its name, and it no longer runs
 | <a id="0152-migrator-job"></a>The migrator moves from `signoz-telemetrystore-migrator`, a pre-upgrade hook on upgrade, to plain Job `signoz-telemetrystore-migrator-<revision>`, new on every install and upgrade, `--no-hooks` included. | Something names or waits for the Job, or you upgrade with `--no-hooks` or Argo CD. | Wait on the new name. Set `telemetryStoreMigrator.enabled: false` to skip one revision. |
 | <a id="0152-migrations-no-gate"></a>Migrations now run beside the upgraded workloads, may fail and restart while ClickHouse is recreated, and no longer fail `helm upgrade`, which waits for Jobs only with `--wait-for-jobs`. Only `check` waits for them. | Every install. | Nothing. |
 | <a id="0152-migrator-sa"></a>`telemetryStoreMigrator.serviceAccount.create` now defaults to `false`, so the Job runs as `default` and `serviceAccount.annotations` such as `eks.amazonaws.com/role-arn` are ignored. | Something is bound to ServiceAccount `signoz-telemetrystore-migrator`, such as a cloud identity. | Set `create: true` with the annotations, after deleting a [left-over](#0152-migrator-leftovers) ServiceAccount or with `--take-ownership` (not tested). |
-| <a id="0152-migrator-leftovers"></a>Job and ServiceAccount `signoz-telemetrystore-migrator`, made as hooks by 0.151.0 upgrades, are removed by Helm only at a release's install revision, and otherwise can stay (not tested). | Your release was upgraded on 0.151.0 or an earlier hook-based version. | Afterwards delete that Job, and the ServiceAccount unless `create` is true. |
+| <a id="0152-migrator-leftovers"></a>Job and ServiceAccount `signoz-telemetrystore-migrator`, made as hooks by 0.151.0 upgrades, are removed by Helm only at a release's install revision, and otherwise can stay (not tested). | Your release was upgraded on 0.151.0 or an earlier hook-based version. | Afterwards delete that Job, and the ServiceAccount unless `create` is true or `serviceAccount.name` names it, since the Job then runs as it. |
 | <a id="0152-migrator-sa-name"></a>`telemetryStoreMigrator.serviceAccount.name` without `create: true` names an account nobody creates, so the Job's pods never start and on a fresh install `check` cannot pass (not tested). | You set it without `create: true`. | Add `create: true`, or create the account. |
 | <a id="0152-migrator-pull-secrets"></a>The migrator pod now lists `global.imagePullSecrets`, `imagePullSecrets` and `otelCollector.imagePullSecrets`, instead of taking pull secrets from its ServiceAccount. | You use a private registry. | Nothing. |
 | <a id="0152-migrator-new-keys"></a>New `telemetryStoreMigrator` keys: `env`, `envFrom`, `podSecurityContext`, `containerSecurityContext`, `extraVolumes`, `extraVolumeMounts`, `labels`, `pod.labels`, `pod.annotations`, `priorityClassName`, `ttlSecondsAfterFinished`. | You set one. | Nothing. |
@@ -333,10 +333,10 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 | Change | Affects you if | Do |
 |---|---|---|
 | <a id="0152-pg-data-on-claim"></a>The database moves from the image's own volume, lost on container restarts, to the claim's `data/` folder at `/var/lib/postgresql/data`. | `postgresql.enabled` is true. | Nothing ([conditions](#0152-pg-data-on-claim-detail)). |
-| <a id="0152-pg-backup-hook"></a>Pre-upgrade hook Job `<release>-postgresql-upgrade-backup` dumps a database that lives only in the container to `backups/pre-upgrade.sql` on the claim, and `helm template` never renders it. | `postgresql.enabled` is true. | See [the caution](#0152-pg-backup-hook-detail). |
+| <a id="0152-pg-backup-hook"></a>A pre-upgrade step, Job `<release>-postgresql-upgrade-backup`, carries over a database held in the container by dumping it to `backups/pre-upgrade.sql` on the claim. | `postgresql.enabled` is true. | See [how each upgrade runs it](#0152-pg-backup-hook-detail). |
 | <a id="0152-pg-hook-stops"></a>When the hook cannot dump (wrong password, Postgres unreachable, your own `/docker-entrypoint-initdb.d`, or its 240 s deadline), the upgrade stops before anything changes. | The hook fails. | See [the warning](#0152-pg-hook-stops-detail). |
 | <a id="0152-pg-hook-node"></a>The hook Job must run on the Postgres pod's node, so with Postgres scaled to 0 it stays Pending and fails with `DeadlineExceeded` after about 240 s. | Postgres is not running on a multi-node cluster. | Start Postgres, or dump by hand and turn the hook off ([guide]). |
-| <a id="0152-pg-own-volumes"></a>With a volume of yours at the data directory the hook is not rendered, and with your own `/docker-entrypoint-initdb.d` it refuses the upgrade. | You mount extra volumes into Postgres. | For `/docker-entrypoint-initdb.d`, dump by hand and turn the hook off ([guide]). |
+| <a id="0152-pg-own-volumes"></a>With a volume of yours at the data directory the database already lives there, so no backup step is rendered. With your own `/docker-entrypoint-initdb.d` the step refuses the upgrade. | You mount extra volumes into Postgres. | For `/docker-entrypoint-initdb.d`, dump by hand and turn the step off ([guide]). |
 | <a id="0152-pg-loader"></a>Postgres' first start on the claim loads `backups/pre-upgrade.sql` in one transaction (from ConfigMap `<release>-postgresql-restore`) and renames it `pre-upgrade.sql.loaded`, while a truncated or failing dump leaves the database empty. | `postgresql.enabled` is true. | See [the warning](#0152-pg-loader-detail). |
 | <a id="0152-pg-interrupted-load"></a>A load interrupted by a container stop leaves orphaned files on the claim, and the next start skips initialisation and stays not Ready. | The first start after the upgrade is interrupted. | Load the dump by hand and rename it ([guide]). |
 | <a id="0152-pg-startup-probe"></a>A new startup probe (180 tries, 10 s apart) holds Postgres not Ready while `backups/pre-upgrade.sql` exists, naming the file and the guide in its event. | `postgresql.enabled` is true. | Nothing. |
@@ -347,20 +347,20 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 **The Postgres database lives on its claim**
 
 - **Before:** The claim was mounted at `/var/lib/postgresql` while `PGDATA` was `/var/lib/postgresql/data`, so the database lived in the image's own volume and was lost on every container restart, on runtimes that honour image volumes.
-- **Now:** The claim's `data/` folder is also mounted at `/var/lib/postgresql/data`, so the database survives restarts. That needs persistence on at the default `postgresql.persistence.mountPath`, no volume of yours there, and a `postgres` tag from 15 to 17. Another mount path keeps the old layout and renders no backup hook.
+- **Now:** The claim's `data/` folder is also mounted at `/var/lib/postgresql/data`, so the database survives restarts. That needs persistence on at the default `postgresql.persistence.mountPath`, no volume of yours there, and a `postgres` tag from 15 to 17. Another mount path keeps the old layout, so the upgrade does not move the data and renders no backup step.
 - **Affects you if:** `postgresql.enabled` is true.
-- **Do:** Nothing. The backup hook below carries the database over.
+- **Do:** Nothing. The backup step below carries the database over.
 
 <a id="0152-pg-backup-hook-detail"></a>
-**The backup hook carries over a database held in the container**
+**The backup step carries over a database held in the container**
 
 - **Before:** An upgrade restarted Postgres and lost the database held in the container.
-- **Now:** The hook, on the Postgres pod's node with `backoffLimit: 0` and a 240 s deadline, dumps it when the claim holds no data directory, and does nothing when it does.
+- **Now:** Before anything changes, the step dumps that database to `backups/pre-upgrade.sql` on the claim, or does nothing when the claim already holds it, running on the Postgres pod's node with `backoffLimit: 0` and a 240 s deadline. `helm upgrade` runs it as a pre-upgrade hook. Manifests rendered with `helm template --is-upgrade` include its Job, which has to be applied and finish before the rest, since `kubectl` does not order hooks ([guide]). A GitOps tool runs it when it renders the chart as an upgrade and runs Helm hooks. For Argo CD that is [not tested](#0152-not-tested).
 - **Affects you if:** Your install's database lives only in the container.
-- **Do:** Upgrade with `helm upgrade` and hooks, or take the dump by hand first ([guide]).
+- **Do:** Make no changes in SigNoz while the upgrade runs: changes written after the dump are not in it, and in full-chart upgrades Postgres stopped 7 to 16 seconds after the backup Job finished.
 
 > [!CAUTION]
-> When the hook does not run on such an install, Postgres starts on an empty data folder with no message. It does not run with `helm template` and tools that render with it, such as Argo CD, or with `--no-hooks`, `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` claim or `postgresql.replicaCount: 0`. Take the dump by hand before such an upgrade.
+> When the step is switched off or cannot run on such an install, Postgres starts on an empty data folder with no message. That happens with `--no-hooks`, `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` claim or `postgresql.replicaCount: 0`. Take the dump by hand first, as the [guide] describes.
 
 <a id="0152-pg-hook-stops-detail"></a>
 **The backup hook stops the upgrade when it cannot dump**
@@ -453,12 +453,12 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 
 | Hook | When it runs | What it does | How to turn it off | What a failure looks like |
 |---|---|---|---|---|
-| Job `<release>-postgresql-upgrade-backup` | `helm upgrade` with bundled Postgres, [not always](#0152-pg-backup-hook-detail) | Dumps a database held in the container to the claim | `postgresql.upgradeBackupHook.enabled: false` or `--no-hooks`, after a dump by hand | `pre-upgrade hooks failed` with `BackoffLimitExceeded` or `DeadlineExceeded` ([warning](#0152-pg-hook-stops-detail)) |
-| Job `<release>-clickhouse-operator-upgrade` | Every `helm upgrade`, and in [`helm template`](#0152-hook-jobs-kubectl) | Deletes the operator Deployment 0.151.0 created | `clickhouse.operatorUpgradeHook.enabled: false` or `--no-hooks`, then delete it by hand | With the hook off, the upgrade fails on the immutable selector ([warning](#0152-operator-replaced-detail)) |
-| Job `<release>-clickhouse-operator-crd-install` | Every `helm install` and `helm upgrade`, and in `helm template` | Applies the four CRDs, the [Keeper CRD](#0152-keeper-crd) included, logging `serverside-applied` | `altinity-clickhouse-operator.crdHook.enabled: false` or `--no-hooks`, then apply the CRDs by hand before each operator version change | The upgrade fails after the old operator is deleted, leaving none (not tested) |
+| Job `<release>-postgresql-upgrade-backup` | `helm upgrade` with bundled Postgres, and `helm template --is-upgrade` ([how](#0152-pg-backup-hook-detail)) | Dumps a database held in the container to the claim | `postgresql.upgradeBackupHook.enabled: false` or `--no-hooks`, after a dump by hand | `pre-upgrade hooks failed` with `BackoffLimitExceeded` or `DeadlineExceeded` ([warning](#0152-pg-hook-stops-detail)) |
+| Job `<release>-clickhouse-operator-upgrade` | Every `helm upgrade`, and in [rendered manifests](#0152-hook-jobs-kubectl) | Deletes the operator Deployment 0.151.0 created | `clickhouse.operatorUpgradeHook.enabled: false` or `--no-hooks`, then delete it by hand | With the hook off, the upgrade fails on the immutable selector ([warning](#0152-operator-replaced-detail)) |
+| Job `<release>-clickhouse-operator-crd-install` | Every `helm install` and `helm upgrade`, and in rendered manifests | Applies the four CRDs, the [Keeper CRD](#0152-keeper-crd) included, logging `serverside-applied` | `altinity-clickhouse-operator.crdHook.enabled: false` or `--no-hooks`, then apply the CRDs by hand before each operator version change | The upgrade fails after the old operator is deleted, leaving none (not tested) |
 | Job and ServiceAccount `signoz-telemetrystore-migrator`, 0.151.0 only | 0.151.0: before each `helm upgrade` | Ran the migrations | Removed: the migrator is now [a plain Job](#0152-migrator-job) | A failed migration failed the upgrade, which it [no longer does](#0152-migrations-no-gate) |
 
-The Jobs run in weight order, `<release>-postgresql-upgrade-backup` at -11, `<release>-clickhouse-operator-upgrade` at -9 and `<release>-clickhouse-operator-crd-install` at -5, each after the objects it needs, listed under [Added](#0152-objects-added).
+Helm runs the Jobs in weight order, `<release>-postgresql-upgrade-backup` at -11, `<release>-clickhouse-operator-upgrade` at -9 and `<release>-clickhouse-operator-crd-install` at -5, each after the objects it needs, listed under [Added](#0152-objects-added), and rendered manifests apply them in that order, each finished, before the rest.
 
 <a id="0152-messages"></a>
 ### Messages
@@ -533,7 +533,7 @@ What differs from 0.151.0 after `helm uninstall`:
   - [a failing CRD hook](#0152-hooks)
   - [ClickHouse after a rollback to ZooKeeper](#0152-rollback)
 - How replicated tables behave against an empty Keeper ([switch](#0152-keeper-switch)), and an idle Keeper beside a ZooKeeper in use ([idle Keeper](#0152-keeper-idle)).
-- Argo CD's own handling of the hooks and of `--is-upgrade` ([backup hook](#0152-pg-backup-hook)).
+- Argo CD's own handling of the hooks and of `--is-upgrade` ([backup step](#0152-pg-backup-hook)).
 - `clickhouse.containerSecurityContext` at runtime, with uid 101 and writable volumes ([Table 1](#0152-moved-keys)), and the hooks in a namespace that enforces the `restricted` Pod Security profile with default values ([Hooks](#0152-hooks)).
 - A plain password holding `&` or `<` through `clickhouse.existingSecret` without the SHA-256 key ([own Secret](#0152-ch-existing-secret)).
 - A fresh non-root install of the bundled Postgres, and what its pod shows once the startup probe's 30 minutes run out while a dump waits ([startup probe](#0152-pg-startup-probe)).
