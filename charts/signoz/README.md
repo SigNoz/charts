@@ -38,24 +38,34 @@ The [Configuration](#configuration) section lists the parameters that can be con
 
 ### Uninstalling the chart
 
-To uninstall/delete the `my-release` resources:
+To uninstall `my-release`, delete the ClickHouse objects first and wait for them to go, then run `helm uninstall`:
 
 ```bash
+kubectl -n platform delete clickhouseinstallation my-release-clickhouse --wait
+kubectl -n platform delete clickhousekeeperinstallation my-release-keeper --wait   # with keeper.enabled: true
 helm -n platform uninstall "my-release"
 ```
 
+The order matters: the ClickHouse operator finishes deleting these objects, and `helm uninstall` removes the operator.
+
 See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
 
-The command above removes all the Kubernetes components associated
-with the chart and deletes the release.
+The PVCs stay after the uninstall. Bundled Postgres keeps its database on its PVC, and the database comes back when the release is installed again with the same name and namespace. The four CRDs of the ClickHouse operator stay too, and so does a Namespace created through `clickhouse.namespace`: delete it by hand when nothing in it is wanted.
 
-Deletion of the StatefulSet doesn't cascade to deleting associated PVCs. To delete them:
+To delete the PVCs:
 
 ```bash
 kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
 ```
 
-Sometimes everything doesn't get properly removed. If that happens try deleting the namespace:
+If `helm uninstall` ran first, the ClickHouse objects stay on their finalizers and their pods keep running. Clear the finalizers, and Kubernetes removes the objects and their pods:
+
+```bash
+kubectl -n platform patch clickhouseinstallation my-release-clickhouse --type=merge -p '{"metadata":{"finalizers":null}}'
+kubectl -n platform patch clickhousekeeperinstallation my-release-keeper --type=merge -p '{"metadata":{"finalizers":null}}'   # with keeper.enabled: true
+```
+
+To remove everything left in the namespace, PVCs included, delete it once the ClickHouse objects are gone. A namespace deleted while one of them waits on its finalizer stays `Terminating` until the finalizer is cleared.
 
 ```bash
 kubectl delete namespace platform

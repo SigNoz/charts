@@ -27,7 +27,7 @@ The step-by-step guide: [the upgrade guide][guide].
 
 | Your setup | Start here |
 |---|---|
-| Every install | [What to know first](#100-before), [what the upgrade does](#100-what-happens), [keys that moved or changed](#100-values), [Keeper replacing ZooKeeper](#100-keeper) |
+| Any existing release, whatever its setup (read these first) | [What to know first](#100-before), [what the upgrade does](#100-what-happens), [keys that moved or changed](#100-values), [Keeper replacing ZooKeeper](#100-keeper) |
 | Argo CD or rendered manifests (`helm template --is-upgrade`, `kubectl apply`) | [Keeper switch on the first sync](#100-keeper-switch-detail), [operator Deployment](#100-operator-replaced-detail), [the Postgres backup step](#100-pg-backup-hook-detail), [hooks in order](#100-hooks) |
 | Bundled Postgres (`postgresql.enabled: true`) | [the backup step](#100-pg-backup-hook-detail), [hook stopping the upgrade](#100-pg-hook-stops-detail), [Postgres not Ready](#100-pg-loader-detail), [all Postgres changes](#100-postgres) |
 | External ClickHouse (`clickhouse.enabled: false`) | [TLS and `secure: true`](#100-external-ch-tls-detail), [the password's new Secret](#100-external-ch-secret), [all ClickHouse changes](#100-clickhouse), [keys that now do nothing](#100-ignored-keys) |
@@ -680,20 +680,7 @@ What differs from chart 0.151.0 after `helm uninstall`:
 - Installing again over a stuck object works, and a plain `helm upgrade` with the same values then recreates the ClickHouse and Keeper objects.
 - A `clickhouse.namespace` Namespace now stays, with `helm.sh/resource-policy: keep` and `argocd.argoproj.io/sync-options: Prune=false,Delete=false`. Delete it by hand when nothing in it is wanted.
 
-A plain `helm uninstall` leaves the ClickHouseInstallation on its finalizer on chart 0.151.0 as well: the operator is removed before it can finish. To leave nothing stuck, delete the installations and wait, then uninstall. This order ran on chart 1.0.0 and left nothing behind but the claims.
-
-```bash
-kubectl -n <namespace> delete clickhouseinstallation <release>-clickhouse --wait
-kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait
-helm uninstall <release> -n <namespace>
-```
-
-If the release was uninstalled first, clear the finalizers. On both chart versions, only the claims remained 30 seconds later.
-
-```bash
-kubectl -n <namespace> patch clickhouseinstallation <release>-clickhouse --type=merge -p '{"metadata":{"finalizers":null}}'
-kubectl -n <namespace> patch clickhousekeeperinstallation <release>-keeper --type=merge -p '{"metadata":{"finalizers":null}}'
-```
+On both chart versions, a plain `helm uninstall` leaves the ClickHouse objects on their finalizers ([uninstall steps](README.md#uninstalling-the-chart)).
 
 <a id="100-not-tested"></a>
 #### What was not tested
