@@ -79,7 +79,7 @@ tests:
       - matchRegexRaw:
           pattern: "(?i)zookeeper[^\\n]*deprecated"
       - matchRegexRaw:
-          pattern: "upgrade-0\\.152\\.0\\.md#11-zookeeper-to-clickhouse-keeper"
+          pattern: "signoz\\.io/docs/operate/migration/upgrade-0-152/"
 
   - it: gives no ZooKeeper deprecation notice to an install without the bundled ZooKeeper
     template: templates/NOTES.txt

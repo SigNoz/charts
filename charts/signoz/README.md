@@ -63,6 +63,9 @@ kubectl delete namespace platform
 
 > [!WARNING]
 > ### Breaking Changes
+> #### Version 0.152.0
+> The upgrade notes are in [`UPGRADING.md`](./UPGRADING.md), and the step-by-step guide is at https://signoz.io/docs/operate/migration/upgrade-0-152/.
+>
 > #### Version 0.131.0
 > ClickHouse has been upgraded from `25.5.6` to `25.12.5`. This is a significant ClickHouse version jump, so review the upgrade guide before upgrading to avoid issues with your existing data.
 >
@@ -1749,7 +1752,7 @@ storageClass: null</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
 </div>
             </td>
-            <td>Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off. An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade</td>
+            <td>Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off. An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://signoz.io/docs/operate/migration/upgrade-0-152/</td>
         </tr>
         <tr>
             <td id="zookeeper--commonAnnotations"><a href="./values.yaml#L1003">zookeeper.commonAnnotations</a></td>
