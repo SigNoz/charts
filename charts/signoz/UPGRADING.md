@@ -355,10 +355,11 @@ Move these keys:
 <a id="100-registry"></a>
 ### Registry and pull secrets
 
-`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` cover every image and pod of the chart except two:
+`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` cover every image and pod of the chart, with three exceptions:
 
 - **ClickHouse operator**, with its CRD hook: only the `altinity-clickhouse-operator.*` keys below.
 - **Postgres**, with its backup Job: only `postgresql.image.repository` and `postgresql.imagePullSecrets`.
+- **ZooKeeper**: `imagePullSecrets` does not reach it. Use `global.imagePullSecrets` or `zookeeper.image.pullSecrets`.
 
 Set the operator's keys before you upgrade:
 
@@ -381,7 +382,7 @@ altinity-clickhouse-operator:
 
 Also:
 
-- Mirror the images that are new in 1.0.0: `clickhouse/clickhouse-keeper:25.12.5`, `altinity/clickhouse-operator:0.27.4`, `altinity/metrics-exporter:0.27.4`, `registry.k8s.io/kubectl:v1.36.3` (the hooks) and, with `clickhouse.logs.system.enabled`, `signoz/signoz-otel-collector:v0.144.15`. `alpine:3.18.2` is no longer used.
+- Mirror the images that are new in 1.0.0: `clickhouse/clickhouse-keeper:25.12.5`, `altinity/clickhouse-operator:0.27.4`, `altinity/metrics-exporter:0.27.4`, `registry.k8s.io/kubectl:v1.36.3` (the hooks) and, with `clickhouse.logs.system.enabled`, `signoz/signoz-otel-collector:v0.144.15`.
 - `global.imageRegistry` now replaces a registry written at the front of a repository. Before, the chart prefixed it. Example: with `repository: docker.io/signoz/signoz` and `global.imageRegistry: my.registry`, the image is `my.registry/signoz/signoz`.
 - The chart now lists pull secrets on each pod and no longer on its ServiceAccounts. If a pod of yours runs under one of them, such as `<release>-signoz`, list the pull secrets in that pod's spec.
 
@@ -396,7 +397,7 @@ Also:
 
 | If you | Do |
 |---|---|
-| Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply the three Jobs in that order, each finished, before the rest. Delete them before a chart version that changes them. |
+| Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Delete the hook objects before a chart version that changes them. |
 | Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old operator Deployment by hand right before the upgrade ([command](#100-ts-operator-selector)). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs by hand before each operator version change. |
 | Upgrade with `--no-hooks` or `postgresql.upgradeBackupHook.enabled: false`, with bundled Postgres | See [Postgres](#100-postgres). |
@@ -405,7 +406,7 @@ Also:
 ### Rollback
 
 - Do not roll back once ClickHouse runs on Keeper.
-- With bundled Postgres, you lose the changes made in SigNoz while rolled back.
+- With bundled Postgres, a rollback to chart 0.151.0 starts SigNoz on an empty database. The claim keeps the real one, and upgrading forward again brings it back. You lose the changes made in SigNoz while rolled back.
 - To roll back to a chart 0.151.0 revision while ClickHouse still runs on ZooKeeper:
   1. Delete the ClickHouseKeeperInstallation, with Keeper on, and wait.
   2. Delete the operator Deployment right before the rollback.
