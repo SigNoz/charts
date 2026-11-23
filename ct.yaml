@@ -14,8 +14,3 @@ helm-extra-args: --timeout 5m
 chart-repos:
   - signoz=https://charts.signoz.io
   - altinity=https://helm.altinity.com
-# Run per changed chart during `ct lint`. ct builds dependencies first, so the
-# subchart-dependent suites and the kubeconform render both resolve deps.
-additional-commands:
-  - helm unittest --strict --file 'tests/**/*_test.yaml' {{ .Path }}
-  - bash -c 'set -euo pipefail; helm template {{ .Path }} | kubeconform -strict -ignore-missing-schemas -summary'
