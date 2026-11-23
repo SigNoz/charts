@@ -1,0 +1,195 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgresql.fullname" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+  {{- if .Values.postgresql.annotations }}
+  annotations:
+    {{- toYaml .Values.postgresql.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "postgresql.fullname" . }}
+  replicas: {{ .Values.postgresql.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if .Values.postgresql.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.postgresql.podAnnotations | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.postgresql.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "postgresql.serviceAccountName" . }}
+      priorityClassName: {{ .Values.postgresql.priorityClassName | quote }}
+      {{- with .Values.postgresql.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgresql.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgresql.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgresql.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.postgresql.podSecurityContext | nindent 8 }}
+      {{- with .Values.postgresql.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: postgres
+          securityContext:
+            {{- toYaml .Values.postgresql.securityContext | nindent 12 }}
+          image: {{ template "postgresql.image" . }}
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - name: tcp-postgresql
+              containerPort: {{ default 5432 .Values.postgresql.service.port }}
+              protocol: TCP
+          env:
+            {{- include "postgresql.env" . | nindent 12 }}
+
+          {{- if .Values.postgresql.startupProbe.enabled }}
+          {{- $dump := include "postgresql.restoreFile" . }}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.postgresql.service.port }} && { [ ! -e {{ squote $dump }} ] || { echo {{ printf "%s has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/" $dump | squote }}; exit 1; }; }
+            initialDelaySeconds: {{ .Values.postgresql.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgresql.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgresql.startupProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.postgresql.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.postgresql.startupProbe.failureThreshold }}
+          {{- end }}
+
+          {{- if .Values.postgresql.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.postgresql.service.port }}
+            initialDelaySeconds: {{ .Values.postgresql.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgresql.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgresql.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.postgresql.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.postgresql.livenessProbe.failureThreshold }}
+          {{- else if .Values.postgresql.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.postgresql.customLivenessProbe | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.postgresql.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d {{ .Values.postgresql.auth.database | quote }} -h 127.0.0.1 -p {{ default 5432 .Values.postgresql.service.port }}
+            initialDelaySeconds: {{ .Values.postgresql.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgresql.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgresql.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.postgresql.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.postgresql.readinessProbe.failureThreshold }}
+          {{- else if .Values.postgresql.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.postgresql.customReadinessProbe | nindent 12 }}
+          {{- end }}
+
+          args:
+            {{- range .Values.postgresql.additionalArgs }}
+            - {{ . | quote }}
+            {{- end }}
+
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+              subPath: app-tmp-dir
+            - name: pgdata
+              mountPath: {{ .Values.postgresql.persistence.mountPath }}
+              {{- if .Values.postgresql.persistence.subPath }}
+              subPath: {{ .Values.postgresql.persistence.subPath }}
+              {{- end }}
+            {{- if include "postgresql.dataMount" . }}
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+              subPath: {{ printf "%s/data" (include "postgresql.subPath" .) | trimPrefix "/" }}
+            {{- end }}
+            {{- if include "postgresql.restoreLoader" . }}
+            - name: restore-script
+              mountPath: /docker-entrypoint-initdb.d/00-signoz-restore.sh
+              subPath: 00-signoz-restore.sh
+              readOnly: true
+            {{- end }}
+            {{- if .Values.postgresql.additionalVolumeMounts }}
+              {{- toYaml .Values.postgresql.additionalVolumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+  {{- if and .Values.postgresql.persistence.enabled .Values.postgresql.persistence.existingClaim }}
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: {{ include "postgresql.existingClaim" . }}
+  {{- else if not .Values.postgresql.persistence.enabled }}
+        - name: pgdata
+          emptyDir: {}
+  {{- end }}
+  {{- if include "postgresql.restoreLoader" . }}
+        - name: restore-script
+          configMap:
+            name: {{ include "postgresql.restoreConfigMapName" . }}
+            {{- /* 0755, in decimal: YAML 1.2 parsers read a leading-zero literal as decimal. */}}
+            defaultMode: 493
+  {{- end }}
+  {{- if .Values.postgresql.additionalVolumes }}
+        {{- toYaml .Values.postgresql.additionalVolumes | nindent 8 }}
+  {{- end }}
+{{- if and (.Values.postgresql.persistence.enabled) (not .Values.postgresql.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes:
+          {{- toYaml .Values.postgresql.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.persistence.size }}
+      {{- $storageClass := .Values.postgresql.persistence.storageClass -}}
+      {{- if $storageClass -}}
+      {{- if (eq "-" $storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: {{ $storageClass }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}

@@ -11,8 +11,5 @@ dependencies:
 - name: redpanda
   repository: https://charts.signoz.io
   version: 5.10.2
-- name: postgresql
-  repository: https://charts.signoz.io
-  version: 0.0.2
-digest: sha256:06f3fa2d44eb3364351038b5722ca010f0cd971cba6e2c0846c3724ff5830834
-generated: "2026-11-17T03:18:23.216163+05:30"
+digest: sha256:d529252359a474340d965b9f427e38dac2b2b607d70ee14ed0f11e4f5f9057b1
+generated: "2026-11-23T02:58:00.520502+05:30"

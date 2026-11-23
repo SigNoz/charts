@@ -1,0 +1,164 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: postgresql/existing-claim
+templates:
+  - templates/postgresql/statefulset.yaml
+  - templates/postgresql/upgrade-backup-job.yaml
+set:
+  postgresql.enabled: true
+tests:
+  - it: mounts a plain postgresql.persistence.existingClaim in Postgres and in the backup Job
+    release:
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: postgres-data
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: postgres-data}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: postgres-data}
+
+  - it: builds the claim name from .Release.Name in a postgresql.persistence.existingClaim template
+    release:
+      name: sz
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: "{{ .Release.Name }}-pg"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: sz-pg}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: sz-pg}
+
+  - it: builds the claim name from .Release.Namespace in a postgresql.persistence.existingClaim template
+    release:
+      namespace: signoz
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: "{{ .Release.Namespace }}-pg"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: signoz-pg}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: signoz-pg}
+
+  - it: reads .Chart.Name as postgresql in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: "{{ .Chart.Name }}-claim"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: postgresql-claim}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: postgresql-claim}
+
+  - it: reads the chart name as postgresql through index .Chart in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: '{{ index .Chart "Name" }}-claim'
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: postgresql-claim}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: postgresql-claim}
+
+  - it: reads .Values as the postgresql block in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      postgresql.persistence.size: 20Gi
+      postgresql.persistence.existingClaim: "{{ .Values.persistence.size }}-claim"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: 20Gi-claim}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: 20Gi-claim}
+
+  - it: reads .Values.global as the chart's global values in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      global.clusterName: prod
+      postgresql.persistence.existingClaim: "{{ .Values.global.clusterName }}-pg"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: prod-pg}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: prod-pg}
+
+  - it: reads .Values.postgresql as the postgresql block in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      postgresql.persistence.size: 20Gi
+      postgresql.persistence.existingClaim: "{{ .Values.postgresql.persistence.size }}-claim"
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: 20Gi-claim}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: 20Gi-claim}
+
+  - it: builds the claim name from the postgresql.fullname helper in a postgresql.persistence.existingClaim template
+    release:
+      name: sz
+      upgrade: true
+    set:
+      postgresql.persistence.existingClaim: '{{ include "postgresql.fullname" . }}-data'
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: sz-postgresql-data}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: sz-postgresql-data}
+
+  - it: builds the claim name from postgresql.fullnameOverride through the postgresql.fullname helper in a postgresql.persistence.existingClaim template
+    release:
+      upgrade: true
+    set:
+      postgresql.fullnameOverride: pg
+      postgresql.persistence.existingClaim: '{{ include "postgresql.fullname" . }}-data'
+    asserts:
+      - template: templates/postgresql/statefulset.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "postgres")].volumeMounts[?(@.mountPath == "/var/lib/postgresql")].name)].persistentVolumeClaim
+          value: {claimName: pg-data}
+      - template: templates/postgresql/upgrade-backup-job.yaml
+        equal:
+          path: spec.template.spec.volumes[?(@.name == $.spec.template.spec.containers[?(@.name == "upgrade-backup")].volumeMounts[?(@.mountPath == "/claim")].name)].persistentVolumeClaim
+          value: {claimName: pg-data}

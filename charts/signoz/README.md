@@ -3457,7 +3457,628 @@ servicePort: 8082</pre>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
 </div>
             </td>
-            <td>Enable or disable the PostgreSQL for signoz. For more details, check out the postgresql chart: https://github.com/SigNoz/charts/tree/main/charts/postgresql</td>
+            <td>Install PostgreSQL.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--namespace"><a href="./values.yaml#L2515">postgresql.namespace</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Which namespace to install postgresql to (defaults to namespace chart is installed to)</td>
+        </tr>
+        <tr>
+            <td id="postgresql--nameOverride"><a href="./values.yaml#L2518">postgresql.nameOverride</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Name override for postgresql</td>
+        </tr>
+        <tr>
+            <td id="postgresql--fullnameOverride"><a href="./values.yaml#L2521">postgresql.fullnameOverride</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Fullname override for postgreql</td>
+        </tr>
+        <tr>
+            <td id="postgresql--replicaCount"><a href="./values.yaml#L2526">postgresql.replicaCount</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>Number of Postgres replicas.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--image--repository"><a href="./values.yaml#L2532">postgresql.image.repository</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">postgres</pre>
+</div>
+            </td>
+            <td>Postgres image repository.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--image--tag"><a href="./values.yaml#L2536">postgresql.image.tag</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">"15"</pre>
+</div>
+            </td>
+            <td>Postgres image tag.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--image--pullPolicy"><a href="./values.yaml#L2540">postgresql.image.pullPolicy</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
+</div>
+            </td>
+            <td>Image pull policy.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--imagePullSecrets"><a href="./values.yaml#L2545">postgresql.imagePullSecrets</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Image pull secrets for Postgres pods</td>
+        </tr>
+        <tr>
+            <td id="postgresql--service--annotations"><a href="./values.yaml#L2551">postgresql.service.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for the Postgres service object.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--service--labels"><a href="./values.yaml#L2555">postgresql.service.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels for the Postgres service object.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--service--type"><a href="./values.yaml#L2559">postgresql.service.type</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
+</div>
+            </td>
+            <td>The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).</td>
+        </tr>
+        <tr>
+            <td id="postgresql--service--port"><a href="./values.yaml#L2563">postgresql.service.port</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5432</pre>
+</div>
+            </td>
+            <td>The external port for Postgres service</td>
+        </tr>
+        <tr>
+            <td id="postgresql--auth--username"><a href="./values.yaml#L2569">postgresql.auth.username</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
+</div>
+            </td>
+            <td>Username for the custom user to create.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--auth--password"><a href="./values.yaml#L2572">postgresql.auth.password</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">signoz123</pre>
+</div>
+            </td>
+            <td>Password for the custom user to create, stored in the Secret `<fullname>-auth` under the key `password`. Ignored if `auth.existingSecret` is provided, and then no Secret is created.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--auth--database"><a href="./values.yaml#L2576">postgresql.auth.database</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Name for a custom database to create.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--auth--existingSecret"><a href="./values.yaml#L2580">postgresql.auth.existingSecret</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2585">postgresql.auth.secretKeys.userPasswordKey</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">password</pre>
+</div>
+            </td>
+            <td>Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--resources"><a href="./values.yaml#L2590">postgresql.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Resource requests and limits for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--priorityClassName"><a href="./values.yaml#L2595">postgresql.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Priority class name for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--podSecurityContext"><a href="./values.yaml#L2600">postgresql.podSecurityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Security context for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--securityContext"><a href="./values.yaml#L2605">postgresql.securityContext</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Container security context for Postgres containers.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--podAnnotations"><a href="./values.yaml#L2610">postgresql.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--annotations"><a href="./values.yaml#L2615">postgresql.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Additional annotations for Postgres resources.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--nodeSelector"><a href="./values.yaml#L2620">postgresql.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Node selector for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--tolerations"><a href="./values.yaml#L2625">postgresql.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--affinity"><a href="./values.yaml#L2630">postgresql.affinity</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Affinity rules for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--topologySpreadConstraints"><a href="./values.yaml#L2635">postgresql.topologySpreadConstraints</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Topology spread constraints for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--enabled"><a href="./values.yaml#L2641">postgresql.livenessProbe.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--initialDelaySeconds"><a href="./values.yaml#L2645">postgresql.livenessProbe.initialDelaySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">20</pre>
+</div>
+            </td>
+            <td>Initial delay seconds for liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--periodSeconds"><a href="./values.yaml#L2649">postgresql.livenessProbe.periodSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">10</pre>
+</div>
+            </td>
+            <td>Period seconds for liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--timeoutSeconds"><a href="./values.yaml#L2653">postgresql.livenessProbe.timeoutSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Timeout seconds for liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--successThreshold"><a href="./values.yaml#L2657">postgresql.livenessProbe.successThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>Success threshold for liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--livenessProbe--failureThreshold"><a href="./values.yaml#L2661">postgresql.livenessProbe.failureThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">6</pre>
+</div>
+            </td>
+            <td>Failure threshold for liveness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--enabled"><a href="./values.yaml#L2667">postgresql.readinessProbe.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L2671">postgresql.readinessProbe.initialDelaySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Initial delay seconds for readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--periodSeconds"><a href="./values.yaml#L2675">postgresql.readinessProbe.periodSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Period seconds for readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--timeoutSeconds"><a href="./values.yaml#L2679">postgresql.readinessProbe.timeoutSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">3</pre>
+</div>
+            </td>
+            <td>Timeout seconds for readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--successThreshold"><a href="./values.yaml#L2683">postgresql.readinessProbe.successThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>Success threshold for readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--readinessProbe--failureThreshold"><a href="./values.yaml#L2687">postgresql.readinessProbe.failureThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">6</pre>
+</div>
+            </td>
+            <td>Failure threshold for readiness probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--enabled"><a href="./values.yaml#L2697">postgresql.startupProbe.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable the startup probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--initialDelaySeconds"><a href="./values.yaml#L2701">postgresql.startupProbe.initialDelaySeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">0</pre>
+</div>
+            </td>
+            <td>Delay before the first startup probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--periodSeconds"><a href="./values.yaml#L2705">postgresql.startupProbe.periodSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">10</pre>
+</div>
+            </td>
+            <td>Interval between startup probes.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--timeoutSeconds"><a href="./values.yaml#L2709">postgresql.startupProbe.timeoutSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">5</pre>
+</div>
+            </td>
+            <td>Timeout of each startup probe.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--successThreshold"><a href="./values.yaml#L2713">postgresql.startupProbe.successThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">1</pre>
+</div>
+            </td>
+            <td>Consecutive successes for the startup probe to pass.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--startupProbe--failureThreshold"><a href="./values.yaml#L2718">postgresql.startupProbe.failureThreshold</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">180</pre>
+</div>
+            </td>
+            <td>Consecutive failures before the container is restarted.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--enabled"><a href="./values.yaml#L2724">postgresql.persistence.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Enable persistent storage for Postgres.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2732">postgresql.persistence.existingClaim</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">none, the chart's claim template</pre>
+</div>
+            </td>
+            <td>Name of an existing claim to use.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--size"><a href="./values.yaml#L2736">postgresql.persistence.size</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">10Gi</pre>
+</div>
+            </td>
+            <td>Size of the persistent volume claim.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2740">postgresql.persistence.storageClass</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>Storage class for the persistent volume claim.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2744">postgresql.persistence.accessModes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
+</div>
+            </td>
+            <td>Access modes for the persistent volume claim.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2754">postgresql.persistence.mountPath</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
+</div>
+            </td>
+            <td>Mount path of the data claim.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2758">postgresql.persistence.subPath</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+</div>
+            </td>
+            <td>Subpath within the volume for Postgres data.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2768">postgresql.persistence.dataDir</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
+</div>
+            </td>
+            <td>Data directory of Postgres (`PGDATA`).</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2785">postgresql.upgradeBackupHook.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Run the hook on `helm upgrade`.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2791">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
+            <td>int</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">240</pre>
+</div>
+            </td>
+            <td>Time limit of the Job before it, and with it the upgrade, is marked failed.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2797">postgresql.upgradeBackupHook.resources</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory</pre>
+</div>
+            </td>
+            <td>Resource requests and limits for the container.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2809">postgresql.upgradeBackupHook.nodeSelector</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `nodeSelector`</pre>
+</div>
+            </td>
+            <td>Node labels for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2814">postgresql.upgradeBackupHook.tolerations</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Tolerations for pod assignment.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2818">postgresql.upgradeBackupHook.priorityClassName</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">the value of `priorityClassName`</pre>
+</div>
+            </td>
+            <td>Priority class of the pod.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2821">postgresql.upgradeBackupHook.podAnnotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the pod.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2825">postgresql.upgradeBackupHook.podLabels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels to add to the pod.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2830">postgresql.upgradeBackupHook.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the Job.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2835">postgresql.additionalArgs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional command-line arguments for Postgres containers.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2840">postgresql.additionalVolumes</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volumes for Postgres pods.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2845">postgresql.additionalVolumeMounts</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Additional volume mounts for Postgres containers.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--extraEnv"><a href="./values.yaml#L2850">postgresql.extraEnv</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Extra environment variables for Postgres containers.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2856">postgresql.serviceAccount.create</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">true</pre>
+</div>
+            </td>
+            <td>Specifies whether a service account should be created.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2860">postgresql.serviceAccount.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the service account.</td>
+        </tr>
+        <tr>
+            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2864">postgresql.serviceAccount.name</a></td>
+            <td>string</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">null</pre>
+</div>
+            </td>
+            <td>The name of the service account to use. If not set and `create` is true, a name is generated.</td>
         </tr>
     </tbody>
 </table>
@@ -3471,7 +4092,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2515">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2867">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -3492,7 +4113,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2522">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2874">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -3512,7 +4133,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2735">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L3087">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

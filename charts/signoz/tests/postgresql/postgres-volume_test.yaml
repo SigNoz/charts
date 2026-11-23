@@ -1,15 +1,17 @@
-suite: Test PostgreSQL Persistence Variables
+suite: postgresql/postgres-volume
 
 templates: 
-  - templates/statefulset.yaml
+  - templates/postgresql/statefulset.yaml
 release:
   name: postgresql
   namespace: signoz
 
+set:
+  postgresql.enabled: true
 tests:
   - it: should render 4 volumes mounts and 1 volume when persistence.enabled=true
     set:
-      persistence:
+      postgresql.persistence:
         enabled: true
         size: 10Gi
     asserts:
@@ -48,8 +50,8 @@ tests:
             emptyDir: {}
   - it: should have pgdata-volumeclaim-template when persistence.enabled=true
     set:
-      enabled: true
-      persistence:
+      postgresql.enabled: true
+      postgresql.persistence:
         enabled: true
         size: 10Gi
     asserts:
@@ -73,13 +75,13 @@ tests:
             mountPath: /var/lib/postgresql
   - it: should render additional volumes and additional volume mounts
     set:
-      enabled: true
-      persistence:
+      postgresql.enabled: true
+      postgresql.persistence:
         enabled: true
-      additionalVolumeMounts:
+      postgresql.additionalVolumeMounts:
         - mountPath: /does-not-matter
           name: does-not-matter
-      additionalVolumes:
+      postgresql.additionalVolumes:
         - name: does-not-matter
           emptyDir: {}
     asserts:

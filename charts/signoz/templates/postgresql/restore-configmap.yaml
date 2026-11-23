@@ -1,0 +1,49 @@
+{{- if .Values.postgresql.enabled }}
+{{- if include "postgresql.restoreLoader" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.restoreConfigMapName" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+data:
+  00-signoz-restore.sh: |
+    #!/bin/sh
+    set -eu
+    dump={{ include "postgresql.restoreFile" . | squote }}
+    user="${POSTGRES_USER:-postgres}"
+    db="${POSTGRES_DB:-$user}"
+    kexec="kubectl -n {{ .Release.Namespace }} exec ${HOSTNAME:-{{ include "postgresql.fullname" . }}-0} -c postgres --"
+
+    if [ ! -e "$dump" ]; then
+      exit 0
+    fi
+
+    if [ "$(tail -n 1 "$dump")" != 'COMMIT;' ]; then
+      echo "ERROR: $dump does not end with COMMIT;, so it is incomplete and was not loaded." >&2
+      echo "Database $db is empty, and this pod does not become Ready while the file is there." >&2
+      echo "To recover, load a complete dump, then rename the file:" >&2
+      echo "  $kexec psql -v ON_ERROR_STOP=1 -U $user -d $db -f <complete dump>" >&2
+      echo "  $kexec mv $dump $dump.loaded" >&2
+      exit 1
+    fi
+
+    echo "Loading $dump into database $db"
+    if ! PGHOST='' PGHOSTADDR='' psql -v ON_ERROR_STOP=1 --no-psqlrc --no-password --quiet --username "$user" --dbname "$db" -f "$dump" >/dev/null; then
+      echo "ERROR: loading $dump failed with the error above." >&2
+      echo "The load is one transaction, so database $db is empty, and this pod does not become Ready while the file is there." >&2
+      echo "To recover, fix the dump, load it, then rename it:" >&2
+      echo "  $kexec psql -v ON_ERROR_STOP=1 -U $user -d $db -f $dump" >&2
+      echo "  $kexec mv $dump $dump.loaded" >&2
+      exit 1
+    fi
+
+    if ! mv "$dump" "$dump.loaded"; then
+      echo "ERROR: loaded $dump into database $db, but could not rename it, so this pod does not become Ready." >&2
+      echo "Rename it by hand:" >&2
+      echo "  $kexec mv $dump $dump.loaded" >&2
+      exit 1
+    fi
+    echo "Loaded $dump into database $db and renamed it to $dump.loaded"
+{{- end }}
+{{- end }}
