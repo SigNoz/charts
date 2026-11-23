@@ -18,4 +18,4 @@ chart-repos:
 # subchart-dependent suites and the kubeconform render both resolve deps.
 additional-commands:
   - helm unittest --strict --file 'tests/**/*_test.yaml' {{ .Path }}
-  - sh -ec 'helm template {{ .Path }} | kubeconform -strict -ignore-missing-schemas -summary'
+  - bash -c 'set -euo pipefail; helm template {{ .Path }} | kubeconform -strict -ignore-missing-schemas -summary'
