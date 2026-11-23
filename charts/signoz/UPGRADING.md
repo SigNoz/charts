@@ -18,7 +18,7 @@ The step-by-step upgrade guides are on signoz.io, linked from each version's sec
 5. `helm rollback` to chart 0.151.0 fails partway ([Limits](#100-limits)).
 
 > [!IMPORTANT]
-> On every existing install, set `zookeeper.enabled: true` and `keeper.enabled: false` for the first upgrade and keep them until you migrate to Keeper. Without them the upgrade is refused ([details](#100-keeper-crd)), or ClickHouse moves to an empty Keeper ([details](#100-keeper-switch-detail)).
+> On every existing install that uses the bundled ZooKeeper, set `zookeeper.enabled: true` and `keeper.enabled: false` for the first upgrade and keep them until you migrate to Keeper; with `clickhouse.externalZookeeper.servers`, set only `keeper.enabled: false`. Without them the upgrade is refused ([details](#100-keeper-crd)), or ClickHouse moves to an empty Keeper ([details](#100-keeper-switch-detail)).
 
 The step-by-step guide: [the upgrade guide][guide].
 
@@ -98,7 +98,7 @@ Error: execution error at (signoz/templates/validate.yaml:22:4): 2 values must c
 | `clickhouse.readinessProbe` with `enabled`, `port` or `path` | A probe object, as for `clickhouse.livenessProbe` | Refused while one of those holds a value. |
 | `clickhouse.securityContext` | `clickhouse.podSecurityContext`, without `enabled` | Refused when non-empty, the 0.151.0 default included. New `clickhouse.containerSecurityContext` covers the `clickhouse` container, the histogramQuantile init container and the `logs-system-exporter` sidecar. |
 | `clickhouse.startupProbe` with `enabled`, `port` or `path` | A probe object, as for `clickhouse.livenessProbe` | Refused while one of those holds a value. |
-| `clickhouse.zookeeper` | `zookeeper`, the same keys at the top level | Refused with any non-null value, an empty map and the 0.151.0 default included. Add `zookeeper.enabled: true` and `keeper.enabled: false` when you move it ([row](#100-zk-literal)), and drop `enabled: false`. |
+| `clickhouse.zookeeper` | `zookeeper`, the same keys at the top level | Refused with any non-null value, an empty map and the 0.151.0 default included. Add `zookeeper.enabled: true` and `keeper.enabled: false` when you move it ([row](#100-zk-literal)), or only `keeper.enabled: false` with `clickhouse.externalZookeeper.servers`, and drop `enabled: false`. |
 | `otelCollector.additionalEnvs` | `otelCollector.env`, a list of EnvVar objects after the chart's variables | Refused when non-empty. Rewrite each entry as `name` and `value`. |
 | `otelCollector.command.extraArgs` | `otelCollector.extraArgs` | Same list. Refused when non-empty. |
 | `otelCollector.command.name` | Removed: the collector always runs `/signoz-otel-collector` | Refused when it names another binary. |
@@ -281,9 +281,9 @@ ClickHouse is now rendered by the SigNoz chart itself, keeps its name and data, 
 
 | Change | Affects you if | Do |
 |---|---|---|
-| <a id="100-ch-credentials"></a>The password moves out of plain text in the ClickHouseInstallation and pod specs into Secret `<release>-clickhouse-credentials` (`password`, `password_sha256_hex`), read through `secretKeyRef`. | Something reads the password from a pod spec or the ClickHouseInstallation. | Read it from the Secret. |
+| <a id="100-ch-credentials"></a>The password moves out of plain text in the ClickHouseInstallation and pod specs into Secret `<release>-clickhouse-credentials` (`password`, `password_sha256_hex`), read through `secretKeyRef`; with `clickhouse.fullnameOverride` it is `<fullnameOverride>-credentials`. | Something reads the password from a pod spec or the ClickHouseInstallation. | Read it from the Secret. |
 | <a id="100-password-restart"></a>A change to `clickhouse.password`, `externalClickhouse.password` or `postgresql.auth.password` now changes only its Secret and restarts no pod. Whether ClickHouse takes it without a restart is not tested. | You rotate a password through values. | Restart SigNoz, the collector and ClickHouse or Postgres afterwards. |
-| <a id="100-ch-existing-secret"></a>New `clickhouse.existingSecret`, with `existingSecretPasswordKey` (default `password`) and `existingSecretPasswordSha256Key`, reads the password from your Secret, the plain key when no SHA-256 key is set. | You want the password out of values. | Nothing. |
+| <a id="100-ch-existing-secret"></a>New `clickhouse.existingSecret`, with `existingSecretPasswordKey` (default `password`) and `existingSecretPasswordSha256Key`, reads the password from your Secret, the plain key when no SHA-256 key is set. | You want the password out of values. | With `clickhouse.namespace`, create the Secret in that namespace and in the release namespace. |
 | <a id="100-udf-init"></a>The histogramQuantile download moves from `docker.io/alpine:3.18.2` under `clickhouse.initContainers.udf` to init container `<release>-clickhouse-udf-init` on the ClickHouse image under `clickhouse.udf`, which ignores `udf.image`. | You set `clickhouse.initContainers`, or mirror alpine. | Move `udf.enabled` and `udf.command` to `clickhouse.udf`, and list your own init containers under `clickhouse.extraInitContainers`, which fails with a YAML parse error on a map. |
 | <a id="100-logs-sidecar"></a>The system-logs sidecar now runs `signoz/signoz-otel-collector:v0.144.15` as `/signoz-otel-collector`, where it ran `0.111.16` as `/signoz-collector`. | `clickhouse.logs.system.enabled` is true. | See [the entry](#100-logs-sidecar-detail). |
 | <a id="100-events-proto"></a>The ClickHouseInstallation no longer ships `events.proto` in `spec.configuration.files`. | You use that format schema. | Add it under `clickhouse.files`. |
@@ -302,7 +302,7 @@ ClickHouse is now rendered by the SigNoz chart itself, keeps its name and data, 
 - **Before:** The sidecar ran `docker.io/signoz/signoz-otel-collector:0.111.16` as `/signoz-collector`, and the `clickhouse` container waited in a `postStart` script.
 - **Now:** It runs `signoz/signoz-otel-collector:v0.144.15` as `/signoz-otel-collector`, with no `postStart` wait and no `service.telemetry.metrics` block in its default config. A tag pinned to `0.111.16` gets a binary that image lacks, so the sidecar cannot start (not tested).
 - **Affects you if:** `clickhouse.logs.system.enabled` is true.
-- **Do:** Remove components 0.144.15 lacks from `clickhouse.logs.system.config`, and pin no tag older than the default.
+- **Do:** Remove components 0.144.15 lacks (`ballastextension`, `carbonexporter`, `clickhousemetricsexporter`, `clickhousemetricsexporterv2`, `loggingexporter`, `opencensusexporter`, `opencensusreceiver`, `routingprocessor`, `sapmreceiver`) from `clickhouse.logs.system.config`, and pin no tag older than the default.
 
 <a id="100-ch-name-length-detail"></a>
 **ClickHouse names longer than 34 characters**
@@ -319,7 +319,7 @@ ClickHouse is now rendered by the SigNoz chart itself, keeps its name and data, 
 **`externalClickhouse.secure` now switches more connections to TLS**
 
 - **Before:** `CLICKHOUSE_VERIFY` was set only on the collector container, and `externalClickhouse.secure` reached only the `CLICKHOUSE_SECURE` variable.
-- **Now:** SigNoz, `check` and the migrator also get `CLICKHOUSE_VERIFY` (default `false`). With `secure: true` they connect with `?secure=true`, plus `skip_verify=true` unless verify is on, while the collector's five exporters stay on plain TCP. Not tested against a TLS ClickHouse.
+- **Now:** SigNoz, `check` and the migrator also get `CLICKHOUSE_VERIFY` (default `false`). With `secure: true` they connect with `?secure=true`, plus `skip_verify=true` unless `externalClickhouse.verify` is true, while the collector's five exporters stay on plain TCP. Not tested against a TLS ClickHouse.
 - **Affects you if:** Your external ClickHouse has `externalClickhouse.secure: true`.
 - **Do:** If `externalClickhouse.tcpPort` serves TLS (usually 9440), add `secure=true` to the exporter DSNs in `otelCollector.config`. Otherwise set `secure: false`.
 
@@ -331,9 +331,9 @@ ClickHouse Keeper replaces the bundled ZooKeeper as the default coordination sto
 | Change | Affects you if | Do |
 |---|---|---|
 | <a id="100-keeper-default"></a>The default store moves from the bundled ZooKeeper to ClickHouseKeeperInstallation `<release>-keeper`, reached at `keeper-<release>-keeper:2181`. | You install fresh or upgrade on default values. | On an existing install, keep `zookeeper.enabled: true` and `keeper.enabled: false` until you migrate ([guide]). |
-| <a id="100-keeper-crd"></a>With `keeper.enabled` at its default, the first `helm upgrade` is refused before anything changes, `--no-hooks` included, because the Keeper CRD comes from a hook. Rendered manifests carry it with `--include-crds`, or in the CRD hook Job applied first. | You upgrade an existing install without `keeper.enabled: false`. | Set `zookeeper.enabled: true` and `keeper.enabled: false`. |
+| <a id="100-keeper-crd"></a>With `keeper.enabled` at its default, the first `helm upgrade` is refused before anything changes, `--no-hooks` included, because the Keeper CRD comes from a hook. Rendered manifests carry it with `--include-crds`, or in the CRD hook Job applied first. | You upgrade an existing install without `keeper.enabled: false`. | Set `zookeeper.enabled: true` and `keeper.enabled: false`, or only `keeper.enabled: false` with `clickhouse.externalZookeeper.servers`. |
 | <a id="100-keeper-switch"></a>Once the Keeper CRD exists, as with `helm template --include-crds` (Argo CD), an upgrade on default values removes ZooKeeper and moves ClickHouse to an empty Keeper. | You upgrade an existing install without `zookeeper.enabled: true`. | See [the caution](#100-keeper-switch-detail). |
-| <a id="100-zk-literal"></a>A `clickhouse.zookeeper` block moved to `zookeeper` without `enabled: true` is ignored, and ClickHouse moves to a one-node Keeper with a 10Gi claim, printing nothing. | You follow the `clickhouse.zookeeper` refusal literally. | Add `zookeeper.enabled: true` and `keeper.enabled: false` to the moved block. |
+| <a id="100-zk-literal"></a>A `clickhouse.zookeeper` block moved to `zookeeper` without `enabled: true` is ignored, and ClickHouse moves to a one-node Keeper with a 10Gi claim, printing nothing. | You follow the `clickhouse.zookeeper` refusal literally. | Add `zookeeper.enabled: true` and `keeper.enabled: false` to the moved block, or only `keeper.enabled: false` with `clickhouse.externalZookeeper.servers`. |
 | <a id="100-keeper-idle"></a>With `clickhouse.externalZookeeper.servers`, or `zookeeper.enabled: true` alone, an idle Keeper (one node, 10Gi claim) is installed beside the store ClickHouse uses. | You use an external ZooKeeper, or keep ZooKeeper that way. | Set `keeper.enabled: false`, and with an external ZooKeeper leave `zookeeper.enabled` unset. |
 | <a id="100-keeper-keys"></a>New `keeper.*` keys: image `clickhouse/clickhouse-keeper:25.12.5`, 1 replica, 10Gi `ReadWriteOnce`, 100m CPU, 256Mi, metrics on 9141 with `signoz.io` annotations, logger, coordination, scheduling, security, env and volumes. | You install fresh or turn Keeper on. | Nothing. |
 
@@ -341,12 +341,12 @@ ClickHouse Keeper replaces the bundled ZooKeeper as the default coordination sto
 **Default values move ClickHouse to an empty Keeper**
 
 - **Before:** ZooKeeper's StatefulSet, Services and ConfigMaps were release objects by default.
-- **Now:** Once the Keeper CRD exists, an upgrade on default values removes them, points ClickHouse at a new, empty Keeper, and replicated tables lose their coordination state. The ZooKeeper claims stay.
+- **Now:** Once the Keeper CRD exists, an upgrade on default values removes them, points ClickHouse at a new, empty Keeper, and replicated tables lose their coordination state. ClickHouse documents such tables as read-only with their data still on disk, and the retained ZooKeeper claims are the way back (not tested).
 - **Affects you if:** An existing install upgrades or syncs without `zookeeper.enabled: true`, GitOps on default values included.
 - **Do:** Keep ZooKeeper as below, and to recover from the switch follow the [guide].
 
 > [!CAUTION]
-> Nothing warns about this switch: the notes print only `ClickHouse coordinates through ClickHouse Keeper at keeper-<release>-keeper:2181.` Set `zookeeper.enabled: true` and `keeper.enabled: false` before the first upgrade or sync.
+> Nothing warns about this switch: the notes print only `ClickHouse coordinates through ClickHouse Keeper at keeper-<release>-keeper:2181.` Set `zookeeper.enabled: true` and `keeper.enabled: false` before the first upgrade or sync, or only `keeper.enabled: false` with `clickhouse.externalZookeeper.servers`.
 
 <a id="100-operator"></a>
 #### ClickHouse operator
@@ -361,7 +361,7 @@ The operator now comes from Altinity's own chart at 0.27.4, with new object name
 | <a id="100-operator-system-logs"></a>System log TTLs, flush intervals and the logger move from `clickhouse.clickhouseOperator` keys to whole XML files in `altinity-clickhouse-operator.configs.configdFiles`, with the same defaults. | You tuned a system log table or the logger. | See [the entry](#100-operator-system-logs-detail). |
 | <a id="100-operator-config"></a>0.27.4's operator config: 5 s connect and 4 s query timeouts (were 2 s and 5 s), 5 shard threads, restarts on `files/*.xml` but not on coordination-node changes, and drops a deleted host's replica metadata. | Every install. | Nothing. |
 | <a id="100-operator-rbac"></a>The operator's Role adds `delete` on pods, `get`, `list` and `watch` on `endpointslices`, and ClickHouseKeeperInstallations with their finalizers and status, removing nothing. | You audit RBAC rules. | Nothing. |
-| <a id="100-operator-off"></a>New `altinity-clickhouse-operator.enabled: false` renders no operator and neither operator hook, and an upgrade then removes the chart's operator objects. | You run your own operator. | Nothing. |
+| <a id="100-operator-off"></a>New `altinity-clickhouse-operator.enabled: false` renders no operator and neither operator hook, and an upgrade then removes the chart's operator objects. | You run your own operator. | Give it the four CRDs, the Keeper CRD included, and have it reconcile ClickHouseInstallations and ClickHouseKeeperInstallations, or set `keeper.enabled: false`. |
 | <a id="100-hook-jobs-kubectl"></a>`helm template` renders the 12 operator hook objects, with or without `--is-upgrade`, and `kubectl apply` treats them as ordinary objects: each hook Job runs once and stays. | You apply rendered manifests, or your GitOps tool does not run Helm hooks. | Apply the hook Jobs in [weight order](#100-hooks) before the rest, and delete them before a chart version that changes them. |
 
 <a id="100-operator-replaced-detail"></a>
@@ -373,7 +373,7 @@ The operator now comes from Altinity's own chart at 0.27.4, with new object name
 - **Do:** Delete the old Deployment by hand right before the upgrade ([guide]).
 
 > [!WARNING]
-> With the hook off and the old operator Deployment in place, the upgrade fails on the Deployment's immutable selector. Delete Deployment `<release>-clickhouse-operator` right before the upgrade, or let the hook run.
+> With the hook off and the old operator Deployment in place, the upgrade fails on the Deployment's immutable selector. Let the hook run, or right before the upgrade delete the Deployment by the hook's selector, which matches it under any old name: `kubectl -n <namespace> delete deployment -l app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=<release>,app.kubernetes.io/component`, with `clickhouse.namespace` and `clickhouse.nameOverride` in place of `<namespace>` and `clickhouse` when set.
 
 <a id="100-operator-system-logs-detail"></a>
 **System log tables are configured as whole files**
@@ -519,7 +519,7 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 - **Do:** Make no changes in SigNoz while the upgrade runs: changes written after the dump are not in it, and in full-chart upgrades Postgres stopped 7 to 16 seconds after the backup Job finished.
 
 > [!CAUTION]
-> When the step is switched off or cannot run on such an install, Postgres starts on an empty data folder with no message. That happens with `--no-hooks`, `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` claim or `postgresql.replicaCount: 0`. Take the dump by hand first, as the [guide] describes.
+> When the step is switched off or cannot run on such an install, Postgres starts on an empty data folder with no message. That happens with `--no-hooks` (Terraform `helm_release`: `disable_webhooks = true`), `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` claim or `postgresql.replicaCount: 0`. Take the dump by hand first, as the [guide] describes.
 
 <a id="100-pg-hook-stops-detail"></a>
 **The backup hook stops the upgrade when it cannot dump**
@@ -563,7 +563,7 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 | Job `signoz-telemetrystore-migrator` | Job `signoz-telemetrystore-migrator-<revision>` | A new one each revision. |
 | PodDisruptionBudget `<release>-clickhouse-cluster`, made by the operator | `chi-<release>-clickhouse-cluster` | Both exist during the first upgrade, and the ClickHouse pod logs `MultiplePodDisruptionBudgets`. |
 | ServiceMonitor `<release>-clickhouse-operator-metrics`, one endpoint on port `<release>-clickhouse-operator-metrics` | `<release>-clickhouse-operator-clickhouse-metrics`, endpoints `ch-metrics` and `op-metrics` at 30s | With the operator ServiceMonitor on. It selects `app.kubernetes.io/name: clickhouse-operator` and `instance`. |
-| Operator objects `<clickhouse name>-operator` under `clickhouse.nameOverride` or `clickhouse.fullnameOverride` | `<release>-clickhouse-operator` | Set `altinity-clickhouse-operator.fullnameOverride` to keep the old name. |
+| Operator objects `<clickhouse name>-operator` under `clickhouse.nameOverride`, `clickhouse.fullnameOverride` or a release name containing `clickhouse`, and `<clickhouse name>-<name>` under `clickhouse.clickhouseOperator.name` | `<release>-clickhouse-operator` | Set `altinity-clickhouse-operator.fullnameOverride` to keep the old name. |
 
 <a id="100-objects-added"></a>**Added**
 
@@ -612,8 +612,8 @@ The bundled Postgres is now part of the SigNoz chart and keeps its database on i
 
 | Hook | When it runs | What it does | How to turn it off | What a failure looks like |
 |---|---|---|---|---|
-| Job `<release>-postgresql-upgrade-backup` | `helm upgrade` with bundled Postgres, and `helm template --is-upgrade` ([how](#100-pg-backup-hook-detail)) | Dumps a database held in the container to the claim | `postgresql.upgradeBackupHook.enabled: false` or `--no-hooks`, after a dump by hand | `pre-upgrade hooks failed` with `BackoffLimitExceeded` or `DeadlineExceeded` ([warning](#100-pg-hook-stops-detail)) |
-| Job `<release>-clickhouse-operator-upgrade` | Every `helm upgrade`, and in [rendered manifests](#100-hook-jobs-kubectl) | Deletes the operator Deployment chart 0.151.0 created | `clickhouse.operatorUpgradeHook.enabled: false` or `--no-hooks`, then delete it by hand | With the hook off, the upgrade fails on the immutable selector ([warning](#100-operator-replaced-detail)) |
+| Job `<release>-postgresql-upgrade-backup` | `helm upgrade` with bundled Postgres, and `helm template --is-upgrade` ([how](#100-pg-backup-hook-detail)) | Dumps a database held in the container to the claim | `postgresql.upgradeBackupHook.enabled: false` or `--no-hooks` (Terraform `helm_release`: `disable_webhooks = true`), after a dump by hand | `pre-upgrade hooks failed` with `BackoffLimitExceeded` or `DeadlineExceeded` ([warning](#100-pg-hook-stops-detail)) |
+| Job `<release>-clickhouse-operator-upgrade` | Every `helm upgrade`, and in [rendered manifests](#100-hook-jobs-kubectl) | Deletes the operator Deployment chart 0.151.0 created. Its pod takes `nodeSelector`, `tolerations`, `affinity`, `topologySpreadConstraints`, `priorityClassName`, `podSecurityContext` and `containerSecurityContext` from `clickhouse.operatorUpgradeHook`, none set by default | `clickhouse.operatorUpgradeHook.enabled: false` or `--no-hooks`, then delete it by hand | With the hook off, the upgrade fails on the immutable selector ([warning](#100-operator-replaced-detail)) |
 | Job `<release>-clickhouse-operator-crd-install` | Every `helm install` and `helm upgrade`, and in rendered manifests | Applies the four CRDs, the [Keeper CRD](#100-keeper-crd) included, logging `serverside-applied` | `altinity-clickhouse-operator.crdHook.enabled: false` or `--no-hooks`, then apply the CRDs by hand before each operator version change | The upgrade fails after the old operator is deleted, leaving none (not tested) |
 | Job and ServiceAccount `signoz-telemetrystore-migrator`, chart 0.151.0 only | Chart 0.151.0: before each `helm upgrade` | Ran the migrations | Removed: the migrator is now [a plain Job](#100-migrator-job) | A failed migration failed the upgrade, which it [no longer does](#100-migrations-no-gate) |
 
