@@ -48,6 +48,8 @@ helm -n platform uninstall "my-release"
 
 The order matters: the ClickHouse operator finishes deleting these objects, and `helm uninstall` removes the operator.
 
+With `clickhouse.namespace` set, the chart creates both objects in that namespace, so run the `clickhouseinstallation` and `clickhousekeeperinstallation` commands in this section with `-n <clickhouse.namespace>`.
+
 See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
 
 The PVCs stay after the uninstall. Bundled Postgres keeps its database on its PVC, and the database comes back when the release is installed again with the same name and namespace. The four CRDs of the ClickHouse operator stay too, and so does a Namespace created through `clickhouse.namespace`: delete it by hand when nothing in it is wanted.
