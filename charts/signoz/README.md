@@ -63,7 +63,7 @@ kubectl delete namespace platform
 
 > [!WARNING]
 > ### Breaking Changes
-> #### Version 0.152.0
+> #### Version 1.0.0
 > The upgrade notes are in [`UPGRADING.md`](./UPGRADING.md), and the step-by-step guide is at https://signoz.io/docs/operate/migration/upgrade-0-152/.
 >
 > #### Version 0.131.0
@@ -2916,7 +2916,7 @@ create: false
 name: null</pre>
 </div>
             </td>
-            <td>ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`. Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 0.152.0, first delete the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.</td>
+            <td>ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`. Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 1.0.0, first delete the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.</td>
         </tr>
     </tbody>
 </table>

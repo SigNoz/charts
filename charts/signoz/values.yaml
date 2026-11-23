@@ -1824,7 +1824,7 @@ telemetryStoreMigrator:
   # @section -- Telemetry Store Migrator
   extraVolumeMounts: []
   # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
-  # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 0.152.0, first delete
+  # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 1.0.0, first delete
   # the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.
   # @section -- Telemetry Store Migrator
   serviceAccount:
