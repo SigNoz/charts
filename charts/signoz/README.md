@@ -3874,16 +3874,16 @@ servicePort: 8082</pre>
             <td>Enable persistent storage for Postgres.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2728">postgresql.persistence.existingClaim</a></td>
+            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2732">postgresql.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
-                <div style="max-width: 300px;"><pre lang="yaml">""</pre>
+                <div style="max-width: 300px;"><pre lang="yaml">none, the chart's claim template</pre>
 </div>
             </td>
-            <td>Use an existing PVC for Postgres data.</td>
+            <td>Name of an existing claim to use.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--size"><a href="./values.yaml#L2732">postgresql.persistence.size</a></td>
+            <td id="postgresql--persistence--size"><a href="./values.yaml#L2736">postgresql.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10Gi</pre>
@@ -3892,7 +3892,7 @@ servicePort: 8082</pre>
             <td>Size of the persistent volume claim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2736">postgresql.persistence.storageClass</a></td>
+            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2740">postgresql.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3901,7 +3901,7 @@ servicePort: 8082</pre>
             <td>Storage class for the persistent volume claim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2740">postgresql.persistence.accessModes</a></td>
+            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2744">postgresql.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -3910,7 +3910,7 @@ servicePort: 8082</pre>
             <td>Access modes for the persistent volume claim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2750">postgresql.persistence.mountPath</a></td>
+            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2754">postgresql.persistence.mountPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
@@ -3919,7 +3919,7 @@ servicePort: 8082</pre>
             <td>Mount path of the data claim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2754">postgresql.persistence.subPath</a></td>
+            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2758">postgresql.persistence.subPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3928,7 +3928,7 @@ servicePort: 8082</pre>
             <td>Subpath within the volume for Postgres data.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2764">postgresql.persistence.dataDir</a></td>
+            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2768">postgresql.persistence.dataDir</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
@@ -3937,7 +3937,7 @@ servicePort: 8082</pre>
             <td>Data directory of Postgres (`PGDATA`).</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2779">postgresql.upgradeBackupHook.enabled</a></td>
+            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2785">postgresql.upgradeBackupHook.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3946,7 +3946,7 @@ servicePort: 8082</pre>
             <td>Run the hook on `helm upgrade`.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2785">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
+            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2791">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">240</pre>
@@ -3955,7 +3955,7 @@ servicePort: 8082</pre>
             <td>Time limit of the Job before it, and with it the upgrade, is marked failed.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2791">postgresql.upgradeBackupHook.resources</a></td>
+            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2797">postgresql.upgradeBackupHook.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory</pre>
@@ -3964,7 +3964,7 @@ servicePort: 8082</pre>
             <td>Resource requests and limits for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2803">postgresql.upgradeBackupHook.nodeSelector</a></td>
+            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2809">postgresql.upgradeBackupHook.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `nodeSelector`</pre>
@@ -3973,7 +3973,7 @@ servicePort: 8082</pre>
             <td>Node labels for pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2808">postgresql.upgradeBackupHook.tolerations</a></td>
+            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2814">postgresql.upgradeBackupHook.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3982,7 +3982,7 @@ servicePort: 8082</pre>
             <td>Tolerations for pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2812">postgresql.upgradeBackupHook.priorityClassName</a></td>
+            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2818">postgresql.upgradeBackupHook.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `priorityClassName`</pre>
@@ -3991,7 +3991,7 @@ servicePort: 8082</pre>
             <td>Priority class of the pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2815">postgresql.upgradeBackupHook.podAnnotations</a></td>
+            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2821">postgresql.upgradeBackupHook.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4000,7 +4000,7 @@ servicePort: 8082</pre>
             <td>Annotations to add to the pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2819">postgresql.upgradeBackupHook.podLabels</a></td>
+            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2825">postgresql.upgradeBackupHook.podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4009,7 +4009,7 @@ servicePort: 8082</pre>
             <td>Labels to add to the pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2824">postgresql.upgradeBackupHook.annotations</a></td>
+            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2830">postgresql.upgradeBackupHook.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4018,7 +4018,7 @@ servicePort: 8082</pre>
             <td>Annotations to add to the Job.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2829">postgresql.additionalArgs</a></td>
+            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2835">postgresql.additionalArgs</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4027,7 +4027,7 @@ servicePort: 8082</pre>
             <td>Additional command-line arguments for Postgres containers.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2834">postgresql.additionalVolumes</a></td>
+            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2840">postgresql.additionalVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4036,7 +4036,7 @@ servicePort: 8082</pre>
             <td>Additional volumes for Postgres pods.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2839">postgresql.additionalVolumeMounts</a></td>
+            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2845">postgresql.additionalVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4045,7 +4045,7 @@ servicePort: 8082</pre>
             <td>Additional volume mounts for Postgres containers.</td>
         </tr>
         <tr>
-            <td id="postgresql--extraEnv"><a href="./values.yaml#L2844">postgresql.extraEnv</a></td>
+            <td id="postgresql--extraEnv"><a href="./values.yaml#L2850">postgresql.extraEnv</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4054,7 +4054,7 @@ servicePort: 8082</pre>
             <td>Extra environment variables for Postgres containers.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2850">postgresql.serviceAccount.create</a></td>
+            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2856">postgresql.serviceAccount.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4063,7 +4063,7 @@ servicePort: 8082</pre>
             <td>Specifies whether a service account should be created.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2854">postgresql.serviceAccount.annotations</a></td>
+            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2860">postgresql.serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4072,7 +4072,7 @@ servicePort: 8082</pre>
             <td>Annotations to add to the service account.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2858">postgresql.serviceAccount.name</a></td>
+            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2864">postgresql.serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -4092,7 +4092,7 @@ servicePort: 8082</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2861">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2867">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -4113,7 +4113,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2868">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2874">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -4133,7 +4133,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L3081">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L3087">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

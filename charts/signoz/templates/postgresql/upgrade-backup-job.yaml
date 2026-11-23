@@ -105,7 +105,7 @@ spec:
             - |
               set -eu
               fail() {
-                echo "ERROR: $1. The upgrade stopped before anything changed. See https://signoz.io/docs/operate/migration/upgrade-0-152/. To upgrade without this hook, set postgresql.upgradeBackupHook.enabled=false." >&2
+                echo "ERROR: $1. The upgrade stopped before anything changed. To go on without this hook, first take the dump by hand as https://signoz.io/docs/operate/migration/upgrade-0-152/ describes, then set postgresql.upgradeBackupHook.enabled=false; turning the hook off without that dump loses the database." >&2
                 exit 1
               }
               major=${PG_MAJOR:-$(postgres -V | sed 's/[^0-9]*\([0-9]*\).*/\1/')}
@@ -114,7 +114,7 @@ spec:
                 echo "The claim holds the Postgres $major data directory at $CLAIM_PGDATA. Nothing to back up."
                 exit 0
               fi
-              err=$(psql -X -w -A -t -c 'SELECT 1' 2>&1 >/dev/null) || fail "cannot reach Postgres at $PGHOST:$PGPORT ($err), and the claim holds no Postgres $major data directory at $CLAIM_PGDATA"
+              err=$(psql -X -w -A -t -c 'SELECT 1' 2>&1 >/dev/null) || fail "cannot connect to Postgres at $PGHOST:$PGPORT ($err), and the claim holds no Postgres $major data directory at $CLAIM_PGDATA"
               [ "$RESTORE_LOADER" = true ] || fail "the release mounts its own /docker-entrypoint-initdb.d, so the dump would not be loaded on the first start"
               mkdir -p "$CLAIM_BACKUPS"
               { echo 'BEGIN;' && pg_dump -w && echo 'COMMIT;'; } > "$CLAIM_BACKUPS/.pre-upgrade.tmp" || fail "dumping database $PGDATABASE failed, see the error above"

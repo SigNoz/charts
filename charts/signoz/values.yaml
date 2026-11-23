@@ -2722,8 +2722,12 @@ postgresql:
     # @default -- true
     # @section -- Postgres
     enabled: true
-    # postgresql.persistence.existingClaim -- Use an existing PVC for Postgres data.
-    # @default -- ""
+    # Rendered as a template in which `.Values` is the `postgresql` block, with
+    # `global`, and `.Chart.Name` is `postgresql`: for example,
+    # `{{ .Release.Name }}-{{ .Chart.Name }}` names the claim
+    # `<release>-postgresql`.
+    # -- Name of an existing claim to use.
+    # @default -- "none, the chart's claim template"
     # @section -- Postgres
     existingClaim: ""
     # postgresql.persistence.size -- Size of the persistent volume claim.
@@ -2774,6 +2778,8 @@ postgresql:
     # with DeadlineExceeded: set `enabled: false` for that upgrade. With the
     # hook off, take the dump yourself before upgrading, as the upgrade guide
     # describes: https://signoz.io/docs/operate/migration/upgrade-0-152/
+    # Turning the hook off without that dump loses a database that is not on
+    # the claim.
     # -- Run the hook on `helm upgrade`.
     # @section -- Postgres
     enabled: true

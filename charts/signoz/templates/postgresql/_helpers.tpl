@@ -136,14 +136,14 @@ Name of the ConfigMap that holds the loader script.
 {{- end -}}
 
 {{/*
-persistence.existingClaim through tpl, or the raw value when postgresql.validate refuses it, so validate.yaml reports the refusal instead of a tpl error.
+persistence.existingClaim through tpl, in the context the postgresql 0.0.2 subchart rendered it in, so a value written for that chart names the same claim. Values also carries postgresql for the postgresql.* helpers.
 */}}
 {{- define "postgresql.existingClaim" -}}
-{{- if include "postgresql.validate" . -}}
-{{- .Values.postgresql.persistence.existingClaim -}}
-{{- else -}}
-{{- tpl .Values.postgresql.persistence.existingClaim . -}}
-{{- end -}}
+{{- $values := deepCopy .Values.postgresql -}}
+{{- $_ := set $values "global" .Values.global -}}
+{{- $_ := set $values "postgresql" .Values.postgresql -}}
+{{- $chart := dict "Name" "postgresql" "Version" "0.0.2" "AppVersion" "15.0.0" -}}
+{{- tpl .Values.postgresql.persistence.existingClaim (dict "Values" $values "Chart" $chart "Release" .Release "Capabilities" .Capabilities "Template" .Template) -}}
 {{- end -}}
 
 {{/*
