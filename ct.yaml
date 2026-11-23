@@ -2,13 +2,20 @@
 remote: origin
 target-branch: main
 debug: true
-charts:
-  - charts/k8s-infra
-  - charts/signoz
-  - charts/signoz-operator
-  - charts/signoz-mcp-server
+# Discover charts under charts/ and process only the ones changed in the PR.
+chart-dirs:
+  - charts
+# Vendored charts are never edited and carry no tests.
+excluded-charts:
+  - redpanda
+  - zookeeper
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:
   - signoz=https://charts.signoz.io
   - altinity=https://helm.altinity.com
+# Run per changed chart during `ct lint`. ct builds dependencies first, so the
+# subchart-dependent suites and the kubeconform render both resolve deps.
+additional-commands:
+  - helm unittest --strict --file 'tests/**/*_test.yaml' {{ .Path }}
+  - sh -ec 'helm template {{ .Path }} | kubeconform -strict -ignore-missing-schemas -summary'

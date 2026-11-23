@@ -4,16 +4,60 @@ on:
   pull_request:
     branches:
       - main
-  pull_request_target:
-    types:
-      - labeled
 
 jobs:
-  unittest:
-    if: |
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
-    uses: signoz/primus.workflows/.github/workflows/helm-unittest.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
+  # No cluster and no secrets: lint, unit tests and manifest validation.
+  # Unit tests (helm unittest) and manifest validation (kubeconform) run as
+  # ct additional-commands; see ct.yaml.
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: setup
+        uses: ./.github/actions/helm-ci-setup
+
+      - name: lint
+        run: ct lint --config ct.yaml
+
+      - name: docs-drift
+        run: |
+          make chart-docs
+          git diff --exit-code || (echo; echo "Docs are out of date. Run 'make chart-docs' and commit the result."; exit 1)
+
+  # Installs changed charts on a kind cluster. Only runs when a chart changed.
+  install:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: setup
+        uses: ./.github/actions/helm-ci-setup
+
+      - name: list-changed
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config ct.yaml)
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: create-kind-cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
+        with:
+          wait: 600s
+
+      - name: install
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
