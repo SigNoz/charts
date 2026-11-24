@@ -46,10 +46,10 @@ Each chart lives in its own directory under [`charts/`](charts) and is released 
 
 | Chart | Name | Version | Installation |
 |---|---|---|---|
-| SigNoz | [`signoz`](charts/signoz) | ![signoz version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz/README.md#installing-the-chart) |
-| Kubernetes Collection Agent | [`k8s-infra`](charts/k8s-infra) | ![k8s-infra version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fk8s-infra%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/k8s-infra/README.md#installing-the-chart) |
-| SigNoz MCP Server | [`signoz-mcp-server`](charts/signoz-mcp-server) | ![signoz-mcp-server version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-mcp-server%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz-mcp-server/README.md#installing-the-chart) |
-| SigNoz Operator | [`signoz-operator`](charts/signoz-operator) | ![signoz-operator version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-operator%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz-operator/README.md#installing-the-chart) |
+| SigNoz | [`signoz`](charts/signoz) | ![signoz version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Get started](charts/signoz/README.md#installing-the-chart) |
+| Kubernetes Collection Agent | [`k8s-infra`](charts/k8s-infra) | ![k8s-infra version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fk8s-infra%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Get started](charts/k8s-infra/README.md#installing-the-chart) |
+| SigNoz MCP Server | [`signoz-mcp-server`](charts/signoz-mcp-server) | ![signoz-mcp-server version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-mcp-server%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Get started](charts/signoz-mcp-server/README.md#installing-the-chart) |
+| SigNoz Operator | [`signoz-operator`](charts/signoz-operator) | ![signoz-operator version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-operator%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Get started](charts/signoz-operator/README.md#installing-the-chart) |
 
 ## Getting Started
 
@@ -69,6 +69,8 @@ helm upgrade --install my-release signoz/signoz --namespace signoz --create-name
 ```
 
 On success the SigNoz Pods start in the `signoz` namespace. For the other charts, follow the installation instructions linked in the [Charts](#charts) table.
+
+For a Kustomize-based install, try [Foundry](https://github.com/SigNoz/foundry) and follow the [Kustomize guide](https://signoz.io/docs/setup/kubernetes/kustomize/).
 
 ## Upgrading
 
