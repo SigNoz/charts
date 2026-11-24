@@ -103,6 +103,8 @@ See [Step 1: Keep ZooKeeper for the upgrade][guide-store] in the upgrade guide.
 | Old key | New key | Note |
 |---|---|---|
 | `clickhouse.zookeeper` | `zookeeper`, at the top level | With `enabled: true`. |
+| `clickhouse.zookeeper.global.imageRegistry` | `zookeeper.image.registry`, and `zookeeper.volumePermissions.image.registry` for the volume-permissions init container | |
+| `clickhouse.zookeeper.global.storageClass` | `zookeeper.persistence.storageClass` | |
 | `zookeeper.global.imageRegistry` | `zookeeper.image.registry`, or `global.imageRegistry` | The old key is ignored without an error. |
 | `zookeeper.global.storageClass` | `zookeeper.persistence.storageClass`, or `global.storageClass` | The old key is ignored without an error. |
 

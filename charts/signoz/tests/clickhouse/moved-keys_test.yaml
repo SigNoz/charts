@@ -15,6 +15,22 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "clickhouse\\.zookeeper.*to `zookeeper"
+  - it: rejects clickhouse.zookeeper.global.imageRegistry, naming zookeeper.image.registry
+    set:
+      clickhouse.zookeeper:
+        global:
+          imageRegistry: my.registry
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.zookeeper\\.global\\.imageRegistry.*zookeeper\\.image\\.registry"
+  - it: rejects clickhouse.zookeeper.global.storageClass, naming zookeeper.persistence.storageClass
+    set:
+      clickhouse.zookeeper:
+        global:
+          storageClass: fast
+    asserts:
+      - failedTemplate:
+          errorPattern: "clickhouse\\.zookeeper\\.global\\.storageClass.*zookeeper\\.persistence\\.storageClass"
   - it: rejects clickhouse.securityContext, naming podSecurityContext
     set:
       clickhouse.securityContext: {enabled: true, runAsUser: 101}
