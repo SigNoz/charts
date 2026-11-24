@@ -4499,7 +4499,7 @@ Group exceptions with low cardinality:
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
 </div>
             </td>
-            <td>Run the pre-upgrade hook Job that dumps a database not on the PVC, for the new Pod to load. Not run on `helm install`, without persistence, with a `persistence.mountPath` other than `/var/lib/postgresql`, with a `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry at or above the data directory, with a `ReadWriteOncePod` PVC, or with `replicaCount: 0`. It runs on the Postgres Pod's node. While that Pod is absent, the upgrade fails after `activeDeadlineSeconds` with `DeadlineExceeded`. When false without a dump taken by hand, a database that is not on the PVC is lost: https://signoz.io/docs/operate/migration/upgrade-0-152/</td>
+            <td>Run the pre-upgrade hook Job that dumps a database not on the PVC, for the new Pod to load. Not run on `helm install`, without persistence, with a `persistence.mountPath` other than `/var/lib/postgresql`, with a `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry at or above the data directory, with a `ReadWriteOncePod` PVC, or with `replicaCount: 0`. It runs on the Postgres Pod's node. While that Pod is absent, the upgrade fails after `activeDeadlineSeconds` with `DeadlineExceeded`. When false without a dump taken by hand, a database that is not on the PVC is lost: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand</td>
         </tr>
         <tr>
             <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2572">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
