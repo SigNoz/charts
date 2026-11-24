@@ -75,7 +75,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.postgresql.service.port }} && { [ ! -e {{ squote $dump }} ] || { echo {{ printf "%s has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/" $dump | squote }}; exit 1; }; }
+                - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ default 5432 .Values.postgresql.service.port }} && { [ ! -e {{ squote $dump }} ] || { echo {{ printf "%s has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade" $dump | squote }}; exit 1; }; }
             initialDelaySeconds: {{ .Values.postgresql.startupProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.postgresql.startupProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.postgresql.startupProbe.timeoutSeconds }}
