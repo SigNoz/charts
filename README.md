@@ -1,60 +1,95 @@
-# SigNoz Helm Chart
+<p align="center">
+  <a href="https://signoz.io" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/signoz-hero-dark.png" width="900">
+      <source media="(prefers-color-scheme: light)" srcset="docs/readme-assets/signoz-hero-light.png" width="900">
+      <img alt="SigNoz" src="docs/readme-assets/signoz-hero-light.png" width="900">
+    </picture>
+  </a>
+</p>
 
-SigNoz helm chart ready to be deployed on Kubernetes using [Kubernetes Helm](https://github.com/helm/helm).
+<h1 align="center" style="border-bottom: none">SigNoz Helm Charts</h1>
 
-## TL;DR
+<p align="center">
+  <a href="https://github.com/SigNoz/charts/actions/workflows/release.yaml"><img alt="Release Charts" src="https://github.com/SigNoz/charts/actions/workflows/release.yaml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+  <a href="https://github.com/SigNoz/charts/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/SigNoz/charts?style=flat"></a>
+  <a href="https://github.com/SigNoz/charts/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/SigNoz/charts"></a>
+  <a href="https://signoz.io/slack"><img alt="Slack" src="https://img.shields.io/badge/Slack-SigNoz-4A154B?logo=slack"></a>
+</p>
+
+<p align="center"><b>Run SigNoz on Kubernetes with Helm.</b></p>
+
+<p align="center">The Helm charts for SigNoz, its Kubernetes collection agent, the SigNoz MCP server and the SigNoz Operator.</p>
+
+<h3 align="center">
+  <a href="https://signoz.io/docs/install/kubernetes/"><b>Documentation</b></a> &bull;
+  <a href="https://signoz.io/teams/"><b>SigNoz Cloud</b></a> &bull;
+  <a href="https://signoz.io/slack"><b>Slack</b></a> &bull;
+  <a href="https://signoz.io"><b>Website</b></a>
+</h3>
+
+## Overview
+
+This repository holds the Helm charts that SigNoz publishes to the Helm repository at `https://charts.signoz.io`.
+
+Each chart lives in its own directory under [`charts/`](charts) and is released by itself.
+
+## About SigNoz
+
+[SigNoz](https://signoz.io) is an open-source observability platform built on OpenTelemetry, with logs, metrics, traces, alerts, and dashboards in one place. These charts are how you run it on Kubernetes.
+
+- Get started with [SigNoz Cloud](https://signoz.io/teams/) for free, or [self-host SigNoz](https://signoz.io/docs/install/self-host/).
+- Star and explore the main project at [SigNoz/signoz](https://github.com/SigNoz/signoz).
+
+## Charts
+
+| Chart | Name | Version | Installation |
+|---|---|---|---|
+| SigNoz | [`signoz`](charts/signoz) | ![signoz version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz/README.md#installing-the-chart) |
+| Kubernetes Collection Agent | [`k8s-infra`](charts/k8s-infra) | ![k8s-infra version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fk8s-infra%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/k8s-infra/README.md#installing-the-chart) |
+| SigNoz MCP Server | [`signoz-mcp-server`](charts/signoz-mcp-server) | ![signoz-mcp-server version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-mcp-server%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz-mcp-server/README.md#installing-the-chart) |
+| SigNoz Operator | [`signoz-operator`](charts/signoz-operator) | ![signoz-operator version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FSigNoz%2Fcharts%2Fmain%2Fcharts%2Fsignoz-operator%2FChart.yaml&query=%24.version&label=chart&color=F25733) | [Instructions](charts/signoz-operator/README.md#installing-the-chart) |
+
+## Getting Started
+
+Prerequisites: a Kubernetes cluster and [Helm](https://helm.sh/docs/intro/install/).
+
+Add the SigNoz Helm repository:
 
 ```bash
-$ helm repo add signoz https://charts.signoz.io
-$ helm install -n platform  --create-namespace my-release signoz/signoz
+helm repo add signoz https://charts.signoz.io
+helm repo update signoz
 ```
 
-## Before you begin
-
-### Setup a Kubernetes Cluster
-
-The quickest way to setup a staging/production Kubernetes cluster is with [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/),
-[AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/) or [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/)
-using their respective quick-start guides.
-
-For setting up Kubernetes on other cloud platforms, bare-metal servers, or local machine refer to the Kubernetes
-[getting started guide](https://kubernetes.io/docs/setup/).
-
-### Install kubectl
-
-The [Kubernetes](https://kubernetes.io/) command-line tool, `kubectl`, allows you to
-run commands against Kubernetes clusters. You can use kubectl to deploy applications,
-inspect and manage cluster resources, and view logs.
-
-To install `kubectl` follow the instructions [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-
-### Install Helm
-
-[Helm](https://helm.sh/) is a tool for managing Kubernetes charts. Charts are packages
-of pre-configured Kubernetes resources.
-
-To install Helm follow the instructions [here](https://helm.sh/docs/intro/install/).
-
-### Add SigNoz Repository
-
-To add the SigNoz helm repository:
+Install SigNoz:
 
 ```bash
-$ helm repo add signoz https://charts.signoz.io
+helm upgrade --install my-release signoz/signoz --namespace signoz --create-namespace
 ```
 
-### Usage
+On success the SigNoz Pods start in the `signoz` namespace. For the other charts, follow the installation instructions linked in the [Charts](#charts) table.
 
-See the [README of SigNoz helm chart](./charts/signoz/README.md).
+## Upgrading
 
-To let AI clients query SigNoz through MCP, install the optional [SigNoz MCP server chart](./charts/signoz-mcp-server/README.md) after SigNoz.
+Read the [upgrade guides](https://signoz.io/docs/operate/migration/) before you move to a new chart version.
 
-### Contribute the Chart
+## Development
 
-See the [instructions here to contribute](./CONTRIBUTING.md).
+```bash
+helm unittest charts/<chart> --file 'tests/**/*_test.yaml'    # unit tests
+ct lint --config ct.yaml --charts charts/<chart>              # lint
+make chart-docs CHARTS=charts/<chart>                          # regenerate the chart README
+```
 
-# License
+## Contributing
 
-MIT License
+We ❤️ contributions big or small. Read the [contributing guide](CONTRIBUTING.md), then open an [issue](https://github.com/SigNoz/charts/issues) or a pull request to get started. Not sure where to begin? Just ping us on `#contributing` in our [Slack community](https://signoz.io/slack).
 
-Copyright (c) 2022 SigNoz
+## Community
+
+Come say Hi to us on [Slack](https://signoz.io/slack) 👋 to talk observability, OpenTelemetry, and SigNoz, and to connect with other users and contributors. If you have ideas, questions, or feedback, share them on [GitHub Discussions](https://github.com/SigNoz/signoz/discussions).
+
+## License
+
+Licensed under the [MIT License](LICENSE).
