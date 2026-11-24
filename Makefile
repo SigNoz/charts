@@ -59,13 +59,3 @@ CHARTS ?= charts/signoz,charts/k8s-infra,charts/signoz-mcp-server
 HELM_DOCS = go run github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 chart-docs:
 	$(HELM_DOCS) --chart-search-root=charts --template-files=README.md.gotmpl --chart-to-generate=$(CHARTS) --sort-values-order=file
-
-# generate values.schema.json for the charts that carry one, from values.yaml and its `# @schema` comments
-# Usage: make chart-schema SCHEMA_CHARTS="charts/signoz"
-SCHEMA_CHARTS ?= charts/signoz
-HELM_SCHEMA = go run github.com/losisin/helm-values-schema-json/v2@v2.6.1
-chart-schema:
-	@for chart in $(SCHEMA_CHARTS); do \
-		$(HELM_SCHEMA) --values $$chart/values.yaml --output $$chart/values.schema.json \
-			--draft 7 --use-helm-docs --schema-root.additional-properties=true || exit 1; \
-	done

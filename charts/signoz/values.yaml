@@ -1,7 +1,6 @@
 # -- Global override values for the chart.
 # @section -- Global Settings
 global:
-  # @schema type:[string, null]
   # -- Global image registry override. Not applied to the `altinity-clickhouse-operator` subchart and `postgresql` images.
   # @default -- null
   # @section -- Global Settings
@@ -9,7 +8,6 @@ global:
   # -- Global image pull secrets, as a list of Secret names. Not applied to the `altinity-clickhouse-operator` subchart.
   # @section -- Global Settings
   imagePullSecrets: []
-  # @schema type:[string, null]
   # -- StorageClass of the SigNoz, ClickHouse and ZooKeeper PVCs. When set, it overrides their own `persistence.storageClass`.
   # When neither is set, the PVCs use the cluster's default StorageClass. `-` renders an empty `storageClassName`, which disables dynamic provisioning.
   # @default -- null
@@ -99,7 +97,6 @@ clickhouse:
     # @default -- "clickhouse/clickhouse-server"
     # @section -- ClickHouse
     repository: clickhouse/clickhouse-server
-    # @schema type:[string, number]
     # -- Image tag. SigNoz is tested against the default.
     # @default -- "25.12.5"
     # @section -- ClickHouse
@@ -113,7 +110,6 @@ clickhouse:
   imagePullSecrets: []
   # - "clickhouse-pull-secret"
 
-  # @schema skipProperties:true;additionalProperties:true
   # -- Shards and replicas of the ClickHouse cluster (experimental), the operator's cluster `layout` rendered as given:
   # https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
   # @section -- ClickHouse
@@ -135,7 +131,6 @@ clickhouse:
     # @default -- {}
     # @section -- ClickHouse
     annotations: {}
-    # @schema type:[string, null]
     # -- Name of the ServiceAccount to create (empty: the ClickHouse name), or of an existing one to run as when `create` is false.
     # @default -- null
     # @section -- ClickHouse
@@ -204,7 +199,6 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
-  # @schema type:[string, null]
   # -- Name of a Secret you created that holds the password of `clickhouse.user`. When set, the chart creates no Secret.
   # With `clickhouse.namespace` set to another namespace, the Secret must exist there and in the release namespace.
   # @default -- null
@@ -220,12 +214,10 @@ clickhouse:
   # @default -- ""
   # @section -- ClickHouse
   existingSecretPasswordSha256Key: ""
-  # @schema type:[boolean, string]
   # -- Passed as `CLICKHOUSE_SECURE` to the Pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
   secure: false
-  # @schema type:[boolean, string]
   # -- Passed as `CLICKHOUSE_VERIFY` to the Pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
@@ -267,7 +259,6 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- {}
   profiles: {}
-  # @schema skipProperties:true;additionalProperties:true
   # -- Profile settings SigNoz's queries rely on. `clickhouse.profiles` overrides a single setting.
   # @section -- ClickHouse
   # @default -- "See values.yaml"
@@ -278,7 +269,6 @@ clickhouse:
     admin/secondary_indices_enable_bulk_filtering: "0"
     default/query_plan_max_limit_for_lazy_materialization: "0"
     admin/query_plan_max_limit_for_lazy_materialization: "0"
-  # @schema skipProperties:true;additionalProperties:true
   # -- ClickHouse server settings, keyed by their path in the server config. They override `defaultSettings`. The `prometheus/*`
   # defaults serve the metrics that `clickhouse.pod.annotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
   # @raw
@@ -297,7 +287,6 @@ clickhouse:
     # prometheus/metrics: true
     # prometheus/events: true
     # prometheus/asynchronous_metrics: true
-  # @schema skipProperties:true;additionalProperties:true
   # -- Server settings that load the histogramQuantile function and set the format schema directory.
   # `clickhouse.settings` overrides a single setting.
   # @section -- ClickHouse
@@ -305,7 +294,6 @@ clickhouse:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
     user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
-  # @schema skipProperties:true;additionalProperties:true
   # -- ClickHouse configuration files, keyed by path. Files under `config.d/` merge into the server config.
   # @raw
   # A file that sets the server name clickhouse-client shows in its prompt:
@@ -407,7 +395,6 @@ clickhouse:
     # @default -- false
     # @section -- ClickHouse
     enabled: false
-    # @schema type:[integer, string]
     # -- Free space to keep on the default disk, in bytes.
     # @default -- "10485760"
     # @section -- ClickHouse
@@ -468,7 +455,6 @@ clickhouse:
         # @default -- "signoz/signoz-otel-collector"
         # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
-        # @schema type:[string, number]
         # -- Tag of the system logs sidecar image.
         # @default -- "v0.144.15"
         # @section -- ClickHouse
@@ -490,7 +476,6 @@ clickhouse:
       # -- Extra volume mounts for the container. Their volumes come from `clickhouse.extraVolumes`.
       # @section -- ClickHouse
       extraVolumeMounts: []
-      # @schema skipProperties:true;additionalProperties:true
       # -- Configuration of the sidecar collector, rendered as given into its config file.
       # @section -- ClickHouse
       # @default -- "See values.yaml"
@@ -557,7 +542,6 @@ clickhouse:
       # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
       # @section -- ClickHouse
       repository: registry.k8s.io/kubectl
-      # @schema type:[string, number]
       # -- Tag of the kubectl image. The image publishes no `latest` tag.
       # @section -- ClickHouse
       tag: v1.36.3
@@ -655,7 +639,6 @@ clickhouse:
   # @section -- ClickHouse
   extraContainers: []
 
-  # @schema skipProperties:true;additionalProperties:true
   # -- Startup probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -679,7 +662,6 @@ clickhouse:
     timeoutSeconds: 5
     failureThreshold: 30
     successThreshold: 1
-  # @schema skipProperties:true;additionalProperties:true
   # -- Liveness probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -703,7 +685,6 @@ clickhouse:
     timeoutSeconds: 1
     failureThreshold: 10
     successThreshold: 1
-  # @schema skipProperties:true;additionalProperties:true
   # -- Readiness probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -728,7 +709,6 @@ clickhouse:
     failureThreshold: 3
     successThreshold: 1
 
-  # @schema skipProperties:true;additionalProperties:true
   # -- Resource requests and limits for the container.
   # @section -- ClickHouse
   resources:
@@ -739,7 +719,6 @@ clickhouse:
   #     cpu: 2000m
   #     memory: 4Gi
 
-  # @schema skipProperties:true;additionalProperties:true
   # -- Security context for the Pod. `null` renders none, and `{}` keeps the defaults.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- ClickHouse
@@ -797,7 +776,6 @@ clickhouse:
     # @default -- ""
     # @section -- ClickHouse
     existingClaim: ""
-    # @schema type:[string, null]
     # -- StorageClass of the ClickHouse data PVC. `-` disables dynamic provisioning, null uses the cluster default,
     # and `global.storageClass` overrides it.
     # @default -- null
@@ -847,7 +825,6 @@ keeper:
     # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
     # @section -- ClickHouse Keeper
     repository: clickhouse/clickhouse-keeper
-    # @schema type:[string, number]
     # -- Image tag. It does not follow `clickhouse.image.tag`.
     # A Keeper restart drops every ClickHouse session.
     # @section -- ClickHouse Keeper
@@ -880,7 +857,6 @@ keeper:
       signoz.io/scrape: "true"
       signoz.io/port: "9141"
       signoz.io/path: /metrics
-  # @schema skipProperties:true;additionalProperties:true
   # -- ClickHouse Keeper server settings. Set a key to `null` to drop a default.
   # `prometheus/port` must equal the `signoz.io/port` annotation in `keeper.pod.annotations`.
   # @default -- "See values.yaml"
@@ -897,7 +873,6 @@ keeper:
     prometheus/metrics: "true"
     prometheus/events: "true"
     prometheus/asynchronous_metrics: "true"
-  # @schema skipProperties:true;additionalProperties:true
   # -- Security context for the Pod. `null` renders none, and `{}` keeps the defaults.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @default -- "See values.yaml"
@@ -921,7 +896,6 @@ keeper:
   # -- Extra volume mounts for the container.
   # @section -- ClickHouse Keeper
   extraVolumeMounts: []
-  # @schema skipProperties:true;additionalProperties:true
   # -- Resource requests and limits for the container.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
@@ -959,13 +933,11 @@ keeper:
     # -- Size of the PVC.
     # @section -- ClickHouse Keeper
     size: 10Gi
-    # @schema type:[string, null]
     # -- StorageClass of the PVC. `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
     # @default -- "the default provisioner"
     # @section -- ClickHouse Keeper
     storageClass: null
 
-# @schema skipProperties:true;additionalProperties:true
 # -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true. Its keys follow Bitnami's chart:
 # https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
 # @default -- "See values.yaml"
@@ -1125,7 +1097,6 @@ zookeeper:
     requests:
       memory: 256Mi
       cpu: 100m
-# @schema skipProperties:true;additionalProperties:true
 # -- Values of Altinity's clickhouse-operator chart, which installs the operator that reconciles the ClickHouseInstallation.
 # Only settings that differ from that chart's defaults are set here. Its keys:
 # https://github.com/Altinity/clickhouse-operator/tree/release-0.27.4/deploy/helm
@@ -1339,7 +1310,6 @@ altinity-clickhouse-operator:
 # -- External ClickHouse configuration. Required when `clickhouse.enabled` is false, and used only then.
 # @section -- External ClickHouse
 externalClickhouse:
-  # @schema type:[string, null]
   # -- Host of the external ClickHouse.
   # @default -- null
   # @section -- External ClickHouse
@@ -1373,7 +1343,6 @@ externalClickhouse:
   # @default -- ""
   # @section -- External ClickHouse
   password: ""
-  # @schema type:[string, null]
   # -- Name of a Secret you created that holds the password of `externalClickhouse.user`. When set, the chart
   # creates no Secret and the components read this one.
   # @default -- null
@@ -1383,13 +1352,11 @@ externalClickhouse:
   # @default -- "password"
   # @section -- External ClickHouse
   existingSecretPasswordKey: password
-  # @schema type:[boolean, string]
   # -- Connect to an external ClickHouse behind TLS by appending `?secure=true` to the SigNoz and migrator connection strings.
   # Set `externalClickhouse.tcpPort` to its secure port, usually 9440, and add the same parameters to the exporter connection strings in `otelCollector.config`.
   # @default -- false
   # @section -- External ClickHouse
   secure: false
-  # @schema type:[boolean, string]
   # -- Verify the server's TLS certificate when `externalClickhouse.secure` is true. False appends
   # `&skip_verify=true` to the SigNoz and migrator connection strings. Add it to the exporter connection strings in `otelCollector.config` yourself.
   # @default -- false
@@ -1414,7 +1381,6 @@ signoz:
     # -- Image repository, with its registry. `global.imageRegistry` replaces that registry when set.
     # @section -- SigNoz
     repository: docker.io/signoz/signoz
-    # @schema type:[string, number]
     # -- Image tag. Empty means the chart's `appVersion`.
     # @section -- SigNoz
     tag: v0.151.0
@@ -1431,7 +1397,6 @@ signoz:
     # -- Annotations to add to the ServiceAccount.
     # @section -- SigNoz
     annotations: {}
-    # @schema type:[string, null]
     # -- Name of the ServiceAccount. Empty means the release's full name when `create` is true, and `default` otherwise.
     # @default -- "the release's full name, or default"
     # @section -- SigNoz
@@ -1455,22 +1420,18 @@ signoz:
     # -- Service port for OpAMP. The container port stays 4320.
     # @section -- SigNoz Networking
     opampPort: 4320
-    # @schema type:[integer, string, null]
     # -- NodePort for HTTP. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     nodePort: null
-    # @schema type:[integer, string, null]
     # -- NodePort for the internal API. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     internalNodePort: null
-    # @schema type:[integer, string, null]
     # -- NodePort for OpAMP. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     opampInternalNodePort: null
-  # @schema type:[object, null]
   # -- Annotations to add to the StatefulSet.
   # @default -- "no annotations"
   # @section -- SigNoz
@@ -1481,7 +1442,6 @@ signoz:
   # -- Extra arguments for the container, added after the image's own.
   # @section -- SigNoz
   extraArgs: []
-  # @schema skipProperties:true;additionalProperties:true
   # -- Extra environment variables for the container, as `NAME: value`. A key named like a variable the chart sets replaces it.
   # A string, number or boolean is the value. A map is the rest of the EnvVar, such as `valueFrom`.
   # The names follow the SigNoz configuration: `provider` under `telemetry_store` is `signoz_telemetrystore_provider`.
@@ -1547,7 +1507,6 @@ signoz:
   # The SQLite database is on the PVC `signoz-db`, mounted at `/var/lib/signoz`.
   # @section -- SigNoz
   extraContainers: []
-  # @schema skipProperties:true;additionalProperties:true
   # -- Liveness probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`. Set a field to `null` to drop it.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -1562,7 +1521,6 @@ signoz:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # @schema skipProperties:true;additionalProperties:true
   # -- Readiness probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`. Set a field to `null` to drop it.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -1607,7 +1565,6 @@ signoz:
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- SigNoz Networking
     tls: []
-  # @schema skipProperties:true;additionalProperties:true
   # -- Resource requests and limits for the container.
   # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
@@ -1641,7 +1598,6 @@ signoz:
     # @default -- "none, the chart's volume claim template"
     # @section -- SigNoz
     existingClaim: ""
-    # @schema type:[string, null]
     # -- StorageClass of the PVC. `-` disables dynamic provisioning, and `global.storageClass` overrides it.
     # @default -- "the cluster's default StorageClass"
     # @section -- SigNoz
@@ -1687,7 +1643,6 @@ telemetryStoreMigrator:
   # @default -- "10m"
   # @section -- Telemetry Store Migrator
   timeout: "10m"
-  # @schema type:[integer, null]
   # -- (int) Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it.
   # Set it (for example `604800`) to clean up Jobs a failed upgrade leaves behind. Leave it unset under Argo CD, which recreates a deleted Job
   # and re-runs the migrator.
@@ -1750,7 +1705,6 @@ telemetryStoreMigrator:
     # -- Annotations to add to the ServiceAccount.
     # @section -- Telemetry Store Migrator
     annotations: {}
-    # @schema type:[string, null]
     # -- Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.
     # @section -- Telemetry Store Migrator
     name:
@@ -1766,7 +1720,6 @@ otelCollector:
     # -- Image repository, with its registry. `global.imageRegistry` replaces that registry when set.
     # @section -- Otel Collector
     repository: docker.io/signoz/signoz-otel-collector
-    # @schema type:[string, number]
     # -- Image tag.
     # @section -- Otel Collector
     tag: v0.144.16
@@ -1776,7 +1729,6 @@ otelCollector:
   # -- Image pull secrets for the collector Pod, as a list of Secret names.
   # @section -- Otel Collector
   imagePullSecrets: []
-  # @schema type:[object, string, null]
   # -- Deployment strategy.
   # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   # @section -- Otel Collector
@@ -1796,7 +1748,6 @@ otelCollector:
     # -- Annotations to add to the ServiceAccount.
     # @section -- Otel Collector
     annotations: {}
-    # @schema type:[string, null]
     # -- Name of the ServiceAccount. When empty and `create` is true, the chart generates one.
     # @section -- Otel Collector
     name:
@@ -1813,7 +1764,6 @@ otelCollector:
     # -- Source ranges allowed when the Service type is `LoadBalancer`.
     # @section -- Otel Collector Networking
     loadBalancerSourceRanges: []
-  # @schema type:[object, null]
   # -- Annotations to add to the Deployment.
   # @section -- Otel Collector
   # @default -- null
@@ -1909,7 +1859,6 @@ otelCollector:
       # -- Service port for OTLP gRPC.
       # @section -- Otel Collector Ports
       servicePort: 4317
-      # @schema type:[integer, string, null]
       # -- NodePort for OTLP gRPC.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -1926,7 +1875,6 @@ otelCollector:
       # -- Service port for OTLP HTTP.
       # @section -- Otel Collector Ports
       servicePort: 4318
-      # @schema type:[integer, string, null]
       # -- NodePort for OTLP HTTP.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -1943,7 +1891,6 @@ otelCollector:
       # -- Service port for Jaeger Thrift.
       # @section -- Otel Collector Ports
       servicePort: 14268
-      # @schema type:[integer, string, null]
       # -- NodePort for Jaeger Thrift.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -1960,7 +1907,6 @@ otelCollector:
       # -- Service port for Jaeger gRPC.
       # @section -- Otel Collector Ports
       servicePort: 14250
-      # @schema type:[integer, string, null]
       # -- NodePort for Jaeger gRPC.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -1977,7 +1923,6 @@ otelCollector:
       # -- Service port for internal metrics.
       # @section -- Otel Collector Ports
       servicePort: 8888
-      # @schema type:[integer, string, null]
       # -- NodePort for internal metrics.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -1994,7 +1939,6 @@ otelCollector:
       # -- Service port for zPages.
       # @section -- Otel Collector Ports
       servicePort: 55679
-      # @schema type:[integer, string, null]
       # -- NodePort for zPages.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -2011,7 +1955,6 @@ otelCollector:
       # -- Service port for pprof.
       # @section -- Otel Collector Ports
       servicePort: 1777
-      # @schema type:[integer, string, null]
       # -- NodePort for pprof.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -2028,7 +1971,6 @@ otelCollector:
       # -- Service port for Heroku logs.
       # @section -- Otel Collector Ports
       servicePort: 8081
-      # @schema type:[integer, string, null]
       # -- NodePort for Heroku logs.
       # @section -- Otel Collector Ports
       nodePort: ""
@@ -2045,14 +1987,12 @@ otelCollector:
       # -- Service port for JSON logs.
       # @section -- Otel Collector Ports
       servicePort: 8082
-      # @schema type:[integer, string, null]
       # -- NodePort for JSON logs.
       # @section -- Otel Collector Ports
       nodePort: ""
       # -- Protocol for JSON logs.
       # @section -- Otel Collector Ports
       protocol: TCP
-  # @schema skipProperties:true;additionalProperties:true
   # -- Liveness probe for the container. `null` renders none.
   # A handler other than `httpGet` must also set `httpGet: null`.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -2067,7 +2007,6 @@ otelCollector:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # @schema skipProperties:true;additionalProperties:true
   # -- Readiness probe for the container.
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "httpGet on port 13133, path /"
@@ -2120,7 +2059,6 @@ otelCollector:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otelcollector.domain.com
-  # @schema skipProperties:true;additionalProperties:true
   # -- Resource requests and limits for the container.
   # @section -- Otel Collector
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
@@ -2214,33 +2152,27 @@ otelCollector:
     # @section -- Otel Collector
     autoscalingTemplate: []
     keda:
-      # @schema type:[object, null]
       # -- Annotations to add to the KEDA ScaledObject.
       # @section -- Otel Collector
       annotations:
       # -- Enable autoscaling with KEDA.
       # @section -- Otel Collector
       enabled: false
-      # @schema type:[integer, string]
       # -- Polling interval for metrics data, in seconds.
       # @section -- Otel Collector
       pollingInterval: "30"
-      # @schema type:[integer, string]
       # -- Cooldown period before scaling down, in seconds.
       # @section -- Otel Collector
       cooldownPeriod: "300"
-      # @schema type:[integer, string]
       # -- Minimum replica count for KEDA.
       # @section -- Otel Collector
       minReplicaCount: "1"
-      # @schema type:[integer, string]
       # -- Maximum replica count for KEDA.
       # @section -- Otel Collector
       maxReplicaCount: "5"
       # -- KEDA trigger configuration.
       # @section -- Otel Collector
       triggers: []
-  # @schema skipProperties:true;additionalProperties:true
   # -- OpenTelemetry Collector pipeline configuration.
   # @section -- Otel Collector Configuration
   # @default -- "Please checkout the default values in values.yml"
@@ -2405,7 +2337,6 @@ postgresql:
     # @default -- "postgres"
     # @section -- Postgres
     repository: postgres
-    # @schema type:[string, number]
     # -- Image tag.
     # @default -- "15"
     # @section -- Postgres
@@ -2601,7 +2532,6 @@ postgresql:
     # @default -- "10Gi"
     # @section -- Postgres
     size: 10Gi
-    # @schema type:[string, null]
     # -- StorageClass of the PVC.
     # @default -- null
     # @section -- Postgres
@@ -2640,7 +2570,6 @@ postgresql:
     # A value of 300 or more needs `helm upgrade --timeout` raised with it.
     # @section -- Postgres
     activeDeadlineSeconds: 240
-    # @schema skipProperties:true;additionalProperties:true
     # -- Resource requests and limits for the container. `null` sets none, and `{}` keeps the defaults.
     # @default -- "requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory"
     # @section -- Postgres
@@ -2701,12 +2630,10 @@ postgresql:
     # @default -- {}
     # @section -- Postgres
     annotations: {}
-    # @schema type:[string, null]
     # -- Name of the ServiceAccount. When empty and `create` is true, the chart generates one.
     # @default -- null
     # @section -- Postgres
     name:
-# @schema skipProperties:true;additionalProperties:true
 # -- signoz-otel-gateway subchart values. Configurable with the licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
@@ -2927,7 +2854,6 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
-# @schema skipProperties:true;additionalProperties:true
 # -- redpanda subchart values. Configurable with the licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:
