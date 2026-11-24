@@ -127,7 +127,7 @@ kubectl -n platform patch chk my-release-keeper --type=merge -p '{"metadata":{"f
 > [!WARNING]
 > ### Breaking Changes
 > #### Version 1.0.0
-> The upgrade notes are in [`UPGRADING.md`](./UPGRADING.md), and the step-by-step guide is at https://signoz.io/docs/operate/migration/upgrade-0-152/.
+> The upgrade notes are in [`UPGRADING.md`](https://github.com/SigNoz/charts/blob/main/charts/signoz/UPGRADING.md), and the steps are in the [upgrade guide](https://signoz.io/docs/operate/migration/upgrade-0-152/).
 >
 > #### Version 0.131.0
 > ClickHouse has been upgraded from `25.5.6` to `25.12.5`. This is a significant ClickHouse version jump, so review the upgrade guide before upgrading to avoid issues with your existing data.

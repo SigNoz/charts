@@ -12,7 +12,7 @@ This file lists what to change when you upgrade to each version of the `signoz` 
 
 This section covers upgrades from chart 0.151.0 or earlier to 1.0.0.
 
-`1.0.0` comes with ClickHouse Keeper by default. To keep using ZooKeeper until you migrate, set:
+`1.0.0` comes with ClickHouse Keeper by default. An existing install with the bundled ClickHouse sets:
 
 ```yaml
 zookeeper:
@@ -28,17 +28,29 @@ keeper:
   enabled: false
 ```
 
+> [!CAUTION]
+> These values are required until you migrate to Keeper. Without them, `helm upgrade` fails because the Keeper CRD is missing. Through Argo CD or rendered manifests, the upgrade removes ZooKeeper and points ClickHouse at a new, empty Keeper, and the replicated tables go read-only. The ZooKeeper PVCs stay, and the [guide] has the way back.
+
 Then:
 
-1. Move the keys your values set, listed in each component's section below.
-2. With a private registry, set the operator's own image keys ([Registry and pull secrets](#100-registry)).
-3. With the bundled Postgres, make no changes in SigNoz while the upgrade runs ([Postgres](#100-postgres)).
-4. With `--no-hooks`, Argo CD or rendered manifests, run the hook steps yourself ([Hooks](#100-hooks)).
+1. Render the chart with your values to list every key that must change. Nothing in the cluster changes:
+
+   ```bash
+   helm template <release> signoz/signoz --version 1.0.0 -f <values>
+   ```
+
+2. Move the keys your values set, listed in each component's section below.
+3. With a private registry, set the operator's own image keys ([Registry and pull secrets](#100-registry)).
+4. With the bundled Postgres, make no changes in SigNoz while the upgrade runs ([Postgres](#100-postgres)).
+5. With `--no-hooks`, Argo CD or rendered manifests, run the hook steps yourself ([Hooks](#100-hooks)).
 
 Step by step: [the upgrade guide][guide].
 
+<a id="100-before-troubleshooting"></a>
+#### Troubleshooting
+
 <a id="100-ts-values"></a>
-#### `must change before the chart can be installed`
+##### `must change before the chart can be installed`
 
 - **Affects:** Any release whose values set a key that moved or was removed in 1.0.0.
 - **Symptom:** `helm upgrade` fails with `1 value must change before the chart can be installed:` or `<n> values must change before the chart can be installed:`, then one line per key. Nothing in the cluster changed.
@@ -80,13 +92,13 @@ These defaults changed. Set the old value to keep it:
 
 | If you | Do |
 |---|---|
-| Read the ClickHouse password from a pod spec or the ClickHouseInstallation | Read it from Secret `<release>-clickhouse-credentials`, key `password` (`<fullnameOverride>-credentials` with `clickhouse.fullnameOverride`). |
+| Read the ClickHouse password from a Pod spec or the ClickHouseInstallation | Read it from Secret `<release>-clickhouse-credentials`, key `password` (`<fullnameOverride>-credentials` with `clickhouse.fullnameOverride`). |
 | Use an external ClickHouse and read Secret `<release>-clickhouse-external`, key `clickhouse-password` | Read Secret `<release>-clickhouse-credentials`, key `password`. |
 | Change `clickhouse.password`, `externalClickhouse.password` or `postgresql.auth.password` | Restart SigNoz, the collector and ClickHouse or Postgres afterwards. A change no longer restarts them. |
 | Read `CLICKHOUSE_HTTP_PORT` in a config of yours | Write the port number there. `clickhouse.service.httpPort` and `externalClickhouse.httpPort` no longer set the variable. |
 | Set `clickhouse.logs.system.enabled: true` | Pin no `clickhouse.logs.system.image.tag` older than the default, and remove from `clickhouse.logs.system.config` the [components 0.144.15 lacks](#100-logs-components). |
 | Use the `events.proto` format schema | Add it under `clickhouse.files`. |
-| Scale ClickHouse down or rename it | Delete the PersistentVolumeClaims (claims) it leaves by hand when you no longer want the data. The operator now keeps them. |
+| Scale ClickHouse down or rename it | Delete the PersistentVolumeClaims (PVCs) it leaves by hand when you no longer want the data. The operator now keeps them. |
 | Have a ClickHouse name over 34 characters (a release name of 24 or more with the default `-clickhouse`) | Move the data with the [guide] before you shorten the name. |
 | Set `externalClickhouse.secure: true` | If `externalClickhouse.tcpPort` serves TLS (usually 9440), add `secure=true` to the exporter data source names (DSNs) in `otelCollector.config`. Otherwise set `secure: false`. |
 | Set `global.clusterDomain` | Check that it is your cluster's domain. It now reaches ClickHouse. |
@@ -106,7 +118,7 @@ Components that collector 0.144.15 lacks:
 - `sapmreceiver`
 
 > [!CAUTION]
-> Shortening a ClickHouse name renames the ClickHouseInstallation (for example `signoz-observability-prod-clickhouse` to `signoz-obs-prod-ch`). Helm removes the old one, its claims stay, and the operator builds a new, empty ClickHouse. Move the data with the [guide] first.
+> Shortening a ClickHouse name renames the ClickHouseInstallation (for example `signoz-observability-prod-clickhouse` to `signoz-obs-prod-ch`). Helm removes the old one, its PVCs stay, and the operator builds a new, empty ClickHouse. Move the data with the [guide] first.
 
 <a id="100-keeper"></a>
 <a id="100-keeper-default"></a>
@@ -122,20 +134,18 @@ These defaults changed:
 
 | If you | Do |
 |---|---|
+| Upgrade an existing install on the bundled ZooKeeper | Set `zookeeper.enabled: true` and `keeper.enabled: false`. They are required ([Before you upgrade](#100-before)). |
 | Use `clickhouse.externalZookeeper.servers` | Set only `keeper.enabled: false`, and leave `zookeeper.enabled` unset. |
 | Set `clickhouse.zookeeper.*` | Move the block to `zookeeper`, with `enabled: true`. |
 | Set `zookeeper.global.imageRegistry` or `zookeeper.global.storageClass` | Use `zookeeper.image.registry` and `zookeeper.persistence.storageClass`, or `global.*`. |
 | Scrape Service `<release>-zookeeper-metrics` | Keep `zookeeper.enabled: true`. The Service goes with ZooKeeper. |
 | Want to move to Keeper | Follow the [guide]. |
 
-> [!CAUTION]
-> Without these values, an upgrade or sync of an existing install removes ZooKeeper and points ClickHouse at a new, empty Keeper. The ZooKeeper claims stay, and the [guide] has the way back.
-
 <a id="100-keeper-troubleshooting"></a>
-**Troubleshooting**
+#### Troubleshooting
 
 <a id="100-ts-keeper-crd"></a>
-#### `no matches for kind "ClickHouseKeeperInstallation" in version "clickhouse-keeper.altinity.com/v1"`
+##### `no matches for kind "ClickHouseKeeperInstallation" in version "clickhouse-keeper.altinity.com/v1"`
 
 - **Affects:** Existing installs upgraded with `keeper.enabled` at its default.
 - **Symptom:** The first `helm upgrade` fails with this error and `ensure CRDs are installed first`. Nothing in the cluster changed.
@@ -144,7 +154,7 @@ These defaults changed:
 - **Verify:** The upgrade completes and the Helm notes print `ClickHouse coordinates through ZooKeeper.`
 
 <a id="100-ts-no-store"></a>
-#### `no coordination store for ClickHouse`
+##### `no coordination store for ClickHouse`
 
 - **Affects:** Values with `keeper.enabled: false` and neither ZooKeeper option.
 - **Symptom:** `helm upgrade` or `helm template` fails with this error.
@@ -153,12 +163,12 @@ These defaults changed:
 - **Verify:** The Helm notes name the store, such as `ClickHouse coordinates through ZooKeeper.`
 
 <a id="100-ts-empty-keeper"></a>
-#### Did ClickHouse switch to an empty Keeper?
+##### Did ClickHouse switch to an empty Keeper?
 
 - **Affects:** Existing installs upgraded or synced without `zookeeper.enabled: true`, for example through Argo CD or rendered manifests that include the CRDs.
 - **Symptom:** The Helm notes print `ClickHouse coordinates through ClickHouse Keeper at keeper-<release>-keeper:2181.`, StatefulSet `<release>-zookeeper` is gone, and replicated tables are read-only.
 - **Cause:** Default values replaced ZooKeeper with a new Keeper that holds none of the tables' coordination state.
-- **Resolution:** Follow the recovery steps in the [guide]. The chart keeps the ZooKeeper claims.
+- **Resolution:** Follow the recovery steps in the [guide]. The chart keeps the ZooKeeper PVCs.
 - **Verify:** StatefulSet `<release>-zookeeper` is back.
 
 <a id="100-operator"></a>
@@ -174,6 +184,7 @@ Altinity's chart ignores the old key names, so rename each key you set:
 |---|---|
 | `image.*` | `operator.image.*` |
 | `resources` | `operator.resources` |
+| `nodeSelector`, `tolerations`, `affinity` | The same keys, at the top level |
 | `metricsExporter.*` | `metrics.image.*`, `metrics.resources`, `metrics.env`. The Service port, type and annotations have no counterpart. |
 | `imagePullSecrets`, as names (`[ch-pull]`) | `imagePullSecrets`, as objects (`[{name: ch-pull}]`) |
 | `serviceMonitor.interval`, `scrapeTimeout`, `relabelings`, `metricRelabelings` | `serviceMonitor.clickhouseMetrics.*`, `serviceMonitor.operatorMetrics.*` |
@@ -185,7 +196,7 @@ Update anything of yours that selects, scrapes or names these:
 
 | Object | Old | New |
 |---|---|---|
-| Operator pod labels and Deployment selector | `app.kubernetes.io/name: clickhouse`, `app.kubernetes.io/component: operator` | `app.kubernetes.io/name: clickhouse-operator` |
+| Operator Pod labels and Deployment selector | `app.kubernetes.io/name: clickhouse`, `app.kubernetes.io/component: operator` | `app.kubernetes.io/name: clickhouse-operator` |
 | Ports of Service `<release>-clickhouse-operator-metrics` | `<release>-clickhouse-operator-metrics` (8888) | `ch-metrics` (8888), `op-metrics` (9999) |
 | Operator ServiceMonitor | `<release>-clickhouse-operator-metrics` | `<release>-clickhouse-operator-clickhouse-metrics`, endpoints `ch-metrics` and `op-metrics` |
 | Operator ConfigMaps | `<release>-clickhouse-operator-etc-files`, `-etc-confd-files`, `-etc-configd-files`, `-etc-templatesd-files`, `-etc-usersd-files` | `<release>-clickhouse-operator-files`, `-confd-files`, `-configd-files`, `-templatesd-files`, `-usersd-files` |
@@ -238,10 +249,10 @@ altinity-clickhouse-operator:
 Set a file to `null` to leave its table unconfigured.
 
 <a id="100-operator-troubleshooting"></a>
-**Troubleshooting**
+#### Troubleshooting
 
 <a id="100-ts-operator-selector"></a>
-#### `cannot patch "<release>-clickhouse-operator" with kind Deployment`
+##### `cannot patch "<release>-clickhouse-operator" with kind Deployment`
 
 - **Affects:** Upgrades with `--no-hooks`, Argo CD without hooks or `clickhouse.operatorUpgradeHook.enabled: false`, and any `helm rollback` to chart 0.151.0.
 - **Symptom:** The upgrade or rollback fails on the operator Deployment's selector, which is immutable.
@@ -281,7 +292,7 @@ Move these keys:
 
 | Old key | New key | Note |
 |---|---|---|
-| `otelCollector.additionalEnvs` | `otelCollector.env` | A list: `[{name: FOO, value: bar}]`. |
+| `otelCollector.additionalEnvs` | `otelCollector.env` | The same map. A list of `name` and `value` entries also works. |
 | `otelCollector.command.extraArgs` | `otelCollector.extraArgs` | |
 | `otelCollector.command.name` | Removed | The collector always runs `/signoz-otel-collector`. |
 | `otelCollector.customLivenessProbe` | `otelCollector.livenessProbe` | |
@@ -304,11 +315,11 @@ Move these keys:
 
 | Old key | New key | Note |
 |---|---|---|
-| `telemetryStoreMigrator.name` | The same key | At most 57 characters. |
 | `telemetryStoreMigrator.upgradeHelmHooks` | Removed | |
 
 | If you | Do |
 |---|---|
+| Set `telemetryStoreMigrator.name` | Keep it to at most 57 characters. |
 | Name or wait for Job `signoz-telemetrystore-migrator` | Use `signoz-telemetrystore-migrator-<revision>`: a new Job on every install and upgrade. Set `telemetryStoreMigrator.enabled: false` to skip one revision. |
 | Bind something to ServiceAccount `signoz-telemetrystore-migrator`, such as a cloud identity, or set `telemetryStoreMigrator.serviceAccount.annotations` | Set `telemetryStoreMigrator.serviceAccount.create: true`. It now defaults to `false`. |
 | Set `telemetryStoreMigrator.serviceAccount.name` without `create: true` | Add `create: true`, or create the account yourself. |
@@ -317,25 +328,25 @@ Move these keys:
 <a id="100-postgres"></a>
 ### Postgres
 
-- The upgrade moves the bundled Postgres database onto its claim.
-- Pre-upgrade Job `<release>-postgresql-upgrade-backup` dumps it to `backups/pre-upgrade.sql` on the claim.
+- The upgrade moves the bundled Postgres database onto its PVC.
+- Pre-upgrade Job `<release>-postgresql-upgrade-backup` dumps it to `backups/pre-upgrade.sql` on the PVC.
 - Postgres loads the dump on its first start.
 
 | If you | Do |
 |---|---|
 | Run the bundled Postgres | Make no changes in SigNoz while the upgrade runs: changes written after the dump are not in it. |
-| Upgrade with `--no-hooks` (Terraform `helm_release`: `disable_webhooks = true`), `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` claim or `postgresql.replicaCount: 0` | Take the dump by hand first ([guide]). |
-| Have Postgres scaled to 0 | Start it before you upgrade, or dump by hand and set `postgresql.upgradeBackupHook.enabled: false` ([guide]). |
+| Upgrade with `--no-hooks` (Terraform `helm_release`: `disable_webhooks = true`), `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` PVC or `postgresql.replicaCount: 0` in your values | Take the dump by hand first ([guide]). The backup Job does not run. |
+| Scaled Postgres to 0 with `kubectl scale` | Start it before you upgrade: the backup Job runs and times out. Or dump by hand and set `postgresql.upgradeBackupHook.enabled: false` ([guide]). |
 | Mount your own `/docker-entrypoint-initdb.d` | Dump by hand and set `postgresql.upgradeBackupHook.enabled: false` ([guide]). |
 
 > [!CAUTION]
-> Without the backup Job or a dump taken by hand, Postgres starts on an empty data folder with no message.
+> Without the backup Job or a dump taken by hand, Postgres starts on an empty data directory with no message.
 
 <a id="100-postgres-troubleshooting"></a>
-**Troubleshooting**
+#### Troubleshooting
 
 <a id="100-ts-pg-backup"></a>
-#### `pre-upgrade hooks failed` with `job <release>-postgresql-upgrade-backup failed`
+##### `pre-upgrade hooks failed` with `job <release>-postgresql-upgrade-backup failed`
 
 - **Affects:** Releases with the bundled Postgres.
 - **Symptom:** `helm upgrade` stops with `BackoffLimitExceeded` or `DeadlineExceeded` for the backup Job. Nothing else in the cluster changed.
@@ -344,18 +355,18 @@ Move these keys:
 - **Verify:** The Job's log ends with `Dumped database <db> to /claim/backups/pre-upgrade.sql.` or `Nothing to back up.`
 
 <a id="100-ts-pg-not-ready"></a>
-#### Why does the Postgres pod stay not Ready after the upgrade?
+##### Why does the Postgres Pod stay not Ready after the upgrade?
 
 - **Affects:** Releases with the bundled Postgres.
-- **Symptom:** The pod runs but is not Ready, with the event `Startup probe failed` and `pre-upgrade.sql has not been loaded`.
-- **Cause:** The dump on the claim was not loaded: it is incomplete (`does not end with COMMIT;`), it failed to load, or the load was interrupted.
+- **Symptom:** The Pod runs but is not Ready, with the event `Startup probe failed` and `pre-upgrade.sql has not been loaded`.
+- **Cause:** The dump on the PVC was not loaded: it is incomplete (`does not end with COMMIT;`), it failed to load, or the load was interrupted.
 - **Resolution:** Load a complete dump by hand and rename the file to `pre-upgrade.sql.loaded` ([guide]).
-- **Verify:** The pod becomes Ready.
+- **Verify:** The Pod becomes Ready.
 
 <a id="100-registry"></a>
 ### Registry and pull secrets
 
-`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` cover every image and pod of the chart, with three exceptions:
+`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` cover every image and Pod of the chart, with three exceptions:
 
 - **ClickHouse operator**, with its CRD hook: only the `altinity-clickhouse-operator.*` keys below.
 - **Postgres**, with its backup Job: only `postgresql.image.repository` and `postgresql.imagePullSecrets`.
@@ -384,7 +395,7 @@ Also:
 
 - Mirror the images that are new in 1.0.0: `clickhouse/clickhouse-keeper:25.12.5`, `altinity/clickhouse-operator:0.27.4`, `altinity/metrics-exporter:0.27.4`, `registry.k8s.io/kubectl:v1.36.3` (the hooks) and, with `clickhouse.logs.system.enabled`, `signoz/signoz-otel-collector:v0.144.15`.
 - `global.imageRegistry` now replaces a registry written at the front of a repository. Before, the chart prefixed it. Example: with `repository: docker.io/signoz/signoz` and `global.imageRegistry: my.registry`, the image is `my.registry/signoz/signoz`.
-- The chart now lists pull secrets on each pod and no longer on its ServiceAccounts. If a pod of yours runs under one of them, such as `<release>-signoz`, list the pull secrets in that pod's spec.
+- The chart now lists pull secrets on each Pod and no longer on its ServiceAccounts. If a Pod of yours runs under one of them, such as `<release>-signoz`, list the pull secrets in that Pod's spec.
 
 <a id="100-hooks"></a>
 ### Hooks
@@ -406,11 +417,12 @@ Also:
 ### Rollback
 
 - Do not roll back once ClickHouse runs on Keeper.
-- With bundled Postgres, a rollback to chart 0.151.0 starts SigNoz on an empty database. The claim keeps the real one, and upgrading forward again brings it back. You lose the changes made in SigNoz while rolled back.
+- With bundled Postgres, a rollback to chart 0.151.0 starts SigNoz on an empty database. The PVC keeps the real one, and upgrading forward again brings it back. You lose the changes made in SigNoz while rolled back.
 - To roll back to a chart 0.151.0 revision while ClickHouse still runs on ZooKeeper:
   1. Delete the ClickHouseKeeperInstallation, with Keeper on, and wait.
   2. Delete the operator Deployment right before the rollback.
   3. Roll back.
+- Where you set `keeper.fullnameOverride` or `altinity-clickhouse-operator.fullnameOverride`, use those names in the commands.
 
 ```bash
 kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait   # with keeper.enabled: true
@@ -423,7 +435,7 @@ helm rollback <release> <revision> -n <namespace>
 
 - Follow the [uninstall steps](README.md#uninstalling-the-chart): a plain `helm uninstall` leaves the ClickHouse and Keeper objects on their finalizers.
 - Afterwards delete by hand what you no longer want:
-  - the ClickHouse, Keeper and Postgres claims
+  - the ClickHouse, Keeper and Postgres PVCs
   - the four CRDs
   - a `clickhouse.namespace` Namespace, which the chart now keeps
 
