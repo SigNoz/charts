@@ -12,53 +12,15 @@ If you run into an issue during an upgrade, open a [GitHub issue](https://github
 SigNoz Helm Chart 1.0.0 ships SigNoz v0.152.0 and makes ClickHouse Keeper the default coordination store for ClickHouse. It also moves the bundled PostgreSQL database onto its PersistentVolumeClaim (PVC) and upgrades the Altinity ClickHouse Operator to 0.27.4. This section covers upgrades from SigNoz Helm Chart 0.151.0 or earlier. The steps are in the [upgrade guide][guide].
 
 > [!WARNING]
-> **Breaking changes in SigNoz Helm Chart 1.0.0**
->
-> - ClickHouse Keeper is on by default. With the bundled ClickHouse on default values, `helm upgrade` fails, and Argo CD or rendered manifests point ClickHouse at a new, empty ClickHouse Keeper. See [ClickHouse Keeper and ZooKeeper](#100-keeper).
-> - Values keys moved. `helm template` fails and lists every moved key you set with its replacement. Two sets of keys are ignored without an error, so rename them yourself: old key names under `altinity-clickhouse-operator` ([ClickHouse Operator](#100-operator)), and `zookeeper.global.imageRegistry` and `zookeeper.global.storageClass` ([ClickHouse Keeper and ZooKeeper](#100-keeper-moved)). See each component's Moved values table.
-> - The bundled PostgreSQL database moves onto its PVC. Without the backup Job or a manual dump, PostgreSQL starts empty. See [PostgreSQL](#100-postgres).
-> - Without Helm hooks (Argo CD, rendered manifests, `--no-hooks`), the upgrade stops on the old ClickHouse Operator Deployment, or PostgreSQL starts empty. See [Hooks](#100-hooks).
-
-<details>
-<summary>What changed in SigNoz Helm Chart 1.0.0</summary>
-
-- **Security hardening**: ClickHouse can run under the restricted Pod Security Standard (OpenShift, GKE with PodSecurity, Kyverno) through `clickhouse.containerSecurityContext`.
-- **Persistence**: PostgreSQL data lives on its PVC and survives Pod and container restarts. Before, with default values on containerd, it was lost whenever the container restarted. ClickHouse PVCs are retained after a scale-down or rename.
-- **Reliability**: ClickHouse Keeper replaces the JVM-based ZooKeeper, which could use as much memory as ClickHouse and restart silently when OOMKilled. The bundled ZooKeeper is deprecated.
-- **Safe upgrades**: pre-upgrade hooks back up PostgreSQL and apply the CustomResourceDefinitions (CRDs) first, and `helm template` fails on most moved values keys before anything reaches the cluster.
-- **Availability**: ClickHouse keeps serving while the ClickHouse Operator is replaced, and `keeper.replicaCount` scales ClickHouse Keeper out.
-- **Lifecycle**: the ClickHouse Operator moves from 0.21.2 to 0.27.4 and follows Altinity's releases, with CRDs updated on every upgrade.
-- **Observability**: an optional ServiceMonitor (`altinity-clickhouse-operator.serviceMonitor.enabled`) scrapes ClickHouse and ClickHouse Operator metrics on separate endpoints.
-- **Configurability**: values use standard Kubernetes shapes, and each ClickHouse system log table can be tuned or turned off.
-- **Supply chain**: ClickHouse Keeper uses the official `clickhouse/clickhouse-keeper` image instead of a forked ZooKeeper image.
-
-For the reasons behind these changes, see [#958](https://github.com/SigNoz/charts/issues/958) and [#959](https://github.com/SigNoz/charts/issues/959).
-
-</details>
+> SigNoz Helm Chart 1.0.0 has breaking changes. Read them in the [upgrade guide][guide] before you upgrade.
 
 <a id="100-checklist"></a>
 ### Who needs to act
 
-Do each of these before upgrading.
-
-| If you | Do |
-|---|---|
-| Run the bundled ClickHouse | [Set the values that keep ZooKeeper for the upgrade](#100-keeper). |
-| Use a custom values file | Run `helm template` with it, and review the section of each component you set values for. |
-| Run the bundled PostgreSQL | [Check that the backup Job runs for your setup](#100-postgres). |
-| Deploy without Helm hooks (Argo CD, rendered manifests, `--no-hooks`, Terraform with hooks disabled) | [Run the hook steps yourself](#100-hooks). |
-| Pull images from a private registry or run an air-gapped cluster | [Mirror the new images and set the ClickHouse Operator's image keys](#100-registry). |
-
-<a id="100-expect"></a>
-### What to expect during the upgrade
-
-- `helm upgrade` returns within seconds, and the restarts continue after it.
-- ClickHouse, ZooKeeper and SigNoz restart once, and so does the bundled PostgreSQL Pod. ClickHouse, the UI and queries are unavailable for a few minutes.
-- The ClickHouse Operator is replaced within seconds, and ClickHouse keeps running through that.
-- Ingestion is interrupted for up to a few minutes. Agents that retry resend what they held. A record or two sent while the SigNoz OTel Collector Pod is replaced can be lost.
-- Each ClickHouse Pod start downloads `histogramQuantile` from GitHub in an init container, so slow or blocked access to GitHub lengthens the restart. More replicas take longer.
+See [Who needs to act][guide-who] in the upgrade guide.
 
 <a id="100-rollback"></a>
+<a id="100-expect"></a>
 <a id="100-stay-on-0151"></a>
 <a id="100-ts-rollback-failed"></a>
 ### Rollback
@@ -133,28 +95,7 @@ Components not included in SigNoz OTel Collector 0.144.15:
 
 #### Coordination store
 
-SigNoz Helm Chart 1.0.0 enables ClickHouse Keeper by default and deprecates the bundled ZooKeeper, while an existing installation with the bundled ClickHouse runs ZooKeeper. With an external ClickHouse (`clickhouse.enabled: false`), this section does not apply. Otherwise, keep ZooKeeper for the upgrade:
-
-- **Set these values before you upgrade.**
-
-  ```yaml
-  zookeeper:
-    enabled: true
-  keeper:
-    enabled: false
-  ```
-
-  If you used `clickhouse.externalZookeeper`, set only:
-
-  ```yaml
-  keeper:
-    enabled: false
-  ```
-
-- **Migrate to ClickHouse Keeper afterwards, if you want to.** The [migration guide](https://signoz.io/docs/operate/clickhouse/migrate-zookeeper-to-keeper/) starts from a release that is already on SigNoz Helm Chart 1.0.0 with ZooKeeper.
-
-> [!CAUTION]
-> Do not upgrade on default values. `helm upgrade` fails while the cluster lacks the ClickHouse Keeper CustomResourceDefinition (CRD). Through Argo CD or rendered manifests, the upgrade removes ZooKeeper and points ClickHouse at a new, empty ClickHouse Keeper, and the replicated tables become read-only.
+See [Step 1: Keep ZooKeeper for the upgrade][guide-store] in the upgrade guide.
 
 <a id="100-keeper-moved"></a>
 #### Moved values
@@ -181,42 +122,12 @@ SigNoz Helm Chart 1.0.0 enables ClickHouse Keeper by default and deprecates the 
 |---|---|
 | Scrape Service `<release>-zookeeper-metrics` | Keep `zookeeper.enabled: true`. The Service is removed together with ZooKeeper. |
 
-<a id="100-keeper-troubleshooting"></a>
-#### Troubleshooting
-
-<a id="100-ts-keeper-crd"></a>
-##### `no matches for kind "ClickHouseKeeperInstallation" in version "clickhouse-keeper.altinity.com/v1"`
-
-- **Affects:** Existing installations upgraded with `keeper.enabled` at its default.
-- **Symptom:** The first `helm upgrade` fails with this error and `ensure CRDs are installed first`. Nothing in the cluster changed.
-- **Cause:** ClickHouse Keeper is on by default, and the cluster does not have its CRD yet.
-- **Resolution:** Set the values under [ClickHouse Keeper and ZooKeeper](#100-keeper) and upgrade again.
-- **Verify:** The upgrade completes and the Helm notes print `ClickHouse coordinates through ZooKeeper.`
-
-<a id="100-ts-no-store"></a>
-##### `no coordination store for ClickHouse`
-
-- **Affects:** Values with `keeper.enabled: false` and neither ZooKeeper option.
-- **Symptom:** `helm upgrade` or `helm template` fails with this error.
-- **Cause:** ClickHouse Keeper is off, `zookeeper.enabled` is not `true`, and `clickhouse.externalZookeeper` is unset.
-- **Resolution:** Set `zookeeper.enabled: true`, `keeper.enabled: true` or `clickhouse.externalZookeeper.servers`.
-- **Verify:** The Helm notes name the store, such as `ClickHouse coordinates through ZooKeeper.`
-
-<a id="100-ts-empty-keeper"></a>
-##### Did ClickHouse switch to an empty ClickHouse Keeper?
-
-- **Affects:** Existing installations upgraded or synced without `zookeeper.enabled: true`, for example through Argo CD or rendered manifests that include the CRDs.
-- **Symptom:** The Helm notes print `ClickHouse coordinates through ClickHouse Keeper at keeper-<release>-keeper:2181.`, StatefulSet `<release>-zookeeper` no longer exists, and replicated tables are read-only.
-- **Cause:** Default values replaced ZooKeeper with a new ClickHouse Keeper that holds none of the tables' coordination state.
-- **Resolution:** Follow the [recovery steps](https://signoz.io/docs/operate/clickhouse/migrate-zookeeper-to-keeper/#replicated-tables-are-read-only-after-an-upgrade-without-zookeeperenabled-true). The SigNoz Helm Chart keeps the ZooKeeper PVCs.
-- **Verify:** StatefulSet `<release>-zookeeper` exists again.
-
 <a id="100-operator"></a>
 ### ClickHouse Operator
 
 - The Altinity ClickHouse Operator is upgraded from 0.21.2 to 0.27.4.
 - It is now installed from Altinity's Helm chart, `altinity-clickhouse-operator`.
-- The upgrade brings the three ClickHouse CRDs to 0.27.4 and adds the ClickHouse Keeper CRD.
+- The upgrade brings the three ClickHouse CustomResourceDefinitions (CRDs) to 0.27.4 and adds the ClickHouse Keeper CRD.
 
 <a id="100-operator-moved"></a>
 #### Moved values
@@ -294,23 +205,6 @@ altinity-clickhouse-operator:
 
 Set a file to `null` to leave its table unconfigured.
 
-<a id="100-operator-troubleshooting"></a>
-#### Troubleshooting
-
-<a id="100-ts-operator-selector"></a>
-##### `cannot patch "<release>-clickhouse-operator" with kind Deployment`
-
-- **Affects:** Upgrades with `--no-hooks`, Argo CD without hooks or `clickhouse.operatorUpgradeHook.enabled: false`, and any `helm rollback` to SigNoz Helm Chart 0.151.0.
-- **Symptom:** The upgrade or rollback fails on the ClickHouse Operator Deployment's selector, which is immutable.
-- **Cause:** The ClickHouse Operator Deployment's selector changed in SigNoz Helm Chart 1.0.0, and the Deployment of the other version is still in place.
-- **Resolution:** Delete the Deployment, then run the upgrade or rollback again. Before an upgrade, this selector matches it under any old name, with `clickhouse.namespace` and `clickhouse.nameOverride` in place of `<namespace>` and `clickhouse` when set:
-
-  ```bash
-  kubectl -n <namespace> delete deployment -l app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=<release>,app.kubernetes.io/component
-  ```
-
-  This selector matches only the SigNoz Helm Chart 0.151.0 Deployment, so it finds nothing before a rollback. Before a rollback, delete the newer Deployment by name, `<release>-clickhouse-operator` or the value of `altinity-clickhouse-operator.fullnameOverride`, as the [upgrade guide][guide-rollback] shows.
-
 <a id="100-signoz"></a>
 ### SigNoz
 
@@ -363,23 +257,6 @@ Set a file to `null` to leave its table unconfigured.
 | If you | Do |
 |---|---|
 | Enabled `otelCollector.ports.zipkin` or `jaeger-compact` with only `enabled: true` | Also set `containerPort`, `servicePort` and `protocol` (`9411` over `TCP`, `6831` over `UDP`). The SigNoz Helm Chart no longer defines these entries. |
-
-<a id="100-collector-troubleshooting"></a>
-#### Troubleshooting
-
-<a id="100-ts-collector-refuses"></a>
-##### Why does the SigNoz OTel Collector refuse data while its Pod is Ready?
-
-- **Affects:** Releases after an upgrade or a rollback.
-- **Symptom:** The SigNoz OTel Collector Pod is Ready but refuses connections on ports 4317 and 4318. Its log shows `failed to apply config` with `cannot configure clickhouse logs exporter: dial tcp ...:9000: connect: connection refused`.
-- **Cause:** The SigNoz OTel Collector opens ports 4317 and 4318 only after SigNoz sends it its configuration. The configuration arrived while ClickHouse was restarting, so it failed to apply. The Pod can recover by itself after a few minutes, or not at all.
-- **Resolution:** Delete the Pod. With `otelCollector.name` set, use that name in place of `otel-collector`:
-
-  ```bash
-  kubectl -n <namespace> delete pod -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=otel-collector
-  ```
-
-- **Verify:** New telemetry arrives in SigNoz.
 
 <a id="100-migrator"></a>
 ### Schema migrator
@@ -440,30 +317,6 @@ The backup Job does not run in any of these cases. Take the dump manually first,
 > [!CAUTION]
 > Without the backup Job or a manual dump, PostgreSQL starts on an empty data directory without any warning.
 
-<a id="100-postgres-troubleshooting"></a>
-#### Troubleshooting
-
-<a id="100-ts-pg-backup"></a>
-##### `pre-upgrade hooks failed` with `job <release>-postgresql-upgrade-backup failed`
-
-- **Affects:** Releases with the bundled PostgreSQL.
-- **Symptom:** `helm upgrade` stops with `BackoffLimitExceeded` or `DeadlineExceeded` for the backup Job. Nothing else in the cluster changed.
-- **Cause:**
-  - `BackoffLimitExceeded` with `ERROR: cannot connect to Postgres at`: a wrong password or an unreachable PostgreSQL.
-  - `BackoffLimitExceeded` with `ERROR: the release mounts its own /docker-entrypoint-initdb.d`: your own init scripts.
-  - `DeadlineExceeded`: the Job did not finish in `postgresql.upgradeBackupHook.activeDeadlineSeconds` (240 by default), for example while PostgreSQL is scaled to 0 or the database is large.
-- **Resolution:** Read `kubectl -n <namespace> logs job/<release>-postgresql-upgrade-backup`, fix the cause it names and upgrade again. Alternatively, take the dump manually ([guide][guide-dump]) and then set `postgresql.upgradeBackupHook.enabled: false`.
-- **Verify:** The Job's log ends with `Dumped database <db> to /claim/backups/pre-upgrade.sql.` or `Nothing to back up.`
-
-<a id="100-ts-pg-not-ready"></a>
-##### Why does the PostgreSQL Pod stay not Ready after the upgrade?
-
-- **Affects:** Releases with the bundled PostgreSQL.
-- **Symptom:** The Pod runs but is not Ready, with the event `Startup probe failed` and `pre-upgrade.sql has not been loaded`.
-- **Cause:** The dump on the PVC was not loaded: it is incomplete (`does not end with COMMIT;`), it failed to load, the load was interrupted, or you mount your own `/docker-entrypoint-initdb.d`.
-- **Resolution:** Load a complete dump manually and rename the file to `pre-upgrade.sql.loaded` ([guide][guide-load]).
-- **Verify:** The Pod becomes Ready.
-
 <a id="100-registry"></a>
 ### Registry and pull secrets
 
@@ -519,20 +372,34 @@ In addition:
 | If you | Do |
 |---|---|
 | Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, Roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Delete the hook objects before a SigNoz Helm Chart version that changes them. |
-| Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old ClickHouse Operator Deployment manually right before the upgrade ([command](#100-ts-operator-selector)). |
+| Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old ClickHouse Operator Deployment manually right before the upgrade ([command][guide-selector]). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs manually before each ClickHouse Operator version change. |
 | Upgrade with `--no-hooks` or `postgresql.upgradeBackupHook.enabled: false`, with bundled PostgreSQL | See [PostgreSQL](#100-postgres). |
+
+<a id="100-keeper-troubleshooting"></a>
+<a id="100-ts-keeper-crd"></a>
+<a id="100-ts-no-store"></a>
+<a id="100-ts-empty-keeper"></a>
+<a id="100-operator-troubleshooting"></a>
+<a id="100-ts-operator-selector"></a>
+<a id="100-collector-troubleshooting"></a>
+<a id="100-ts-collector-refuses"></a>
+<a id="100-postgres-troubleshooting"></a>
+<a id="100-ts-pg-backup"></a>
+<a id="100-ts-pg-not-ready"></a>
+### Troubleshooting
+
+See [Troubleshooting][guide-troubleshooting] in the upgrade guide.
 
 <a id="100-uninstall"></a>
 ### Uninstall
 
-- Follow the [uninstall steps](README.md#uninstalling-the-chart). `helm uninstall` alone leaves the ClickHouse and ClickHouse Keeper objects held by their finalizers.
-- Afterwards, manually delete what you no longer need:
-  - the ClickHouse, ClickHouse Keeper and PostgreSQL PVCs
-  - the four CRDs
-  - a `clickhouse.namespace` Namespace, which the SigNoz Helm Chart now keeps
+Follow the [uninstall steps](README.md#uninstalling-the-chart).
 
 [guide]: https://signoz.io/docs/operate/migration/upgrade-0-152/
 [guide-dump]: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand
-[guide-load]: https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade
 [guide-rollback]: https://signoz.io/docs/operate/migration/upgrade-0-152/#roll-back
+[guide-who]: https://signoz.io/docs/operate/migration/upgrade-0-152/#who-needs-to-act
+[guide-store]: https://signoz.io/docs/operate/migration/upgrade-0-152/#step-1-keep-zookeeper-for-the-upgrade
+[guide-troubleshooting]: https://signoz.io/docs/operate/migration/upgrade-0-152/#troubleshooting
+[guide-selector]: https://signoz.io/docs/operate/migration/upgrade-0-152/#cannot-patch-release-clickhouse-operator-with-kind-deployment
