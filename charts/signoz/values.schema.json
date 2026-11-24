@@ -40,7 +40,10 @@
                         },
                         "defaultKeepFreeSpaceBytes": {
                             "description": "Free space to keep on the default disk, in bytes.",
-                            "type": "string"
+                            "type": [
+                                "integer",
+                                "string"
+                            ]
                         },
                         "enabled": {
                             "description": "Enable cold storage on S3 or Google Cloud Storage (GCS).",
@@ -167,7 +170,10 @@
                         },
                         "tag": {
                             "description": "Image tag. SigNoz is tested against the default.",
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "number"
+                            ]
                         }
                     }
                 },
@@ -238,7 +244,10 @@
                                         },
                                         "tag": {
                                             "description": "Tag of the system logs sidecar image.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "number"
+                                            ]
                                         }
                                     }
                                 },
@@ -303,7 +312,10 @@
                                 },
                                 "tag": {
                                     "description": "Tag of the kubectl image. The image publishes no `latest` tag.",
-                                    "type": "string"
+                                    "type": [
+                                        "string",
+                                        "number"
+                                    ]
                                 }
                             }
                         },
@@ -721,7 +733,10 @@
                         },
                         "tag": {
                             "description": "Image tag. It does not follow `clickhouse.image.tag`. A Keeper restart drops every ClickHouse session.",
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "number"
+                            ]
                         }
                     }
                 },
@@ -872,19 +887,31 @@
                                     ]
                                 },
                                 "cooldownPeriod": {
-                                    "type": "string"
+                                    "type": [
+                                        "integer",
+                                        "string"
+                                    ]
                                 },
                                 "enabled": {
                                     "type": "boolean"
                                 },
                                 "maxReplicaCount": {
-                                    "type": "string"
+                                    "type": [
+                                        "integer",
+                                        "string"
+                                    ]
                                 },
                                 "minReplicaCount": {
-                                    "type": "string"
+                                    "type": [
+                                        "integer",
+                                        "string"
+                                    ]
                                 },
                                 "pollingInterval": {
-                                    "type": "string"
+                                    "type": [
+                                        "integer",
+                                        "string"
+                                    ]
                                 },
                                 "triggers": {
                                     "type": "array"
@@ -1006,7 +1033,10 @@
                             "type": "string"
                         },
                         "tag": {
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "number"
+                            ]
                         }
                     }
                 },
@@ -1525,7 +1555,7 @@
                             "description": "Image tag.",
                             "type": [
                                 "string",
-                                "integer"
+                                "number"
                             ]
                         }
                     }
@@ -1858,7 +1888,10 @@
                         },
                         "tag": {
                             "description": "Image tag. Empty means the chart's `appVersion`.",
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "number"
+                            ]
                         }
                     }
                 },
@@ -2213,5 +2246,5 @@
             "additionalProperties": true
         }
     },
-    "additionalProperties": false
+    "additionalProperties": true
 }

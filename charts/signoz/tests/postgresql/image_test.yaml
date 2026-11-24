@@ -18,3 +18,13 @@ tests:
       - equal:
           path: spec.template.spec.containers[?(@.name == "postgres")].image
           value: postgres:16@sha256:0d9624535618a135c5453258fd629f4963390338b11aaffb92292c12df3a6c17
+
+  - it: pulls a postgresql.image.tag written as an unquoted minor version
+    set:
+      postgresql.image:
+        repository: postgres
+        tag: 15.13
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[?(@.name == "postgres")].image
+          value: postgres:15.13

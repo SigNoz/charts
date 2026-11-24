@@ -189,3 +189,26 @@ tests:
       - equal:
           path: spec.maxReplicaCount
           value: 6
+
+  - it: scales the collector by otelCollector.autoscaling.keda numbers written as integers
+    template: templates/otel-collector/keda-autoscaler.yaml
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: true
+      otelCollector.autoscaling.keda.pollingInterval: 17
+      otelCollector.autoscaling.keda.cooldownPeriod: 120
+      otelCollector.autoscaling.keda.minReplicaCount: 2
+      otelCollector.autoscaling.keda.maxReplicaCount: 6
+    asserts:
+      - equal:
+          path: spec.pollingInterval
+          value: 17
+      - equal:
+          path: spec.cooldownPeriod
+          value: 120
+      - equal:
+          path: spec.minReplicaCount
+          value: 2
+      - equal:
+          path: spec.maxReplicaCount
+          value: 6

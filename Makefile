@@ -67,5 +67,5 @@ HELM_SCHEMA = go run github.com/losisin/helm-values-schema-json/v2@v2.6.1
 chart-schema:
 	@for chart in $(SCHEMA_CHARTS); do \
 		$(HELM_SCHEMA) --values $$chart/values.yaml --output $$chart/values.schema.json \
-			--draft 7 --use-helm-docs --schema-root.additional-properties=false || exit 1; \
+			--draft 7 --use-helm-docs --schema-root.additional-properties=true || exit 1; \
 	done

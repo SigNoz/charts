@@ -99,6 +99,7 @@ clickhouse:
     # @default -- "clickhouse/clickhouse-server"
     # @section -- ClickHouse
     repository: clickhouse/clickhouse-server
+    # @schema type:[string, number]
     # -- Image tag. SigNoz is tested against the default.
     # @default -- "25.12.5"
     # @section -- ClickHouse
@@ -406,6 +407,7 @@ clickhouse:
     # @default -- false
     # @section -- ClickHouse
     enabled: false
+    # @schema type:[integer, string]
     # -- Free space to keep on the default disk, in bytes.
     # @default -- "10485760"
     # @section -- ClickHouse
@@ -466,6 +468,7 @@ clickhouse:
         # @default -- "signoz/signoz-otel-collector"
         # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
+        # @schema type:[string, number]
         # -- Tag of the system logs sidecar image.
         # @default -- "v0.144.15"
         # @section -- ClickHouse
@@ -554,6 +557,7 @@ clickhouse:
       # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
       # @section -- ClickHouse
       repository: registry.k8s.io/kubectl
+      # @schema type:[string, number]
       # -- Tag of the kubectl image. The image publishes no `latest` tag.
       # @section -- ClickHouse
       tag: v1.36.3
@@ -843,6 +847,7 @@ keeper:
     # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
     # @section -- ClickHouse Keeper
     repository: clickhouse/clickhouse-keeper
+    # @schema type:[string, number]
     # -- Image tag. It does not follow `clickhouse.image.tag`.
     # A Keeper restart drops every ClickHouse session.
     # @section -- ClickHouse Keeper
@@ -1409,6 +1414,7 @@ signoz:
     # -- Image repository, with its registry. `global.imageRegistry` replaces that registry when set.
     # @section -- SigNoz
     repository: docker.io/signoz/signoz
+    # @schema type:[string, number]
     # -- Image tag. Empty means the chart's `appVersion`.
     # @section -- SigNoz
     tag: v0.151.0
@@ -1765,6 +1771,7 @@ otelCollector:
     repository: docker.io/signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.144.0"
+    # @schema type:[string, number]
     tag: v0.144.16
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
@@ -2255,15 +2262,19 @@ otelCollector:
       enabled: false
       # otelCollector.autoscaling.keda.pollingInterval - Polling interval for metrics data (in seconds).
       # @default -- "30"
+      # @schema type:[integer, string]
       pollingInterval: "30"
       # otelCollector.autoscaling.keda.cooldownPeriod - Cooldown period before downscaling (in seconds).
       # @default -- "300"
+      # @schema type:[integer, string]
       cooldownPeriod: "300"
       # otelCollector.autoscaling.keda.minReplicaCount - Minimum replica count for KEDA.
       # @default -- "1"
+      # @schema type:[integer, string]
       minReplicaCount: "1"
       # otelCollector.autoscaling.keda.maxReplicaCount - Maximum replica count for KEDA.
       # @default -- "5"
+      # @schema type:[integer, string]
       maxReplicaCount: "5"
       # otelCollector.autoscaling.keda.triggers - KEDA trigger configuration.
       # @default -- []
@@ -2433,7 +2444,7 @@ postgresql:
     # @default -- "postgres"
     # @section -- Postgres
     repository: postgres
-    # @schema type:[string, integer]
+    # @schema type:[string, number]
     # -- Image tag.
     # @default -- "15"
     # @section -- Postgres
