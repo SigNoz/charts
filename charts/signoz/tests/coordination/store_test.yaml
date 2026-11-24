@@ -71,7 +71,7 @@ tests:
       - failedTemplate:
           errorPattern: "clickhouse\\.externalZookeeper\\.servers.*zookeeper\\.enabled.*keeper\\.enabled"
 
-  - it: tells an install on the bundled ZooKeeper that it is deprecated and links the upgrade guide's move to ClickHouse Keeper
+  - it: tells an install on the bundled ZooKeeper that it is deprecated and links the ClickHouse Keeper migration guide
     template: templates/NOTES.txt
     set:
       zookeeper.enabled: true
@@ -79,7 +79,7 @@ tests:
       - matchRegexRaw:
           pattern: "(?i)zookeeper[^\\n]*deprecated"
       - matchRegexRaw:
-          pattern: "upgrade-0\\.152\\.0\\.md#11-zookeeper-to-clickhouse-keeper"
+          pattern: "signoz\\.io/docs/operate/clickhouse/migrate-zookeeper-to-keeper/"
 
   - it: gives no ZooKeeper deprecation notice to an install without the bundled ZooKeeper
     template: templates/NOTES.txt
