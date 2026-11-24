@@ -38,9 +38,9 @@ The rollback steps are in the [upgrade guide][guide-rollback].
 | `clickhouse.additionalVolumeMounts` | `clickhouse.extraVolumeMounts` | |
 | `clickhouse.additionalVolumes` | `clickhouse.extraVolumes` | |
 | `clickhouse.clickhouseOperator` | `altinity-clickhouse-operator` | The keys under it are renamed ([ClickHouse Operator](#100-operator)). |
-| `clickhouse.customLivenessProbe` | `clickhouse.livenessProbe` | |
-| `clickhouse.customReadinessProbe` | `clickhouse.readinessProbe` | |
-| `clickhouse.customStartupProbe` | `clickhouse.startupProbe` | |
+| `clickhouse.customLivenessProbe` | `clickhouse.livenessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
+| `clickhouse.customReadinessProbe` | `clickhouse.readinessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
+| `clickhouse.customStartupProbe` | `clickhouse.startupProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
 | `clickhouse.image.registry` | The registry prefix in `clickhouse.image.repository` | `repository: docker.io/clickhouse/clickhouse-server` |
 | `clickhouse.initContainers.udf` | `clickhouse.udf` | `udf.enabled` and `udf.command`. `udf.image` is ignored because the download runs on `clickhouse.image`. |
 | Your own `clickhouse.initContainers` entries | `clickhouse.extraInitContainers` | A list instead of a map. |
@@ -218,8 +218,8 @@ Set a file to `null` to leave its table unconfigured.
 | `signoz.additionalArgs` | `signoz.extraArgs` | |
 | `signoz.additionalVolumeMounts` | `signoz.extraVolumeMounts` | |
 | `signoz.additionalVolumes` | `signoz.extraVolumes` | |
-| `signoz.customLivenessProbe` | `signoz.livenessProbe` | |
-| `signoz.customReadinessProbe` | `signoz.readinessProbe` | |
+| `signoz.customLivenessProbe` | `signoz.livenessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
+| `signoz.customReadinessProbe` | `signoz.readinessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
 | `signoz.image.registry` | The registry prefix in `signoz.image.repository` | `repository: docker.io/signoz/signoz` |
 | `signoz.livenessProbe`, `readinessProbe` with `enabled`, `port` or `path` | The same keys, as probe objects | `httpGet: {path: /api/v1/health, port: http}` |
 | `signoz.podAnnotations` | `signoz.pod.annotations` | |
@@ -244,8 +244,8 @@ Set a file to `null` to leave its table unconfigured.
 | `otelCollector.additionalEnvs` | `otelCollector.env` | The same map. A list of `name` and `value` entries also works. |
 | `otelCollector.command.extraArgs` | `otelCollector.extraArgs` | |
 | `otelCollector.command.name` | Removed | The SigNoz OTel Collector always runs `/signoz-otel-collector`. |
-| `otelCollector.customLivenessProbe` | `otelCollector.livenessProbe` | |
-| `otelCollector.customReadinessProbe` | `otelCollector.readinessProbe` | |
+| `otelCollector.customLivenessProbe` | `otelCollector.livenessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
+| `otelCollector.customReadinessProbe` | `otelCollector.readinessProbe` | For a handler other than `httpGet`, such as `exec` or `tcpSocket`, also set `httpGet: null`. |
 | `otelCollector.image.registry` | The registry prefix in `otelCollector.image.repository` | `repository: docker.io/signoz/signoz-otel-collector` |
 | `otelCollector.livenessProbe`, `readinessProbe` with `enabled`, `port` or `path` | The same keys, as probe objects | `httpGet: {path: /, port: 13133}` |
 | `otelCollector.lowCardinalityExceptionGrouping` | `LOW_CARDINAL_EXCEPTION_GROUPING` in `otelCollector.env` | |
