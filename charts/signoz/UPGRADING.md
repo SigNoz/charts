@@ -7,56 +7,103 @@ This file lists what to change when you upgrade to each version of the `signoz` 
 <a id="100"></a>
 ## 1.0.0
 
+<a id="100-upgrade"></a>
 <a id="100-before"></a>
-### Before you upgrade
+### Upgrade steps
 
 This section covers upgrades from chart 0.151.0 or earlier to 1.0.0.
 
-`1.0.0` comes with ClickHouse Keeper by default. An existing install with the bundled ClickHouse sets:
+- With the bundled ClickHouse, the upgrade needs one decision from you: the coordination store (step 1).
+- Pre-upgrade hooks do the rest: they replace the ClickHouse operator Deployment, apply the CRDs, and back up the bundled Postgres database.
+- Anything else applies only if your setup matches a row of the [checklist](#100-checklist).
 
-```yaml
-zookeeper:
-  enabled: true
-keeper:
-  enabled: false
-```
+1. Choose the coordination store. `1.0.0` comes with ClickHouse Keeper by default, and an existing install with the bundled ClickHouse runs ZooKeeper. With an external ClickHouse (`clickhouse.enabled: false`), skip this step. Otherwise pick one:
 
-If you used `clickhouse.externalZookeeper`, set only:
+   - **Stay on ZooKeeper.** Set these values. You can migrate later:
 
-```yaml
-keeper:
-  enabled: false
-```
+     ```yaml
+     zookeeper:
+       enabled: true
+     keeper:
+       enabled: false
+     ```
 
-> [!CAUTION]
-> These values are required until you migrate to Keeper. Without them, `helm upgrade` fails because the Keeper CRD is missing. Through Argo CD or rendered manifests, the upgrade removes ZooKeeper and points ClickHouse at a new, empty Keeper, and the replicated tables go read-only. The ZooKeeper PVCs stay, and the [guide] has the way back.
+     If you used `clickhouse.externalZookeeper`, set only:
 
-Then:
+     ```yaml
+     keeper:
+       enabled: false
+     ```
 
-1. Render the chart with your values to list every key that must change. Nothing in the cluster changes:
+   - **Migrate to ClickHouse Keeper.** Follow the [guide].
+
+   > [!CAUTION]
+   > Do one of the two. Upgrading on default values does neither: `helm upgrade` fails because the Keeper CRD is missing, and through Argo CD or rendered manifests the upgrade removes ZooKeeper and points ClickHouse at a new, empty Keeper, so the replicated tables go read-only.
+
+2. Render the chart with your values. Nothing in the cluster changes:
 
    ```bash
    helm template <release> signoz/signoz --version 1.0.0 -f <values>
    ```
 
-2. Move the keys your values set, listed in each component's section below.
-3. With a private registry, set the operator's own image keys ([Registry and pull secrets](#100-registry)).
-4. With the bundled Postgres, make no changes in SigNoz while the upgrade runs ([Postgres](#100-postgres)).
-5. With `--no-hooks`, Argo CD or rendered manifests, run the hook steps yourself ([Hooks](#100-hooks)).
+   If your values set a key that moved, the render stops and lists every such key:
 
-Step by step: [the upgrade guide][guide].
+   ```text
+   Error: execution error at (signoz/templates/validate.yaml:22:4): 2 values must change before the chart can be installed:
+   - `signoz.additionalArgs` has moved to `signoz.extraArgs`: the same list of arguments.
+   - `signoz.podAnnotations` has moved to `signoz.pod.annotations`: the same map of annotations.
+   ```
 
-<a id="100-before-troubleshooting"></a>
-#### Troubleshooting
+   Move each key it lists, using the table in that component's section, and render again until it passes.
 
-<a id="100-ts-values"></a>
-##### `must change before the chart can be installed`
+3. Go through the [checklist](#100-checklist) and do what applies to you.
 
-- **Affects:** Any release whose values set a key that moved or was removed in 1.0.0.
-- **Symptom:** `helm upgrade` fails with `1 value must change before the chart can be installed:` or `<n> values must change before the chart can be installed:`, then one line per key. Nothing in the cluster changed.
-- **Cause:** Your values still use the old keys.
-- **Resolution:** Move each key the error lists, as its component's section below shows.
-- **Verify:** `helm template <release> <chart> -f <values>` renders without the error.
+4. Upgrade:
+
+   ```bash
+   helm upgrade <release> signoz/signoz --version 1.0.0 -n <namespace> -f <values>
+   ```
+
+5. Check the result. The Helm notes name the coordination store, such as `ClickHouse coordinates through ZooKeeper.`, and Job `signoz-telemetrystore-migrator-<revision>` completes.
+
+The [upgrade guide][guide] has these steps in more detail.
+
+<a id="100-checklist"></a>
+### Checklist
+
+| If you | Do | Section |
+|---|---|---|
+| Upgrade an existing install with the bundled ClickHouse | Choose the coordination store. | [Upgrade steps](#100-upgrade), step 1 |
+| Upgrade any existing install | Render the chart and move every key it lists. | [Upgrade steps](#100-upgrade), step 2 |
+| Upgrade any existing install | Know that there is no clean way back once ClickHouse runs on Keeper. | [Rollback](#100-rollback) |
+| Pull images from a private registry | Set the operator's own image keys and mirror the images that are new in 1.0.0. | [Registry and pull secrets](#100-registry) |
+| Run the bundled Postgres (`postgresql.enabled: true`) | Make no changes in SigNoz while the upgrade runs. | [Postgres](#100-postgres) |
+| Run the bundled Postgres and the backup Job cannot run: `--no-hooks`, `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` PVC or `postgresql.replicaCount: 0` | Take the dump by hand first. | [Postgres](#100-postgres) |
+| Deploy with Argo CD, rendered manifests or `--no-hooks` | Run the hook steps yourself, in order. | [Hooks](#100-hooks) |
+| Set ClickHouse operator values (`clickhouse.clickhouseOperator`) | Rename each key to its name in Altinity's chart. | [ClickHouse operator](#100-operator) |
+| Run ClickHouse in another namespace (`clickhouse.namespace`) | Point the operator at that namespace. | [ClickHouse](#100-clickhouse) |
+| Use an external ClickHouse (`clickhouse.enabled: false`) | Read the password from its new Secret, and check `externalClickhouse.secure`. | [ClickHouse](#100-clickhouse) |
+| Select, scrape or name the operator's objects | Update to the new labels, ports and names. | [ClickHouse operator](#100-objects) |
+| Set `signoz.env` keys named like a chart variable, such as `SIGNOZ_SQLSTORE_*` | Delete each key unless its value should apply. | [SigNoz](#100-signoz) |
+| Bind a cloud identity to the migrator's ServiceAccount | Set `telemetryStoreMigrator.serviceAccount.create: true`. | [Schema migrator](#100-migrator) |
+| Upgraded this release on chart 0.151.0 or earlier | Afterwards, delete the left-over Job `signoz-telemetrystore-migrator`. | [Schema migrator](#100-migrator) |
+
+<a id="100-rollback"></a>
+### Rollback
+
+- Do not roll back once ClickHouse runs on Keeper.
+- With bundled Postgres, a rollback to chart 0.151.0 starts SigNoz on an empty database. The PVC keeps the real one, and upgrading forward again brings it back. You lose the changes made in SigNoz while rolled back.
+- To roll back to a chart 0.151.0 revision while ClickHouse still runs on ZooKeeper:
+  1. Delete the ClickHouseKeeperInstallation, with Keeper on, and wait.
+  2. Delete the operator Deployment right before the rollback.
+  3. Roll back.
+- Where you set `keeper.fullnameOverride` or `altinity-clickhouse-operator.fullnameOverride`, use those names in the commands.
+
+```bash
+kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait   # with keeper.enabled: true
+kubectl -n <namespace> delete deployment <release>-clickhouse-operator
+helm rollback <release> <revision> -n <namespace>
+```
 
 <a id="100-clickhouse"></a>
 ### ClickHouse
@@ -134,7 +181,7 @@ These defaults changed:
 
 | If you | Do |
 |---|---|
-| Upgrade an existing install on the bundled ZooKeeper | Set `zookeeper.enabled: true` and `keeper.enabled: false`. They are required ([Before you upgrade](#100-before)). |
+| Upgrade an existing install on the bundled ZooKeeper | Stay on ZooKeeper or migrate to Keeper ([Upgrade steps](#100-upgrade)). |
 | Use `clickhouse.externalZookeeper.servers` | Set only `keeper.enabled: false`, and leave `zookeeper.enabled` unset. |
 | Set `clickhouse.zookeeper.*` | Move the block to `zookeeper`, with `enabled: true`. |
 | Set `zookeeper.global.imageRegistry` or `zookeeper.global.storageClass` | Use `zookeeper.image.registry` and `zookeeper.persistence.storageClass`, or `global.*`. |
@@ -150,7 +197,7 @@ These defaults changed:
 - **Affects:** Existing installs upgraded with `keeper.enabled` at its default.
 - **Symptom:** The first `helm upgrade` fails with this error and `ensure CRDs are installed first`. Nothing in the cluster changed.
 - **Cause:** Keeper is on by default, and the cluster does not have its CustomResourceDefinition (CRD) yet.
-- **Resolution:** Set the values under [Before you upgrade](#100-before) and upgrade again.
+- **Resolution:** Set the values under [Upgrade steps](#100-upgrade) and upgrade again.
 - **Verify:** The upgrade completes and the Helm notes print `ClickHouse coordinates through ZooKeeper.`
 
 <a id="100-ts-no-store"></a>
@@ -412,23 +459,6 @@ Also:
 | Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old operator Deployment by hand right before the upgrade ([command](#100-ts-operator-selector)). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs by hand before each operator version change. |
 | Upgrade with `--no-hooks` or `postgresql.upgradeBackupHook.enabled: false`, with bundled Postgres | See [Postgres](#100-postgres). |
-
-<a id="100-rollback"></a>
-### Rollback
-
-- Do not roll back once ClickHouse runs on Keeper.
-- With bundled Postgres, a rollback to chart 0.151.0 starts SigNoz on an empty database. The PVC keeps the real one, and upgrading forward again brings it back. You lose the changes made in SigNoz while rolled back.
-- To roll back to a chart 0.151.0 revision while ClickHouse still runs on ZooKeeper:
-  1. Delete the ClickHouseKeeperInstallation, with Keeper on, and wait.
-  2. Delete the operator Deployment right before the rollback.
-  3. Roll back.
-- Where you set `keeper.fullnameOverride` or `altinity-clickhouse-operator.fullnameOverride`, use those names in the commands.
-
-```bash
-kubectl -n <namespace> delete clickhousekeeperinstallation <release>-keeper --wait   # with keeper.enabled: true
-kubectl -n <namespace> delete deployment <release>-clickhouse-operator
-helm rollback <release> <revision> -n <namespace>
-```
 
 <a id="100-uninstall"></a>
 ### Uninstall
