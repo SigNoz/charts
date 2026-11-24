@@ -1,82 +1,74 @@
-# global -- Global override values for the chart.
+# -- Global override values for the chart.
 # @section -- Global Settings
 global:
-  # global.imageRegistry -- Overrides the Image registry globally for all components.
+  # -- Global image registry override. Not applied to the `altinity-clickhouse-operator` subchart and `postgresql` images.
   # @default -- null
   # @section -- Global Settings
   imageRegistry: &GLOBAL_IMAGE_REGISTRY null
-  # Each component's pod lists these first, then the root `imagePullSecrets`,
-  # then the component's own `imagePullSecrets`; a name in more than one list
-  # is listed once. They do not reach the operator pod or its CRD hook, which
-  # read `altinity-clickhouse-operator.imagePullSecrets` and
-  # `altinity-clickhouse-operator.crdHook.imagePullSecrets`.
-  # -- Secrets for pulling images from a private registry.
+  # -- Global image pull secrets, as a list of Secret names. Not applied to the `altinity-clickhouse-operator` subchart.
   # @section -- Global Settings
   imagePullSecrets: []
-  # global.storageClass -- StorageClass of the SigNoz, ClickHouse and ZooKeeper claims; when set, it overrides their own `persistence.storageClass`.
-  # When neither is set, the cluster's default StorageClass is used; "-" renders an empty storageClassName, which disables dynamic provisioning.
+  # -- StorageClass of the SigNoz, ClickHouse and ZooKeeper PVCs. When set, it overrides their own `persistence.storageClass`.
+  # When neither is set, the PVCs use the cluster's default StorageClass. `-` renders an empty `storageClassName`, which disables dynamic provisioning.
   # @default -- null
   # @section -- Global Settings
   storageClass: null
-  # global.clusterDomain -- The Kubernetes cluster domain.
-  # ClickHouse, its operator and ZooKeeper build their pods' host names on it, as does the address of a component in another namespace.
+  # -- Kubernetes cluster domain.
+  # ClickHouse, its operator and ZooKeeper build their Pods' host names on it, as does the address of a component in another namespace.
   # @default -- "cluster.local"
   # @section -- Global Settings
   clusterDomain: cluster.local
-  # global.clusterName -- The Kubernetes cluster name.
-  # It is used to attach to telemetry data via the resource detection processor.
+  # -- Kubernetes cluster name.
+  # The resource detection processor attaches it to telemetry data.
   # @default -- ""
   # @section -- Global Settings
   clusterName: ""
-  # global.cloud -- The Kubernetes cluster cloud provider and distribution (if any).
-  # example: `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud`, `other`
-  # The storage class for persistent volumes is selected based on this value.
-  # When set to 'aws' or 'gcp' with `installCustomStorageClass` enabled, a new expandable storage class is created.
+  # -- Cloud provider and distribution of the Kubernetes cluster.
+  # One of `aws`, `azure`, `gcp`, `gcp/autogke`, `hcloud` or `other`.
+  # The chart selects the StorageClass for PersistentVolumes from this value.
+  # With `aws` or `gcp` and `installCustomStorageClass` enabled, the chart creates an expandable StorageClass.
   # @default -- "other"
   # @section -- Global Settings
   cloud: other
-# -- Override the default chart name.
+# -- Override the chart name.
 # @section -- General Settings
 # @default -- ""
 nameOverride: ""
-# -- Override the default full chart name.
+# -- Override the full resource name.
 # @section -- General Settings
 # @default -- ""
 fullnameOverride: ""
-# -- Name of the K8s cluster. Used by SigNoz OtelCollectors to attach to telemetry data.
+# -- Name of the Kubernetes cluster, which the SigNoz collectors attach to telemetry data.
 # @section -- General Settings
 # @default -- ""
 clusterName: ""
-# Each component's pod lists `global.imagePullSecrets` first, then these, then
-# the component's own `imagePullSecrets`; a name in more than one list is
-# listed once.
-# -- Secrets for pulling images from a private registry.
+# -- Image pull secrets, as a list of Secret names. Not applied to the `altinity-clickhouse-operator` and `zookeeper` subcharts.
 # @section -- General Settings
 imagePullSecrets: []
 # - "signoz-pull-secret"
 
-# clickhouse -- The ClickHouse this chart installs, a ClickHouseInstallation that the operator from `altinity-clickhouse-operator` reconciles.
+# -- The ClickHouse this chart installs, a ClickHouseInstallation that the operator from `altinity-clickhouse-operator` reconciles.
 # @default -- "See values.yaml"
 # @section -- ClickHouse
 clickhouse:
-  # clickhouse.enabled -- Install ClickHouse, with the operator and ZooKeeper it needs. When false, every component connects to
+  # -- Install ClickHouse, with the operator and ZooKeeper it needs. When false, every component connects to
   # `externalClickhouse` instead, and `externalClickhouse.host` must be set.
   # @section -- ClickHouse
   # @default -- true
   enabled: true
-  # -- Value of the `app.kubernetes.io/component` label on the ClickHouse objects and pods.
+  # -- Value of the `app.kubernetes.io/component` label on the ClickHouse objects and Pods.
   # @section -- ClickHouse
   name: clickhouse
-  # clickhouse.nameOverride -- Replaces `clickhouse` in the ClickHouse name `<release>-clickhouse` and in its `app.kubernetes.io/name` label.
+  # -- Replaces `clickhouse` in the ClickHouse name `<release>-clickhouse` and in its `app.kubernetes.io/name` label.
   # @section -- ClickHouse
   # @default -- ""
   nameOverride: ""
-  # clickhouse.fullnameOverride -- Name of the ClickHouseInstallation and its Service in place of `<release>-clickhouse`, and the prefix of its other objects.
-  # At most 34 characters, because the operator derives longer names from it; set it when a long release name fails the render.
+  # -- Name of the ClickHouseInstallation and its Service in place of `<release>-clickhouse`, and the prefix of its other objects.
+  # At most 34 characters.
   # @section -- ClickHouse
   # @default -- ""
   fullnameOverride: ""
-  # clickhouse.namespace -- Namespace of the ClickHouseInstallation; empty means the release namespace. Any other value makes the chart
+  # -- Namespace of the ClickHouseInstallation. Empty means the release namespace. Any other value makes the chart
   # create that namespace and keep it on uninstall (`helm.sh/resource-policy: keep`), and needs the operator pointed at it.
   # @raw
   # For a namespace `clickhouse`, either run the operator there:
@@ -98,157 +90,140 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- ""
   namespace: ""
-  # clickhouse.image -- Image of the ClickHouse container, also run by the histogramQuantile download init container.
+  # -- Image of the ClickHouse container, also run by the histogramQuantile download init container.
   # @section -- ClickHouse
   image:
-    # clickhouse.image.repository -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
+    # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
     # @default -- "clickhouse/clickhouse-server"
     # @section -- ClickHouse
     repository: clickhouse/clickhouse-server
-    # clickhouse.image.tag -- ClickHouse server version. SigNoz is tested against this tag; move off it only to a version SigNoz supports.
+    # -- Image tag. SigNoz is tested against the default.
     # @default -- "25.12.5"
     # @section -- ClickHouse
     tag: 25.12.5
-    # clickhouse.image.pullPolicy -- ClickHouse image pull policy.
+    # -- Image pull policy.
     # @default -- "IfNotPresent"
     # @section -- ClickHouse
     pullPolicy: IfNotPresent
-  # The ClickHouse pod and the operator-upgrade hook's pod list
-  # `global.imagePullSecrets` first, then the root `imagePullSecrets`, then
-  # these; a name in more than one list is listed once.
-  # -- Secrets for pulling images from a private registry.
+  # -- Image pull secrets for the ClickHouse Pod and the operator-upgrade hook Pod.
   # @section -- ClickHouse
   imagePullSecrets: []
   # - "clickhouse-pull-secret"
 
-  # clickhouse.layout -- Shards and replicas of the ClickHouse cluster (experimental), the operator's cluster `layout` rendered as given:
+  # -- Shards and replicas of the ClickHouse cluster (experimental), the operator's cluster `layout` rendered as given:
   # https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
   # @section -- ClickHouse
   layout:
     shardsCount: 1
     replicasCount: 1
-  # clickhouse.cluster -- Name of the ClickHouse cluster, which the migrator creates SigNoz's tables on and SigNoz queries.
+  # -- Name of the ClickHouse cluster, which the migrator creates SigNoz's tables on and SigNoz queries.
   # @section -- ClickHouse
   # @default -- "cluster"
   cluster: cluster
-  # clickhouse.serviceAccount -- ClickHouse Service Account configuration.
+  # -- ClickHouse ServiceAccount configuration.
   # @section -- ClickHouse
   serviceAccount:
-    # clickhouse.serviceAccount.create -- Create a ServiceAccount for the ClickHouse pod; when false the pod runs as `name`, or as `default` when `name` is empty.
+    # -- Create a ServiceAccount for the ClickHouse Pod. When false the Pod runs as `name`, or as `default` when `name` is empty.
     # @default -- true
     # @section -- ClickHouse
     create: true
-    # clickhouse.serviceAccount.annotations -- Annotations to add to the service account.
+    # -- Annotations to add to the ServiceAccount.
     # @default -- {}
     # @section -- ClickHouse
     annotations: {}
-    # clickhouse.serviceAccount.name -- Name of the ServiceAccount to create (empty: the ClickHouse name), or of an existing one to run as when `create` is false.
+    # -- Name of the ServiceAccount to create (empty: the ClickHouse name), or of an existing one to run as when `create` is false.
     # @default -- null
     # @section -- ClickHouse
     name:
-  # -- Labels added to the ClickHouseInstallation.
+  # -- Labels to add to the ClickHouseInstallation.
   # @section -- ClickHouse
   labels: {}
-  # clickhouse.annotations -- Annotations added to the ClickHouseInstallation.
+  # -- Annotations to add to the ClickHouseInstallation.
   # @section -- ClickHouse
   # @default -- {}
   annotations: {}
   pod:
-    # A key named like one of the chart's selector labels
-    # (`app.kubernetes.io/name`, `app.kubernetes.io/instance`,
-    # `app.kubernetes.io/component`) is ignored: the chart keeps its own value.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod.
+    # A key named like a selector label (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) is ignored.
     # @section -- ClickHouse
     labels: {}
-    # The `signoz.io/*` defaults let the SigNoz collectors scrape the metrics
-    # endpoint set in `clickhouse.settings`.
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod.
+    # The `signoz.io/*` defaults make the SigNoz collectors scrape the metrics endpoint set in `clickhouse.settings`.
     # @default -- "signoz.io/scrape, signoz.io/port and signoz.io/path for the metrics endpoint"
     # @section -- ClickHouse
     annotations:
       signoz.io/scrape: 'true'
       signoz.io/port: '9363'
       signoz.io/path: /metrics
-  # clickhouse.service -- ClickHouse service configuration.
+  # -- ClickHouse Service configuration.
   # @section -- ClickHouse
   service:
-    # clickhouse.service.annotations -- Annotations for the ClickHouse service.
+    # -- Annotations to add to the Service.
     # @default -- {}
     # @section -- ClickHouse
     annotations: {}
-    # clickhouse.service.type -- Type of the ClickHouse Service; `LoadBalancer` or `NodePort` exposes ClickHouse outside the cluster.
+    # -- Type of the ClickHouse Service. `LoadBalancer` or `NodePort` exposes ClickHouse outside the cluster.
     # @default -- "ClusterIP"
     # @section -- ClickHouse
     type: ClusterIP
-    # clickhouse.service.httpPort -- HTTP port of the ClickHouse Service, which the components connect to.
+    # -- HTTP port of the ClickHouse Service, which the components connect to.
     # @default -- 8123
     # @section -- ClickHouse
     httpPort: 8123
-    # clickhouse.service.tcpPort -- Native TCP port of the ClickHouse Service, which SigNoz, the collector and the migrator connect to.
+    # -- Native TCP port of the ClickHouse Service, which SigNoz, the collector and the migrator connect to.
     # @default -- 9000
     # @section -- ClickHouse
     tcpPort: 9000
-  # clickhouse.database -- Database the collector writes metrics to.
+  # -- Database the collector writes metrics to.
   # @section -- ClickHouse
   # @default -- "signoz_metrics"
   database: signoz_metrics
-  # clickhouse.traceDatabase -- Database the collector writes traces to.
+  # -- Database the collector writes traces to.
   # @section -- ClickHouse
   # @default -- "signoz_traces"
   traceDatabase: signoz_traces
-  # clickhouse.logDatabase -- Database the collector writes logs to.
+  # -- Database the collector writes logs to.
   # @section -- ClickHouse
   # @default -- "signoz_logs"
   logDatabase: signoz_logs
-  # clickhouse.meterDatabase -- Database the collector writes meter data to.
+  # -- Database the collector writes meter data to.
   # @section -- ClickHouse
   # @default -- "signoz_meter"
   meterDatabase: signoz_meter
-  # clickhouse.user -- ClickHouse user the installation creates and every component connects as.
+  # -- ClickHouse user the installation creates and every component connects as.
   # @section -- ClickHouse
   # @default -- "admin"
   user: admin
-  # Written into the Secret `<clickhouse.fullname>-credentials` twice: as
-  # `password`, which every component that connects to ClickHouse reads, and
-  # as its SHA-256 hex `password_sha256_hex`, which the ClickHouseInstallation
-  # reads. Ignored when `clickhouse.existingSecret` is set. The components put
-  # it into their connection strings unescaped, so it must not contain `/`,
-  # `?` or `#`, and a `%` is read as an escape.
-  # -- Password of `clickhouse.user`.
+  # -- Password of `clickhouse.user`, stored in the Secret `<clickhouse.fullname>-credentials`. Ignored when `clickhouse.existingSecret` is set.
+  # It must not contain `/`, `?` or `#`, and a `%` is read as an escape. A change does not restart the Pods.
   # @section -- ClickHouse
   # @default -- "27ff0399-0d3a-4bd8-919d-17c2181e6fb9"
   password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
-  # When set, the chart creates no Secret and reads this one. With
-  # `clickhouse.namespace` set to another namespace, the Secret must exist
-  # there as well as in the release namespace. Recommended: also store the
-  # SHA-256 hex of the password, see `clickhouse.existingSecretPasswordSha256Key`.
-  # -- Name of a Secret you created that holds the password of `clickhouse.user`.
+  # -- Name of a Secret you created that holds the password of `clickhouse.user`. When set, the chart creates no Secret.
+  # With `clickhouse.namespace` set to another namespace, the Secret must exist there and in the release namespace.
   # @default -- null
   # @section -- ClickHouse
   existingSecret:
-  # clickhouse.existingSecretPasswordKey -- Key of the password inside `clickhouse.existingSecret`.
+  # -- Key of the password inside `clickhouse.existingSecret`.
   # @default -- "password"
   # @section -- ClickHouse
   existingSecretPasswordKey: password
-  # Make the hash with `printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1`.
-  # The ClickHouseInstallation then reads the hash instead of the plain
-  # password. When empty, ClickHouse reads the plain key through an
-  # environment substitution that is parsed as XML, so the password must not
-  # contain `&`, `<` or an `&name;` sequence.
   # -- Key of the password's SHA-256 hex inside `clickhouse.existingSecret`.
+  # When empty, the password must not contain `&`, `<` or an `&name;` sequence.
+  # Create the hash with `printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1`.
   # @default -- ""
   # @section -- ClickHouse
   existingSecretPasswordSha256Key: ""
-  # clickhouse.secure -- Passed as `CLICKHOUSE_SECURE` to the pods that connect to ClickHouse.
+  # -- Passed as `CLICKHOUSE_SECURE` to the Pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
   secure: false
-  # clickhouse.verify -- Passed as `CLICKHOUSE_VERIFY` to the pods that connect to ClickHouse.
+  # -- Passed as `CLICKHOUSE_VERIFY` to the Pods that connect to ClickHouse.
   # @section -- ClickHouse
   # @default -- false
   verify: false
-  # clickhouse.allowedNetworkIps -- Networks `clickhouse.user` may connect from, as addresses or CIDR ranges.
-  # The defaults are the private ranges; add any other range a client connects from.
+  # -- Networks `clickhouse.user` may connect from, as addresses or CIDR ranges.
+  # The defaults are the private ranges. Add any other range a client connects from.
   # @section -- ClickHouse
   allowedNetworkIps:
     - "10.0.0.0/8"
@@ -257,7 +232,7 @@ clickhouse:
     - "192.0.0.0/24"
     - "198.18.0.0/15"
     - "192.168.0.0/16"
-  # clickhouse.externalZookeeper -- ZooKeeper that ClickHouse coordinates through instead of the bundled store, ClickHouse Keeper or ZooKeeper, whichever is on.
+  # -- ZooKeeper that ClickHouse coordinates through instead of the bundled store, ClickHouse Keeper or ZooKeeper, whichever is on.
   # Set that store's own `enabled` (`keeper.enabled`, `zookeeper.enabled`) to false with it, or the bundled store is still installed.
   # @raw
   # One `servers` entry per ZooKeeper node:
@@ -272,7 +247,7 @@ clickhouse:
   # @default -- {}
   externalZookeeper: {}
 
-  # clickhouse.profiles -- ClickHouse settings profiles, one key per profile and setting; they override `defaultProfiles`.
+  # -- ClickHouse settings profiles, one key per profile and setting. They override `defaultProfiles`.
   # Settings: https://clickhouse.com/docs/en/operations/settings/settings/
   # @raw
   # A 40 GB memory cap on each query run under the default profile:
@@ -284,7 +259,7 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- {}
   profiles: {}
-  # clickhouse.defaultProfiles -- Profile settings SigNoz's queries rely on. Do not replace this map; override a single setting through `clickhouse.profiles`.
+  # -- Profile settings SigNoz's queries rely on. `clickhouse.profiles` overrides a single setting.
   # @section -- ClickHouse
   # @default -- "See values.yaml"
   defaultProfiles:
@@ -294,7 +269,7 @@ clickhouse:
     admin/secondary_indices_enable_bulk_filtering: "0"
     default/query_plan_max_limit_for_lazy_materialization: "0"
     admin/query_plan_max_limit_for_lazy_materialization: "0"
-  # clickhouse.settings -- ClickHouse server settings, keyed by their path in the server config; they override `defaultSettings`. The `prometheus/*`
+  # -- ClickHouse server settings, keyed by their path in the server config. They override `defaultSettings`. The `prometheus/*`
   # defaults serve the metrics that `clickhouse.pod.annotations` point at. Settings: https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings
   # @raw
   # Debug logging, the `level` setting under `logger`:
@@ -312,14 +287,14 @@ clickhouse:
     # prometheus/metrics: true
     # prometheus/events: true
     # prometheus/asynchronous_metrics: true
-  # clickhouse.defaultSettings -- Server settings that load the histogramQuantile function and set the format schema directory.
-  # Do not replace this map; override a single setting through `clickhouse.settings`.
+  # -- Server settings that load the histogramQuantile function and set the format schema directory.
+  # `clickhouse.settings` overrides a single setting.
   # @section -- ClickHouse
   defaultSettings:
     format_schema_path: /etc/clickhouse-server/config.d/
     user_scripts_path: /var/lib/clickhouse/user_scripts/
     user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
-  # clickhouse.files -- ClickHouse configuration files, keyed by path; files under `config.d/` merge into the server config.
+  # -- ClickHouse configuration files, keyed by path. Files under `config.d/` merge into the server config.
   # @raw
   # A file that sets the server name clickhouse-client shows in its prompt:
   #
@@ -380,10 +355,10 @@ clickhouse:
   # -- Volume claim templates of the ClickHouse installation, used only when `clickhouse.persistence.enabled` is false.
   # @section -- ClickHouse
   templates:
-    # clickhouse.templates.volumeClaimTemplates -- Volume claim templates added when `persistence.enabled` is false. Mount each through
-    # `clickhouse.extraVolumeMounts` under the same `name`; without a mount at `/var/lib/clickhouse` the data is not kept.
+    # -- Volume claim templates added when `persistence.enabled` is false. Mount each through
+    # `clickhouse.extraVolumeMounts` under the same `name`. Without a mount at `/var/lib/clickhouse` the data is not kept.
     # @raw
-    # Each entry takes these four fields, here a 50Gi claim named `data`:
+    # Each entry takes these four fields, here a 50Gi PVC named `data`:
     #
     #   ```yaml
     #   - name: data
@@ -399,7 +374,7 @@ clickhouse:
     # @section -- ClickHouse
     volumeClaimTemplates: []
 
-  # clickhouse.podDistribution -- Operator rules that spread the ClickHouse pods across nodes, rendered as given; types:
+  # -- Operator rules that spread the ClickHouse Pods across nodes, rendered as given. Types:
   # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
   # @section -- ClickHouse
   # @default -- []
@@ -412,23 +387,23 @@ clickhouse:
   #   number: 2
   #   topologyKey: kubernetes.io/hostname
 
-  # clickhouse.coldStorage -- S3 or GCS disk added as the `s3` volume of a `tiered` storage policy, where SigNoz's retention settings move older data.
+  # -- S3 or GCS disk added as the `s3` volume of a `tiered` storage policy, where SigNoz's retention settings move older data.
   # @section -- ClickHouse
   # @default -- "See values.yaml"
   coldStorage:
-    # clickhouse.coldStorage.enabled -- Whether to enable S3/GCS cold storage.
+    # -- Enable cold storage on S3 or Google Cloud Storage (GCS).
     # @default -- false
     # @section -- ClickHouse
     enabled: false
-    # clickhouse.coldStorage.defaultKeepFreeSpaceBytes -- Reserve free space on the default disk (in bytes).
+    # -- Free space to keep on the default disk, in bytes.
     # @default -- "10485760"
     # @section -- ClickHouse
     defaultKeepFreeSpaceBytes: "10485760"
-    # clickhouse.coldStorage.type -- Type of cold storage: `s3` or `gcs`.
+    # -- Type of cold storage: `s3` or `gcs`.
     # @default -- "s3"
     # @section -- ClickHouse
     type: s3
-    # clickhouse.coldStorage.endpoint -- Bucket URL including the path ClickHouse writes under.
+    # -- Bucket URL including the path ClickHouse writes under.
     # @raw
     # An S3 bucket:
     #
@@ -445,66 +420,60 @@ clickhouse:
     # @default -- "https://<bucket-name>.s3-<region>.amazonaws.com/data/"
     # @section -- ClickHouse
     endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
-    # clickhouse.coldStorage.accessKey -- Access Key ID for S3 or GCS.
-    # Used for `gcs`, and for `s3` when `role.enabled` is false.
+    # -- Access key ID for S3 or GCS.
+    # ClickHouse uses it for `gcs`, and for `s3` when `role.enabled` is false.
     # @default -- "<access_key_id>"
     # @section -- ClickHouse
     accessKey: <access_key_id>
-    # clickhouse.coldStorage.secretAccess -- Secret Access Key for S3 or GCS.
-    # Used for `gcs`, and for `s3` when `role.enabled` is false.
+    # -- Secret access key for S3 or GCS.
+    # ClickHouse uses it for `gcs`, and for `s3` when `role.enabled` is false.
     # @default -- "<secret_access_key>"
     # @section -- ClickHouse
     secretAccess: <secret_access_key>
-    # clickhouse.coldStorage.role -- AWS IAM role that gives ClickHouse access to the `s3` bucket in place of `accessKey` and `secretAccess`.
+    # -- AWS IAM role that gives ClickHouse access to the `s3` bucket in place of `accessKey` and `secretAccess`.
     # @section -- ClickHouse
     role:
-      # clickhouse.coldStorage.role.enabled -- Use the role for `s3`: ClickHouse takes credentials from its environment instead of `accessKey` and `secretAccess`.
+      # -- Use the role for `s3`: ClickHouse takes credentials from its environment instead of `accessKey` and `secretAccess`.
       # @default -- false
       # @section -- ClickHouse
       enabled: false
-      # clickhouse.coldStorage.role.annotations -- ServiceAccount annotations that bind the role, added when `coldStorage.enabled` and `role.enabled` are both true.
+      # -- ServiceAccount annotations that bind the role, added when `coldStorage.enabled` and `role.enabled` are both true.
       # @section -- ClickHouse
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
-  # -- Sidecar collector in the ClickHouse pod that sends `system.query_log` entries as logs to an OTLP receiver on the node's port 4317,
+  # -- Sidecar collector in the ClickHouse Pod that sends `system.query_log` entries as logs to an OTLP receiver on the node's port 4317,
   # such as the k8s-infra agent.
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   logs:
     system:
-      # -- Enable collection of system table entries as logs
+      # -- Collect ClickHouse system table entries as logs.
       # @section -- ClickHouse
       enabled: false
       image:
-        # clickhouse.logs.system.image.repository -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
+        # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
         # @default -- "signoz/signoz-otel-collector"
         # @section -- ClickHouse
         repository: signoz/signoz-otel-collector
-        # clickhouse.logs.system.image.tag -- Tag of the system logs sidecar image.
+        # -- Tag of the system logs sidecar image.
         # @default -- "v0.144.15"
         # @section -- ClickHouse
         tag: v0.144.15
-        # clickhouse.logs.system.image.pullPolicy -- Pull policy of the system logs sidecar image.
+        # -- Pull policy of the system logs sidecar image.
         # @default -- "IfNotPresent"
         # @section -- ClickHouse
         pullPolicy: IfNotPresent
-      # clickhouse.logs.system.resources -- Resources of the system logs sidecar container, a Kubernetes ResourceRequirements object rendered as given.
+      # -- Resource requests and limits for the container.
       # @default -- {}
       # @section -- ClickHouse
       resources: {}
-      # A list of Kubernetes EnvVar objects for the sidecar container, rendered
-      # as written. An entry named like one the chart sets replaces it.
-      # -- Extra environment variables for the container.
+      # -- Extra environment variables for the container. An entry named like one the chart sets replaces it.
       # @section -- ClickHouse
       env: []
-      # Sources of environment variables for the sidecar container, Kubernetes
-      # EnvFromSource objects rendered as given.
       # -- Sources of extra environment variables for the container.
       # @section -- ClickHouse
       envFrom: []
-      # Kubernetes VolumeMount objects for the sidecar container only, rendered
-      # as given; add their volumes to `clickhouse.extraVolumes`.
-      # -- Extra volume mounts for the container.
+      # -- Extra volume mounts for the container. Their volumes come from `clickhouse.extraVolumes`.
       # @section -- ClickHouse
       extraVolumeMounts: []
       # -- Configuration of the sidecar collector, rendered as given into its config file.
@@ -556,13 +525,13 @@ clickhouse:
                 - batch
               exporters:
                 - otlp
-  # clickhouse.installCustomStorageClass -- Create an expandable StorageClass: `gp2-resizable` when `global.cloud` starts with `aws`, `gce-resizable`
+  # -- Create an expandable StorageClass: `gp2-resizable` when `global.cloud` starts with `aws`, `gce-resizable`
   # when it starts with `gcp`. No volume uses it until `clickhouse.persistence.storageClass` names it.
   # @section -- ClickHouse
   # @default -- false
   installCustomStorageClass: false
-  # -- Pre-upgrade Job that deletes the operator Deployment an older chart created, whose selector labels cannot change in place; it matches
-  # nothing afterwards. When disabled, delete that Deployment yourself before upgrading: `kubectl delete deployment <release>-clickhouse-operator -n <namespace>`.
+  # -- Pre-upgrade hook Job that deletes the operator Deployment an older chart created.
+  # When disabled, delete that Deployment before upgrading: `kubectl delete deployment <release>-clickhouse-operator -n <namespace>`.
   # @default -- "See values.yaml"
   # @section -- ClickHouse
   operatorUpgradeHook:
@@ -570,7 +539,7 @@ clickhouse:
     # @section -- ClickHouse
     enabled: true
     image:
-      # -- Image repository, optionally prefixed with a registry; `global.imageRegistry` replaces that registry when set.
+      # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
       # @section -- ClickHouse
       repository: registry.k8s.io/kubectl
       # -- Tag of the kubectl image. The image publishes no `latest` tag.
@@ -585,40 +554,37 @@ clickhouse:
     # -- Resources of the hook container.
     # @section -- ClickHouse
     resources: {}
-    # The hook runs before every other object of the upgrade, so on tainted or
-    # dedicated nodes it needs its own scheduling keys to start.
-    # -- Node labels for pod assignment.
+    # -- Node labels for Pod assignment.
     # @section -- ClickHouse
     nodeSelector: {}
-    # -- Tolerations for pod assignment.
+    # -- Tolerations for Pod assignment.
     # @section -- ClickHouse
     tolerations: []
-    # -- Affinity rules for pod assignment.
+    # -- Affinity rules for Pod assignment.
     # @section -- ClickHouse
     affinity: {}
-    # -- Topology spread constraints for pod assignment.
+    # -- Topology spread constraints for Pod assignment.
+    # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
     # @section -- ClickHouse
     topologySpreadConstraints: []
-    # Empty sets none.
-    # -- Priority class of the pod.
+    # -- PriorityClass of the Pod.
     # @section -- ClickHouse
     priorityClassName: ""
-    # A Kubernetes PodSecurityContext, rendered as given; empty sets none.
-    # -- Security context for the pod.
+    # -- Security context for the Pod.
+    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
     # @section -- ClickHouse
     podSecurityContext: {}
-    # A Kubernetes SecurityContext for the operator-upgrade container, rendered
-    # as given; empty sets none.
     # -- Security context for the container.
+    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
     # @section -- ClickHouse
     containerSecurityContext: {}
   udf:
-    # clickhouse.udf.enabled -- Download the histogramQuantile binary, which SigNoz's histogram percentile queries call, from GitHub in an init container.
-    # Without GitHub access, set it to false and supply the binary through `clickhouse.extraInitContainers`.
+    # -- Download the histogramQuantile binary from GitHub in an init container. SigNoz's histogram percentile queries call it.
+    # When false, supply the binary through `clickhouse.extraInitContainers`.
     # @default -- true
     # @section -- ClickHouse
     enabled: true
-    # clickhouse.udf.command -- Command of the download init container; by default it fetches the histogramQuantile release for the node's OS and architecture.
+    # -- Command of the histogramQuantile download init container.
     # @default -- "See values.yaml"
     # @section -- ClickHouse
     command:
@@ -636,7 +602,7 @@ clickhouse:
         chmod +x histogram-quantile
         mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
         echo "histogram-quantile installed successfully"
-    # clickhouse.udf.env -- Environment of the download init container, Kubernetes EnvVar objects rendered as given.
+    # -- Extra environment variables for the container.
     # @raw
     # A proxy for the download, and a credential from a Secret for a mirror that `command` fetches from:
     #
@@ -653,29 +619,29 @@ clickhouse:
     # @default -- []
     # @section -- ClickHouse
     env: []
-    # clickhouse.udf.envFrom -- envFrom of the download init container, Kubernetes EnvFromSource objects rendered as given.
+    # -- Sources of extra environment variables for the container.
     # @default -- []
     # @section -- ClickHouse
     envFrom: []
-    # clickhouse.udf.resources -- Resource requests and limits of the download init container; empty sets none, so set it where a policy requires limits on every container.
+    # -- Resource requests and limits for the container.
     # @default -- {}
     # @section -- ClickHouse
     resources: {}
-    # Kubernetes VolumeMount objects for the download init container only,
-    # rendered as given; add their volumes to `clickhouse.extraVolumes`.
-    # -- Extra volume mounts for the container.
+    # -- Extra volume mounts for the container. Their volumes come from `clickhouse.extraVolumes`.
     # @section -- ClickHouse
     extraVolumeMounts: []
-  # clickhouse.extraInitContainers -- Init containers added to the ClickHouse pod after the histogramQuantile download, Kubernetes Container objects rendered as given. The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
+  # -- Extra init containers for the Pod, run after the histogramQuantile download.
+  # The user scripts volume is `shared-binary-volume`, mounted at `/var/lib/clickhouse/user_scripts`.
   # @default -- []
   # @section -- ClickHouse
   extraInitContainers: []
-  # -- Extra containers in the ClickHouse pod, Kubernetes Container objects rendered as given.
+  # -- Extra containers for the Pod.
   # @section -- ClickHouse
   extraContainers: []
 
-  # clickhouse.startupProbe -- Startup probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # -- Startup probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @raw
   # A TCP check on the native port in place of the HTTP one:
   #
@@ -696,8 +662,9 @@ clickhouse:
     timeoutSeconds: 5
     failureThreshold: 30
     successThreshold: 1
-  # clickhouse.livenessProbe -- Liveness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # -- Liveness probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @raw
   # A TCP check on the native port in place of the HTTP one:
   #
@@ -718,8 +685,9 @@ clickhouse:
     timeoutSeconds: 1
     failureThreshold: 10
     successThreshold: 1
-  # clickhouse.readinessProbe -- Readiness probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
-  # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
+  # -- Readiness probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @raw
   # A TCP check on the native port in place of the HTTP one:
   #
@@ -741,7 +709,7 @@ clickhouse:
     failureThreshold: 3
     successThreshold: 1
 
-  # clickhouse.resources -- Resources of the ClickHouse container, a Kubernetes ResourceRequirements object rendered as given; size them for your load.
+  # -- Resource requests and limits for the container.
   # @section -- ClickHouse
   resources:
     requests:
@@ -751,15 +719,16 @@ clickhouse:
   #     cpu: 2000m
   #     memory: 4Gi
 
-  # clickhouse.podSecurityContext -- Security context of the ClickHouse pod, a Kubernetes PodSecurityContext object rendered as given; `null` renders none,
-  # while `{}` keeps the defaults, since Helm merges maps.
+  # -- Security context for the Pod. `null` renders none, and `{}` keeps the defaults.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- ClickHouse
   podSecurityContext:
     runAsUser: 101
     runAsGroup: 101
     fsGroup: 101
     fsGroupChangePolicy: OnRootMismatch
-  # clickhouse.containerSecurityContext -- Security context of every container the chart renders in the ClickHouse pod; rendered only when set.
+  # -- Security context for every container of the ClickHouse Pod.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @raw
   # The restricted profile ClickHouse runs under:
   #
@@ -775,64 +744,62 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- {}
   containerSecurityContext: {}
-  # -- Priority class of the ClickHouse pods; empty sets none.
+  # -- PriorityClass of the Pod.
   # @section -- ClickHouse
   priorityClassName: ""
-  # clickhouse.nodeSelector -- Node selector for assigning the ClickHouse pod.
+  # -- Node labels for Pod assignment.
   # @section -- ClickHouse
   # @default -- {}
   nodeSelector: {}
-  # clickhouse.tolerations -- Toleration labels for ClickHouse pod assignment.
+  # -- Tolerations for Pod assignment.
   # @section -- ClickHouse
   # @default -- []
   tolerations: []
-  # clickhouse.affinity -- Affinity settings for the ClickHouse pod.
+  # -- Affinity rules for Pod assignment.
   # @section -- ClickHouse
   # @default -- {}
   affinity: {}
-  # -- Topology spread constraints of the ClickHouse pods, Kubernetes objects rendered as given.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @section -- ClickHouse
   topologySpreadConstraints: []
 
-  # clickhouse.persistence -- ClickHouse persistence configuration.
+  # -- ClickHouse persistence configuration.
   # @section -- ClickHouse
   persistence:
-    # clickhouse.persistence.enabled -- Keep ClickHouse data on a PersistentVolumeClaim. When false, the data lives in an `emptyDir` and is lost
-    # with the pod, unless `clickhouse.templates.volumeClaimTemplates` provides volumes.
+    # -- Keep ClickHouse data on a PersistentVolumeClaim. When false, the data lives in an `emptyDir` and is lost
+    # with the Pod, unless `clickhouse.templates.volumeClaimTemplates` provides volumes.
     # @default -- true
     # @section -- ClickHouse
     enabled: true
-    # clickhouse.persistence.existingClaim -- Name of a PersistentVolumeClaim you created for the ClickHouse data, used instead of a claim from the template.
+    # -- Name of a PersistentVolumeClaim you created for the ClickHouse data, used instead of a PVC from the template.
     # @default -- ""
     # @section -- ClickHouse
     existingClaim: ""
-    # clickhouse.persistence.storageClass -- StorageClass of the ClickHouse data claim; `-` disables dynamic provisioning, null uses the cluster default,
+    # -- StorageClass of the ClickHouse data PVC. `-` disables dynamic provisioning, null uses the cluster default,
     # and `global.storageClass` overrides it.
     # @default -- null
     # @section -- ClickHouse
     storageClass: null
-    # clickhouse.persistence.accessModes -- Access Modes for the persistent volume.
+    # -- Access modes of the PVC.
+    # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @default -- ["ReadWriteOnce"]
     # @section -- ClickHouse
     accessModes:
       - ReadWriteOnce
-    # clickhouse.persistence.size -- Persistent Volume size.
+    # -- Size of the PVC.
     # @default -- "20Gi"
     # @section -- ClickHouse
     size: 20Gi
-  # clickhouse.extraVolumes -- Extra volumes for the ClickHouse pod, a list of Kubernetes Volume objects.
+  # -- Extra volumes for the Pod.
   # @section -- ClickHouse
   extraVolumes: []
-  # clickhouse.extraVolumeMounts -- Extra volume mounts for the ClickHouse container, a list of Kubernetes VolumeMount objects.
+  # -- Extra volume mounts for the container.
   # @section -- ClickHouse
   extraVolumeMounts: []
-  # A list of Kubernetes EnvVar objects for the clickhouse container, rendered
-  # as written. Names starting with `CONFIGURATION_` belong to the operator.
-  # -- Extra environment variables for the container.
+  # -- Extra environment variables for the container. Names starting with `CONFIGURATION_` belong to the operator.
   # @section -- ClickHouse
   env: []
-  # Sources of environment variables for the clickhouse container, Kubernetes
-  # EnvFromSource objects rendered as given.
   # -- Sources of extra environment variables for the container.
   # @section -- ClickHouse
   envFrom: []
@@ -844,63 +811,54 @@ keeper:
   # -- Install Keeper.
   # @section -- ClickHouse Keeper
   enabled: true
-  # `keeper.nameOverride` takes precedence.
-  # -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects.
+  # -- Name of the ClickHouse Keeper component, the `app.kubernetes.io/name` label of its objects. `keeper.nameOverride` takes precedence.
   # @section -- ClickHouse Keeper
   name: keeper
-  # Name override for ClickHouse Keeper.
   # -- Override the chart name.
   # @section -- ClickHouse Keeper
   nameOverride: ""
-  # The full name of ClickHouse Keeper is the name of its ClickHouseKeeperInstallation. The operator derives names from it that must fit 63 characters; with the default name that leaves 27 characters for the release name.
-  # -- Override the full resource name.
+  # -- Override the full resource name, the name of the ClickHouseKeeperInstallation.
+  # With the default name, the release name can have at most 27 characters.
   # @section -- ClickHouse Keeper
   fullnameOverride: ""
   image:
-    # May start with a registry (`registry.k8s.io/kubectl`); `global.imageRegistry` replaces that registry when set.
-    # -- Image repository.
+    # -- Image repository, optionally prefixed with a registry. `global.imageRegistry` replaces that registry when set.
     # @section -- ClickHouse Keeper
     repository: clickhouse/clickhouse-keeper
-    # The tag is pinned on its own and does not follow `clickhouse.image.tag`: a Keeper restart drops every ClickHouse session.
-    # -- Image tag.
+    # -- Image tag. It does not follow `clickhouse.image.tag`.
+    # A Keeper restart drops every ClickHouse session.
     # @section -- ClickHouse Keeper
     tag: 25.12.5
     # -- Image pull policy.
     # @section -- ClickHouse Keeper
     pullPolicy: IfNotPresent
-  # The Keeper pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
-  # -- Secrets for pulling images from a private registry.
+  # -- Image pull secrets for the Keeper Pod.
   # @section -- ClickHouse Keeper
   imagePullSecrets: []
-  # Use an odd number: Keeper needs a majority of its replicas to work.
-  # At 3, spread the replicas with `podDistribution` (`ShardAntiAffinity` and `MaxNumberPerNode` with `number: 1`) or with `affinity` or `topologySpreadConstraints`.
-  # -- Number of replicas.
+  # -- Number of replicas. Keeper needs a majority of its replicas to work.
   # @section -- ClickHouse Keeper
   replicaCount: 1
-  # A key that names one of the chart's labels replaces its value.
-  # -- Labels to add to the ClickHouseKeeperInstallation.
+  # -- Labels to add to the ClickHouseKeeperInstallation. A key that names a chart label replaces its value.
   # @section -- ClickHouse Keeper
   labels: {}
   # -- Annotations to add to the ClickHouseKeeperInstallation.
   # @section -- ClickHouse Keeper
   annotations: {}
   pod:
-    # The chart's selector labels (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) stay; a key that names one of them is ignored.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod.
+    # A key named like a selector label (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/component`) is ignored.
     # @section -- ClickHouse Keeper
     labels: {}
-    # Your keys merge with these per key; set a key to `null` to drop it.
-    # `signoz.io/port` must equal `keeper.settings` `prometheus/port`; change both together.
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod. Set a key to `null` to drop a default.
+    # `signoz.io/port` must equal `prometheus/port` in `keeper.settings`.
     # @default -- "See values.yaml"
     # @section -- ClickHouse Keeper
     annotations:
       signoz.io/scrape: "true"
       signoz.io/port: "9141"
       signoz.io/path: /metrics
-  # Your keys merge with these per key; set a key to `null` to drop it.
-  # `prometheus/port` must equal the `signoz.io/port` pod annotation in `keeper.pod.annotations`; change both together.
-  # -- ClickHouse Keeper server settings, rendered into the installation's `configuration.settings`.
+  # -- ClickHouse Keeper server settings. Set a key to `null` to drop a default.
+  # `prometheus/port` must equal the `signoz.io/port` annotation in `keeper.pod.annotations`.
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   settings:
@@ -915,32 +873,26 @@ keeper:
     prometheus/metrics: "true"
     prometheus/events: "true"
     prometheus/asynchronous_metrics: "true"
-  # A Kubernetes PodSecurityContext object, rendered as given.
-  # Set to `null` to render no pod security context; an empty map keeps the defaults, because Helm merges maps.
-  # Keeper runs as the image's user; add `runAsUser: 101` and `runAsGroup: 101` for a non-root pod.
-  # -- Security context for the pod.
+  # -- Security context for the Pod. `null` renders none, and `{}` keeps the defaults.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @default -- "See values.yaml"
   # @section -- ClickHouse Keeper
   podSecurityContext:
     fsGroup: 101
-  # A Kubernetes SecurityContext object, rendered as given; rendered only when set.
   # -- Security context for the container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @default -- "no container security context"
   # @section -- ClickHouse Keeper
   containerSecurityContext: {}
-  # A list of Kubernetes EnvVar objects for the clickhouse-keeper container, rendered as written.
   # -- Extra environment variables for the container.
   # @section -- ClickHouse Keeper
   env: []
-  # Sources of environment variables for the clickhouse-keeper container, Kubernetes EnvFromSource objects rendered as given.
   # -- Sources of extra environment variables for the container.
   # @section -- ClickHouse Keeper
   envFrom: []
-  # A list of Kubernetes Volume objects, rendered as given; mount them with `keeper.extraVolumeMounts`.
-  # -- Extra volumes for the pod.
+  # -- Extra volumes for the Pod.
   # @section -- ClickHouse Keeper
   extraVolumes: []
-  # A list of Kubernetes VolumeMount objects for the clickhouse-keeper container, rendered as given.
   # -- Extra volume mounts for the container.
   # @section -- ClickHouse Keeper
   extraVolumeMounts: []
@@ -951,65 +903,64 @@ keeper:
     requests:
       cpu: 100m
       memory: 256Mi
-  # An empty value sets none.
-  # -- Priority class of the pod.
-  # @default -- "no priority class"
+  # -- PriorityClass of the Pod.
+  # @default -- "no PriorityClass"
   # @section -- ClickHouse Keeper
   priorityClassName: ""
-  # -- Node labels for pod assignment.
+  # -- Node labels for Pod assignment.
   # @section -- ClickHouse Keeper
   nodeSelector: {}
-  # -- Tolerations for pod assignment.
+  # -- Tolerations for Pod assignment.
   # @section -- ClickHouse Keeper
   tolerations: []
-  # -- Affinity rules for pod assignment.
+  # -- Affinity rules for Pod assignment.
   # @section -- ClickHouse Keeper
   affinity: {}
-  # -- Topology spread constraints for pod assignment.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @section -- ClickHouse Keeper
   topologySpreadConstraints: []
-  # See `clickhouse.podDistribution`.
-  # -- Topologies for distributing the ClickHouse Keeper pods, in the operator's `podDistribution` format.
+  # -- Topologies for distributing the ClickHouse Keeper Pods, in the operator's `podDistribution` format.
   # @section -- ClickHouse Keeper
   podDistribution: []
-  # Persistent volume of each ClickHouse Keeper replica. The claim is kept when the installation or a replica is removed.
+  # PersistentVolume of each ClickHouse Keeper replica. The PVC is kept when the installation or a replica is removed.
   persistence:
-    # -- Access modes of the claim.
+    # -- Access modes of the PVC.
+    # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @section -- ClickHouse Keeper
     accessModes:
       - ReadWriteOnce
-    # -- Size of the claim.
+    # -- Size of the PVC.
     # @section -- ClickHouse Keeper
     size: 10Gi
-    # `global.storageClass` takes precedence when set. If "-", disables dynamic provisioning. If null, uses the default provisioner.
-    # -- StorageClass of the claim.
+    # -- StorageClass of the PVC. `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
     # @default -- "the default provisioner"
     # @section -- ClickHouse Keeper
     storageClass: null
 
-# zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true; its keys follow Bitnami's chart:
+# -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true. Its keys follow Bitnami's chart:
 # https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
 # @default -- "See values.yaml"
 # @section -- ZooKeeper
 zookeeper:
-  # zookeeper.enabled -- Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off.
+  # -- Install the bundled ZooKeeper. Deprecated: ClickHouse Keeper (`keeper.enabled`) is the default coordination store, and unset now means off.
   # An existing install that runs ZooKeeper sets this to true for the upgrade together with `keeper.enabled: false`, or after applying the Keeper CRD, and keeps it until it has moved to Keeper; see https://signoz.io/docs/operate/migration/upgrade-0-152/
   # @default -- false
   # @section -- ZooKeeper
   enabled: false
 
-  # -- Annotations on the metadata of every ZooKeeper object (not on the pod template).
+  # -- Annotations on the metadata of every ZooKeeper object (not on the Pod template).
   # @section -- ZooKeeper
   commonAnnotations:
     signoz.io/deprecated: "true"
 
-  # -- Zookeeper image
+  # -- ZooKeeper image configuration.
   # @section -- ZooKeeper
   image:
-    # -- Zookeeper image registry to use.
+    # -- Image registry.
     # @section -- ZooKeeper
     registry: *GLOBAL_IMAGE_REGISTRY
-    # -- Zookeeper image repository to use.
+    # -- Image repository.
     # @section -- ZooKeeper
     repository: signoz/zookeeper
     # -- ZooKeeper version; ClickHouse does not work with every ZooKeeper version, so change it only to one ClickHouse supports.
@@ -1023,11 +974,11 @@ zookeeper:
   # @section -- ZooKeeper
   fullnameOverride: ""
 
-  # -- Namespace of ZooKeeper, which must already exist; empty means the release namespace.
+  # -- Namespace of ZooKeeper, which must already exist. Empty means the release namespace.
   # @section -- ZooKeeper
   namespaceOverride: ""
 
-  # -- Annotations on the ZooKeeper pods; the `signoz.io/*` defaults let the SigNoz collectors scrape its metrics on port 9141.
+  # -- Annotations on the ZooKeeper Pods. The `signoz.io/*` defaults let the SigNoz collectors scrape its metrics on port 9141.
   # @section -- ZooKeeper
   podAnnotations:
     signoz.io/scrape: "true"
@@ -1041,7 +992,7 @@ zookeeper:
     # @section -- ZooKeeper
     purgeInterval: 1
 
-  # -- ZooKeeper Prometheus Exporter configuration.
+  # -- ZooKeeper Prometheus metrics configuration.
   # @section -- ZooKeeper
   metrics:
     # -- Serve ZooKeeper's Prometheus metrics on port 9141, the port `podAnnotations` point the collectors at.
@@ -1050,26 +1001,29 @@ zookeeper:
 
     service:
       enabled: true
-      # -- ZooKeeper metrics service annotation
+      # -- Annotations to add to the metrics Service.
       # @section -- ZooKeeper
       annotations: {}
         # signoz.io/scrape: 'true'
         # signoz.io/port: '9141'
         # signoz.io/path: /metrics
 
-  # -- Zookeeper log level.
+  # -- ZooKeeper log level.
   # @section -- ZooKeeper
   logLevel: INFO
 
-  # -- Bitnami's built-in liveness probe, off because `customLivenessProbe` replaces it.
+  # -- Bitnami's built-in liveness probe. `customLivenessProbe` replaces it.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @section -- ZooKeeper
   livenessProbe:
     enabled: false
-  # -- Bitnami's built-in readiness probe, off because `customReadinessProbe` replaces it.
+  # -- Bitnami's built-in readiness probe. `customReadinessProbe` replaces it.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @section -- ZooKeeper
   readinessProbe:
     enabled: false
   # -- Liveness probe of the ZooKeeper container: the `ruok` command on its admin server at port 8080.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @section -- ZooKeeper
   customLivenessProbe:
     exec:
@@ -1080,6 +1034,7 @@ zookeeper:
     successThreshold: 1
     failureThreshold: 6
   # -- Readiness probe of the ZooKeeper container: ready once the admin server's `ruok` command reports no error.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @section -- ZooKeeper
   customReadinessProbe:
     exec:
@@ -1090,65 +1045,67 @@ zookeeper:
     successThreshold: 1
     failureThreshold: 6
 
-  # -- ZooKeeper server ID of the first replica; each further replica takes the next ID.
+  # -- ZooKeeper server ID of the first replica. Each further replica takes the next ID.
   # @section -- ZooKeeper
   minServerId: 1
 
-  # -- Number of ZooKeeper replicas, each listed as a coordination node of the ClickHouse installation; use an odd number to keep a quorum.
+  # -- Number of ZooKeeper replicas, each listed as a coordination node of the ClickHouse installation. Use an odd number to keep a quorum.
   # @section -- ZooKeeper
   replicaCount: 1
 
-  # -- PodDisruptionBudget of the ZooKeeper pods.
+  # -- PodDisruptionBudget of the ZooKeeper Pods.
   # @section -- ZooKeeper
   pdb:
-    # -- Specifies whether a Pod Disruption Budget should be created
+    # -- Create a PodDisruptionBudget.
+    # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
     # @section -- ZooKeeper
     create: false
 
   # -- Storage of the ZooKeeper data.
   # @section -- ZooKeeper
   persistence:
-    # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
+    # -- Enable persistence with a PersistentVolumeClaim (PVC). When false, the data lives in an `emptyDir`.
     # @section -- ZooKeeper
     enabled: true
 
-    # -- Name of an existing PVC to use (only when deploying a single replica)
+    # -- Name of an existing PVC to use, with a single replica only.
     # @section -- ZooKeeper
     existingClaim: ""
 
-    # -- StorageClass of the ZooKeeper data claim; `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
+    # -- StorageClass of the ZooKeeper data PVC. `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
     # @section -- ZooKeeper
     storageClass: null
 
-    # -- PVC Access modes
+    # -- Access modes of the PVC.
+    # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @section -- ZooKeeper
     accessModes:
       - ReadWriteOnce
 
-    # -- PVC Storage Request for ZooKeeper data volume
+    # -- Size of the PVC.
     # @section -- ZooKeeper
     size: 8Gi
 
-    # -- Annotations for the PVC
+    # -- Annotations to add to the PVC.
     # @section -- ZooKeeper
     annotations: {}
 
-  # -- Resources requests and limits for zookeeper
+  # -- Resource requests and limits for the container.
   # @section -- ZooKeeper
   resources:
     limits: {}
     requests:
       memory: 256Mi
       cpu: 100m
-# altinity-clickhouse-operator -- Values of Altinity's clickhouse-operator chart, which installs the operator that reconciles the ClickHouseInstallation.
-# Only settings that differ from that chart's defaults are set here; its keys:
+# -- Values of Altinity's clickhouse-operator chart, which installs the operator that reconciles the ClickHouseInstallation.
+# Only settings that differ from that chart's defaults are set here. Its keys:
 # https://github.com/Altinity/clickhouse-operator/tree/release-0.27.4/deploy/helm
 # @ignored
 altinity-clickhouse-operator:
   # `global.imagePullSecrets` and the root `imagePullSecrets` do not reach the
-  # operator pod or its CRD hook: set `imagePullSecrets` and
+  # operator Pod or its CRD hook: set `imagePullSecrets` and
   # `crdHook.imagePullSecrets` here, as lists of `name:` objects.
-  # -- Namespace of the operator; empty means the release namespace. Altinity's chart does not create it: it must exist before
+  # -- Namespace of the operator. Empty means the release namespace. Altinity's chart does not create it: it must exist before
   # `helm install`, because the CRD-install hook runs before the chart's own resources (on a fresh install that uses
   # `clickhouse.namespace` here, create it first and install with `--take-ownership`).
   namespaceOverride: ""
@@ -1160,16 +1117,16 @@ altinity-clickhouse-operator:
   # existing objects in place.
   nameOverride: clickhouse-operator
   rbac:
-    # -- Grant the operator rights in its own namespace only (Role and RoleBinding); set false, with `watchNamespaces`, to run ClickHouse in another namespace.
+    # -- Grant the operator rights in its own namespace only (Role and RoleBinding). Set false, with `watchNamespaces`, to run ClickHouse in another namespace.
     namespaceScoped: true
-  # -- Labels on the operator pod; the component label is what metrics queries and selectors on the operator match.
+  # -- Labels on the operator Pod. The component label is what metrics queries and selectors on the operator match.
   podLabels:
     app.kubernetes.io/component: operator
-  # -- Annotations on the operator pod; the SigNoz collectors scrape pods that carry `signoz.io/scrape`.
+  # -- Annotations on the operator Pod. The SigNoz collectors scrape Pods that carry `signoz.io/scrape`.
   podAnnotations:
     signoz.io/port: '8888'
     signoz.io/scrape: 'true'
-    # Altinity's default annotations, removed so the pod carries only the SigNoz scrape annotations.
+    # Altinity's default annotations, removed so the Pod carries only the SigNoz scrape annotations.
     prometheus.io/port: null
     prometheus.io/scrape: null
     clickhouse-operator-metrics/port: null
@@ -1187,7 +1144,7 @@ altinity-clickhouse-operator:
           configuration:
             network:
               # Altinity's value with its `cluster.local` taken from `global.clusterDomain` (Altinity's chart templates these files),
-              # so the `default` user's host check matches the ClickHouse pods on any cluster domain.
+              # so the `default` user's host check matches the ClickHouse Pods on any cluster domain.
               hostRegexpTemplate: '(chi-{chi}-[^.]+\d+-\d+|clickhouse\-{chi})\.{namespace}\.svc\.{{ include "signoz.clusterDomain" . | replace "." "\\." }}$'
     configdFiles:
       # level information + JSON formatting; Altinity's default is debug text.
@@ -1350,109 +1307,87 @@ altinity-clickhouse-operator:
                 </default>
             </profiles>
         </yandex>
-# externalClickhouse -- External ClickHouse configuration. Required when `clickhouse.enabled` is false.
+# -- External ClickHouse configuration. Required when `clickhouse.enabled` is false, and used only then.
 # @section -- External ClickHouse
 externalClickhouse:
-  # externalClickhouse.host -- Host of the external ClickHouse cluster.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Host of the external ClickHouse.
   # @default -- null
   # @section -- External ClickHouse
   host:
-  # externalClickhouse.cluster -- Cluster of the external ClickHouse that the migrator creates SigNoz's tables on and SigNoz queries.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Cluster of the external ClickHouse that the migrator creates SigNoz's tables on and SigNoz queries.
   # @default -- "cluster"
   # @section -- External ClickHouse
   cluster: cluster
-  # externalClickhouse.database -- Database the collector writes metrics to.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Database the collector writes metrics to.
   # @default -- "signoz_metrics"
   # @section -- External ClickHouse
   database: signoz_metrics
-  # externalClickhouse.traceDatabase -- Database the collector writes traces to.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Database the collector writes traces to.
   # @default -- "signoz_traces"
   # @section -- External ClickHouse
   traceDatabase: signoz_traces
-  # externalClickhouse.logDatabase -- Database the collector writes logs to.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Database the collector writes logs to.
   # @default -- "signoz_logs"
   # @section -- External ClickHouse
   logDatabase: signoz_logs
-  # externalClickhouse.meterDatabase -- Database the collector writes meter data to.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Database the collector writes meter data to.
   # @default -- "signoz_meter"
   # @section -- External ClickHouse
   meterDatabase: signoz_meter
-  # externalClickhouse.user -- Username to connect to the external cluster.
-  # Used only when `clickhouse.enabled` is false.
+  # -- User the components connect as.
   # @default -- ""
   # @section -- External ClickHouse
   user: ""
-  # externalClickhouse.password -- Password of `externalClickhouse.user`, written into the Secret `<clickhouse.fullname>-credentials` that the
-  # components read; ignored when `externalClickhouse.existingSecret` is set.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Password of `externalClickhouse.user`, written into the Secret `<clickhouse.fullname>-credentials` that the
+  # components read. Ignored when `externalClickhouse.existingSecret` is set.
   # @default -- ""
   # @section -- External ClickHouse
   password: ""
-  # externalClickhouse.existingSecret -- Name of a Secret you created that holds the password of `externalClickhouse.user`; when set, the chart
+  # -- Name of a Secret you created that holds the password of `externalClickhouse.user`. When set, the chart
   # creates no Secret and the components read this one.
-  # Used only when `clickhouse.enabled` is false.
   # @default -- null
   # @section -- External ClickHouse
   existingSecret:
-  # externalClickhouse.existingSecretPasswordKey -- Key of the password inside `externalClickhouse.existingSecret`.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Key of the password inside `externalClickhouse.existingSecret`.
   # @default -- "password"
   # @section -- External ClickHouse
   existingSecretPasswordKey: password
-  # externalClickhouse.secure -- Connect to an external ClickHouse behind TLS by appending `?secure=true` to the SigNoz and migrator connection strings.
-  # Set `externalClickhouse.tcpPort` to its secure port, usually 9440, and add the same parameters to the exporter connection strings in `otelCollector.config` by hand.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Connect to an external ClickHouse behind TLS by appending `?secure=true` to the SigNoz and migrator connection strings.
+  # Set `externalClickhouse.tcpPort` to its secure port, usually 9440, and add the same parameters to the exporter connection strings in `otelCollector.config`.
   # @default -- false
   # @section -- External ClickHouse
   secure: false
-  # externalClickhouse.verify -- With `externalClickhouse.secure` true, whether to verify the server's TLS certificate. False appends
-  # `&skip_verify=true` to the SigNoz and migrator connection strings; add it to the exporter connection strings in `otelCollector.config` by hand.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Verify the server's TLS certificate when `externalClickhouse.secure` is true. False appends
+  # `&skip_verify=true` to the SigNoz and migrator connection strings. Add it to the exporter connection strings in `otelCollector.config` yourself.
   # @default -- false
   # @section -- External ClickHouse
   verify: false
-  # externalClickhouse.httpPort -- HTTP port of the external ClickHouse instance.
-  # Used only when `clickhouse.enabled` is false.
+  # -- HTTP port of the external ClickHouse.
   # @default -- 8123
   # @section -- External ClickHouse
   httpPort: 8123
-  # externalClickhouse.tcpPort -- TCP port of the external ClickHouse instance.
-  # Used only when `clickhouse.enabled` is false.
+  # -- Native TCP port of the external ClickHouse.
   # @default -- 9000
   # @section -- External ClickHouse
   tcpPort: 9000
 signoz:
-  # It feeds only the `app.kubernetes.io/component` selector label, which an
-  # upgrade cannot change; it names no object.
-  # -- Name of the SigNoz component.
+  # -- Name of the SigNoz component, the `app.kubernetes.io/component` selector label. An upgrade cannot change it.
   # @section -- SigNoz
   name: "signoz"
-  # With SQLite, each replica gets its own `signoz-db` claim, so replicas do
-  # not share one database.
-  # -- Number of replicas.
+  # -- Number of replicas. With SQLite, each replica has its own database.
   # @section -- SigNoz
   replicaCount: 1
   image:
-    # The registry is part of the repository, as `docker.io` here;
-    # `global.imageRegistry` replaces it when set.
-    # -- Image repository.
+    # -- Image repository, with its registry. `global.imageRegistry` replaces that registry when set.
     # @section -- SigNoz
     repository: docker.io/signoz/signoz
-    # Empty means the chart's appVersion.
-    # -- Image tag.
+    # -- Image tag. Empty means the chart's `appVersion`.
     # @section -- SigNoz
     tag: v0.151.0
     # -- Image pull policy.
     # @section -- SigNoz
     pullPolicy: IfNotPresent
-  # The SigNoz pod lists `global.imagePullSecrets`, then `imagePullSecrets`, then these.
-  # -- Secrets for pulling images from a private registry.
+  # -- Image pull secrets for the SigNoz Pod.
   # @section -- SigNoz
   imagePullSecrets: []
   serviceAccount:
@@ -1462,9 +1397,7 @@ signoz:
     # -- Annotations to add to the ServiceAccount.
     # @section -- SigNoz
     annotations: {}
-    # Empty means the release's full name when the chart creates the
-    # ServiceAccount, and `default` when it does not.
-    # -- Name of the ServiceAccount.
+    # -- Name of the ServiceAccount. Empty means the release's full name when `create` is true, and `default` otherwise.
     # @default -- "the release's full name, or default"
     # @section -- SigNoz
     name:
@@ -1472,40 +1405,30 @@ signoz:
     # -- Annotations to add to the Service.
     # @section -- SigNoz Networking
     annotations: {}
-    # A key that matches a chart label replaces it; the selector never takes
-    # these.
-    # -- Labels to add to the Service.
+    # -- Labels to add to the Service. A key that matches a chart label replaces it.
     # @section -- SigNoz Networking
     labels: {}
-    # `ClusterIP`, `NodePort` or `LoadBalancer`.
-    # -- Kubernetes Service type.
+    # -- Kubernetes Service type: `ClusterIP`, `NodePort` or `LoadBalancer`.
     # @section -- SigNoz Networking
     type: ClusterIP
-    # The port of the HTTP API and UI. It moves only the Service: the container
-    # always listens on 8080, and the Service targets it by name.
-    # -- Service port.
+    # -- Service port of the HTTP API and UI. The container port stays 8080.
     # @section -- SigNoz Networking
     port: 8080
-    # It moves only the Service: the container always listens on 8085.
-    # -- Service port for the internal API.
+    # -- Service port for the internal API. The container port stays 8085.
     # @section -- SigNoz Networking
     internalPort: 8085
-    # It moves only the Service: the container always listens on 4320.
-    # -- Service port for OpAMP.
+    # -- Service port for OpAMP. The container port stays 4320.
     # @section -- SigNoz Networking
     opampPort: 4320
-    # Used only when `signoz.service.type` is `NodePort`.
-    # -- Node port for HTTP.
+    # -- NodePort for HTTP. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     nodePort: null
-    # Used only when `signoz.service.type` is `NodePort`.
-    # -- Node port for the internal API.
+    # -- NodePort for the internal API. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     internalNodePort: null
-    # Used only when `signoz.service.type` is `NodePort`.
-    # -- Node port for OpAMP.
+    # -- NodePort for OpAMP. Only used when `signoz.service.type` is `NodePort`.
     # @default -- "chosen by the cluster"
     # @section -- SigNoz Networking
     opampInternalNodePort: null
@@ -1513,36 +1436,29 @@ signoz:
   # @default -- "no annotations"
   # @section -- SigNoz
   annotations:
-  # A key that matches a chart label replaces it; the selector and the pod
-  # labels never take these.
-  # -- Labels to add to the StatefulSet.
+  # -- Labels to add to the StatefulSet. A key that matches a chart label replaces it.
   # @section -- SigNoz
   labels: {}
-  # Command-line arguments for the SigNoz container, rendered in order after
-  # the image's own; the container gets no `args` when this is empty.
-  # -- Extra arguments for the container.
+  # -- Extra arguments for the container, added after the image's own.
   # @section -- SigNoz
   extraArgs: []
-  # Environment variables for the SigNoz container, as `NAME: value`. A key is
-  # upper-cased. A string, number or boolean becomes the variable's value; a map
-  # is the rest of the EnvVar, such as `valueFrom` with a `secretKeyRef`:
-  #   env:
-  #     MY_KEY: my-value
-  #     SECRET_KEY:
-  #       valueFrom:
-  #         secretKeyRef:
-  #           name: my-secret
-  #           key: my-key
-  # A key with the name of a variable the chart sets, such as `CLICKHOUSE_USER`
-  # or `POSTGRES_USER`, replaces that variable's value. The other keys follow
-  # the chart's variables in alphabetical order, and a variable is placed after
-  # any variable its value references through `$(NAME)`. When a key is set in
-  # both cases, the lower-case one wins: change a default below by its
-  # lower-case name, or set it to null to remove it.
-  # The names follow the SigNoz configuration: a key `provider` under the
-  # `telemetry_store` section becomes `signoz_telemetrystore_provider`. The
-  # full list is https://github.com/SigNoz/signoz/blob/main/conf/example.yaml.
-  # -- Extra environment variables for the container.
+  # -- Extra environment variables for the container, as `NAME: value`. A key named like a variable the chart sets replaces it.
+  # A string, number or boolean is the value. A map is the rest of the EnvVar, such as `valueFrom`.
+  # The names follow the SigNoz configuration: `provider` under `telemetry_store` is `signoz_telemetrystore_provider`.
+  # When a key is set in both cases, the lower-case one wins. Set a default to `null` to remove it.
+  # All names: https://github.com/SigNoz/signoz/blob/main/conf/example.yaml
+  # @raw
+  # A plain value and a value from a Secret:
+  #
+  #   ```yaml
+  #   MY_KEY: my-value
+  #   SECRET_KEY:
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: my-secret
+  #         key: my-key
+  #   ```
+  #
   # @default -- "the five SigNoz settings in values.yaml"
   # @section -- SigNoz
   env:
@@ -1559,61 +1475,41 @@ signoz:
     signoz_alertmanager_provider: signoz
     # The URL under which Alertmanager is externally reachable, Used for generating relative and absolute links back to Alertmanager itself.
     signoz_alertmanager_signoz_external__url: http://localhost:8080
-  # Kubernetes EnvFromSource objects for the SigNoz container, rendered as
-  # given. A variable of the same name in `signoz.env` or set by the chart
-  # takes precedence over one from these sources.
   # -- Sources of extra environment variables for the container.
+  # A variable of the same name in `signoz.env` or set by the chart takes precedence.
   # @section -- SigNoz
   envFrom: []
-  # A Kubernetes PodSecurityContext, rendered as given, for example
-  # `fsGroup: 2000`.
-  # -- Security context for the pod.
+  # -- Security context for the Pod.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- SigNoz
   podSecurityContext: {}
   pod:
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod.
     # @section -- SigNoz
     annotations: {}
-    # The selector labels stay the chart's: a key here with the name of one of
-    # them is ignored.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod. A key named like a selector label is ignored.
     # @section -- SigNoz
     labels: {}
-  # A Kubernetes SecurityContext for the signoz container, rendered as given,
-  # for example:
-  #   capabilities:
-  #     drop: [ALL]
-  #   readOnlyRootFilesystem: true
-  #   runAsNonRoot: true
-  #   runAsUser: 1000
   # -- Security context for the container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- SigNoz
   containerSecurityContext: {}
-  # Kubernetes VolumeMount objects for the signoz container only, rendered as
-  # given after the chart's database mount.
   # -- Extra volume mounts for the container.
   # @section -- SigNoz
   extraVolumeMounts: []
-  # Kubernetes Volume objects for the SigNoz pod, rendered as given.
-  # -- Extra volumes for the pod.
+  # -- Extra volumes for the Pod.
   # @section -- SigNoz
   extraVolumes: []
-  # Kubernetes Container objects run before the signoz container, rendered as
-  # given, such as a restore of the SQLite database.
-  # -- Extra init containers for the pod.
+  # -- Extra init containers for the Pod.
   # @section -- SigNoz
   extraInitContainers: []
-  # Kubernetes Container objects run beside the signoz container, rendered as
-  # given. A sidecar that must share the SQLite database, such as a backup,
-  # mounts the claim `signoz-db` at `/var/lib/signoz`.
-  # -- Extra containers for the pod.
+  # -- Extra containers for the Pod.
+  # The SQLite database is on the PVC `signoz-db`, mounted at `/var/lib/signoz`.
   # @section -- SigNoz
   extraContainers: []
-  # A Kubernetes probe object, rendered as given. Your values merge into these
-  # defaults: set a field to null to drop it, switch the handler with
-  # `httpGet: null` beside another one such as `tcpSocket`, or set the whole key
-  # to null for no probe.
-  # -- Liveness probe for the container.
+  # -- Liveness probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`. Set a field to `null` to drop it.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "an HTTP GET of /api/v1/health on port http"
   # @section -- SigNoz
   livenessProbe:
@@ -1625,9 +1521,9 @@ signoz:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # A Kubernetes probe object, rendered as given, merged and dropped like
-  # `signoz.livenessProbe`.
-  # -- Readiness probe for the container.
+  # -- Readiness probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`. Set a field to `null` to drop it.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "an HTTP GET of /api/v1/health?live=1 on port http"
   # @section -- SigNoz
   readinessProbe:
@@ -1639,8 +1535,8 @@ signoz:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # A Kubernetes probe object, rendered as given; none by default.
   # -- Startup probe for the container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "no startup probe"
   # @section -- SigNoz
   startupProbe: {}
@@ -1648,20 +1544,15 @@ signoz:
     # -- Create an Ingress for SigNoz.
     # @section -- SigNoz Networking
     enabled: false
-    # Rendered on Kubernetes 1.18 and later.
     # -- IngressClass of the Ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
     # @section -- SigNoz Networking
     className: ""
-    # For example `kubernetes.io/ingress.class: nginx`,
-    # `kubernetes.io/tls-acme: "true"` or
-    # `cert-manager.io/cluster-issuer: letsencrypt-prod`.
     # -- Annotations to add to the Ingress.
     # @section -- SigNoz Networking
     annotations: {}
-    # Each path routes to the SigNoz Service on its `port`, or on
-    # `signoz.service.port` when the path sets none; a path without `pathType`
-    # gets `ImplementationSpecific`.
     # -- Hosts and paths of the Ingress.
+    # A path without `port` routes to `signoz.service.port`, and a path without `pathType` gets `ImplementationSpecific`.
     # @default -- "the host signoz.domain.com, with the path / on port 8080"
     # @section -- SigNoz Networking
     hosts:
@@ -1670,15 +1561,10 @@ signoz:
           - path: /
             pathType: ImplementationSpecific
             port: 8080
-    # Each entry has `hosts` and an optional `secretName`, for example:
-    #   - secretName: chart-example-tls
-    #     hosts:
-    #       - signoz.domain.com
-    # -- TLS settings of the Ingress.
+    # -- TLS settings of the Ingress, as entries with `hosts` and an optional `secretName`.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- SigNoz Networking
     tls: []
-  # For example `limits: {cpu: 750m, memory: 1000Mi}`. See
-  # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/.
   # -- Resource requests and limits for the container.
   # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
@@ -1686,298 +1572,257 @@ signoz:
     requests:
       cpu: 100m
       memory: 100Mi
-  # -- Priority class of the pod.
-  # @default -- "no priority class"
+  # -- PriorityClass of the Pod.
+  # @default -- "no PriorityClass"
   # @section -- SigNoz
   priorityClassName: ""
-  # -- Node labels for pod assignment.
+  # -- Node labels for Pod assignment.
   # @section -- SigNoz
   nodeSelector: {}
-  # -- Tolerations for pod assignment.
+  # -- Tolerations for Pod assignment.
   # @section -- SigNoz
   tolerations: []
-  # -- Affinity rules for pod assignment.
+  # -- Affinity rules for Pod assignment.
   # @section -- SigNoz
   affinity: {}
-  # -- Topology spread constraints for pod assignment.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @section -- SigNoz
   topologySpreadConstraints: []
   persistence:
-    # SigNoz keeps its SQLite database at `/var/lib/signoz/`: on the claim
-    # template `signoz-db`, on `existingClaim`, or in an emptyDir when this is
-    # false. With `postgresql.enabled`, SigNoz mounts no database volume.
-    # -- Enable persistence with a PersistentVolumeClaim.
+    # -- Enable persistence with a PersistentVolumeClaim. When false, the SQLite database is in an `emptyDir`.
+    # Ignored when `postgresql.enabled` is true.
     # @section -- SigNoz
     enabled: true
-    # Used only when `signoz.persistence.enabled` is true.
-    # -- Name of an existing claim to use.
-    # @default -- "none, the chart's claim template"
+    # -- Name of an existing PVC to use. Only used when `signoz.persistence.enabled` is true.
+    # @default -- "none, the chart's volume claim template"
     # @section -- SigNoz
     existingClaim: ""
-    # `-` sets an empty `storageClassName`, which disables dynamic
-    # provisioning; `global.storageClass` overrides this value.
-    # -- StorageClass of the claim.
+    # -- StorageClass of the PVC. `-` disables dynamic provisioning, and `global.storageClass` overrides it.
     # @default -- "the cluster's default StorageClass"
     # @section -- SigNoz
     storageClass: null
-    # -- Access modes of the claim.
+    # -- Access modes of the PVC.
+    # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @section -- SigNoz
     accessModes:
       - ReadWriteOnce
-    # -- Size of the claim.
+    # -- Size of the PVC.
     # @section -- SigNoz
     size: 1Gi
-# telemetryStoreMigrator -- Default values for the Telemetry Store Migrator.
+# -- Telemetry store migrator configuration.
 # @section -- Telemetry Store Migrator
 # @default -- "Please checkout the default values in values.yml"
 telemetryStoreMigrator:
-  # The migrator runs as a Job on every install and upgrade, named `telemetryStoreMigrator.name` plus
-  # `-<release revision>`, and the collector's `check` init container waits for its sync migrations.
-  # -- Enable the Telemetry Store Migrator component.
+  # -- Enable the telemetry store migrator, a Job that runs on every install and upgrade.
+  # The collector's `check` init container waits for its migrations.
   # @section -- Telemetry Store Migrator
   enabled: true
-  # The Job name appends `-<release revision>` to this name and must stay within 63 characters, so
-  # this name can have at most 57.
-  # -- The name of the Telemetry Store Migrator component.
+  # -- Name of the migrator component. The Job is named `<name>-<release revision>`. At most 57 characters.
   # @section -- Telemetry Store Migrator
   name: "signoz-telemetrystore-migrator"
-  # telemetryStoreMigrator.annotations -- Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`; a value for that key replaces the chart's.
+  # -- Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`. A value for that key replaces the chart's.
   # @default -- {}
   # @section -- Telemetry Store Migrator
   annotations: {}
-  # Merged with the chart's labels on the Job; a key the chart also sets takes your value.
-  # -- Labels to add to the Job.
+  # -- Labels to add to the Job. A key the chart also sets takes your value.
   # @section -- Telemetry Store Migrator
   labels: {}
   pod:
-    # Merged with the chart's labels on the Job's pods; a key the chart sets keeps the chart's value.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod. A key the chart also sets keeps the chart's value.
     # @section -- Telemetry Store Migrator
     labels: {}
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod.
     # @section -- Telemetry Store Migrator
     annotations: {}
-  # telemetryStoreMigrator.enableReplication -- Whether to enable replication for the Telemetry Store Migrator.
+  # -- Enable replication in the migrations.
   # @default -- true
   # @section -- Telemetry Store Migrator
   enableReplication: true
-  # telemetryStoreMigrator.timeout -- Timeout for the migration.
+  # -- Timeout of the migration.
   # @default -- "10m"
   # @section -- Telemetry Store Migrator
   timeout: "10m"
-  # telemetryStoreMigrator.ttlSecondsAfterFinished -- (int) Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it.
-  # Set it (for example `604800`) to clean up Jobs a failed upgrade leaves behind; leave it unset under Argo CD, which recreates a deleted Job
+  # -- (int) Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it.
+  # Set it (for example `604800`) to clean up Jobs a failed upgrade leaves behind. Leave it unset under Argo CD, which recreates a deleted Job
   # and re-runs the migrator.
+  # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/
   # @default -- null
   # @section -- Telemetry Store Migrator
   ttlSecondsAfterFinished:
-  # telemetryStoreMigrator.nodeSelector -- Node selector for pod assignment.
+  # -- Node labels for Pod assignment.
   # @section -- Telemetry Store Migrator
   # @default -- {}
   nodeSelector: {}
-  # telemetryStoreMigrator.tolerations -- Tolerations for pod assignment.
+  # -- Tolerations for Pod assignment.
   # @section -- Telemetry Store Migrator
   # @default -- []
   tolerations: []
-  # telemetryStoreMigrator.affinity -- Affinity settings for pod assignment.
+  # -- Affinity rules for Pod assignment.
   # @section -- Telemetry Store Migrator
   # @default -- {}
   affinity: {}
-  # telemetryStoreMigrator.topologySpreadConstraints -- Topology spread constraints for pod distribution.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @section -- Telemetry Store Migrator
   # @default -- []
   topologySpreadConstraints: []
-  # Empty sets none.
-  # -- Priority class of the pod.
+  # -- PriorityClass of the Pod.
   # @section -- Telemetry Store Migrator
   priorityClassName: ""
-  # A Kubernetes PodSecurityContext for the Job's pod, rendered as given; empty sets none.
-  # -- Security context for the pod.
+  # -- Security context for the Pod.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- Telemetry Store Migrator
   podSecurityContext: {}
-  # Set on the four migration containers and on the collector's `check` init container.
-  # -- Resource requests and limits for the container.
+  # -- Resource requests and limits for the migration containers and the collector's `check` init container.
   # @section -- Telemetry Store Migrator
   resources: {}
-  # A Kubernetes SecurityContext for the four migration containers, rendered as given; empty sets none.
-  # -- Security context for the container.
+  # -- Security context for the migration containers.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- Telemetry Store Migrator
   containerSecurityContext: {}
-  # A list of Kubernetes EnvVar objects for the four migration containers and the
-  # collector's `check` init container, rendered as written after the chart's variables.
-  # An entry named like one the chart sets, such as `SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN`,
-  # replaces its value.
-  # -- Extra environment variables for the container.
+  # -- Extra environment variables for the migration containers and the collector's `check` init container.
+  # An entry named like one the chart sets replaces it.
   # @section -- Telemetry Store Migrator
   env: []
-  # Sources of environment variables for the four migration containers and the collector's
-  # `check` init container, Kubernetes EnvFromSource objects rendered as given.
-  # -- Sources of extra environment variables for the container.
+  # -- Sources of extra environment variables for the migration containers and the collector's `check` init container.
   # @section -- Telemetry Store Migrator
   envFrom: []
-  # Kubernetes Volume objects added to the Job's pod, rendered as given.
-  # -- Extra volumes for the pod.
+  # -- Extra volumes for the Pod.
   # @section -- Telemetry Store Migrator
   extraVolumes: []
-  # Kubernetes VolumeMount objects added to the four migration containers, rendered as given.
-  # -- Extra volume mounts for the container.
+  # -- Extra volume mounts for the migration containers.
   # @section -- Telemetry Store Migrator
   extraVolumeMounts: []
-  # telemetryStoreMigrator.serviceAccount -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
+  # -- ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`.
   # Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 1.0.0, first delete
   # the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.
   # @section -- Telemetry Store Migrator
   serviceAccount:
-    # telemetryStoreMigrator.serviceAccount.create - Create the ServiceAccount.
-    # @default -- false
+    # -- Create a ServiceAccount.
+    # @section -- Telemetry Store Migrator
     create: false
-    # telemetryStoreMigrator.serviceAccount.annotations - Annotations of the created ServiceAccount.
-    # @default -- {}
+    # -- Annotations to add to the ServiceAccount.
+    # @section -- Telemetry Store Migrator
     annotations: {}
-    # telemetryStoreMigrator.serviceAccount.name - Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.
-    # @default -- null
+    # -- Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.
+    # @section -- Telemetry Store Migrator
     name:
-# Default values for OtelCollector
-# otelCollector -- Default values for the OpenTelemetry Collector.
+# -- OpenTelemetry Collector configuration.
 # @section -- Otel Collector
 # @default -- "Please checkout the default values in values.yml"
 otelCollector:
-  # otelCollector.name -- The name of the Otel Collector component.
+  # -- Name of the collector component.
   # @default -- "otel-collector"
   # @section -- Otel Collector
   name: "otel-collector"
-  # otelCollector.image -- Image configuration for the Otel Collector.
-  # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   image:
-    # otelCollector.image.repository - The container image repository, its registry included; `global.imageRegistry` replaces that registry when set.
-    # @default -- "docker.io/signoz/signoz-otel-collector"
+    # -- Image repository, with its registry. `global.imageRegistry` replaces that registry when set.
+    # @section -- Otel Collector
     repository: docker.io/signoz/signoz-otel-collector
-    # otelCollector.image.tag - The container image tag.
-    # @default -- "v0.144.0"
+    # -- Image tag.
+    # @section -- Otel Collector
     tag: v0.144.16
-    # otelCollector.image.pullPolicy - The image pull policy.
-    # @default -- "IfNotPresent"
+    # -- Image pull policy.
+    # @section -- Otel Collector
     pullPolicy: IfNotPresent
-  # Names of Secrets in the release namespace. The collector pod pulls with
-  # `global.imagePullSecrets`, then the root `imagePullSecrets`, then this list.
-  # -- Secrets for pulling images from a private registry.
+  # -- Image pull secrets for the collector Pod, as a list of Secret names.
   # @section -- Otel Collector
   imagePullSecrets: []
-  # otelCollector.strategy -- Deployment strategy to use
+  # -- Deployment strategy.
+  # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   # @section -- Otel Collector
   # @default -- "RollingUpdate"
   strategy: ""
-  # Appended after the chart's `--config`, `--manager-config` and
-  # `--copy-path` flags, which `configMap.create: false` drops.
-  # -- Extra command-line arguments for the collector.
+  # -- Extra arguments for the container, added after the chart's `--config`, `--manager-config` and `--copy-path`.
   # @section -- Otel Collector
   extraArgs: []
-  # otelCollector.configMap -- ConfigMap settings.
-  # @section -- Otel Collector
   configMap:
-    # otelCollector.configMap.create - Specifies whether a ConfigMap should be created.
-    # @default -- true
+    # -- Create a ConfigMap.
+    # @section -- Otel Collector
     create: true
-  # otelCollector.serviceAccount -- Service Account configuration for the Otel Collector.
-  # @section -- Otel Collector
   serviceAccount:
-    # otelCollector.serviceAccount.create - Specifies whether a service account should be created.
-    # @default -- true
+    # -- Create a ServiceAccount.
+    # @section -- Otel Collector
     create: true
-    # otelCollector.serviceAccount.annotations - Annotations to add to the service account.
-    # @default -- {}
+    # -- Annotations to add to the ServiceAccount.
+    # @section -- Otel Collector
     annotations: {}
-    # otelCollector.serviceAccount.name - The name of the service account to use. If not set and `create` is true, a name is generated.
-    # @default -- null
+    # -- Name of the ServiceAccount. When empty and `create` is true, the chart generates one.
+    # @section -- Otel Collector
     name:
-  # otelCollector.service -- Service configuration for the Otel Collector.
-  # @section -- Otel Collector Networking
   service:
-    # otelCollector.service.annotations - Annotations for the Otel Collector service object.
-    # @default -- {}
+    # -- Annotations to add to the Service.
+    # @section -- Otel Collector Networking
     annotations: {}
-    # otelCollector.service.labels - Labels for the Otel Collector service object.
-    # @default -- {}
+    # -- Labels to add to the Service.
+    # @section -- Otel Collector Networking
     labels: {}
-    # otelCollector.service.type - The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
-    # @default -- "ClusterIP"
+    # -- Kubernetes Service type: `ClusterIP`, `NodePort` or `LoadBalancer`.
+    # @section -- Otel Collector Networking
     type: ClusterIP
-    # otelCollector.service.loadBalancerSourceRanges - Allowed source ranges when service type is `LoadBalancer`.
-    # @default -- []
+    # -- Source ranges allowed when the Service type is `LoadBalancer`.
+    # @section -- Otel Collector Networking
     loadBalancerSourceRanges: []
-  # otelCollector.annotations -- Annotations for the Otel Collector Deployment.
+  # -- Annotations to add to the Deployment.
   # @section -- Otel Collector
   # @default -- null
   annotations:
-  # A key that repeats one of the chart's labels replaces its value.
-  # -- Labels to add to the Deployment.
+  # -- Labels to add to the Deployment. A key that repeats a chart label replaces its value.
   # @section -- Otel Collector
   labels: {}
   pod:
-    # The defaults mark the collector's own metrics on port 8888 for scraping;
-    # set a key to null to drop it. The chart sets `checksum/config` itself,
-    # and a key of that name here is ignored.
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod. Set a key to `null` to drop a default.
+    # A `checksum/config` key is ignored.
     # @section -- Otel Collector
     annotations:
       signoz.io/scrape: 'true'
       signoz.io/port: '8888'
-    # The chart's selector labels always win over a key of the same name.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod. A key named like a selector label is ignored.
     # @section -- Otel Collector
     labels: {}
-  # A list of Kubernetes EnvVar objects for the collector container, rendered
-  # as written after the chart's own variables. An entry named like one the
-  # chart sets replaces its value. The chart sets `CLICKHOUSE_HOST`,
-  # `CLICKHOUSE_PORT`, `CLICKHOUSE_CLUSTER`, `CLICKHOUSE_USER`,
-  # `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_SECURE`, `CLICKHOUSE_VERIFY`,
-  # `CLICKHOUSE_DATABASE`, `CLICKHOUSE_TRACE_DATABASE`, `CLICKHOUSE_LOG_DATABASE`,
-  # `CLICKHOUSE_METER_DATABASE`, `K8S_NODE_NAME`, `K8S_POD_IP`, `K8S_HOST_IP`,
-  # `K8S_POD_NAME`, `K8S_POD_UID`, `K8S_NAMESPACE` and
-  # `LOW_CARDINAL_EXCEPTION_GROUPING`. For example, to group exceptions with
-  # low cardinality:
+  # -- Extra environment variables for the container. An entry named like one the chart sets replaces it.
+  # The chart sets the `CLICKHOUSE_*` and `K8S_*` variables and `LOW_CARDINAL_EXCEPTION_GROUPING`.
+  # @raw
+  # Group exceptions with low cardinality:
+  #
+  #   ```yaml
   #   - name: LOW_CARDINAL_EXCEPTION_GROUPING
   #     value: "true"
-  # -- Extra environment variables for the container.
+  #   ```
+  #
   # @section -- Otel Collector
   env: []
-  # Sources of environment variables for the collector container, Kubernetes
-  # EnvFromSource objects rendered as given.
   # -- Sources of extra environment variables for the container.
   # @section -- Otel Collector
   envFrom: []
 
-  # otelCollector.minReadySeconds -- Minimum number of seconds for a new pod to be ready.
+  # -- Seconds a new Pod must be ready before it counts as available.
+  # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#min-ready-seconds
   # @section -- Otel Collector
   # @default -- 5
   minReadySeconds: 5
-  # otelCollector.progressDeadlineSeconds -- Maximum time in seconds for a deployment to make progress before it is considered failed.
+  # -- Seconds the Deployment may take to progress before it is marked failed.
+  # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds
   # @section -- Otel Collector
   # @default -- 600
   progressDeadlineSeconds: 600
-  # otelCollector.replicaCount -- The number of pod replicas for the Otel Collector.
+  # -- Number of replicas.
   # @section -- Otel Collector
   # @default -- 1
   replicaCount: 1
-  # otelCollector.clusterRole -- RBAC ClusterRole configuration for the Otel Collector.
-  # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   clusterRole:
-    # otelCollector.clusterRole.create - Specifies whether a ClusterRole should be created.
-    # @default -- true
+    # -- Create a ClusterRole.
     # @section -- Otel Collector
     create: true
-    # otelCollector.clusterRole.annotations - Annotations to add to the ClusterRole.
-    # @default -- {}
-    annotations: {}
+    # -- Annotations to add to the ClusterRole.
     # @section -- Otel Collector
-    # otelCollector.clusterRole.name - The name of the ClusterRole to use. If not set, a name is generated.
-    # @default -- ""
+    annotations: {}
+    # -- Name of the ClusterRole. When empty, the chart generates one.
+    # @section -- Otel Collector
     name: ""
-    # otelCollector.clusterRole.rules - A set of RBAC rules. Required for the k8sattributes processor.
-    # ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-    # @default -- "Please checkout the default values in values.yml"
+    # -- RBAC rules of the ClusterRole. The `k8sattributes` processor requires them.
+    # @default -- "See values.yaml"
     # @section -- Otel Collector
     rules:
       - apiGroups: [""]
@@ -1992,191 +1837,165 @@ otelCollector:
       - apiGroups: ["batch"]
         resources: ["jobs"]
         verbs: ["get", "list", "watch"]
-    # otelCollector.clusterRole.clusterRoleBinding - ClusterRoleBinding configuration.
     clusterRoleBinding:
-      # otelCollector.clusterRole.clusterRoleBinding.annotations - Annotations to add to the ClusterRoleBinding.
-      # @default -- {}
+      # -- Annotations to add to the ClusterRoleBinding.
+      # @section -- Otel Collector
       annotations: {}
-      # otelCollector.clusterRole.clusterRoleBinding.name - The name of the ClusterRoleBinding to use. If not set, a name is generated.
-      # @default -- ""
+      # -- Name of the ClusterRoleBinding. When empty, the chart generates one.
+      # @section -- Otel Collector
       name: ""
-  # Each entry is a port of the collector container and of its Service. For a
-  # receiver of your own, add an entry of any name with `enabled`,
-  # `containerPort`, `servicePort` and `protocol`; the receiver's `endpoint` in
-  # `otelCollector.config` must listen on that port. A pipeline's `receivers`
-  # list is replaced whole, so restate the receivers you keep. The entry's name
-  # is a port name of at most 15 characters.
-  # -- Port configurations for the Otel Collector.
+  # -- Port configuration. Each entry is a port of the collector container and of its Service.
+  # An entry of your own needs `enabled`, `containerPort`, `servicePort` and `protocol`. Its name is a port name of at most 15 characters.
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
   ports:
-    # otelCollector.ports.otlp -- OTLP gRPC port configuration.
-    # @section -- Otel Collector Ports
     otlp:
-      # otelCollector.ports.otlp.enabled - Whether to enable the service port for OTLP gRPC.
-      # @default -- true
+      # -- Enable the Service port for OTLP gRPC.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.otlp.containerPort - Container port for OTLP gRPC.
-      # @default -- 4317
+      # -- Container port for OTLP gRPC.
+      # @section -- Otel Collector Ports
       containerPort: 4317
-      # otelCollector.ports.otlp.servicePort - Service port for OTLP gRPC.
-      # @default -- 4317
+      # -- Service port for OTLP gRPC.
+      # @section -- Otel Collector Ports
       servicePort: 4317
-      # otelCollector.ports.otlp.nodePort - Node port for OTLP gRPC.
-      # @default -- ""
+      # -- NodePort for OTLP gRPC.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.otlp.protocol - Protocol for OTLP gRPC.
-      # @default -- "TCP"
+      # -- Protocol for OTLP gRPC.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.otlp-http -- OTLP HTTP port configuration.
-    # @section -- Otel Collector Ports
     otlp-http:
-      # otelCollector.ports.otlp-http.enabled - Whether to enable the service port for OTLP HTTP.
-      # @default -- true
+      # -- Enable the Service port for OTLP HTTP.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.otlp-http.containerPort - Container port for OTLP HTTP.
-      # @default -- 4318
+      # -- Container port for OTLP HTTP.
+      # @section -- Otel Collector Ports
       containerPort: 4318
-      # otelCollector.ports.otlp-http.servicePort - Service port for OTLP HTTP.
-      # @default -- 4318
+      # -- Service port for OTLP HTTP.
+      # @section -- Otel Collector Ports
       servicePort: 4318
-      # otelCollector.ports.otlp-http.nodePort - Node port for OTLP HTTP.
-      # @default -- ""
+      # -- NodePort for OTLP HTTP.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.otlp-http.protocol - Protocol for OTLP HTTP.
-      # @default -- "TCP"
+      # -- Protocol for OTLP HTTP.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.jaeger-thrift -- Jaeger Thrift port configuration.
-    # @section -- Otel Collector Ports
     jaeger-thrift:
-      # otelCollector.ports.jaeger-thrift.enabled - Whether to enable the service port for Jaeger Thrift HTTP.
-      # @default -- true
+      # -- Enable the Service port for Jaeger Thrift.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.jaeger-thrift.containerPort - Container port for Jaeger Thrift.
-      # @default -- 14268
+      # -- Container port for Jaeger Thrift.
+      # @section -- Otel Collector Ports
       containerPort: 14268
-      # otelCollector.ports.jaeger-thrift.servicePort - Service port for Jaeger Thrift.
-      # @default -- 14268
+      # -- Service port for Jaeger Thrift.
+      # @section -- Otel Collector Ports
       servicePort: 14268
-      # otelCollector.ports.jaeger-thrift.nodePort - Node port for Jaeger Thrift.
-      # @default -- ""
+      # -- NodePort for Jaeger Thrift.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.jaeger-thrift.protocol - Protocol for Jaeger Thrift.
-      # @default -- "TCP"
+      # -- Protocol for Jaeger Thrift.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.jaeger-grpc -- Jaeger gRPC port configuration.
-    # @section -- Otel Collector Ports
     jaeger-grpc:
-      # otelCollector.ports.jaeger-grpc.enabled - Whether to enable the service port for Jaeger gRPC.
-      # @default -- true
+      # -- Enable the Service port for Jaeger gRPC.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.jaeger-grpc.containerPort - Container port for Jaeger gRPC.
-      # @default -- 14250
+      # -- Container port for Jaeger gRPC.
+      # @section -- Otel Collector Ports
       containerPort: 14250
-      # otelCollector.ports.jaeger-grpc.servicePort - Service port for Jaeger gRPC.
-      # @default -- 14250
+      # -- Service port for Jaeger gRPC.
+      # @section -- Otel Collector Ports
       servicePort: 14250
-      # otelCollector.ports.jaeger-grpc.nodePort - Node port for Jaeger gRPC.
-      # @default -- ""
+      # -- NodePort for Jaeger gRPC.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.jaeger-grpc.protocol - Protocol for Jaeger gRPC.
-      # @default -- "TCP"
+      # -- Protocol for Jaeger gRPC.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.metrics -- Internal metrics port configuration.
-    # @section -- Otel Collector Ports
     metrics:
-      # otelCollector.ports.metrics.enabled - Whether to enable the service port for internal metrics.
-      # @default -- true
+      # -- Enable the Service port for internal metrics.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.metrics.containerPort - Container port for internal metrics.
-      # @default -- 8888
+      # -- Container port for internal metrics.
+      # @section -- Otel Collector Ports
       containerPort: 8888
-      # otelCollector.ports.metrics.servicePort - Service port for internal metrics.
-      # @default -- 8888
+      # -- Service port for internal metrics.
+      # @section -- Otel Collector Ports
       servicePort: 8888
-      # otelCollector.ports.metrics.nodePort - Node port for internal metrics.
-      # @default -- ""
+      # -- NodePort for internal metrics.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.metrics.protocol - Protocol for internal metrics.
-      # @default -- "TCP"
+      # -- Protocol for internal metrics.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.zpages -- ZPages port configuration.
-    # @section -- Otel Collector Ports
     zpages:
-      # otelCollector.ports.zpages.enabled - Whether to enable the service port for ZPages.
-      # @default -- false
+      # -- Enable the Service port for zPages.
+      # @section -- Otel Collector Ports
       enabled: false
-      # otelCollector.ports.zpages.containerPort - Container port for ZPages.
-      # @default -- 55679
+      # -- Container port for zPages.
+      # @section -- Otel Collector Ports
       containerPort: 55679
-      # otelCollector.ports.zpages.servicePort - Service port for ZPages.
-      # @default -- 55679
+      # -- Service port for zPages.
+      # @section -- Otel Collector Ports
       servicePort: 55679
-      # otelCollector.ports.zpages.nodePort - Node port for ZPages.
-      # @default -- ""
+      # -- NodePort for zPages.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.zpages.protocol - Protocol for ZPages.
-      # @default -- "TCP"
+      # -- Protocol for zPages.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.pprof -- pprof port configuration.
-    # @section -- Otel Collector Ports
     pprof:
-      # otelCollector.ports.pprof.enabled - Whether to enable the service port for pprof.
-      # @default -- false
+      # -- Enable the Service port for pprof.
+      # @section -- Otel Collector Ports
       enabled: false
-      # otelCollector.ports.pprof.containerPort - Container port for pprof.
-      # @default -- 1777
+      # -- Container port for pprof.
+      # @section -- Otel Collector Ports
       containerPort: 1777
-      # otelCollector.ports.pprof.servicePort - Service port for pprof.
-      # @default -- 1777
+      # -- Service port for pprof.
+      # @section -- Otel Collector Ports
       servicePort: 1777
-      # otelCollector.ports.pprof.nodePort - Node port for pprof.
-      # @default -- ""
+      # -- NodePort for pprof.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.pprof.protocol - Protocol for pprof.
-      # @default -- "TCP"
+      # -- Protocol for pprof.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.logsheroku -- Heroku logs port configuration.
-    # @section -- Otel Collector Ports
     logsheroku:
-      # otelCollector.ports.logsheroku.enabled - Whether to enable the service port for Heroku logs.
-      # @default -- true
+      # -- Enable the Service port for Heroku logs.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.logsheroku.containerPort - Container port for Heroku logs.
-      # @default -- 8081
+      # -- Container port for Heroku logs.
+      # @section -- Otel Collector Ports
       containerPort: 8081
-      # otelCollector.ports.logsheroku.servicePort - Service port for Heroku logs.
-      # @default -- 8081
+      # -- Service port for Heroku logs.
+      # @section -- Otel Collector Ports
       servicePort: 8081
-      # otelCollector.ports.logsheroku.nodePort - Node port for Heroku logs.
-      # @default -- ""
+      # -- NodePort for Heroku logs.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.logsheroku.protocol - Protocol for Heroku logs.
-      # @default -- "TCP"
+      # -- Protocol for Heroku logs.
+      # @section -- Otel Collector Ports
       protocol: TCP
-    # otelCollector.ports.logsjson -- JSON logs port configuration.
-    # @section -- Otel Collector Ports
     logsjson:
-      # otelCollector.ports.logsjson.enabled - Whether to enable the service port for JSON logs.
-      # @default -- true
+      # -- Enable the Service port for JSON logs.
+      # @section -- Otel Collector Ports
       enabled: true
-      # otelCollector.ports.logsjson.containerPort - Container port for JSON logs.
-      # @default -- 8082
+      # -- Container port for JSON logs.
+      # @section -- Otel Collector Ports
       containerPort: 8082
-      # otelCollector.ports.logsjson.servicePort - Service port for JSON logs.
-      # @default -- 8082
+      # -- Service port for JSON logs.
+      # @section -- Otel Collector Ports
       servicePort: 8082
-      # otelCollector.ports.logsjson.nodePort - Node port for JSON logs.
-      # @default -- ""
+      # -- NodePort for JSON logs.
+      # @section -- Otel Collector Ports
       nodePort: ""
-      # otelCollector.ports.logsjson.protocol - Protocol for JSON logs.
-      # @default -- "TCP"
+      # -- Protocol for JSON logs.
+      # @section -- Otel Collector Ports
       protocol: TCP
-  # Kubernetes probe objects, rendered as given; your keys merge into the
-  # defaults. Set `httpGet: null` to use another handler, or the whole probe
-  # to null for none. Port 13133 is the default config's `health_check`.
-  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
-  # -- Liveness probe for the container.
+  # -- Liveness probe for the container. `null` renders none.
+  # A handler other than `httpGet` must also set `httpGet: null`.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
   livenessProbe:
@@ -2189,6 +2008,7 @@ otelCollector:
     failureThreshold: 6
     successThreshold: 1
   # -- Readiness probe for the container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "httpGet on port 13133, path /"
   # @section -- Otel Collector
   readinessProbe:
@@ -2200,39 +2020,30 @@ otelCollector:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  # A probe object here holds the liveness and readiness probes back until
-  # it succeeds.
-  # -- Startup probe for the container.
+  # -- Startup probe for the container. It holds the liveness and readiness probes back until it succeeds.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   # @default -- "no startup probe"
   # @section -- Otel Collector
   startupProbe: {}
-  # Mounted in the collector container and in its `check` init container,
-  # which reaches the same ClickHouse (a CA file, for example).
-  # -- Extra volume mounts for the container.
+  # -- Extra volume mounts for the collector container and its `check` init container.
   # @section -- Otel Collector
   extraVolumeMounts: []
-  # otelCollector.extraVolumes -- Extra volumes for the Otel Collector pod.
+  # -- Extra volumes for the Pod.
   # @section -- Otel Collector
   # @default -- []
   extraVolumes: []
-  # otelCollector.ingress -- Ingress configuration for the Otel Collector.
-  # @section -- Otel Collector Networking
   ingress:
-    # otelCollector.ingress.enabled - Enable ingress controller resource.
-    # @default -- false
+    # -- Create an Ingress for the collector.
+    # @section -- Otel Collector Networking
     enabled: false
-    # otelCollector.ingress.className - Ingress class name.
-    # @default -- ""
+    # -- IngressClass of the Ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
+    # @section -- Otel Collector Networking
     className: ""
-    # otelCollector.ingress.annotations - Annotations for the ingress resource.
-    # @default -- {}
+    # -- Annotations to add to the Ingress.
+    # @section -- Otel Collector Networking
     annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    # otelCollector.ingress.hosts -- Hostname and path configurations for the ingress.
+    # -- Hosts and paths of the Ingress.
     # @default -- "Please checkout the default values in values.yml"
     # @section -- Otel Collector Networking
     hosts:
@@ -2241,14 +2052,14 @@ otelCollector:
           - path: /
             pathType: ImplementationSpecific
             port: 4318
-    # otelCollector.ingress.tls - TLS configuration for the ingress.
-    # @default -- []
+    # -- TLS settings of the Ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # @section -- Otel Collector Networking
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otelcollector.domain.com
-  # otelCollector.resources -- Resource requests and limits.
-  # Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # -- Resource requests and limits for the container.
   # @section -- Otel Collector
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
   resources:
@@ -2259,23 +2070,24 @@ otelCollector:
   #     cpu: "1"
   #     memory: 2Gi
 
-  # otelCollector.priorityClassName -- Priority class for the Otel Collector pods.
+  # -- PriorityClass of the Pod.
   # @section -- Otel Collector
   # @default -- ""
   priorityClassName: ""
-  # otelCollector.nodeSelector -- Node selector for pod assignment.
+  # -- Node labels for Pod assignment.
   # @section -- Otel Collector
   # @default -- {}
   nodeSelector: {}
-  # otelCollector.tolerations -- Tolerations for pod assignment.
+  # -- Tolerations for Pod assignment.
   # @section -- Otel Collector
   # @default -- []
   tolerations: []
-  # otelCollector.affinity -- Affinity settings for pod assignment.
+  # -- Affinity rules for Pod assignment.
   # @section -- Otel Collector
   # @default -- {}
   affinity: {}
-  # otelCollector.topologySpreadConstraints -- Topology spread constraints for pod distribution.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @section -- Otel Collector
   # @default -- "Please checkout the default values in values.yml"
   topologySpreadConstraints:
@@ -2285,14 +2097,15 @@ otelCollector:
       labelSelector:
         matchLabels:
           app.kubernetes.io/component: otel-collector
-  # otelCollector.podSecurityContext -- Pod-level security context.
+  # -- Security context for the Pod.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- Otel Collector
   # @default -- {}
   podSecurityContext: {}
   # fsGroup: 2000
 
-  # Applies to the collector container and to its `check` init container.
-  # -- Security context for the container.
+  # -- Security context for the collector container and its `check` init container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @section -- Otel Collector
   containerSecurityContext: {}
   # capabilities:
@@ -2302,27 +2115,25 @@ otelCollector:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-  # otelCollector.autoscaling -- Autoscaling configuration (HPA).
-  # @section -- Otel Collector
-  # @default -- "Please checkout the default values in values.yml"
   autoscaling:
-    # otelCollector.autoscaling.enabled - Enable Horizontal Pod Autoscaler.
-    # @default -- false
+    # -- Enable autoscaling with a HorizontalPodAutoscaler (HPA).
+    # Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+    # @section -- Otel Collector
     enabled: false
-    # otelCollector.autoscaling.minReplicas - Minimum number of replicas.
-    # @default -- 1
+    # -- Minimum number of replicas.
+    # @section -- Otel Collector
     minReplicas: 1
-    # otelCollector.autoscaling.maxReplicas - Maximum number of replicas.
-    # @default -- 11
+    # -- Maximum number of replicas.
+    # @section -- Otel Collector
     maxReplicas: 11
-    # otelCollector.autoscaling.targetCPUUtilizationPercentage - Target CPU utilization percentage.
-    # @default -- 50
+    # -- Target CPU utilization percentage.
+    # @section -- Otel Collector
     targetCPUUtilizationPercentage: 50
-    # otelCollector.autoscaling.targetMemoryUtilizationPercentage - Target memory utilization percentage.
-    # @default -- 50
+    # -- Target memory utilization percentage.
+    # @section -- Otel Collector
     targetMemoryUtilizationPercentage: 50
-    # otelCollector.autoscaling.behavior - Scaling behavior policies.
-    # @default -- {}
+    # -- Scaling behavior policies.
+    # @section -- Otel Collector
     behavior: {}
     # scaleDown:
     #   stabilizationWindowSeconds: 300
@@ -2337,34 +2148,32 @@ otelCollector:
     #     value: 2
     #     periodSeconds: 60
 
-    # otelCollector.autoscaling.autoscalingTemplate - Template for autoscaling.
-    # @default -- []
-    autoscalingTemplate: []
-    # otelCollector.autoscaling.keda -- KEDA-based autoscaling configuration.
+    # -- Template for autoscaling.
     # @section -- Otel Collector
+    autoscalingTemplate: []
     keda:
-      # otelCollector.autoscaling.keda.annotations - Annotations for the KEDA ScaledObject.
-      # @default -- null
+      # -- Annotations to add to the KEDA ScaledObject.
+      # @section -- Otel Collector
       annotations:
-      # otelCollector.autoscaling.keda.enabled - Enable KEDA autoscaling.
-      # @default -- false
+      # -- Enable autoscaling with KEDA.
+      # @section -- Otel Collector
       enabled: false
-      # otelCollector.autoscaling.keda.pollingInterval - Polling interval for metrics data (in seconds).
-      # @default -- "30"
+      # -- Polling interval for metrics data, in seconds.
+      # @section -- Otel Collector
       pollingInterval: "30"
-      # otelCollector.autoscaling.keda.cooldownPeriod - Cooldown period before downscaling (in seconds).
-      # @default -- "300"
+      # -- Cooldown period before scaling down, in seconds.
+      # @section -- Otel Collector
       cooldownPeriod: "300"
-      # otelCollector.autoscaling.keda.minReplicaCount - Minimum replica count for KEDA.
-      # @default -- "1"
+      # -- Minimum replica count for KEDA.
+      # @section -- Otel Collector
       minReplicaCount: "1"
-      # otelCollector.autoscaling.keda.maxReplicaCount - Maximum replica count for KEDA.
-      # @default -- "5"
+      # -- Maximum replica count for KEDA.
+      # @section -- Otel Collector
       maxReplicaCount: "5"
-      # otelCollector.autoscaling.keda.triggers - KEDA trigger configuration.
-      # @default -- []
+      # -- KEDA trigger configuration.
+      # @section -- Otel Collector
       triggers: []
-  # otelCollector.config -- Main configuration for the OpenTelemetry Collector pipelines.
+  # -- OpenTelemetry Collector pipeline configuration.
   # @section -- Otel Collector Configuration
   # @default -- "Please checkout the default values in values.yml"
   config:
@@ -2505,293 +2314,263 @@ otelCollector:
           exporters: [signozclickhousemeter]
 # @section -- Postgres
 postgresql:
-  # The SQL store is an install-time choice: switching an existing release from
-  # SQLite to Postgres means a new release.
-  # -- Install PostgreSQL.
+  # -- Install PostgreSQL. Switching an existing release from SQLite to Postgres needs a new release.
   # @section -- Postgres
   enabled: false
-  # postgresql.namespace -- Which namespace to install postgresql to (defaults to namespace chart is installed to)
+  # -- Namespace of Postgres. Empty means the release namespace.
   # @section -- Postgres
   namespace: ""
-  # -- Name override for postgresql
+  # -- Override the chart name.
   # @section -- Postgres
   nameOverride: ""
-  # -- Fullname override for postgreql
+  # -- Override the full resource name.
   # @section -- Postgres
   fullnameOverride: ""
 
-  # postgresql.replicaCount -- Number of Postgres replicas.
+  # -- Number of replicas.
   # @default -- 1
   # @section -- Postgres
   replicaCount: 1
 
   image:
-    # postgresql.image.repository -- Postgres image repository.
+    # -- Image repository.
     # @default -- "postgres"
     # @section -- Postgres
     repository: postgres
-    # postgresql.image.tag -- Postgres image tag.
+    # -- Image tag.
     # @default -- "15"
     # @section -- Postgres
     tag: 15
-    # postgresql.image.pullPolicy -- Image pull policy.
+    # -- Image pull policy.
     # @default -- "IfNotPresent"
     # @section -- Postgres
     pullPolicy: IfNotPresent
 
-  # postgresql.imagePullSecrets -- Image pull secrets for Postgres pods
+  # -- Image pull secrets for the Postgres Pod.
   # @default -- []
   # @section -- Postgres
   imagePullSecrets: []
 
   service:
-    # postgresql.service.annotations -- Annotations for the Postgres service object.
+    # -- Annotations to add to the Service.
     # @default -- {}
     # @section -- Postgres
     annotations: {}
-    # postgresql.service.labels -- Labels for the Postgres service object.
+    # -- Labels to add to the Service.
     # @default -- {}
     # @section -- Postgres
     labels: {}
-    # postgresql.service.type -- The service type (`ClusterIP`, `NodePort`, `LoadBalancer`).
+    # -- Kubernetes Service type.
     # @default -- "ClusterIP"
     # @section -- Postgres
     type: ClusterIP
-    # postgresql.service.port -- The external port for Postgres service
+    # -- Service port.
     # @default -- 5432
     # @section -- Postgres
     port: 5432
 
   auth:
-    # postgresql.auth.username -- Username for the custom user to create.
+    # -- User to create.
     # @default -- "signoz"
     # @section -- Postgres
     username: "signoz"
-    # postgresql.auth.password -- Password for the custom user to create, stored in the Secret `<fullname>-auth` under the key `password`. Ignored if `auth.existingSecret` is provided, and then no Secret is created.
+    # -- Password of the user, stored in the Secret `<fullname>-auth` under the key `password`. Ignored when `auth.existingSecret` is set.
     # @section -- Postgres
     password: "signoz123"
-    # postgresql.auth.database -- Name for a custom database to create.
+    # -- Database to create.
     # @default -- ""
     # @section -- Postgres
     database: "signoz"
-    # postgresql.auth.existingSecret -- Name of existing secret to use for PostgreSQL credentials. `auth.password` will be ignored and picked up from this secret.
+    # -- Name of a Secret you created that holds the password. When set, the chart creates no Secret and ignores `auth.password`.
     # @default -- ""
     # @section -- Postgres
     existingSecret: ""
     secretKeys:
-      # postgresql.auth.secretKeys.userPasswordKey -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+      # -- Key of the password inside `auth.existingSecret`.
       # @default -- "password"
       # @section -- Postgres
       userPasswordKey: ""
 
-  # postgresql.resources -- Resource requests and limits for Postgres pods.
+  # -- Resource requests and limits for the container.
   # @default -- {}
   # @section -- Postgres
   resources: {}
 
-  # postgresql.priorityClassName -- Priority class name for Postgres pods.
+  # -- PriorityClass of the Pod.
   # @default -- ""
   # @section -- Postgres
   priorityClassName: ""
 
-  # postgresql.podSecurityContext -- Security context for Postgres pods.
+  # -- Security context for the Pod.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @default -- {}
   # @section -- Postgres
   podSecurityContext: {}
 
-  # postgresql.securityContext -- Container security context for Postgres containers.
+  # -- Security context for the container.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   # @default -- {}
   # @section -- Postgres
   securityContext: {}
 
-  # postgresql.podAnnotations -- Annotations for Postgres pods.
+  # -- Annotations to add to the Pod.
   # @default -- {}
   # @section -- Postgres
   podAnnotations: {}
 
-  # postgresql.annotations -- Additional annotations for Postgres resources.
+  # -- Annotations to add to the Postgres objects.
   # @default -- {}
   # @section -- Postgres
   annotations: {}
 
-  # postgresql.nodeSelector -- Node selector for Postgres pods.
+  # -- Node labels for Pod assignment.
   # @default -- {}
   # @section -- Postgres
   nodeSelector: {}
 
-  # postgresql.tolerations -- Tolerations for Postgres pods.
+  # -- Tolerations for Pod assignment.
   # @default -- []
   # @section -- Postgres
   tolerations: []
 
-  # postgresql.affinity -- Affinity rules for Postgres pods.
+  # -- Affinity rules for Pod assignment.
   # @default -- {}
   # @section -- Postgres
   affinity: {}
 
-  # postgresql.topologySpreadConstraints -- Topology spread constraints for Postgres pods.
+  # -- Topology spread constraints for Pod assignment.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
   # @default -- []
   # @section -- Postgres
   topologySpreadConstraints: []
 
   livenessProbe:
-    # postgresql.livenessProbe.enabled -- Enable liveness probe.
+    # -- Enable the liveness probe.
     # @default -- true
     # @section -- Postgres
     enabled: true
-    # postgresql.livenessProbe.initialDelaySeconds -- Initial delay seconds for liveness probe.
+    # -- Initial delay of the liveness probe, in seconds.
     # @default -- 20
     # @section -- Postgres
     initialDelaySeconds: 20
-    # postgresql.livenessProbe.periodSeconds -- Period seconds for liveness probe.
+    # -- Period of the liveness probe, in seconds.
     # @default -- 10
     # @section -- Postgres
     periodSeconds: 10
-    # postgresql.livenessProbe.timeoutSeconds -- Timeout seconds for liveness probe.
+    # -- Timeout of the liveness probe, in seconds.
     # @default -- 5
     # @section -- Postgres
     timeoutSeconds: 5
-    # postgresql.livenessProbe.successThreshold -- Success threshold for liveness probe.
+    # -- Success threshold of the liveness probe.
     # @default -- 1
     # @section -- Postgres
     successThreshold: 1
-    # postgresql.livenessProbe.failureThreshold -- Failure threshold for liveness probe.
+    # -- Failure threshold of the liveness probe.
     # @default -- 6
     # @section -- Postgres
     failureThreshold: 6
 
   readinessProbe:
-    # postgresql.readinessProbe.enabled -- Enable readiness probe.
+    # -- Enable the readiness probe.
     # @default -- true
     # @section -- Postgres
     enabled: true
-    # postgresql.readinessProbe.initialDelaySeconds -- Initial delay seconds for readiness probe.
+    # -- Initial delay of the readiness probe, in seconds.
     # @default -- 5
     # @section -- Postgres
     initialDelaySeconds: 5
-    # postgresql.readinessProbe.periodSeconds -- Period seconds for readiness probe.
+    # -- Period of the readiness probe, in seconds.
     # @default -- 5
     # @section -- Postgres
     periodSeconds: 5
-    # postgresql.readinessProbe.timeoutSeconds -- Timeout seconds for readiness probe.
+    # -- Timeout of the readiness probe, in seconds.
     # @default -- 3
     # @section -- Postgres
     timeoutSeconds: 3
-    # postgresql.readinessProbe.successThreshold -- Success threshold for readiness probe.
+    # -- Success threshold of the readiness probe.
     # @default -- 1
     # @section -- Postgres
     successThreshold: 1
-    # postgresql.readinessProbe.failureThreshold -- Failure threshold for readiness probe.
+    # -- Failure threshold of the readiness probe.
     # @default -- 6
     # @section -- Postgres
     failureThreshold: 6
 
   startupProbe:
-    # Passes once Postgres answers on TCP and no dump is waiting at
-    # `backups/pre-upgrade.sql` under `persistence.mountPath`, so a pod that has
-    # not loaded its dump never becomes Ready; each failure while the dump waits
-    # names it in the pod's events. The liveness and readiness probes start only
-    # after it passes.
-    # -- Enable the startup probe.
+    # -- Enable the startup probe. It passes once Postgres answers and no dump waits at `backups/pre-upgrade.sql`.
+    # The liveness and readiness probes start only after it passes.
     # @section -- Postgres
     enabled: true
-    # In seconds.
     # -- Delay before the first startup probe.
     # @section -- Postgres
     initialDelaySeconds: 0
-    # In seconds.
     # -- Interval between startup probes.
     # @section -- Postgres
     periodSeconds: 10
-    # In seconds.
     # -- Timeout of each startup probe.
     # @section -- Postgres
     timeoutSeconds: 5
-    # Kubernetes accepts only 1 for a startup probe.
-    # -- Consecutive successes for the startup probe to pass.
+    # -- Consecutive successes for the startup probe to pass. Kubernetes accepts only 1.
     # @section -- Postgres
     successThreshold: 1
-    # With the default interval, 180 failures give a first start that loads a
-    # dump 30 minutes before the container is restarted.
     # -- Consecutive failures before the container is restarted.
+    # With the default period, a first start has 30 minutes to load a dump.
     # @section -- Postgres
     failureThreshold: 180
 
   persistence:
-    # postgresql.persistence.enabled -- Enable persistent storage for Postgres.
+    # -- Enable persistence with a PersistentVolumeClaim.
     # @default -- true
     # @section -- Postgres
     enabled: true
-    # Rendered as a template in which `.Values` is the `postgresql` block, with
-    # `global`, and `.Chart.Name` is `postgresql`: for example,
-    # `{{ .Release.Name }}-{{ .Chart.Name }}` names the claim
-    # `<release>-postgresql`.
-    # -- Name of an existing claim to use.
-    # @default -- "none, the chart's claim template"
+    # -- Name of an existing PVC to use. Rendered as a template.
+    # `{{ .Release.Name }}-{{ .Chart.Name }}` names the PVC `<release>-postgresql`.
+    # @default -- "none, the chart's volume claim template"
     # @section -- Postgres
     existingClaim: ""
-    # postgresql.persistence.size -- Size of the persistent volume claim.
+    # -- Size of the PVC.
     # @default -- "10Gi"
     # @section -- Postgres
     size: 10Gi
-    # postgresql.persistence.storageClass -- Storage class for the persistent volume claim.
+    # -- StorageClass of the PVC.
     # @default -- null
     # @section -- Postgres
     storageClass: null
-    # postgresql.persistence.accessModes -- Access modes for the persistent volume claim.
+    # -- Access modes of the PVC.
+    # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
     # @default -- ["ReadWriteOnce"]
     # @section -- Postgres
     accessModes:
       - ReadWriteOnce
-    # At `/var/lib/postgresql` the chart also mounts the claim's `data` folder,
-    # under `persistence.subPath`, at `/var/lib/postgresql/data`, the image's data
-    # volume, so the database is stored on the claim. It skips that mount for the
-    # official `postgres` or `docker.io/library/postgres` repository at tag 18 or
-    # later, and when an `additionalVolumeMounts` entry uses that path. At any
-    # other path, keep `persistence.dataDir` under this one.
-    # -- Mount path of the data claim.
+    # -- Mount path of the data PVC.
+    # At `/var/lib/postgresql`, the chart also mounts the PVC's `data` directory at `/var/lib/postgresql/data`, so the database is on the PVC.
+    # Not applied to the official `postgres` image at tag 18 or later, or when an `additionalVolumeMounts` entry uses that path.
+    # At any other path, `persistence.dataDir` must be under this one.
     # @section -- Postgres
     mountPath: /var/lib/postgresql
-    # postgresql.persistence.subPath -- Subpath within the volume for Postgres data.
+    # -- Subpath of the PVC that holds the Postgres data.
     # @default -- ""
     # @section -- Postgres
     subPath: ""
-    # Keep it a subdirectory of `persistence.mountPath`, so the database is
-    # stored on the claim. A container that does not run as root, such as one
-    # under OpenShift's restricted policy, cannot initialize the `data` folder
-    # created for the mount described under `persistence.mountPath`: set
-    # `/var/lib/postgresql/pgdata` instead. This applies to any image that gets
-    # that mount, including an official image pulled through a mirror named in
-    # `image.repository`.
-    # -- Data directory of Postgres (`PGDATA`).
+    # -- Data directory of Postgres (`PGDATA`). It must be a subdirectory of `persistence.mountPath`.
+    # A container that does not run as root cannot initialize the `data` directory. Use `/var/lib/postgresql/pgdata` for it.
     # @section -- Postgres
     dataDir: /var/lib/postgresql/data
 
-  # Before an upgrade, dumps a database not on the claim for the new pod to load.
+  # Before an upgrade, dumps a database not on the PVC for the new Pod to load.
   upgradeBackupHook:
-    # The hook does not run on `helm install`, without persistence, with a
-    # `persistence.mountPath` other than `/var/lib/postgresql` or a
-    # `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry
-    # at the data directory or a folder above it, with a `ReadWriteOncePod`
-    # claim, or with `replicaCount: 0`. It runs on the Postgres pod's node, so
-    # an upgrade while that pod is absent fails after `activeDeadlineSeconds`
-    # with DeadlineExceeded: set `enabled: false` for that upgrade. With the
-    # hook off, take the dump yourself before upgrading, as the upgrade guide
-    # describes: https://signoz.io/docs/operate/migration/upgrade-0-152/
-    # Turning the hook off without that dump loses a database that is not on
-    # the claim.
-    # -- Run the hook on `helm upgrade`.
+    # -- Run the pre-upgrade hook Job that dumps a database not on the PVC, for the new Pod to load.
+    # Not run on `helm install`, without persistence, with a `persistence.mountPath` other than `/var/lib/postgresql`, with a
+    # `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry at or above the data directory, with a `ReadWriteOncePod` PVC, or with `replicaCount: 0`.
+    # It runs on the Postgres Pod's node. While that Pod is absent, the upgrade fails after `activeDeadlineSeconds` with `DeadlineExceeded`.
+    # When false without a dump taken by hand, a database that is not on the PVC is lost: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand
     # @section -- Postgres
     enabled: true
-    # In seconds. A large database needs more time. A value of 300 or more needs
-    # `helm upgrade --timeout` raised with it, or Helm's own wait, 5 minutes by
-    # default, ends first with a generic timeout.
-    # -- Time limit of the Job before it, and with it the upgrade, is marked failed.
+    # -- Time limit of the Job. When it passes, the Job and the upgrade fail.
+    # A value of 300 or more needs `helm upgrade --timeout` raised with it.
     # @section -- Postgres
     activeDeadlineSeconds: 240
-    # Requests and limits let the Job start in a namespace with a ResourceQuota.
-    # `null` sets none; `{}` keeps these, because Helm merges maps.
-    # -- Resource requests and limits for the container.
+    # -- Resource requests and limits for the container. `null` sets none, and `{}` keeps the defaults.
     # @default -- "requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory"
     # @section -- Postgres
     resources:
@@ -2801,74 +2580,67 @@ postgresql:
       limits:
         cpu: "1"
         memory: 256Mi
-    # The Job has to run on the node of the Postgres pod, so a selector set here
-    # must match that node.
-    # -- Node labels for pod assignment.
+    # -- Node labels for Pod assignment. They must match the node of the Postgres Pod.
     # @default -- "the value of `nodeSelector`"
     # @section -- Postgres
     nodeSelector: {}
-    # Added to the Postgres pod's `tolerations`, which the Job always carries so
-    # it can run on that pod's node.
-    # -- Tolerations for pod assignment.
+    # -- Tolerations for Pod assignment, added to the Postgres Pod's `tolerations`.
     # @section -- Postgres
     tolerations: []
-    # -- Priority class of the pod.
+    # -- PriorityClass of the Pod.
     # @default -- "the value of `priorityClassName`"
     # @section -- Postgres
     priorityClassName: ""
-    # -- Annotations to add to the pod.
+    # -- Annotations to add to the Pod.
     # @section -- Postgres
     podAnnotations: {}
-    # The chart's own labels win over a key set here.
-    # -- Labels to add to the pod.
+    # -- Labels to add to the Pod. A key the chart also sets keeps the chart's value.
     # @section -- Postgres
     podLabels: {}
-    # The chart's `helm.sh/hook`, `helm.sh/hook-weight` and
-    # `helm.sh/hook-delete-policy` win over the same keys set here.
-    # -- Annotations to add to the Job.
+    # -- Annotations to add to the Job. The `helm.sh/hook`, `helm.sh/hook-weight` and `helm.sh/hook-delete-policy` keys are ignored.
     # @section -- Postgres
     annotations: {}
 
-  # postgresql.additionalArgs -- Additional command-line arguments for Postgres containers.
+  # -- Extra arguments for the container.
   # @default -- []
   # @section -- Postgres
   additionalArgs: []
 
-  # postgresql.additionalVolumes -- Additional volumes for Postgres pods.
+  # -- Extra volumes for the Pod.
   # @default -- []
   # @section -- Postgres
   additionalVolumes: []
 
-  # postgresql.additionalVolumeMounts -- Additional volume mounts for Postgres containers.
+  # -- Extra volume mounts for the container.
   # @default -- []
   # @section -- Postgres
   additionalVolumeMounts: []
 
-  # postgresql.extraEnv -- Extra environment variables for Postgres containers.
+  # -- Extra environment variables for the container.
   # @default -- []
   # @section -- Postgres
   extraEnv: []
 
   serviceAccount:
-    # postgresql.serviceAccount.create -- Specifies whether a service account should be created.
+    # -- Create a ServiceAccount.
     # @default -- true
     # @section -- Postgres
     create: true
-    # postgresql.serviceAccount.annotations -- Annotations to add to the service account.
+    # -- Annotations to add to the ServiceAccount.
     # @default -- {}
     # @section -- Postgres
     annotations: {}
-    # postgresql.serviceAccount.name -- The name of the service account to use. If not set and `create` is true, a name is generated.
+    # -- Name of the ServiceAccount. When empty and `create` is true, the chart generates one.
     # @default -- null
     # @section -- Postgres
     name:
-# -- This component is configurable with licensed version of SigNoz.
+# -- signoz-otel-gateway subchart values. Configurable with the licensed version of SigNoz.
 # @section -- Otel Gateway Settings
 signoz-otel-gateway:
   enabled: false
   # @ignored
   replicaCount: 1
-  # signoz-otel-gateway.strategy -- Deployment strategy to use
+  # -- Deployment strategy.
   # @section -- signoz-otel-gateway
   # @default -- "RollingUpdate"
   strategy: ""
@@ -3082,7 +2854,7 @@ signoz-otel-gateway:
         servicePort: 8086
         protocol: TCP
     type: NodePort
-# -- This component is configurable with licensed version of SigNoz.
+# -- redpanda subchart values. Configurable with the licensed version of SigNoz.
 # @section -- Redpanda Settings
 redpanda:
   enabled: false
