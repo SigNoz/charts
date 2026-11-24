@@ -864,99 +864,116 @@
                     ]
                 },
                 "autoscaling": {
-                    "description": "HorizontalPodAutoscaler (HPA) configuration. Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/",
                     "type": "object",
                     "properties": {
                         "autoscalingTemplate": {
+                            "description": "Template for autoscaling.",
                             "type": "array"
                         },
                         "behavior": {
+                            "description": "Scaling behavior policies.",
                             "type": "object"
                         },
                         "enabled": {
+                            "description": "Enable autoscaling with a HorizontalPodAutoscaler (HPA). Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/",
                             "type": "boolean"
                         },
                         "keda": {
-                            "description": "KEDA autoscaling configuration.",
                             "type": "object",
                             "properties": {
                                 "annotations": {
+                                    "description": "Annotations to add to the KEDA ScaledObject.",
                                     "type": [
                                         "object",
                                         "null"
                                     ]
                                 },
                                 "cooldownPeriod": {
+                                    "description": "Cooldown period before scaling down, in seconds.",
                                     "type": [
                                         "integer",
                                         "string"
                                     ]
                                 },
                                 "enabled": {
+                                    "description": "Enable autoscaling with KEDA.",
                                     "type": "boolean"
                                 },
                                 "maxReplicaCount": {
+                                    "description": "Maximum replica count for KEDA.",
                                     "type": [
                                         "integer",
                                         "string"
                                     ]
                                 },
                                 "minReplicaCount": {
+                                    "description": "Minimum replica count for KEDA.",
                                     "type": [
                                         "integer",
                                         "string"
                                     ]
                                 },
                                 "pollingInterval": {
+                                    "description": "Polling interval for metrics data, in seconds.",
                                     "type": [
                                         "integer",
                                         "string"
                                     ]
                                 },
                                 "triggers": {
+                                    "description": "KEDA trigger configuration.",
                                     "type": "array"
                                 }
                             }
                         },
                         "maxReplicas": {
+                            "description": "Maximum number of replicas.",
                             "type": "integer"
                         },
                         "minReplicas": {
+                            "description": "Minimum number of replicas.",
                             "type": "integer"
                         },
                         "targetCPUUtilizationPercentage": {
+                            "description": "Target CPU utilization percentage.",
                             "type": "integer"
                         },
                         "targetMemoryUtilizationPercentage": {
+                            "description": "Target memory utilization percentage.",
                             "type": "integer"
                         }
                     }
                 },
                 "clusterRole": {
-                    "description": "ClusterRole configuration.",
                     "type": "object",
                     "properties": {
                         "annotations": {
+                            "description": "Annotations to add to the ClusterRole.",
                             "type": "object"
                         },
                         "clusterRoleBinding": {
                             "type": "object",
                             "properties": {
                                 "annotations": {
+                                    "description": "Annotations to add to the ClusterRoleBinding.",
                                     "type": "object"
                                 },
                                 "name": {
+                                    "description": "Name of the ClusterRoleBinding. When empty, the chart generates one.",
                                     "type": "string"
                                 }
                             }
                         },
                         "create": {
+                            "description": "Create a ClusterRole.",
                             "type": "boolean"
                         },
                         "name": {
+                            "description": "Name of the ClusterRole. When empty, the chart generates one.",
                             "type": "string"
                         },
                         "rules": {
+                            "description": "RBAC rules of the ClusterRole. The `k8sattributes` processor requires them.",
                             "type": "array",
                             "items": {
                                 "type": "object",
@@ -990,10 +1007,10 @@
                     "additionalProperties": true
                 },
                 "configMap": {
-                    "description": "ConfigMap configuration.",
                     "type": "object",
                     "properties": {
                         "create": {
+                            "description": "Create a ConfigMap.",
                             "type": "boolean"
                         }
                     }
@@ -1023,16 +1040,18 @@
                     "type": "array"
                 },
                 "image": {
-                    "description": "Image configuration.",
                     "type": "object",
                     "properties": {
                         "pullPolicy": {
+                            "description": "Image pull policy.",
                             "type": "string"
                         },
                         "repository": {
+                            "description": "Image repository, with its registry. `global.imageRegistry` replaces that registry when set.",
                             "type": "string"
                         },
                         "tag": {
+                            "description": "Image tag.",
                             "type": [
                                 "string",
                                 "number"
@@ -1045,16 +1064,18 @@
                     "type": "array"
                 },
                 "ingress": {
-                    "description": "Ingress configuration.",
                     "type": "object",
                     "properties": {
                         "annotations": {
+                            "description": "Annotations to add to the Ingress.",
                             "type": "object"
                         },
                         "className": {
+                            "description": "IngressClass of the Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class",
                             "type": "string"
                         },
                         "enabled": {
+                            "description": "Create an Ingress for the collector.",
                             "type": "boolean"
                         },
                         "hosts": {
@@ -1087,6 +1108,7 @@
                             }
                         },
                         "tls": {
+                            "description": "TLS settings of the Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls",
                             "type": "array"
                         }
                     }
@@ -1142,16 +1164,18 @@
                     "type": "object",
                     "properties": {
                         "jaeger-grpc": {
-                            "description": "Jaeger gRPC port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for Jaeger gRPC.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for Jaeger gRPC.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for Jaeger gRPC.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1159,24 +1183,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for Jaeger gRPC.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for Jaeger gRPC.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "jaeger-thrift": {
-                            "description": "Jaeger Thrift port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for Jaeger Thrift.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for Jaeger Thrift.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for Jaeger Thrift.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1184,24 +1212,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for Jaeger Thrift.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for Jaeger Thrift.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "logsheroku": {
-                            "description": "Heroku logs port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for Heroku logs.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for Heroku logs.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for Heroku logs.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1209,24 +1241,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for Heroku logs.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for Heroku logs.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "logsjson": {
-                            "description": "JSON logs port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for JSON logs.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for JSON logs.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for JSON logs.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1234,24 +1270,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for JSON logs.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for JSON logs.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "metrics": {
-                            "description": "Internal metrics port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for internal metrics.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for internal metrics.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for internal metrics.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1259,24 +1299,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for internal metrics.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for internal metrics.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "otlp": {
-                            "description": "OTLP gRPC port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for OTLP gRPC.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for OTLP gRPC.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for OTLP gRPC.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1284,24 +1328,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for OTLP gRPC.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for OTLP gRPC.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "otlp-http": {
-                            "description": "OTLP HTTP port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for OTLP HTTP.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for OTLP HTTP.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for OTLP HTTP.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1309,24 +1357,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for OTLP HTTP.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for OTLP HTTP.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "pprof": {
-                            "description": "pprof port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for pprof.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for pprof.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for pprof.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1334,24 +1386,28 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for pprof.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for pprof.",
                                     "type": "integer"
                                 }
                             }
                         },
                         "zpages": {
-                            "description": "zPages port.",
                             "type": "object",
                             "properties": {
                                 "containerPort": {
+                                    "description": "Container port for zPages.",
                                     "type": "integer"
                                 },
                                 "enabled": {
+                                    "description": "Enable the Service port for zPages.",
                                     "type": "boolean"
                                 },
                                 "nodePort": {
+                                    "description": "NodePort for zPages.",
                                     "type": [
                                         "integer",
                                         "string",
@@ -1359,9 +1415,11 @@
                                     ]
                                 },
                                 "protocol": {
+                                    "description": "Protocol for zPages.",
                                     "type": "string"
                                 },
                                 "servicePort": {
+                                    "description": "Service port for zPages.",
                                     "type": "integer"
                                 }
                             }
@@ -1391,34 +1449,39 @@
                     "additionalProperties": true
                 },
                 "service": {
-                    "description": "Service configuration.",
                     "type": "object",
                     "properties": {
                         "annotations": {
+                            "description": "Annotations to add to the Service.",
                             "type": "object"
                         },
                         "labels": {
+                            "description": "Labels to add to the Service.",
                             "type": "object"
                         },
                         "loadBalancerSourceRanges": {
+                            "description": "Source ranges allowed when the Service type is `LoadBalancer`.",
                             "type": "array"
                         },
                         "type": {
+                            "description": "Kubernetes Service type: `ClusterIP`, `NodePort` or `LoadBalancer`.",
                             "type": "string"
                         }
                     }
                 },
                 "serviceAccount": {
-                    "description": "ServiceAccount configuration.",
                     "type": "object",
                     "properties": {
                         "annotations": {
+                            "description": "Annotations to add to the ServiceAccount.",
                             "type": "object"
                         },
                         "create": {
+                            "description": "Create a ServiceAccount.",
                             "type": "boolean"
                         },
                         "name": {
+                            "description": "Name of the ServiceAccount. When empty and `create` is true, the chart generates one.",
                             "type": [
                                 "string",
                                 "null"
@@ -2206,12 +2269,15 @@
                     "type": "object",
                     "properties": {
                         "annotations": {
+                            "description": "Annotations to add to the ServiceAccount.",
                             "type": "object"
                         },
                         "create": {
+                            "description": "Create a ServiceAccount.",
                             "type": "boolean"
                         },
                         "name": {
+                            "description": "Name of the ServiceAccount to create, or of an existing one to run as when `create` is false.",
                             "type": [
                                 "string",
                                 "null"
