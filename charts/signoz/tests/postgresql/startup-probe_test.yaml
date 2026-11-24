@@ -16,7 +16,7 @@ tests:
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade'; exit 1; }; }
 
   - it: looks for the dump under persistence.mountPath, which already shows the claim at persistence.subPath
     set:
@@ -29,7 +29,7 @@ tests:
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade'; exit 1; }; }
 
   - it: looks for the dump in backups under a custom persistence.mountPath
     set:
@@ -42,7 +42,7 @@ tests:
           value:
             - /bin/sh
             - -c
-            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/data/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/data/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/'; exit 1; }; }
+            - pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p 5432 && { [ ! -e '/var/lib/postgresql/data/backups/pre-upgrade.sql' ] || { echo '/var/lib/postgresql/data/backups/pre-upgrade.sql has not been loaded; see https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade'; exit 1; }; }
 
   - it: times the startup probe from the startupProbe values
     set:

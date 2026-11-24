@@ -59,58 +59,11 @@ Do each of these before upgrading.
 - Each ClickHouse Pod start downloads `histogramQuantile` from GitHub in an init container, so slow or blocked access to GitHub lengthens the restart. More replicas take longer.
 
 <a id="100-rollback"></a>
+<a id="100-stay-on-0151"></a>
+<a id="100-ts-rollback-failed"></a>
 ### Rollback
 
-- Roll back only while ClickHouse still runs on ZooKeeper. Once ClickHouse runs on ClickHouse Keeper, there is no rollback to SigNoz Helm Chart 0.151.0. Stay on ZooKeeper until you are sure of the upgrade, then migrate.
-- With bundled PostgreSQL, a rollback to SigNoz Helm Chart 0.151.0 starts SigNoz on an empty database, with a new organization and root user. The PVC keeps the existing database, and upgrading forward again restores it. You lose the changes made in SigNoz while rolled back. While rolled back, the database may live inside the container again, as on SigNoz Helm Chart 0.151.0, so a PostgreSQL restart can empty it.
-
-To roll back to SigNoz Helm Chart 0.151.0:
-
-1. Find the last SigNoz Helm Chart 0.151.0 revision in the release history.
-2. Delete the ClickHouse Operator Deployment right before the rollback. Where you set `altinity-clickhouse-operator.fullnameOverride`, use that name. With `altinity-clickhouse-operator.namespaceOverride`, the Deployment is in that namespace.
-3. Roll back to that revision.
-4. Wait until the ClickHouseInstallation reports `Completed`.
-
-```bash
-helm history <release> -n <namespace>
-kubectl -n <namespace> delete deployment <release>-clickhouse-operator
-helm rollback <release> <revision> -n <namespace>
-kubectl -n <namespace> get chi -w
-```
-
-During and after the rollback:
-
-- The rollback needs no values file and runs no hooks.
-- The older ClickHouse Operator restarts ClickHouse once. ClickHouse, the UI and queries are unavailable for a few minutes. ZooKeeper, SigNoz and the SigNoz OTel Collector restart once.
-- The four CRDs, the ClickHouse Keeper CRD among them, stay at the newer version. The older ClickHouse Operator works with them.
-- To upgrade again, run `helm upgrade` with your 1.0.0 values file. Do not use `--reuse-values`, because the rolled-back release holds the 0.151.0 values.
-
-If the rollback fails, see [What state does a failed `helm rollback` leave?](#100-ts-rollback-failed)
-
-<a id="100-stay-on-0151"></a>
-<details>
-<summary>Staying on SigNoz Helm Chart 0.151.0</summary>
-
-If you do not want to move to SigNoz Helm Chart 1.0.0 yet, you can stay on SigNoz Helm Chart 0.151.0 and move to newer SigNoz versions by setting the SigNoz and SigNoz OTel Collector image tags in your values. We recommend upgrading to SigNoz Helm Chart 1.0.0.
-
-```yaml
-signoz:
-  image:
-    tag: <signoz-version>
-otelCollector:
-  image:
-    tag: <collector-version>
-```
-
-- `<collector-version>` is the SigNoz OTel Collector version for that SigNoz release.
-- Use your 0.151.0 values file. The 1.0.0 keys do not exist in SigNoz Helm Chart 0.151.0.
-- Pass `--version 0.151.0`. Without it, `helm upgrade` takes 1.0.0.
-
-```bash
-helm upgrade <release> signoz/signoz --version 0.151.0 -n <namespace> -f <values>
-```
-
-</details>
+The rollback steps are in the [upgrade guide][guide-rollback].
 
 <a id="100-clickhouse"></a>
 ### ClickHouse
@@ -356,22 +309,7 @@ Set a file to `null` to leave its table unconfigured.
   kubectl -n <namespace> delete deployment -l app.kubernetes.io/name=clickhouse,app.kubernetes.io/instance=<release>,app.kubernetes.io/component
   ```
 
-  This selector matches only the SigNoz Helm Chart 0.151.0 Deployment, so it finds nothing before a rollback. Before a rollback, delete the newer Deployment by name, `<release>-clickhouse-operator` or the value of `altinity-clickhouse-operator.fullnameOverride`, as in [Rollback](#100-rollback).
-
-<a id="100-ts-rollback-failed"></a>
-##### What state does a failed `helm rollback` leave?
-
-- **Affects:** A `helm rollback` to SigNoz Helm Chart 0.151.0 run without deleting the ClickHouse Operator Deployment first.
-- **Symptom:** The rollback fails with `cannot patch "<release>-clickhouse-operator" with kind Deployment`, and `helm history` shows a failed revision and none deployed. ZooKeeper, SigNoz and the SigNoz OTel Collector restarted, and ClickHouse was down for about a minute.
-- **Cause:** The failed rollback reverted everything except the ClickHouse Operator Deployment.
-- **Resolution:** Delete the ClickHouse Operator Deployment and run the same rollback again, as in [Rollback](#100-rollback). It succeeds from that state.
-- **Verify:** `helm history` shows a deployed revision, and the ClickHouseInstallation reports `Completed`.
-- **Leftovers:** These objects stay in the namespace and belong to no revision:
-  - nine `<release>-clickhouse-operator-*` ConfigMaps
-  - Secret `<release>-clickhouse-credentials`
-  - the upgrade's schema migrator Job
-
-  They caused no problem in testing, and the next upgrade adopted the ones that were checked: two of the ConfigMaps and the Secret.
+  This selector matches only the SigNoz Helm Chart 0.151.0 Deployment, so it finds nothing before a rollback. Before a rollback, delete the newer Deployment by name, `<release>-clickhouse-operator` or the value of `altinity-clickhouse-operator.fullnameOverride`, as the [upgrade guide][guide-rollback] shows.
 
 <a id="100-signoz"></a>
 ### SigNoz
@@ -435,10 +373,10 @@ Set a file to `null` to leave its table unconfigured.
 - **Affects:** Releases after an upgrade or a rollback.
 - **Symptom:** The SigNoz OTel Collector Pod is Ready but refuses connections on ports 4317 and 4318. Its log shows `failed to apply config` with `cannot configure clickhouse logs exporter: dial tcp ...:9000: connect: connection refused`.
 - **Cause:** The SigNoz OTel Collector opens ports 4317 and 4318 only after SigNoz sends it its configuration. The configuration arrived while ClickHouse was restarting, so it failed to apply. The Pod can recover by itself after a few minutes, or not at all.
-- **Resolution:** Delete the Pod:
+- **Resolution:** Delete the Pod. With `otelCollector.name` set, use that name in place of `otel-collector`:
 
   ```bash
-  kubectl -n <namespace> delete pod -l app.kubernetes.io/component=otel-collector
+  kubectl -n <namespace> delete pod -l app.kubernetes.io/instance=<release>,app.kubernetes.io/component=otel-collector
   ```
 
 - **Verify:** New telemetry arrives in SigNoz.
@@ -489,11 +427,11 @@ No action is needed in these cases:
 | Run the bundled PostgreSQL | Make no changes in SigNoz while the upgrade runs. Changes written after the dump are not included in it. |
 | Have the PostgreSQL Pod down or unreachable, for example scaled to 0 with `kubectl scale` | Start it before you upgrade. Otherwise the backup Job fails and the upgrade stops before anything changes. With default values on containerd, a Pod scaled to 0 on SigNoz Helm Chart 0.151.0 has already lost its database, so the backup Job dumps an empty one. |
 | Have a large database | Raise `postgresql.upgradeBackupHook.activeDeadlineSeconds`. The dump has 240 seconds by default. At 300 or more, also raise `helm upgrade --timeout`. |
-| Mount your own `/docker-entrypoint-initdb.d` | Take the dump and load it manually, then set `postgresql.upgradeBackupHook.enabled: false` ([guide]). Otherwise the upgrade stops, because the dump would not be loaded. |
-| Set `postgresql.persistence.mountPath` to a path other than `/var/lib/postgresql`, set `postgresql.persistence.dataDir` to a path outside it, or mount your own volume at the data directory | Check where the data directory lives. If it is not on a volume, take the dump manually first ([guide]). The backup Job does not run. |
+| Mount your own `/docker-entrypoint-initdb.d` | Take the dump and load it manually, then set `postgresql.upgradeBackupHook.enabled: false` ([guide][guide-dump]). Otherwise the upgrade stops, because the dump would not be loaded. |
+| Set `postgresql.persistence.mountPath` to a path other than `/var/lib/postgresql`, set `postgresql.persistence.dataDir` to a path outside it, or mount your own volume at the data directory | Check where the data directory lives. If it is not on a volume, take the dump manually first ([guide][guide-dump]). The backup Job does not run. |
 | Set `postgresql.persistence.enabled: false` | Expect an empty database after the upgrade. The database is not on a persistent volume and does not survive the upgrade, as with any Pod restart. The backup Job does not run, and nothing loads a dump afterwards. |
 
-The backup Job does not run in any of these cases. Take the dump manually first, while the release is still on SigNoz Helm Chart 0.151.0 ([guide]):
+The backup Job does not run in any of these cases. Take the dump manually first, while the release is still on SigNoz Helm Chart 0.151.0 ([guide][guide-dump]):
 
 - Helm hooks do not run: Argo CD, rendered manifests, `--no-hooks`, or Terraform `helm_release` with `disable_webhooks = true`. With Argo CD or rendered manifests, you can apply the backup Job yourself instead ([Hooks](#100-hooks)).
 - `postgresql.upgradeBackupHook.enabled: false`
@@ -514,7 +452,7 @@ The backup Job does not run in any of these cases. Take the dump manually first,
   - `BackoffLimitExceeded` with `ERROR: cannot connect to Postgres at`: a wrong password or an unreachable PostgreSQL.
   - `BackoffLimitExceeded` with `ERROR: the release mounts its own /docker-entrypoint-initdb.d`: your own init scripts.
   - `DeadlineExceeded`: the Job did not finish in `postgresql.upgradeBackupHook.activeDeadlineSeconds` (240 by default), for example while PostgreSQL is scaled to 0 or the database is large.
-- **Resolution:** Read `kubectl -n <namespace> logs job/<release>-postgresql-upgrade-backup`, fix the cause it names and upgrade again. Alternatively, take the dump manually ([guide]) and then set `postgresql.upgradeBackupHook.enabled: false`.
+- **Resolution:** Read `kubectl -n <namespace> logs job/<release>-postgresql-upgrade-backup`, fix the cause it names and upgrade again. Alternatively, take the dump manually ([guide][guide-dump]) and then set `postgresql.upgradeBackupHook.enabled: false`.
 - **Verify:** The Job's log ends with `Dumped database <db> to /claim/backups/pre-upgrade.sql.` or `Nothing to back up.`
 
 <a id="100-ts-pg-not-ready"></a>
@@ -523,7 +461,7 @@ The backup Job does not run in any of these cases. Take the dump manually first,
 - **Affects:** Releases with the bundled PostgreSQL.
 - **Symptom:** The Pod runs but is not Ready, with the event `Startup probe failed` and `pre-upgrade.sql has not been loaded`.
 - **Cause:** The dump on the PVC was not loaded: it is incomplete (`does not end with COMMIT;`), it failed to load, the load was interrupted, or you mount your own `/docker-entrypoint-initdb.d`.
-- **Resolution:** Load a complete dump manually and rename the file to `pre-upgrade.sql.loaded` ([guide]).
+- **Resolution:** Load a complete dump manually and rename the file to `pre-upgrade.sql.loaded` ([guide][guide-load]).
 - **Verify:** The Pod becomes Ready.
 
 <a id="100-registry"></a>
@@ -595,3 +533,6 @@ In addition:
   - a `clickhouse.namespace` Namespace, which the SigNoz Helm Chart now keeps
 
 [guide]: https://signoz.io/docs/operate/migration/upgrade-0-152/
+[guide-dump]: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand
+[guide-load]: https://signoz.io/docs/operate/migration/upgrade-0-152/#why-does-the-postgresql-pod-stay-not-ready-after-the-upgrade
+[guide-rollback]: https://signoz.io/docs/operate/migration/upgrade-0-152/#roll-back
