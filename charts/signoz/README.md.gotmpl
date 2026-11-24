@@ -24,53 +24,104 @@ Kubernetes cluster using [Helm](https://helm.sh) package manager.
 
 ### Installing the Chart
 
-To install the chart with the release name `my-release`:
+1. Add the `charts.signoz.io` repo, if you haven't already:
 
-```bash
-helm repo add signoz https://charts.signoz.io
-helm -n platform --create-namespace install "my-release" signoz/signoz
-```
+   ```bash
+   helm repo add signoz https://charts.signoz.io
+   ```
 
-These commands deploy SigNoz on the Kubernetes cluster in the default configuration.
-The [Configuration](#configuration) section lists the parameters that can be configured during installation:
+2. Update the repo:
 
-> **Tip**: List all releases using `helm list`
+   ```bash
+   helm repo update signoz
+   ```
+
+3. Install the chart with the release name `my-release`:
+
+   ```bash
+   helm upgrade --install my-release signoz/signoz \
+     --namespace platform \
+     --create-namespace
+   ```
+
+4. Check that the pods are running:
+
+   ```bash
+   kubectl get pods -n platform
+   ```
+
+These commands deploy SigNoz in the default configuration. The [Configuration](#configuration) section lists the parameters you can set.
 
 ### Uninstalling the chart
 
-To uninstall `my-release`, delete the ClickHouse objects first and wait for them to go, then run `helm uninstall`:
+To uninstall the chart, first delete the ClickHouse resources it created. The steps follow Altinity's [Uninstalling the Operator](https://docs.altinity.com/altinitykubernetesoperator/quickuninstall/).
+
+> [!IMPORTANT]
+> Never run `helm uninstall` while the ClickHouse resources exist. `helm uninstall` removes the ClickHouse operator, and only the operator can finish deleting them.
+
+#### Deleting the ClickHouse resources
+
+1. With `keeper.enabled: true`, delete the ClickHouseKeeperInstallation (`chk`):
+
+   ```bash
+   kubectl delete chk my-release-keeper -n platform
+   ```
+
+2. Delete the ClickHouseInstallation (`chi`). This takes a few minutes:
+
+   ```bash
+   kubectl delete chi my-release-clickhouse -n platform
+   ```
+
+With `clickhouse.namespace` set, use that namespace in both commands.
+
+#### Deleting the release
 
 ```bash
-kubectl -n platform delete clickhouseinstallation my-release-clickhouse --wait
-kubectl -n platform delete clickhousekeeperinstallation my-release-keeper --wait   # with keeper.enabled: true
-helm -n platform uninstall "my-release"
+helm uninstall my-release -n platform
 ```
 
-The order matters: the ClickHouse operator finishes deleting these objects, and `helm uninstall` removes the operator.
+#### Deleting the PVCs
 
-With `clickhouse.namespace` set, the chart creates both objects in that namespace, so run the `clickhouseinstallation` and `clickhousekeeperinstallation` commands in this section with `-n <clickhouse.namespace>`.
-
-See the [Helm docs](https://helm.sh/docs/helm/helm_uninstall/) for documentation on the helm uninstall command.
-
-The PVCs stay after the uninstall. Bundled Postgres keeps its database on its PVC, and the database comes back when the release is installed again with the same name and namespace. The four CRDs of the ClickHouse operator stay too, and so does a Namespace created through `clickhouse.namespace`: delete it by hand when nothing in it is wanted.
-
-To delete the PVCs:
+The PersistentVolumeClaims (PVCs) stay after the uninstall. The bundled Postgres database returns when you install the release again with the same name and namespace.
 
 ```bash
-kubectl -n platform delete pvc --selector app.kubernetes.io/instance=my-release
+kubectl get pvc -n platform
+kubectl delete pvc -n platform --selector app.kubernetes.io/instance=my-release
 ```
 
-If `helm uninstall` ran first, the ClickHouse objects stay on their finalizers and their pods keep running. Clear the finalizers, and Kubernetes removes the objects and their pods:
+**Deleting the PVCs destroys the data stored on them.**
+
+#### Deleting the CRDs
+
+The four CustomResourceDefinitions (CRDs) of the ClickHouse operator stay after the uninstall. They are cluster-wide: delete them only when no other release in the cluster uses the ClickHouse operator.
 
 ```bash
-kubectl -n platform patch clickhouseinstallation my-release-clickhouse --type=merge -p '{"metadata":{"finalizers":null}}'
-kubectl -n platform patch clickhousekeeperinstallation my-release-keeper --type=merge -p '{"metadata":{"finalizers":null}}'   # with keeper.enabled: true
+kubectl get crds | grep clickhouse
+kubectl delete crd clickhouseinstallations.clickhouse.altinity.com
+kubectl delete crd clickhouseinstallationtemplates.clickhouse.altinity.com
+kubectl delete crd clickhousekeeperinstallations.clickhouse-keeper.altinity.com
+kubectl delete crd clickhouseoperatorconfigurations.clickhouse.altinity.com
 ```
 
-To remove everything left in the namespace, PVCs included, delete it once the ClickHouse objects are gone. A namespace deleted while one of them waits on its finalizer stays `Terminating` until the finalizer is cleared.
+#### Deleting the namespace
+
+Delete the namespace after the ClickHouse resources are gone. A Namespace created through `clickhouse.namespace` also stays after the uninstall: delete it the same way.
 
 ```bash
-kubectl delete namespace platform
+kubectl delete ns platform
+```
+
+#### If `helm uninstall` ran first
+
+- The ClickHouse resources stay on their finalizers, and their pods keep running.
+- A namespace deleted in this state stays `Terminating`.
+
+Clear the finalizers. Kubernetes then removes the resources and their pods:
+
+```bash
+kubectl -n platform patch chi my-release-clickhouse --type=merge -p '{"metadata":{"finalizers":null}}'
+kubectl -n platform patch chk my-release-keeper --type=merge -p '{"metadata":{"finalizers":null}}'   # with keeper.enabled: true
 ```
 
 > [!WARNING]
