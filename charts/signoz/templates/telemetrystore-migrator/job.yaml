@@ -40,6 +40,7 @@ kind: Job
 metadata:
   {{- /* A Job's pod template is immutable, so every release revision gets a new Job, and the migrations run again on every upgrade. */}}
   name: {{ include "telemetryStoreMigrator.fullname" . }}-{{ .Release.Revision }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "telemetryStoreMigrator.selectorLabels" . | fromYaml) .Values.telemetryStoreMigrator.labels)) | nindent 4 }}
   annotations:
