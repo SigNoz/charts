@@ -71,22 +71,13 @@ The [upgrade guide][guide] has these steps in more detail.
 <a id="100-checklist"></a>
 ### Checklist
 
-| If you | Do | Section |
+| Case | Why | Section |
 |---|---|---|
-| Upgrade an existing install with the bundled ClickHouse | Choose the coordination store. | [Upgrade steps](#100-upgrade), step 1 |
-| Upgrade any existing install | Render the chart and move every key it lists. | [Upgrade steps](#100-upgrade), step 2 |
-| Upgrade any existing install | Know that there is no clean way back once ClickHouse runs on Keeper. | [Rollback](#100-rollback) |
-| Pull images from a private registry | Set the operator's own image keys and mirror the images that are new in 1.0.0. | [Registry and pull secrets](#100-registry) |
-| Run the bundled Postgres (`postgresql.enabled: true`) | Make no changes in SigNoz while the upgrade runs. | [Postgres](#100-postgres) |
-| Run the bundled Postgres and the backup Job cannot run: `--no-hooks`, `postgresql.upgradeBackupHook.enabled: false`, a `ReadWriteOncePod` PVC or `postgresql.replicaCount: 0` | Take the dump by hand first. | [Postgres](#100-postgres) |
-| Deploy with Argo CD, rendered manifests or `--no-hooks` | Run the hook steps yourself, in order. | [Hooks](#100-hooks) |
-| Set ClickHouse operator values (`clickhouse.clickhouseOperator`) | Rename each key to its name in Altinity's chart. | [ClickHouse operator](#100-operator) |
-| Run ClickHouse in another namespace (`clickhouse.namespace`) | Point the operator at that namespace. | [ClickHouse](#100-clickhouse) |
-| Use an external ClickHouse (`clickhouse.enabled: false`) | Read the password from its new Secret, and check `externalClickhouse.secure`. | [ClickHouse](#100-clickhouse) |
-| Select, scrape or name the operator's objects | Update to the new labels, ports and names. | [ClickHouse operator](#100-objects) |
-| Set `signoz.env` keys named like a chart variable, such as `SIGNOZ_SQLSTORE_*` | Delete each key unless its value should apply. | [SigNoz](#100-signoz) |
-| Bind a cloud identity to the migrator's ServiceAccount | Set `telemetryStoreMigrator.serviceAccount.create: true`. | [Schema migrator](#100-migrator) |
-| Upgraded this release on chart 0.151.0 or earlier | Afterwards, delete the left-over Job `signoz-telemetrystore-migrator`. | [Schema migrator](#100-migrator) |
+| Every existing install with the bundled ClickHouse | You have to choose the coordination store: stay on ZooKeeper or migrate to ClickHouse Keeper. | [Upgrade steps](#100-upgrade), step 1 |
+| You have a customised values file | Go through the keys you set: some moved or were removed, and some are now treated differently. | [ClickHouse](#100-clickhouse), [ClickHouse operator](#100-operator), [SigNoz](#100-signoz), [Collector](#100-collector), [Schema migrator](#100-migrator) |
+| You run the bundled Postgres with changed persistence or hook settings | The automatic backup covers only the default layout. With some settings you take the dump yourself. With others the chart leaves your setup alone. | [Postgres](#100-postgres) |
+| You apply the chart without Helm's hooks (Argo CD, rendered manifests, `--no-hooks`, Terraform with hooks off) | Nothing refuses the Keeper switch, runs the hooks in order, or takes the Postgres backup. | [Hooks](#100-hooks) |
+| Private registry or air-gapped cluster | There are new images to mirror before you start. | [Registry and pull secrets](#100-registry) |
 
 <a id="100-rollback"></a>
 ### Rollback
