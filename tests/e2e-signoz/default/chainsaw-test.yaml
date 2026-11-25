@@ -35,8 +35,8 @@ spec:
               - ${NAMESPACE}
               - --timeout
               - 5m
-    # Uninstall in the order the chart's README documents: the ClickHouse resources go
-    # while the operator still runs, so it can clear their finalizers, then the release.
+    # Delete the ClickHouse resources while the operator still runs, so it can clear
+    # their finalizers, then uninstall the release.
     - name: uninstall
       try:
         - delete:
