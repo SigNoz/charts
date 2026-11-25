@@ -95,6 +95,22 @@ $(KUBECONFORM): $(BIN_DIR)
 	fi
 
 ###############################################################
+# chainsaw-tools
+###############################################################
+# renovate: datasource=github-releases depName=kyverno/chainsaw
+CHAINSAW_VERSION        ?= v0.2.15
+
+CHAINSAW ?= $(BIN_DIR)/chainsaw
+.PHONY: $(CHAINSAW)
+$(CHAINSAW): $(BIN_DIR)
+	@echo ">> Downloading chainsaw $(CHAINSAW_VERSION)"
+	@if $(CHAINSAW) version 2>/dev/null | grep -qE "^Version: +$(CHAINSAW_VERSION:v%=%)$$"; then \
+		echo ">> chainsaw $(CHAINSAW_VERSION) already exists, skipping download!"; \
+	else \
+		curl -fsSL https://github.com/kyverno/chainsaw/releases/download/$(CHAINSAW_VERSION)/chainsaw_$(OS)_$(ARCH).tar.gz | tar -xz -C $(BIN_DIR) chainsaw; \
+	fi
+
+###############################################################
 # common commands
 ###############################################################
 .PHONY: help
@@ -103,7 +119,7 @@ help: ## Displays help.
 
 .PHONY: tools
 tools: ## Downloads the pinned chart tools into tmp/bin.
-tools: $(HELM) $(HELM_UNITTEST) $(HELM_DOCS) $(CT) $(KUBECONFORM)
+tools: $(HELM) $(HELM_UNITTEST) $(HELM_DOCS) $(CT) $(KUBECONFORM) $(CHAINSAW)
 
 ###############################################################
 # chart-deps commands
@@ -117,7 +133,7 @@ chart-deps: $(HELM)
 	@for chart in $(CI_CHARTS) ; do \
 		if grep -q '^dependencies:' $$chart/Chart.yaml; then \
 			echo ">> Building dependencies for chart $$chart"; \
-			$(HELM) dependency build $$chart || exit 1; \
+			$(HELM) dependency build --skip-refresh $$chart || exit 1; \
 		fi; \
 	done
 
@@ -125,12 +141,12 @@ chart-deps: $(HELM)
 # chart-lint commands
 ###############################################################
 # helm lint --strict through ct, so ct.yaml stays the one exclusion list. The yamllint and
-# yamale checks are off, so no Python is needed.
+# yamale checks are off, so no Python is needed. chart-deps has already built the dependencies.
 .PHONY: chart-lint
 chart-lint: ## Runs helm lint --strict for all charts.
 chart-lint: $(CT) chart-deps
 	@echo ">> Running lint for all charts"
-	@$(CT) lint --config ct.yaml --all --validate-yaml=false --validate-chart-schema=false --helm-lint-extra-args "--strict"
+	@$(CT) lint --config ct.yaml --all --validate-yaml=false --validate-chart-schema=false --skip-helm-dependencies --helm-lint-extra-args "--strict"
 
 ###############################################################
 # chart-validate commands
@@ -176,19 +192,19 @@ chart-docs-check: chart-docs
 	@git diff --exit-code -- charts || { echo; echo ">> Docs are out of date. Run 'make chart-docs' and commit the result."; exit 1; }
 
 ###############################################################
-# chart-install commands
+# chart-e2e commands
 ###############################################################
-# ct.yaml sets debug, which echoes ">>>" commands to stdout; only changed chart paths are kept.
-# No tool prerequisite: its ">> Downloading" lines would land on stdout too. Run make tools first.
-.PHONY: chart-list-changed
-chart-list-changed: ## Prints the charts changed against main.
-	@set -o pipefail; $(CT) list-changed --config ct.yaml | { grep -v '^>>>' || true; }
+# Each chart's chainsaw tests live in tests/e2e-<chart>/<scenario>/, configured by .chainsaw.yaml.
+# make chart-e2e-<chart> runs one chart's tests, e.g. make chart-e2e-signoz.
+.PHONY: chart-e2e
+chart-e2e: ## Runs the chainsaw tests of every chart on the current cluster.
+chart-e2e: $(CHAINSAW) chart-deps
+	@echo ">> Running chainsaw tests for all charts"
+	@$(CHAINSAW) test $(foreach chart,$(CI_CHARTS),--test-dir ./tests/e2e-$(notdir $(chart)))
 
-.PHONY: chart-install-test
-chart-install-test: ## Installs the changed charts on the current cluster with ct.
-chart-install-test: $(CT)
-	@echo ">> Installing changed charts"
-	@$(CT) install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
+chart-e2e-%: $(CHAINSAW) chart-deps
+	@echo ">> Running chainsaw tests for chart charts/$*"
+	@$(CHAINSAW) test --test-dir ./tests/e2e-$*
 
 ###############################################################
 # chart-dev commands

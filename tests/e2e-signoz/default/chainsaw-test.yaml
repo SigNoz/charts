@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: signoz-default
+spec:
+  steps:
+    - name: install
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - install
+              - signoz
+              - ../../../charts/signoz
+              - --namespace
+              - ${NAMESPACE}
+              - --wait
+              - --timeout
+              - 10m
+            timeout: 11m
+    # ClickHouse and Keeper are custom resources, so helm --wait does not wait for them.
+    - name: clickhouse-ready
+      try:
+        - assert:
+            file: 01-assert.yaml
+    - name: helm-test
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - test
+              - signoz
+              - --namespace
+              - ${NAMESPACE}
+              - --timeout
+              - 5m
+    # Uninstall in the order the chart's README documents: the ClickHouse resources go
+    # while the operator still runs, so it can clear their finalizers, then the release.
+    - name: uninstall
+      try:
+        - delete:
+            ref:
+              apiVersion: clickhouse-keeper.altinity.com/v1
+              kind: ClickHouseKeeperInstallation
+              name: signoz-keeper
+        - delete:
+            ref:
+              apiVersion: clickhouse.altinity.com/v1
+              kind: ClickHouseInstallation
+              name: signoz-clickhouse
+        - command:
+            entrypoint: helm
+            args:
+              - uninstall
+              - signoz
+              - --namespace
+              - ${NAMESPACE}
+              - --wait
+              - --timeout
+              - 5m

@@ -9,7 +9,7 @@ on:
       - labeled
 
 # Every job runs a Makefile target; the Makefile pins and downloads the chart tooling
-# (helm, helm-unittest, ct, kubeconform, helm-docs), so CI and local runs use the same versions.
+# (helm, helm-unittest, ct, kubeconform, helm-docs, chainsaw), so CI and local runs use the same versions.
 jobs:
   # helm unittest for every chart with suites. No cluster and no secrets.
   unittest:
@@ -84,39 +84,38 @@ jobs:
       - name: docs-drift
         run: make chart-docs-check
 
-  # Installs changed charts on a kind cluster. Only runs when a chart changed.
-  install:
+  # Runs each chart's chainsaw tests (tests/e2e-<chart>) on its own kind cluster.
+  e2e:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        chart:
+          - signoz
+          - k8s-infra
+          - signoz-mcp-server
+          - signoz-operator
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          fetch-depth: 0
 
       - name: tools
         run: make tools
 
-      - name: list-changed
-        id: list-changed
-        run: |
-          changed=$(make --no-print-directory chart-list-changed)
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: create-kind-cluster
-        if: steps.list-changed.outputs.changed == 'true'
         uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           wait: 600s
 
-      - name: install
-        if: steps.list-changed.outputs.changed == 'true'
-        run: make chart-install-test
+      - name: e2e
+        env:
+          CHART: ${{ matrix.chart }}
+        run: make "chart-e2e-${CHART}"

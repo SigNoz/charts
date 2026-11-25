@@ -1,8 +1,6 @@
 # See https://github.com/helm/chart-testing#configuration
-remote: origin
-target-branch: main
 debug: true
-# Discover charts under charts/ and process only the ones changed in the PR.
+# Discover charts under charts/.
 chart-dirs:
   - charts
 # redpanda and zookeeper are vendored and carry no tests; signoz-otel-gateway is
@@ -12,7 +10,6 @@ excluded-charts:
   - zookeeper
   - signoz-otel-gateway
 check-version-increment: false
-helm-extra-args: --timeout 5m
 chart-repos:
   - signoz=https://charts.signoz.io
   - altinity=https://helm.altinity.com
