@@ -133,7 +133,7 @@ chart-deps: $(HELM)
 	@for chart in $(CI_CHARTS) ; do \
 		if grep -q '^dependencies:' $$chart/Chart.yaml; then \
 			echo ">> Building dependencies for chart $$chart"; \
-			$(HELM) dependency build $$chart || exit 1; \
+			$(HELM) dependency build --skip-refresh $$chart || exit 1; \
 		fi; \
 	done
 
@@ -141,12 +141,12 @@ chart-deps: $(HELM)
 # chart-lint commands
 ###############################################################
 # helm lint --strict through ct, so ct.yaml stays the one exclusion list. The yamllint and
-# yamale checks are off, so no Python is needed.
+# yamale checks are off, so no Python is needed. chart-deps has already built the dependencies.
 .PHONY: chart-lint
 chart-lint: ## Runs helm lint --strict for all charts.
 chart-lint: $(CT) chart-deps
 	@echo ">> Running lint for all charts"
-	@$(CT) lint --config ct.yaml --all --validate-yaml=false --validate-chart-schema=false --helm-lint-extra-args "--strict"
+	@$(CT) lint --config ct.yaml --all --validate-yaml=false --validate-chart-schema=false --skip-helm-dependencies --helm-lint-extra-args "--strict"
 
 ###############################################################
 # chart-validate commands
@@ -194,22 +194,6 @@ chart-docs-check: chart-docs
 ###############################################################
 # chart-e2e commands
 ###############################################################
-# Prints the charts whose e2e tests should run: the ones ct list-changed reports against main, those whose
-# tests/e2e-<chart>/ changed, and every chart when the shared .chainsaw.yaml changed. A failing ct or git
-# call fails the target, so a broken discovery never reads as "no chart changed".
-# ct.yaml sets debug, which echoes ">>>" commands to stdout; only chart paths are kept.
-# No tool prerequisite: its ">> Downloading" lines would land on stdout too. Run make tools first.
-.PHONY: chart-list-changed
-chart-list-changed: ## Prints the charts whose e2e tests should run against main.
-	@set -euo pipefail; \
-	base=$$(git merge-base origin/main HEAD); \
-	changed=$$(git diff --name-only "$$base" -- tests .chainsaw.yaml); \
-	charts=$$($(CT) list-changed --config ct.yaml | sed '/^>>>/d'); \
-	{ printf '%s\n' "$$charts"; \
-	  if printf '%s\n' "$$changed" | grep -qx '.chainsaw.yaml'; then printf '%s\n' $(CI_CHARTS); fi; \
-	  printf '%s\n' "$$changed" | sed -nE 's#^tests/e2e-([^/]+)/.*#charts/\1#p'; \
-	} | { grep -Fx $(foreach chart,$(CI_CHARTS),-e $(chart)) || test $$? -eq 1; } | sort -u
-
 # Each chart's chainsaw tests live in tests/e2e-<chart>/<scenario>/, configured by .chainsaw.yaml.
 # make chart-e2e-<chart> runs one chart's tests, e.g. make chart-e2e-signoz.
 .PHONY: chart-e2e

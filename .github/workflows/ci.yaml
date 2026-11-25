@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      # Stacked on #969 so CI runs before #969 merges; drop before this reaches main.
-      - ci/standardize-helm-charts-ci
   pull_request_target:
     types:
       - labeled
@@ -86,45 +84,22 @@ jobs:
       - name: docs-drift
         run: make chart-docs-check
 
-  # Picks the charts whose e2e tests run: the ones ct list-changed reports.
-  e2e-charts:
+  # Runs each chart's chainsaw tests (tests/e2e-<chart>) on its own kind cluster.
+  e2e:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    outputs:
-      charts: ${{ steps.list-changed.outputs.charts }}
-    steps:
-      - name: checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          fetch-depth: 0
-
-      - name: tools
-        run: make tools
-
-      - name: list-changed
-        id: list-changed
-        run: |
-          set -o pipefail
-          charts=$(make --no-print-directory chart-list-changed | xargs -r -n1 basename | jq -R . | jq -sc .)
-          echo "charts=$charts" >> "$GITHUB_OUTPUT"
-
-  # Runs each changed chart's chainsaw tests (tests/e2e-<chart>) on its own kind cluster.
-  e2e:
-    needs: [e2e-charts]
-    if: needs.e2e-charts.outputs.charts != '[]'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
-        chart: ${{ fromJSON(needs.e2e-charts.outputs.charts) }}
+        chart:
+          - signoz
+          - k8s-infra
+          - signoz-mcp-server
+          - signoz-operator
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
