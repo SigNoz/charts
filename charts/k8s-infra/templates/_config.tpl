@@ -58,7 +58,7 @@ Build config file for daemonset OpenTelemetry Collector: OtelAgent
 {{- if or .Values.presets.otlpExporter.enabled .Values.presets.otlphttpExporter.enabled}}
 {{- $config = (include "opentelemetry-collector.applyOtlpExporterConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
-{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
 {{- $_ := unset $config.service.pipelines "logs" }}
 {{- end }}
 {{- if or (eq (len $config.service.pipelines.metrics.receivers) 0) (eq (len $config.service.pipelines.metrics.exporters) 0) }}
@@ -116,7 +116,7 @@ Build config file for deployment OpenTelemetry Collector: OtelDeployment
 {{- if or (eq (len (index (index $config.service.pipelines "metrics/scraper") "receivers")) 0) (eq (len (index (index $config.service.pipelines "metrics/scraper") "exporters")) 0) }}
 {{- $_ := unset $config.service.pipelines "metrics/scraper" }}
 {{- end }}
-{{ if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
+{{- if or (eq (len $config.service.pipelines.logs.receivers) 0) (eq (len $config.service.pipelines.logs.exporters) 0) }}
 {{- $_ := unset $config.service.pipelines "logs" }}
 {{- end }}
 {{- tpl (toYaml $config) . }}
