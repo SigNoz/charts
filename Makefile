@@ -95,6 +95,22 @@ $(KUBECONFORM): $(BIN_DIR)
 	fi
 
 ###############################################################
+# chainsaw-tools
+###############################################################
+# renovate: datasource=github-releases depName=kyverno/chainsaw
+CHAINSAW_VERSION        ?= v0.2.15
+
+CHAINSAW ?= $(BIN_DIR)/chainsaw
+.PHONY: $(CHAINSAW)
+$(CHAINSAW): $(BIN_DIR)
+	@echo ">> Downloading chainsaw $(CHAINSAW_VERSION)"
+	@if $(CHAINSAW) version 2>/dev/null | grep -qE "^Version: +$(CHAINSAW_VERSION:v%=%)$$"; then \
+		echo ">> chainsaw $(CHAINSAW_VERSION) already exists, skipping download!"; \
+	else \
+		curl -fsSL https://github.com/kyverno/chainsaw/releases/download/$(CHAINSAW_VERSION)/chainsaw_$(OS)_$(ARCH).tar.gz | tar -xz -C $(BIN_DIR) chainsaw; \
+	fi
+
+###############################################################
 # common commands
 ###############################################################
 .PHONY: help
@@ -103,7 +119,7 @@ help: ## Displays help.
 
 .PHONY: tools
 tools: ## Downloads the pinned chart tools into tmp/bin.
-tools: $(HELM) $(HELM_UNITTEST) $(HELM_DOCS) $(CT) $(KUBECONFORM)
+tools: $(HELM) $(HELM_UNITTEST) $(HELM_DOCS) $(CT) $(KUBECONFORM) $(CHAINSAW)
 
 ###############################################################
 # chart-deps commands
@@ -184,11 +200,31 @@ chart-docs-check: chart-docs
 chart-list-changed: ## Prints the charts changed against main.
 	@set -o pipefail; $(CT) list-changed --config ct.yaml | { grep -v '^>>>' || true; }
 
+# Each chart's install test lives in charts/<chart>/tests/e2e/chainsaw-test.yaml: it installs the chart,
+# runs helm test, then uninstalls it the way the chart's README documents, and fails on any timeout.
+# INSTALL_CHARTS defaults to the charts changed against main; set it to a chart list (INSTALL_CHARTS=charts/signoz)
+# or to all.
+INSTALL_CHARTS          ?=
+
 .PHONY: chart-install-test
-chart-install-test: ## Installs the changed charts on the current cluster with ct.
-chart-install-test: $(CT)
-	@echo ">> Installing changed charts"
-	@$(CT) install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
+chart-install-test: ## Installs, tests and uninstalls the changed charts on the current cluster with chainsaw.
+chart-install-test: $(CHAINSAW) $(CT) chart-deps
+	@charts="$(if $(filter all,$(INSTALL_CHARTS)),$(CI_CHARTS),$(INSTALL_CHARTS))"; \
+	if [ -z "$$charts" ]; then charts="$$($(CT) list-changed --config ct.yaml | grep -v '^>>>')"; fi; \
+	if [ -z "$$charts" ]; then echo ">> No chart changed, skipping install tests"; exit 0; fi; \
+	dirs=""; for chart in $$charts; do \
+		if [ ! -f $$chart/tests/e2e/chainsaw-test.yaml ]; then echo ">> $$chart has no install test at $$chart/tests/e2e/chainsaw-test.yaml"; exit 1; fi; \
+		dirs="$$dirs --test-dir $$chart/tests/e2e"; \
+	done; \
+	echo ">> Running install tests for" $$charts; \
+	$(CHAINSAW) test $$dirs --no-color
+
+# Kept only to compare install times against chainsaw; ct's clean-up runs a plain helm uninstall.
+.PHONY: chart-install-test-ct
+chart-install-test-ct: ## Installs and tests every chart on the current cluster with ct install.
+chart-install-test-ct: $(CT)
+	@echo ">> Installing all charts with ct"
+	@$(CT) install --config ct.yaml --all --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
 
 ###############################################################
 # chart-dev commands

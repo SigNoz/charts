@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+# Installs the chart, runs helm test, then uninstalls it. The release or its namespace not going within
+# the timeouts fails the test.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: k8s-infra
+spec:
+  timeouts:
+    exec: 7m
+    cleanup: 3m
+  steps:
+    - name: install
+      try:
+        - script:
+            content: helm install k8s-infra ../.. --namespace $NAMESPACE --wait --timeout 5m --set otelCollectorEndpoint=endpoint-that-does-not-exist:4317
+        - script:
+            content: helm test k8s-infra --namespace $NAMESPACE --timeout 5m
+      catch: &diagnostics
+        - events: {}
+        - describe:
+            apiVersion: v1
+            kind: Pod
+        - podLogs: {}
+    - name: uninstall
+      try:
+        - script:
+            content: helm uninstall k8s-infra --namespace $NAMESPACE --wait --timeout 5m
+      catch: *diagnostics
