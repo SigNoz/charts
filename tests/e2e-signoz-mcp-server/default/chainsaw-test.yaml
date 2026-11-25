@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: signoz-mcp-server-default
+spec:
+  steps:
+    - name: install
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - install
+              - signoz-mcp-server
+              - ../../../charts/signoz-mcp-server
+              - --namespace
+              - ${NAMESPACE}
+              - --values
+              - 00-values.yaml
+              - --wait
+              - --timeout
+              - 5m
+    - name: helm-test
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - test
+              - signoz-mcp-server
+              - --namespace
+              - ${NAMESPACE}
+              - --timeout
+              - 5m
+    - name: uninstall
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - uninstall
+              - signoz-mcp-server
+              - --namespace
+              - ${NAMESPACE}
+              - --wait
+              - --timeout
+              - 5m

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: signoz-operator-default
+spec:
+  steps:
+    - name: install
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - install
+              - signoz-operator
+              - ../../../charts/signoz-operator
+              - --namespace
+              - ${NAMESPACE}
+              - --wait
+              - --timeout
+              - 5m
+    - name: helm-test
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - test
+              - signoz-operator
+              - --namespace
+              - ${NAMESPACE}
+              - --timeout
+              - 5m
+    - name: uninstall
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - uninstall
+              - signoz-operator
+              - --namespace
+              - ${NAMESPACE}
+              - --wait
+              - --timeout
+              - 5m
