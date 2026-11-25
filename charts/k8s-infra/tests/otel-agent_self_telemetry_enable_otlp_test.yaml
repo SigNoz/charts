@@ -23,6 +23,8 @@ set:
       enabled: false
     debugExporter:
       enabled: false
+    otlphttpExporter:
+      enabled: false
     otlpExporter:
       enabled: true
     logsCollection:
