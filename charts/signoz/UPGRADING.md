@@ -312,7 +312,8 @@ No action is needed in these cases:
 
 The backup Job does not run in any of these cases. Take the dump manually first, while the release is still on SigNoz Helm Chart 0.151.0 ([guide][guide-dump]):
 
-- Helm hooks do not run: Argo CD, rendered manifests, `--no-hooks`, or Terraform `helm_release` with `disable_webhooks = true`. With Argo CD or rendered manifests, you can apply the backup Job yourself instead ([Hooks](#100-hooks)).
+- Helm hooks do not run: rendered manifests, `--no-hooks`, or Terraform `helm_release` with `disable_webhooks = true`. With rendered manifests, you can apply the backup Job yourself instead ([Hooks](#100-hooks)).
+- Argo CD: the backup Job renders only for a Helm upgrade, so it is not in the rendered manifests ([guide][guide-argocd]).
 - `postgresql.upgradeBackupHook.enabled: false`
 - a `ReadWriteOncePod` PVC
 
@@ -367,6 +368,7 @@ In addition:
   2. `<release>-clickhouse-operator-upgrade`, which deletes the ClickHouse Operator Deployment that SigNoz Helm Chart 0.151.0 created.
   3. `<release>-clickhouse-operator-crd-install`, which applies the four CRDs. Allow Helm to create its ClusterRole.
 - No action is needed unless a row below applies.
+- With Argo CD, the hooks run as PreSync hooks on every sync. See [With Argo CD][guide-argocd] in the upgrade guide.
 
 <a id="100-hooks-actions"></a>
 #### Setup-specific actions
@@ -405,3 +407,4 @@ Follow the [uninstall steps](README.md#uninstalling-the-chart).
 [guide-store]: https://signoz.io/docs/operate/migration/upgrade-0-152/#step-1-keep-zookeeper-for-the-upgrade
 [guide-troubleshooting]: https://signoz.io/docs/operate/migration/upgrade-0-152/#troubleshooting
 [guide-selector]: https://signoz.io/docs/operate/migration/upgrade-0-152/#cannot-patch-release-clickhouse-operator-with-kind-deployment
+[guide-argocd]: https://signoz.io/docs/operate/migration/upgrade-0-152/#with-argo-cd
