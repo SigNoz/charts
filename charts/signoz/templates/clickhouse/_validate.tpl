@@ -16,6 +16,20 @@ null placeholder passes.
 {{- if not (kindIs "invalid" (index (.Values.clickhouse | default dict) "zookeeper")) }}
 {{ "`clickhouse.zookeeper` has moved to `zookeeper`: the same keys, at the top level." }}
 {{- end }}
+{{- /* The top-level `global` replaces a `global` under `zookeeper`, so these two keys have no top-level twin. */}}
+{{- $zookeeper := index (.Values.clickhouse | default dict) "zookeeper" }}
+{{- $zookeeperGlobal := dict }}
+{{- if kindIs "map" $zookeeper }}
+{{- if kindIs "map" (index $zookeeper "global") }}
+{{- $zookeeperGlobal = index $zookeeper "global" }}
+{{- end }}
+{{- end }}
+{{- if index $zookeeperGlobal "imageRegistry" }}
+{{ "`clickhouse.zookeeper.global.imageRegistry` has moved to `zookeeper.image.registry`, and to `zookeeper.volumePermissions.image.registry` for the volume-permissions init container." }}
+{{- end }}
+{{- if index $zookeeperGlobal "storageClass" }}
+{{ "`clickhouse.zookeeper.global.storageClass` has moved to `zookeeper.persistence.storageClass`." }}
+{{- end }}
 {{- /*
 ClickHouse values that took the Kubernetes shape: the probes, the pod security context and the extra volumes.
 An old key fails when it is set and non-empty; a probe in the old enabled/port/path shape fails when any of those keys holds a value.

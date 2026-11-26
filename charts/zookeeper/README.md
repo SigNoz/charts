@@ -1,6 +1,6 @@
 <!--- app-name: Apache ZooKeeper -->
 
-> This chart is deprecated: the signoz chart's ClickHouse Keeper (`keeper.*`) replaces it. It is kept only for existing installs until they migrate; see [ClickHouse Keeper replaces ZooKeeper](https://github.com/SigNoz/charts/blob/main/charts/signoz/upgrade-0.152.0.md#1-the-first-upgrade).
+> This chart is deprecated: the signoz chart's ClickHouse Keeper (`keeper.*`) replaces it. It is kept only for existing installs until they migrate; see [ClickHouse Keeper replaces ZooKeeper](https://github.com/SigNoz/charts/blob/main/charts/signoz/UPGRADING.md#100-keeper-default).
 
 # Apache ZooKeeper packaged by Bitnami
 
