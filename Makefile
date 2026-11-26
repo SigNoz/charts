@@ -179,10 +179,10 @@ chart-docs-check: chart-docs
 # chart-install commands
 ###############################################################
 .PHONY: chart-install-test
-chart-install-test: ## Installs the changed charts on the current cluster with ct.
+chart-install-test: ## Installs every chart on the current cluster with ct.
 chart-install-test: $(CT)
-	@echo ">> Installing changed charts"
-	@$(CT) install --config ct.yaml --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
+	@echo ">> Installing every chart"
+	@$(CT) install --config ct.yaml --all --helm-extra-set-args '--set=otelCollectorEndpoint=endpoint-that-does-not-exist:4317 --set=env[0].name=SIGNOZ_URL --set=env[0].value=http://signoz.invalid:8080'
 
 ###############################################################
 # chart-dev commands

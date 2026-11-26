@@ -2,7 +2,7 @@
 remote: origin
 target-branch: main
 debug: true
-# Discover charts under charts/ and process only the ones changed in the PR.
+# Discover charts under charts/.
 chart-dirs:
   - charts
 # redpanda and zookeeper are vendored and carry no tests; signoz-otel-gateway is
