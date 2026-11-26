@@ -1,0 +1,21 @@
+{{- if and .Values.clickhouse.enabled (eq (include "clickhouse.operatorEnabled" .) "true") .Values.clickhouse.uninstallHook.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "clickhouse.fullname" . }}-uninstall
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "clickhouse.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "clickhouse.fullname" . }}-uninstall
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "clickhouse.fullname" . }}-uninstall
+    namespace: {{ include "clickhouse.namespace" . }}
+{{- end }}

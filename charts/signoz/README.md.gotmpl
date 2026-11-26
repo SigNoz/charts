@@ -54,12 +54,22 @@ These commands deploy SigNoz in the default configuration. The [Configuration](#
 
 ### Uninstalling the chart
 
-To uninstall the chart, first delete the ClickHouse resources it created. The steps follow Altinity's [Uninstalling the Operator](https://docs.altinity.com/altinitykubernetesoperator/quickuninstall/).
+To uninstall the chart, delete the release. `helm uninstall` first deletes the ClickHouse resources the chart created, through the uninstall hook (`clickhouse.uninstallHook`), and then removes the release.
+
+#### Deleting the release
+
+```bash
+helm uninstall my-release -n platform
+```
+
+The hook waits for ClickHouse to shut down, within Helm's default timeout of 5 minutes. On a large installation, pass a longer one, for example `--timeout 15m`.
+
+#### Without the uninstall hook
+
+With `clickhouse.uninstallHook.enabled: false`, `helm uninstall --no-hooks`, or rendered manifests (`helm template`, `kubectl apply`), the hook does not run: delete the ClickHouse resources before the release. The steps follow Altinity's [Uninstalling the Operator](https://docs.altinity.com/altinitykubernetesoperator/quickuninstall/).
 
 > [!IMPORTANT]
-> Never run `helm uninstall` while the ClickHouse resources exist. `helm uninstall` removes the ClickHouse operator, and only the operator can finish deleting them.
-
-#### Deleting the ClickHouse resources
+> Without the hook, never run `helm uninstall` while the ClickHouse resources exist. `helm uninstall` removes the ClickHouse operator, and only the operator can finish deleting them.
 
 1. With `keeper.enabled: true`, delete the ClickHouseKeeperInstallation (`chk`):
 
@@ -73,13 +83,7 @@ To uninstall the chart, first delete the ClickHouse resources it created. The st
    kubectl delete chi my-release-clickhouse -n platform
    ```
 
-With `clickhouse.namespace` set, use that namespace in both commands.
-
-#### Deleting the release
-
-```bash
-helm uninstall my-release -n platform
-```
+With `clickhouse.namespace` set, use that namespace in both commands. Then delete the release.
 
 #### Deleting the PVCs
 
@@ -112,7 +116,7 @@ Delete the namespace after the ClickHouse resources are gone. A Namespace create
 kubectl delete ns platform
 ```
 
-#### If `helm uninstall` ran first
+#### If `helm uninstall` ran first without the hook
 
 - The ClickHouse resources stay on their finalizers, and their pods keep running.
 - A namespace deleted in this state stays `Terminating`.
