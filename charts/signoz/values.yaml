@@ -271,7 +271,6 @@ clickhouse:
   # @section -- ClickHouse
   # @default -- {}
   externalZookeeper: {}
-
   # clickhouse.profiles -- ClickHouse settings profiles, one key per profile and setting; they override `defaultProfiles`.
   # Settings: https://clickhouse.com/docs/en/operations/settings/settings/
   # @raw
@@ -398,7 +397,6 @@ clickhouse:
     # @default -- []
     # @section -- ClickHouse
     volumeClaimTemplates: []
-
   # clickhouse.podDistribution -- Operator rules that spread the ClickHouse pods across nodes, rendered as given; types:
   # https://github.com/Altinity/clickhouse-operator/blob/1414503921da3ae475eb6f9a296d3475a6993768/docs/chi-examples/99-clickhouseinstallation-max.yaml#L428-L481
   # @section -- ClickHouse
@@ -673,7 +671,6 @@ clickhouse:
   # -- Extra containers in the ClickHouse pod, Kubernetes Container objects rendered as given.
   # @section -- ClickHouse
   extraContainers: []
-
   # clickhouse.startupProbe -- Startup probe of the ClickHouse container, a Kubernetes probe object rendered as given; `null` renders none.
   # Helm merges your map into the default, so a handler other than `httpGet` must also clear `httpGet`.
   # @raw
@@ -740,7 +737,6 @@ clickhouse:
     timeoutSeconds: 1
     failureThreshold: 3
     successThreshold: 1
-
   # clickhouse.resources -- Resources of the ClickHouse container, a Kubernetes ResourceRequirements object rendered as given; size them for your load.
   # @section -- ClickHouse
   resources:
@@ -793,7 +789,6 @@ clickhouse:
   # -- Topology spread constraints of the ClickHouse pods, Kubernetes objects rendered as given.
   # @section -- ClickHouse
   topologySpreadConstraints: []
-
   # clickhouse.persistence -- ClickHouse persistence configuration.
   # @section -- ClickHouse
   persistence:
@@ -836,7 +831,6 @@ clickhouse:
   # -- Sources of extra environment variables for the container.
   # @section -- ClickHouse
   envFrom: []
-
 # ClickHouse Keeper, the default coordination store of the ClickHouse installation, rendered as a ClickHouseKeeperInstallation when `clickhouse.enabled` and `keeper.enabled` are both true.
 keeper:
   # Set it to false when `clickhouse.externalZookeeper.servers` is used: as with `zookeeper.enabled`, the bundled store stays installed unless its `enabled` is false.
@@ -986,7 +980,6 @@ keeper:
     # @default -- "the default provisioner"
     # @section -- ClickHouse Keeper
     storageClass: null
-
 # zookeeper -- Values of the bundled ZooKeeper chart, which ClickHouse coordinates through when `zookeeper.enabled` is true; its keys follow Bitnami's chart:
 # https://github.com/bitnami/charts/blob/main/bitnami/zookeeper/values.yaml
 # @default -- "See values.yaml"
@@ -997,12 +990,10 @@ zookeeper:
   # @default -- false
   # @section -- ZooKeeper
   enabled: false
-
   # -- Annotations on the metadata of every ZooKeeper object (not on the pod template).
   # @section -- ZooKeeper
   commonAnnotations:
     signoz.io/deprecated: "true"
-
   # -- Zookeeper image
   # @section -- ZooKeeper
   image:
@@ -1015,52 +1006,44 @@ zookeeper:
     # -- ZooKeeper version; ClickHouse does not work with every ZooKeeper version, so change it only to one ClickHouse supports.
     # @section -- ZooKeeper
     tag: 3.7.1
-
   # -- Replaces `zookeeper` in the ZooKeeper name `<release>-zookeeper`, by which the ClickHouse installation finds it.
   # @section -- ZooKeeper
   nameOverride: ""
   # -- Name of the ZooKeeper objects in place of `<release>-zookeeper`, by which the ClickHouse installation finds it.
   # @section -- ZooKeeper
   fullnameOverride: ""
-
   # -- Namespace of ZooKeeper, which must already exist; empty means the release namespace.
   # @section -- ZooKeeper
   namespaceOverride: ""
-
   # -- Annotations on the ZooKeeper pods; the `signoz.io/*` defaults let the SigNoz collectors scrape its metrics on port 9141.
   # @section -- ZooKeeper
   podAnnotations:
     signoz.io/scrape: "true"
     signoz.io/port: "9141"
     signoz.io/path: "/metrics"
-
   # -- Periodic purge of old ZooKeeper snapshots and transaction logs.
   # @section -- ZooKeeper
   autopurge:
     # -- Hours between purges; 0 disables purging.
     # @section -- ZooKeeper
     purgeInterval: 1
-
   # -- ZooKeeper Prometheus Exporter configuration.
   # @section -- ZooKeeper
   metrics:
     # -- Serve ZooKeeper's Prometheus metrics on port 9141, the port `podAnnotations` point the collectors at.
     # @section -- ZooKeeper
     enabled: true
-
     service:
       enabled: true
       # -- ZooKeeper metrics service annotation
       # @section -- ZooKeeper
       annotations: {}
-        # signoz.io/scrape: 'true'
-        # signoz.io/port: '9141'
-        # signoz.io/path: /metrics
-
+      # signoz.io/scrape: 'true'
+      # signoz.io/port: '9141'
+      # signoz.io/path: /metrics
   # -- Zookeeper log level.
   # @section -- ZooKeeper
   logLevel: INFO
-
   # -- Bitnami's built-in liveness probe, off because `customLivenessProbe` replaces it.
   # @section -- ZooKeeper
   livenessProbe:
@@ -1089,50 +1072,40 @@ zookeeper:
     timeoutSeconds: 5
     successThreshold: 1
     failureThreshold: 6
-
   # -- ZooKeeper server ID of the first replica; each further replica takes the next ID.
   # @section -- ZooKeeper
   minServerId: 1
-
   # -- Number of ZooKeeper replicas, each listed as a coordination node of the ClickHouse installation; use an odd number to keep a quorum.
   # @section -- ZooKeeper
   replicaCount: 1
-
   # -- PodDisruptionBudget of the ZooKeeper pods.
   # @section -- ZooKeeper
   pdb:
     # -- Specifies whether a Pod Disruption Budget should be created
     # @section -- ZooKeeper
     create: false
-
   # -- Storage of the ZooKeeper data.
   # @section -- ZooKeeper
   persistence:
     # -- Enable ZooKeeper data persistence using PVC. If false, use emptyDir
     # @section -- ZooKeeper
     enabled: true
-
     # -- Name of an existing PVC to use (only when deploying a single replica)
     # @section -- ZooKeeper
     existingClaim: ""
-
     # -- StorageClass of the ZooKeeper data claim; `-` disables dynamic provisioning, null uses the cluster default, and `global.storageClass` overrides it.
     # @section -- ZooKeeper
     storageClass: null
-
     # -- PVC Access modes
     # @section -- ZooKeeper
     accessModes:
       - ReadWriteOnce
-
     # -- PVC Storage Request for ZooKeeper data volume
     # @section -- ZooKeeper
     size: 8Gi
-
     # -- Annotations for the PVC
     # @section -- ZooKeeper
     annotations: {}
-
   # -- Resources requests and limits for zookeeper
   # @section -- ZooKeeper
   resources:
@@ -1152,7 +1125,6 @@ altinity-clickhouse-operator:
   # `helm install`, because the CRD-install hook runs before the chart's own resources (on a fresh install that uses
   # `clickhouse.namespace` here, create it first and install with `--take-ownership`).
   namespaceOverride: ""
-
   # altinity-clickhouse-operator.enabled -- Install the Altinity clickhouse-operator. Defaults to the value of clickhouse.enabled; set it only to override that (external ClickHouse: leave unset).
   # enabled: true
 
@@ -1447,7 +1419,7 @@ signoz:
     # Empty means the chart's appVersion.
     # -- Image tag.
     # @section -- SigNoz
-    tag: v0.151.0
+    tag: v0.152.0
     # -- Image pull policy.
     # @section -- SigNoz
     pullPolicy: IfNotPresent
@@ -1855,7 +1827,7 @@ otelCollector:
     repository: docker.io/signoz/signoz-otel-collector
     # otelCollector.image.tag - The container image tag.
     # @default -- "v0.144.0"
-    tag: v0.144.16
+    tag: v0.144.18
     # otelCollector.image.pullPolicy - The image pull policy.
     # @default -- "IfNotPresent"
     pullPolicy: IfNotPresent
@@ -1947,7 +1919,6 @@ otelCollector:
   # -- Sources of extra environment variables for the container.
   # @section -- Otel Collector
   envFrom: []
-
   # otelCollector.minReadySeconds -- Minimum number of seconds for a new pod to be ready.
   # @section -- Otel Collector
   # @default -- 5
@@ -2519,12 +2490,10 @@ postgresql:
   # -- Fullname override for postgreql
   # @section -- Postgres
   fullnameOverride: ""
-
   # postgresql.replicaCount -- Number of Postgres replicas.
   # @default -- 1
   # @section -- Postgres
   replicaCount: 1
-
   image:
     # postgresql.image.repository -- Postgres image repository.
     # @default -- "postgres"
@@ -2538,12 +2507,10 @@ postgresql:
     # @default -- "IfNotPresent"
     # @section -- Postgres
     pullPolicy: IfNotPresent
-
   # postgresql.imagePullSecrets -- Image pull secrets for Postgres pods
   # @default -- []
   # @section -- Postgres
   imagePullSecrets: []
-
   service:
     # postgresql.service.annotations -- Annotations for the Postgres service object.
     # @default -- {}
@@ -2561,7 +2528,6 @@ postgresql:
     # @default -- 5432
     # @section -- Postgres
     port: 5432
-
   auth:
     # postgresql.auth.username -- Username for the custom user to create.
     # @default -- "signoz"
@@ -2583,57 +2549,46 @@ postgresql:
       # @default -- "password"
       # @section -- Postgres
       userPasswordKey: ""
-
   # postgresql.resources -- Resource requests and limits for Postgres pods.
   # @default -- {}
   # @section -- Postgres
   resources: {}
-
   # postgresql.priorityClassName -- Priority class name for Postgres pods.
   # @default -- ""
   # @section -- Postgres
   priorityClassName: ""
-
   # postgresql.podSecurityContext -- Security context for Postgres pods.
   # @default -- {}
   # @section -- Postgres
   podSecurityContext: {}
-
   # postgresql.securityContext -- Container security context for Postgres containers.
   # @default -- {}
   # @section -- Postgres
   securityContext: {}
-
   # postgresql.podAnnotations -- Annotations for Postgres pods.
   # @default -- {}
   # @section -- Postgres
   podAnnotations: {}
-
   # postgresql.annotations -- Additional annotations for Postgres resources.
   # @default -- {}
   # @section -- Postgres
   annotations: {}
-
   # postgresql.nodeSelector -- Node selector for Postgres pods.
   # @default -- {}
   # @section -- Postgres
   nodeSelector: {}
-
   # postgresql.tolerations -- Tolerations for Postgres pods.
   # @default -- []
   # @section -- Postgres
   tolerations: []
-
   # postgresql.affinity -- Affinity rules for Postgres pods.
   # @default -- {}
   # @section -- Postgres
   affinity: {}
-
   # postgresql.topologySpreadConstraints -- Topology spread constraints for Postgres pods.
   # @default -- []
   # @section -- Postgres
   topologySpreadConstraints: []
-
   livenessProbe:
     # postgresql.livenessProbe.enabled -- Enable liveness probe.
     # @default -- true
@@ -2659,7 +2614,6 @@ postgresql:
     # @default -- 6
     # @section -- Postgres
     failureThreshold: 6
-
   readinessProbe:
     # postgresql.readinessProbe.enabled -- Enable readiness probe.
     # @default -- true
@@ -2685,7 +2639,6 @@ postgresql:
     # @default -- 6
     # @section -- Postgres
     failureThreshold: 6
-
   startupProbe:
     # Passes once Postgres answers on TCP and no dump is waiting at
     # `backups/pre-upgrade.sql` under `persistence.mountPath`, so a pod that has
@@ -2716,7 +2669,6 @@ postgresql:
     # -- Consecutive failures before the container is restarted.
     # @section -- Postgres
     failureThreshold: 180
-
   persistence:
     # postgresql.persistence.enabled -- Enable persistent storage for Postgres.
     # @default -- true
@@ -2766,7 +2718,6 @@ postgresql:
     # -- Data directory of Postgres (`PGDATA`).
     # @section -- Postgres
     dataDir: /var/lib/postgresql/data
-
   # Before an upgrade, dumps a database not on the claim for the new pod to load.
   upgradeBackupHook:
     # The hook does not run on `helm install`, without persistence, with a
@@ -2828,27 +2779,22 @@ postgresql:
     # -- Annotations to add to the Job.
     # @section -- Postgres
     annotations: {}
-
   # postgresql.additionalArgs -- Additional command-line arguments for Postgres containers.
   # @default -- []
   # @section -- Postgres
   additionalArgs: []
-
   # postgresql.additionalVolumes -- Additional volumes for Postgres pods.
   # @default -- []
   # @section -- Postgres
   additionalVolumes: []
-
   # postgresql.additionalVolumeMounts -- Additional volume mounts for Postgres containers.
   # @default -- []
   # @section -- Postgres
   additionalVolumeMounts: []
-
   # postgresql.extraEnv -- Extra environment variables for Postgres containers.
   # @default -- []
   # @section -- Postgres
   extraEnv: []
-
   serviceAccount:
     # postgresql.serviceAccount.create -- Specifies whether a service account should be created.
     # @default -- true
