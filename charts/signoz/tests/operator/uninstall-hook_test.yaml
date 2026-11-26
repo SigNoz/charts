@@ -70,7 +70,7 @@ tests:
               verbs: [get, list, watch, delete]
   - it: renders nothing when the hook is disabled
     set:
-      clickhouse.uninstallHook.enabled: false
+      clickhouse.hooks.uninstall.enabled: false
     asserts:
       - hasDocuments:
           count: 0
@@ -84,8 +84,8 @@ tests:
     template: templates/clickhouse/hooks/uninstall/job.yaml
     set:
       global.imageRegistry: mirror.example.com
-      clickhouse.uninstallHook.image.repository: registry.k8s.io/kubectl
-      clickhouse.uninstallHook.image.tag: t3
+      clickhouse.hooks.uninstall.image.repository: registry.k8s.io/kubectl
+      clickhouse.hooks.uninstall.image.tag: t3
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "uninstall")].image
@@ -103,21 +103,21 @@ tests:
             - name: registry-mirror
             - name: corp-pull
             - name: ch-vendor
-  - it: schedules the hook pod with clickhouse.uninstallHook.nodeSelector, tolerations, affinity, topologySpreadConstraints and priorityClassName, for tainted or dedicated nodes
+  - it: schedules the hook pod with clickhouse.hooks.uninstall.nodeSelector, tolerations, affinity, topologySpreadConstraints and priorityClassName, for tainted or dedicated nodes
     template: templates/clickhouse/hooks/uninstall/job.yaml
     set:
-      clickhouse.uninstallHook.nodeSelector: {node-role.example.com/platform: "true"}
-      clickhouse.uninstallHook.tolerations:
+      clickhouse.hooks.uninstall.nodeSelector: {node-role.example.com/platform: "true"}
+      clickhouse.hooks.uninstall.tolerations:
         - {key: dedicated, operator: Equal, value: platform, effect: NoSchedule}
-      clickhouse.uninstallHook.affinity:
+      clickhouse.hooks.uninstall.affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - {key: kubernetes.io/arch, operator: In, values: [amd64]}
-      clickhouse.uninstallHook.topologySpreadConstraints:
+      clickhouse.hooks.uninstall.topologySpreadConstraints:
         - {maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway}
-      clickhouse.uninstallHook.priorityClassName: platform-critical
+      clickhouse.hooks.uninstall.priorityClassName: platform-critical
     asserts:
       - equal:
           path: spec.template.spec.nodeSelector
@@ -141,13 +141,13 @@ tests:
       - equal:
           path: spec.template.spec.priorityClassName
           value: platform-critical
-  - it: runs the hook with clickhouse.uninstallHook.podSecurityContext on its pod and containerSecurityContext on uninstall, for a restricted namespace
+  - it: runs the hook with clickhouse.hooks.uninstall.podSecurityContext on its pod and containerSecurityContext on uninstall, for a restricted namespace
     template: templates/clickhouse/hooks/uninstall/job.yaml
     set:
-      clickhouse.uninstallHook.podSecurityContext:
+      clickhouse.hooks.uninstall.podSecurityContext:
         runAsNonRoot: true
         seccompProfile: {type: RuntimeDefault}
-      clickhouse.uninstallHook.containerSecurityContext:
+      clickhouse.hooks.uninstall.containerSecurityContext:
         allowPrivilegeEscalation: false
         capabilities: {drop: [ALL]}
     asserts:

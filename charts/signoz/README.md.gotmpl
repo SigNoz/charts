@@ -54,9 +54,9 @@ These commands deploy SigNoz in the default configuration. The [Configuration](#
 
 ### Uninstalling the chart
 
-To uninstall the chart, delete the release. `helm uninstall` first deletes the ClickHouse resources the chart created, through the uninstall hook (`clickhouse.uninstallHook`), and then removes the release.
+To uninstall the chart, delete the release. `helm uninstall` first deletes the ClickHouse resources the chart created, through the uninstall hook (`clickhouse.hooks.uninstall`), and then removes the release.
 
-The hook deletes both ClickHouse resources whatever annotations they carry. For `helm.sh/resource-policy: keep` on one of them (`clickhouse.annotations`, `keeper.annotations`) to take effect, also set `clickhouse.uninstallHook.enabled: false`.
+The hook deletes both ClickHouse resources whatever annotations they carry. For `helm.sh/resource-policy: keep` on one of them (`clickhouse.annotations`, `keeper.annotations`) to take effect, also set `clickhouse.hooks.uninstall.enabled: false`.
 
 #### Deleting the release
 
@@ -68,7 +68,7 @@ The hook waits for ClickHouse to shut down, within Helm's default timeout of 5 m
 
 #### Without the uninstall hook
 
-With `clickhouse.uninstallHook.enabled: false`, `helm uninstall --no-hooks`, or rendered manifests (`helm template`, `kubectl apply`), the hook does not run: delete the ClickHouse resources before the release. The steps follow Altinity's [Uninstalling the Operator](https://docs.altinity.com/altinitykubernetesoperator/quickuninstall/).
+With `clickhouse.hooks.uninstall.enabled: false`, `helm uninstall --no-hooks`, or rendered manifests (`helm template`, `kubectl apply`), the hook does not run: delete the ClickHouse resources before the release. The steps follow Altinity's [Uninstalling the Operator](https://docs.altinity.com/altinitykubernetesoperator/quickuninstall/).
 
 > [!IMPORTANT]
 > Without the hook, never run `helm uninstall` while the ClickHouse resources exist. `helm uninstall` removes the ClickHouse operator, and only the operator can finish deleting them.

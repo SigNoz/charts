@@ -1,4 +1,4 @@
-{{- if and .Values.clickhouse.enabled (eq (include "clickhouse.operatorEnabled" .) "true") .Values.clickhouse.uninstallHook.enabled }}
+{{- if and .Values.clickhouse.enabled (eq (include "clickhouse.operatorEnabled" .) "true") .Values.clickhouse.hooks.uninstall.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

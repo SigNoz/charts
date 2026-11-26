@@ -576,51 +576,54 @@ clickhouse:
     # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
     # @section -- ClickHouse
     containerSecurityContext: {}
-  uninstallHook:
-    # Helm removes the operator before the installations, and only the operator can finish deleting them.
-    # With rendered manifests (`helm template`, `kubectl apply`), set it to false and delete the installations before the operator.
-    # -- Run a pre-delete hook Job that deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation while the operator still runs, so that `helm uninstall` completes.
-    # @section -- ClickHouse
-    enabled: true
-    image:
-      # Optionally prefixed with a registry, which `global.imageRegistry` replaces when set.
-      # -- Image repository.
+  # Helm hook Jobs for the ClickHouse resources.
+  hooks:
+    # Pre-delete hook Job that deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation while the operator still runs.
+    uninstall:
+      # Helm removes the operator before the installations, and only the operator can finish deleting them.
+      # With rendered manifests (`helm template`, `kubectl apply`), set it to false and delete the installations before the operator.
+      # -- Run a pre-delete hook Job that deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation while the operator still runs, so that `helm uninstall` completes.
       # @section -- ClickHouse
-      repository: registry.k8s.io/kubectl
-      # The same image as `clickhouse.operatorUpgradeHook.image`: keep the two tags in step. The image publishes no `latest` tag.
-      # -- Image tag.
+      enabled: true
+      image:
+        # Optionally prefixed with a registry, which `global.imageRegistry` replaces when set.
+        # -- Image repository.
+        # @section -- ClickHouse
+        repository: registry.k8s.io/kubectl
+        # The same image as `clickhouse.operatorUpgradeHook.image`: keep the two tags in step. The image publishes no `latest` tag.
+        # -- Image tag.
+        # @section -- ClickHouse
+        tag: v1.36.3
+        # -- Image pull policy.
+        # @section -- ClickHouse
+        pullPolicy: IfNotPresent
+      # -- Resources of the hook container.
       # @section -- ClickHouse
-      tag: v1.36.3
-      # -- Image pull policy.
+      resources: {}
+      # -- Node labels for Pod assignment.
       # @section -- ClickHouse
-      pullPolicy: IfNotPresent
-    # -- Resources of the hook container.
-    # @section -- ClickHouse
-    resources: {}
-    # -- Node labels for Pod assignment.
-    # @section -- ClickHouse
-    nodeSelector: {}
-    # -- Tolerations for Pod assignment.
-    # @section -- ClickHouse
-    tolerations: []
-    # -- Affinity rules for Pod assignment.
-    # @section -- ClickHouse
-    affinity: {}
-    # -- Topology spread constraints for Pod assignment.
-    # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
-    # @section -- ClickHouse
-    topologySpreadConstraints: []
-    # -- PriorityClass of the Pod.
-    # @section -- ClickHouse
-    priorityClassName: ""
-    # -- Security context for the Pod.
-    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-    # @section -- ClickHouse
-    podSecurityContext: {}
-    # -- Security context for the container.
-    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-    # @section -- ClickHouse
-    containerSecurityContext: {}
+      nodeSelector: {}
+      # -- Tolerations for Pod assignment.
+      # @section -- ClickHouse
+      tolerations: []
+      # -- Affinity rules for Pod assignment.
+      # @section -- ClickHouse
+      affinity: {}
+      # -- Topology spread constraints for Pod assignment.
+      # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+      # @section -- ClickHouse
+      topologySpreadConstraints: []
+      # -- PriorityClass of the Pod.
+      # @section -- ClickHouse
+      priorityClassName: ""
+      # -- Security context for the Pod.
+      # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+      # @section -- ClickHouse
+      podSecurityContext: {}
+      # -- Security context for the container.
+      # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+      # @section -- ClickHouse
+      containerSecurityContext: {}
   udf:
     # -- Download the histogramQuantile binary from GitHub in an init container. SigNoz's histogram percentile queries call it.
     # When false, supply the binary through `clickhouse.extraInitContainers`.
