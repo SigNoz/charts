@@ -178,12 +178,6 @@ chart-docs-check: chart-docs
 ###############################################################
 # chart-install commands
 ###############################################################
-# ct.yaml sets debug, which echoes ">>>" commands to stdout; only changed chart paths are kept.
-# No tool prerequisite: its ">> Downloading" lines would land on stdout too. Run make tools first.
-.PHONY: chart-list-changed
-chart-list-changed: ## Prints the charts changed against main.
-	@set -o pipefail; $(CT) list-changed --config ct.yaml | { grep -v '^>>>' || true; }
-
 .PHONY: chart-install-test
 chart-install-test: ## Installs the changed charts on the current cluster with ct.
 chart-install-test: $(CT)
