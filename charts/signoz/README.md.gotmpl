@@ -56,6 +56,8 @@ These commands deploy SigNoz in the default configuration. The [Configuration](#
 
 To uninstall the chart, delete the release. `helm uninstall` first deletes the ClickHouse resources the chart created, through the uninstall hook (`clickhouse.uninstallHook`), and then removes the release.
 
+The hook deletes both ClickHouse resources whatever annotations they carry. For `helm.sh/resource-policy: keep` on one of them (`clickhouse.annotations`, `keeper.annotations`) to take effect, also set `clickhouse.uninstallHook.enabled: false`.
+
 #### Deleting the release
 
 ```bash
