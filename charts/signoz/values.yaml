@@ -47,6 +47,59 @@ clusterName: ""
 imagePullSecrets: []
 # - "signoz-pull-secret"
 
+# Helm hook Jobs of the chart.
+hooks:
+  # The chart's uninstall hook: a pre-delete Job that deletes the ClickHouse resources, the ClickHouseInstallation
+  # and the ClickHouseKeeperInstallation, while the ClickHouse operator still runs.
+  # Its objects are created in `clickhouse.namespace`, where the ClickHouse resources are.
+  # It renders only when ClickHouse is bundled (`clickhouse.enabled`) and the ClickHouse operator is part of the
+  # release (`altinity-clickhouse-operator.enabled`); otherwise these values have no effect.
+  uninstall:
+    # Helm removes the operator before the installations, and only the operator can finish deleting them.
+    # With rendered manifests (`helm template`, `kubectl apply`), set it to false and delete the installations before the operator.
+    # -- Run a pre-delete hook Job that deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation while the operator still runs, so that `helm uninstall` completes.
+    # @section -- Hooks
+    enabled: true
+    image:
+      # Optionally prefixed with a registry, which `global.imageRegistry` replaces when set.
+      # -- Image repository.
+      # @section -- Hooks
+      repository: registry.k8s.io/kubectl
+      # The same image as `clickhouse.operatorUpgradeHook.image`: keep the two tags in step. The image publishes no `latest` tag.
+      # -- Image tag.
+      # @section -- Hooks
+      tag: v1.36.3
+      # -- Image pull policy.
+      # @section -- Hooks
+      pullPolicy: IfNotPresent
+    # -- Resource requests and limits for the container.
+    # @section -- Hooks
+    resources: {}
+    # -- Node labels for pod assignment.
+    # @section -- Hooks
+    nodeSelector: {}
+    # -- Tolerations for pod assignment.
+    # @section -- Hooks
+    tolerations: []
+    # -- Affinity rules for pod assignment.
+    # @section -- Hooks
+    affinity: {}
+    # -- Topology spread constraints for pod assignment.
+    # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+    # @section -- Hooks
+    topologySpreadConstraints: []
+    # -- Priority class of the pod.
+    # @section -- Hooks
+    priorityClassName: ""
+    # -- Security context for the pod.
+    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+    # @section -- Hooks
+    podSecurityContext: {}
+    # -- Security context for the container.
+    # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+    # @section -- Hooks
+    containerSecurityContext: {}
+
 # -- The ClickHouse this chart installs, a ClickHouseInstallation that the operator from `altinity-clickhouse-operator` reconciles.
 # @default -- "See values.yaml"
 # @section -- ClickHouse
@@ -2240,6 +2293,7 @@ otelCollector:
     exporters:
       clickhousetraces:
         datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
+        timeout: 45s
         low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
         use_new_schema: true
       signozclickhousemetrics:
@@ -2247,12 +2301,12 @@ otelCollector:
         timeout: 45s
       clickhouselogsexporter:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
-        timeout: 10s
+        timeout: 45s
         use_new_schema: true
       metadataexporter:
         enabled: true
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
-        timeout: 10s
+        timeout: 45s
         tenant_id: ${env:TENANT_ID}
         cache:
           provider: in_memory

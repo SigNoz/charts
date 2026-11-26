@@ -1,0 +1,71 @@
+{{- if and .Values.clickhouse.enabled (eq (include "clickhouse.operatorEnabled" .) "true") .Values.hooks.uninstall.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-uninstall" (include "signoz.fullname" . | trunc 53 | trimSuffix "-") }}
+  namespace: {{ include "clickhouse.namespace" . }}
+  labels:
+    {{- include "hooks.uninstall.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-9"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "hooks.uninstall.labels" . | nindent 8 }}
+    spec:
+      {{- include "signoz.lib.imagePullSecrets" (dict "lists" (list .Values.global.imagePullSecrets .Values.imagePullSecrets .Values.clickhouse.imagePullSecrets)) | nindent 6 }}
+      serviceAccountName: {{ printf "%s-uninstall" (include "signoz.fullname" . | trunc 53 | trimSuffix "-") }}
+      restartPolicy: Never
+      {{- with .Values.hooks.uninstall.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.hooks.uninstall.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hooks.uninstall.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hooks.uninstall.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hooks.uninstall.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hooks.uninstall.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: uninstall
+          image: {{ include "signoz.lib.image" (dict "registry" .Values.global.imageRegistry "image" .Values.hooks.uninstall.image "name" "hooks.uninstall.image") }}
+          imagePullPolicy: {{ .Values.hooks.uninstall.image.pullPolicy }}
+          # Run without a shell: registry.k8s.io/kubectl is distroless.
+          # Helm removes the operator before the installations, and only the operator can
+          # finish deleting them. So they are deleted here, while the operator still runs.
+          command:
+            - kubectl
+          args:
+            - delete
+            - clickhouseinstallations.clickhouse.altinity.com/{{ include "clickhouse.fullname" . }}
+            {{- if .Values.keeper.enabled }}
+            - clickhousekeeperinstallations.clickhouse-keeper.altinity.com/{{ include "keeper.fullname" . }}
+            {{- end }}
+            - --namespace={{ include "clickhouse.namespace" . }}
+            - --ignore-not-found=true
+            - --wait=true
+          {{- with .Values.hooks.uninstall.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hooks.uninstall.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

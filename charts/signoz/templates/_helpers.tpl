@@ -71,6 +71,14 @@ app.kubernetes.io/component: {{ default "signoz" .Values.signoz.name }}
 {{- end -}}
 
 {{/*
+Labels of the uninstall hook's objects: the chart's labels, with the component `uninstall-hook`.
+*/}}
+{{- define "hooks.uninstall.labels" -}}
+{{- $selectorLabels := printf "app.kubernetes.io/name: %s\napp.kubernetes.io/instance: %s\napp.kubernetes.io/component: uninstall-hook" (include "signoz.name" .) .Release.Name -}}
+{{- include "signoz.lib.labels" (dict "chart" (include "signoz.chart" .) "selectorLabels" $selectorLabels "version" .Chart.AppVersion "managedBy" .Release.Service) -}}
+{{- end -}}
+
+{{/*
 Set signoz port
 */}}
 {{- define "signoz.port" -}}
