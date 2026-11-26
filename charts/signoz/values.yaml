@@ -2293,6 +2293,7 @@ otelCollector:
     exporters:
       clickhousetraces:
         datasource: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_TRACE_DATABASE}
+        timeout: 45s
         low_cardinal_exception_grouping: ${env:LOW_CARDINAL_EXCEPTION_GROUPING}
         use_new_schema: true
       signozclickhousemetrics:
@@ -2300,12 +2301,12 @@ otelCollector:
         timeout: 45s
       clickhouselogsexporter:
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/${env:CLICKHOUSE_LOG_DATABASE}
-        timeout: 10s
+        timeout: 45s
         use_new_schema: true
       metadataexporter:
         enabled: true
         dsn: tcp://${env:CLICKHOUSE_USER}:${env:CLICKHOUSE_PASSWORD}@${env:CLICKHOUSE_HOST}:${env:CLICKHOUSE_PORT}/signoz_metadata
-        timeout: 10s
+        timeout: 45s
         tenant_id: ${env:TENANT_ID}
         cache:
           provider: in_memory

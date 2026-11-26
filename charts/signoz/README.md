@@ -4198,7 +4198,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="postgresql--enabled"><a href="./values.yaml#L2343">postgresql.enabled</a></td>
+            <td id="postgresql--enabled"><a href="./values.yaml#L2344">postgresql.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -4207,7 +4207,7 @@ Group exceptions with low cardinality:
             <td>Install PostgreSQL. Switching an existing release from SQLite to Postgres needs a new release.</td>
         </tr>
         <tr>
-            <td id="postgresql--namespace"><a href="./values.yaml#L2346">postgresql.namespace</a></td>
+            <td id="postgresql--namespace"><a href="./values.yaml#L2347">postgresql.namespace</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4216,7 +4216,7 @@ Group exceptions with low cardinality:
             <td>Namespace of Postgres. Empty means the release namespace.</td>
         </tr>
         <tr>
-            <td id="postgresql--nameOverride"><a href="./values.yaml#L2349">postgresql.nameOverride</a></td>
+            <td id="postgresql--nameOverride"><a href="./values.yaml#L2350">postgresql.nameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4225,7 +4225,7 @@ Group exceptions with low cardinality:
             <td>Override the chart name.</td>
         </tr>
         <tr>
-            <td id="postgresql--fullnameOverride"><a href="./values.yaml#L2352">postgresql.fullnameOverride</a></td>
+            <td id="postgresql--fullnameOverride"><a href="./values.yaml#L2353">postgresql.fullnameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4234,7 +4234,7 @@ Group exceptions with low cardinality:
             <td>Override the full resource name.</td>
         </tr>
         <tr>
-            <td id="postgresql--replicaCount"><a href="./values.yaml#L2356">postgresql.replicaCount</a></td>
+            <td id="postgresql--replicaCount"><a href="./values.yaml#L2357">postgresql.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4243,7 +4243,7 @@ Group exceptions with low cardinality:
             <td>Number of replicas.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--repository"><a href="./values.yaml#L2361">postgresql.image.repository</a></td>
+            <td id="postgresql--image--repository"><a href="./values.yaml#L2362">postgresql.image.repository</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">postgres</pre>
@@ -4252,7 +4252,7 @@ Group exceptions with low cardinality:
             <td>Image repository.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--tag"><a href="./values.yaml#L2365">postgresql.image.tag</a></td>
+            <td id="postgresql--image--tag"><a href="./values.yaml#L2366">postgresql.image.tag</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"15"</pre>
@@ -4261,7 +4261,7 @@ Group exceptions with low cardinality:
             <td>Image tag.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--pullPolicy"><a href="./values.yaml#L2369">postgresql.image.pullPolicy</a></td>
+            <td id="postgresql--image--pullPolicy"><a href="./values.yaml#L2370">postgresql.image.pullPolicy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
@@ -4270,7 +4270,7 @@ Group exceptions with low cardinality:
             <td>Image pull policy.</td>
         </tr>
         <tr>
-            <td id="postgresql--imagePullSecrets"><a href="./values.yaml#L2373">postgresql.imagePullSecrets</a></td>
+            <td id="postgresql--imagePullSecrets"><a href="./values.yaml#L2374">postgresql.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4279,7 +4279,7 @@ Group exceptions with low cardinality:
             <td>Image pull secrets for the Postgres Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--annotations"><a href="./values.yaml#L2378">postgresql.service.annotations</a></td>
+            <td id="postgresql--service--annotations"><a href="./values.yaml#L2379">postgresql.service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4288,7 +4288,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Service.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--labels"><a href="./values.yaml#L2382">postgresql.service.labels</a></td>
+            <td id="postgresql--service--labels"><a href="./values.yaml#L2383">postgresql.service.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4297,7 +4297,7 @@ Group exceptions with low cardinality:
             <td>Labels to add to the Service.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--type"><a href="./values.yaml#L2386">postgresql.service.type</a></td>
+            <td id="postgresql--service--type"><a href="./values.yaml#L2387">postgresql.service.type</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
@@ -4306,7 +4306,7 @@ Group exceptions with low cardinality:
             <td>Kubernetes Service type.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--port"><a href="./values.yaml#L2390">postgresql.service.port</a></td>
+            <td id="postgresql--service--port"><a href="./values.yaml#L2391">postgresql.service.port</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5432</pre>
@@ -4315,7 +4315,7 @@ Group exceptions with low cardinality:
             <td>Service port.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--username"><a href="./values.yaml#L2395">postgresql.auth.username</a></td>
+            <td id="postgresql--auth--username"><a href="./values.yaml#L2396">postgresql.auth.username</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
@@ -4324,7 +4324,7 @@ Group exceptions with low cardinality:
             <td>User to create.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--password"><a href="./values.yaml#L2398">postgresql.auth.password</a></td>
+            <td id="postgresql--auth--password"><a href="./values.yaml#L2399">postgresql.auth.password</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz123</pre>
@@ -4333,7 +4333,7 @@ Group exceptions with low cardinality:
             <td>Password of the user, stored in the Secret `<fullname>-auth` under the key `password`. Ignored when `auth.existingSecret` is set.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--database"><a href="./values.yaml#L2402">postgresql.auth.database</a></td>
+            <td id="postgresql--auth--database"><a href="./values.yaml#L2403">postgresql.auth.database</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4342,7 +4342,7 @@ Group exceptions with low cardinality:
             <td>Database to create.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--existingSecret"><a href="./values.yaml#L2406">postgresql.auth.existingSecret</a></td>
+            <td id="postgresql--auth--existingSecret"><a href="./values.yaml#L2407">postgresql.auth.existingSecret</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4351,7 +4351,7 @@ Group exceptions with low cardinality:
             <td>Name of a Secret you created that holds the password. When set, the chart creates no Secret and ignores `auth.password`.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2411">postgresql.auth.secretKeys.userPasswordKey</a></td>
+            <td id="postgresql--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2412">postgresql.auth.secretKeys.userPasswordKey</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">password</pre>
@@ -4360,7 +4360,7 @@ Group exceptions with low cardinality:
             <td>Key of the password inside `auth.existingSecret`.</td>
         </tr>
         <tr>
-            <td id="postgresql--resources"><a href="./values.yaml#L2415">postgresql.resources</a></td>
+            <td id="postgresql--resources"><a href="./values.yaml#L2416">postgresql.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4369,7 +4369,7 @@ Group exceptions with low cardinality:
             <td>Resource requests and limits for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--priorityClassName"><a href="./values.yaml#L2419">postgresql.priorityClassName</a></td>
+            <td id="postgresql--priorityClassName"><a href="./values.yaml#L2420">postgresql.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4378,7 +4378,7 @@ Group exceptions with low cardinality:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--podSecurityContext"><a href="./values.yaml#L2424">postgresql.podSecurityContext</a></td>
+            <td id="postgresql--podSecurityContext"><a href="./values.yaml#L2425">postgresql.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4387,7 +4387,7 @@ Group exceptions with low cardinality:
             <td>Security context for the Pod. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="postgresql--securityContext"><a href="./values.yaml#L2429">postgresql.securityContext</a></td>
+            <td id="postgresql--securityContext"><a href="./values.yaml#L2430">postgresql.securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4396,7 +4396,7 @@ Group exceptions with low cardinality:
             <td>Security context for the container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="postgresql--podAnnotations"><a href="./values.yaml#L2433">postgresql.podAnnotations</a></td>
+            <td id="postgresql--podAnnotations"><a href="./values.yaml#L2434">postgresql.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4405,7 +4405,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--annotations"><a href="./values.yaml#L2437">postgresql.annotations</a></td>
+            <td id="postgresql--annotations"><a href="./values.yaml#L2438">postgresql.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4414,7 +4414,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Postgres objects.</td>
         </tr>
         <tr>
-            <td id="postgresql--nodeSelector"><a href="./values.yaml#L2441">postgresql.nodeSelector</a></td>
+            <td id="postgresql--nodeSelector"><a href="./values.yaml#L2442">postgresql.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4423,7 +4423,7 @@ Group exceptions with low cardinality:
             <td>Node labels for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--tolerations"><a href="./values.yaml#L2445">postgresql.tolerations</a></td>
+            <td id="postgresql--tolerations"><a href="./values.yaml#L2446">postgresql.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4432,7 +4432,7 @@ Group exceptions with low cardinality:
             <td>Tolerations for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--affinity"><a href="./values.yaml#L2449">postgresql.affinity</a></td>
+            <td id="postgresql--affinity"><a href="./values.yaml#L2450">postgresql.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4441,7 +4441,7 @@ Group exceptions with low cardinality:
             <td>Affinity rules for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--topologySpreadConstraints"><a href="./values.yaml#L2454">postgresql.topologySpreadConstraints</a></td>
+            <td id="postgresql--topologySpreadConstraints"><a href="./values.yaml#L2455">postgresql.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4450,7 +4450,7 @@ Group exceptions with low cardinality:
             <td>Topology spread constraints for Pod assignment. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--enabled"><a href="./values.yaml#L2459">postgresql.livenessProbe.enabled</a></td>
+            <td id="postgresql--livenessProbe--enabled"><a href="./values.yaml#L2460">postgresql.livenessProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4459,7 +4459,7 @@ Group exceptions with low cardinality:
             <td>Enable the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--initialDelaySeconds"><a href="./values.yaml#L2463">postgresql.livenessProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--livenessProbe--initialDelaySeconds"><a href="./values.yaml#L2464">postgresql.livenessProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">20</pre>
@@ -4468,7 +4468,7 @@ Group exceptions with low cardinality:
             <td>Initial delay of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--periodSeconds"><a href="./values.yaml#L2467">postgresql.livenessProbe.periodSeconds</a></td>
+            <td id="postgresql--livenessProbe--periodSeconds"><a href="./values.yaml#L2468">postgresql.livenessProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -4477,7 +4477,7 @@ Group exceptions with low cardinality:
             <td>Period of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--timeoutSeconds"><a href="./values.yaml#L2471">postgresql.livenessProbe.timeoutSeconds</a></td>
+            <td id="postgresql--livenessProbe--timeoutSeconds"><a href="./values.yaml#L2472">postgresql.livenessProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4486,7 +4486,7 @@ Group exceptions with low cardinality:
             <td>Timeout of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--successThreshold"><a href="./values.yaml#L2475">postgresql.livenessProbe.successThreshold</a></td>
+            <td id="postgresql--livenessProbe--successThreshold"><a href="./values.yaml#L2476">postgresql.livenessProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4495,7 +4495,7 @@ Group exceptions with low cardinality:
             <td>Success threshold of the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--failureThreshold"><a href="./values.yaml#L2479">postgresql.livenessProbe.failureThreshold</a></td>
+            <td id="postgresql--livenessProbe--failureThreshold"><a href="./values.yaml#L2480">postgresql.livenessProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">6</pre>
@@ -4504,7 +4504,7 @@ Group exceptions with low cardinality:
             <td>Failure threshold of the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--enabled"><a href="./values.yaml#L2484">postgresql.readinessProbe.enabled</a></td>
+            <td id="postgresql--readinessProbe--enabled"><a href="./values.yaml#L2485">postgresql.readinessProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4513,7 +4513,7 @@ Group exceptions with low cardinality:
             <td>Enable the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L2488">postgresql.readinessProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L2489">postgresql.readinessProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4522,7 +4522,7 @@ Group exceptions with low cardinality:
             <td>Initial delay of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--periodSeconds"><a href="./values.yaml#L2492">postgresql.readinessProbe.periodSeconds</a></td>
+            <td id="postgresql--readinessProbe--periodSeconds"><a href="./values.yaml#L2493">postgresql.readinessProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4531,7 +4531,7 @@ Group exceptions with low cardinality:
             <td>Period of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--timeoutSeconds"><a href="./values.yaml#L2496">postgresql.readinessProbe.timeoutSeconds</a></td>
+            <td id="postgresql--readinessProbe--timeoutSeconds"><a href="./values.yaml#L2497">postgresql.readinessProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">3</pre>
@@ -4540,7 +4540,7 @@ Group exceptions with low cardinality:
             <td>Timeout of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--successThreshold"><a href="./values.yaml#L2500">postgresql.readinessProbe.successThreshold</a></td>
+            <td id="postgresql--readinessProbe--successThreshold"><a href="./values.yaml#L2501">postgresql.readinessProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4549,7 +4549,7 @@ Group exceptions with low cardinality:
             <td>Success threshold of the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--failureThreshold"><a href="./values.yaml#L2504">postgresql.readinessProbe.failureThreshold</a></td>
+            <td id="postgresql--readinessProbe--failureThreshold"><a href="./values.yaml#L2505">postgresql.readinessProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">6</pre>
@@ -4558,7 +4558,7 @@ Group exceptions with low cardinality:
             <td>Failure threshold of the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--enabled"><a href="./values.yaml#L2509">postgresql.startupProbe.enabled</a></td>
+            <td id="postgresql--startupProbe--enabled"><a href="./values.yaml#L2510">postgresql.startupProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4567,7 +4567,7 @@ Group exceptions with low cardinality:
             <td>Enable the startup probe. It passes once Postgres answers and no dump waits at `backups/pre-upgrade.sql`. The liveness and readiness probes start only after it passes.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--initialDelaySeconds"><a href="./values.yaml#L2512">postgresql.startupProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--startupProbe--initialDelaySeconds"><a href="./values.yaml#L2513">postgresql.startupProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">0</pre>
@@ -4576,7 +4576,7 @@ Group exceptions with low cardinality:
             <td>Delay before the first startup probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--periodSeconds"><a href="./values.yaml#L2515">postgresql.startupProbe.periodSeconds</a></td>
+            <td id="postgresql--startupProbe--periodSeconds"><a href="./values.yaml#L2516">postgresql.startupProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -4585,7 +4585,7 @@ Group exceptions with low cardinality:
             <td>Interval between startup probes.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--timeoutSeconds"><a href="./values.yaml#L2518">postgresql.startupProbe.timeoutSeconds</a></td>
+            <td id="postgresql--startupProbe--timeoutSeconds"><a href="./values.yaml#L2519">postgresql.startupProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4594,7 +4594,7 @@ Group exceptions with low cardinality:
             <td>Timeout of each startup probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--successThreshold"><a href="./values.yaml#L2521">postgresql.startupProbe.successThreshold</a></td>
+            <td id="postgresql--startupProbe--successThreshold"><a href="./values.yaml#L2522">postgresql.startupProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4603,7 +4603,7 @@ Group exceptions with low cardinality:
             <td>Consecutive successes for the startup probe to pass. Kubernetes accepts only 1.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--failureThreshold"><a href="./values.yaml#L2525">postgresql.startupProbe.failureThreshold</a></td>
+            <td id="postgresql--startupProbe--failureThreshold"><a href="./values.yaml#L2526">postgresql.startupProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">180</pre>
@@ -4612,7 +4612,7 @@ Group exceptions with low cardinality:
             <td>Consecutive failures before the container is restarted. With the default period, a first start has 30 minutes to load a dump.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--enabled"><a href="./values.yaml#L2530">postgresql.persistence.enabled</a></td>
+            <td id="postgresql--persistence--enabled"><a href="./values.yaml#L2531">postgresql.persistence.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4621,7 +4621,7 @@ Group exceptions with low cardinality:
             <td>Enable persistence with a PersistentVolumeClaim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2535">postgresql.persistence.existingClaim</a></td>
+            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2536">postgresql.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">none, the chart's volume claim template</pre>
@@ -4630,7 +4630,7 @@ Group exceptions with low cardinality:
             <td>Name of an existing PVC to use. Rendered as a template. `{{ .Release.Name }}-{{ .Chart.Name }}` names the PVC `<release>-postgresql`.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--size"><a href="./values.yaml#L2539">postgresql.persistence.size</a></td>
+            <td id="postgresql--persistence--size"><a href="./values.yaml#L2540">postgresql.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10Gi</pre>
@@ -4639,7 +4639,7 @@ Group exceptions with low cardinality:
             <td>Size of the PVC.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2543">postgresql.persistence.storageClass</a></td>
+            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2544">postgresql.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -4648,7 +4648,7 @@ Group exceptions with low cardinality:
             <td>StorageClass of the PVC.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2548">postgresql.persistence.accessModes</a></td>
+            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2549">postgresql.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -4657,7 +4657,7 @@ Group exceptions with low cardinality:
             <td>Access modes of the PVC. Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2555">postgresql.persistence.mountPath</a></td>
+            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2556">postgresql.persistence.mountPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
@@ -4666,7 +4666,7 @@ Group exceptions with low cardinality:
             <td>Mount path of the data PVC. At `/var/lib/postgresql`, the chart also mounts the PVC's `data` directory at `/var/lib/postgresql/data`, so the database is on the PVC. Not applied to the official `postgres` image at tag 18 or later, or when an `additionalVolumeMounts` entry uses that path. At any other path, `persistence.dataDir` must be under this one.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2559">postgresql.persistence.subPath</a></td>
+            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2560">postgresql.persistence.subPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4675,7 +4675,7 @@ Group exceptions with low cardinality:
             <td>Subpath of the PVC that holds the Postgres data.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2563">postgresql.persistence.dataDir</a></td>
+            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2564">postgresql.persistence.dataDir</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
@@ -4684,7 +4684,7 @@ Group exceptions with low cardinality:
             <td>Data directory of Postgres (`PGDATA`). It must be a subdirectory of `persistence.mountPath`. A container that does not run as root cannot initialize the `data` directory. Use `/var/lib/postgresql/pgdata` for it.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2572">postgresql.upgradeBackupHook.enabled</a></td>
+            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2573">postgresql.upgradeBackupHook.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4693,7 +4693,7 @@ Group exceptions with low cardinality:
             <td>Run the pre-upgrade hook Job that dumps a database not on the PVC, for the new Pod to load. Not run on `helm install`, without persistence, with a `persistence.mountPath` other than `/var/lib/postgresql`, with a `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry at or above the data directory, with a `ReadWriteOncePod` PVC, or with `replicaCount: 0`. It runs on the Postgres Pod's node. While that Pod is absent, the upgrade fails after `activeDeadlineSeconds` with `DeadlineExceeded`. When false without a dump taken by hand, a database that is not on the PVC is lost: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2576">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
+            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2577">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">240</pre>
@@ -4702,7 +4702,7 @@ Group exceptions with low cardinality:
             <td>Time limit of the Job. When it passes, the Job and the upgrade fail. A value of 300 or more needs `helm upgrade --timeout` raised with it.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2580">postgresql.upgradeBackupHook.resources</a></td>
+            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2581">postgresql.upgradeBackupHook.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory</pre>
@@ -4711,7 +4711,7 @@ Group exceptions with low cardinality:
             <td>Resource requests and limits for the container. `null` sets none, and `{}` keeps the defaults.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2590">postgresql.upgradeBackupHook.nodeSelector</a></td>
+            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2591">postgresql.upgradeBackupHook.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `nodeSelector`</pre>
@@ -4720,7 +4720,7 @@ Group exceptions with low cardinality:
             <td>Node labels for Pod assignment. They must match the node of the Postgres Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2593">postgresql.upgradeBackupHook.tolerations</a></td>
+            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2594">postgresql.upgradeBackupHook.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4729,7 +4729,7 @@ Group exceptions with low cardinality:
             <td>Tolerations for Pod assignment, added to the Postgres Pod's `tolerations`.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2597">postgresql.upgradeBackupHook.priorityClassName</a></td>
+            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2598">postgresql.upgradeBackupHook.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `priorityClassName`</pre>
@@ -4738,7 +4738,7 @@ Group exceptions with low cardinality:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2600">postgresql.upgradeBackupHook.podAnnotations</a></td>
+            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2601">postgresql.upgradeBackupHook.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4747,7 +4747,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2603">postgresql.upgradeBackupHook.podLabels</a></td>
+            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2604">postgresql.upgradeBackupHook.podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4756,7 +4756,7 @@ Group exceptions with low cardinality:
             <td>Labels to add to the Pod. A key the chart also sets keeps the chart's value.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2606">postgresql.upgradeBackupHook.annotations</a></td>
+            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2607">postgresql.upgradeBackupHook.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4765,7 +4765,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Job. The `helm.sh/hook`, `helm.sh/hook-weight` and `helm.sh/hook-delete-policy` keys are ignored.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2610">postgresql.additionalArgs</a></td>
+            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2611">postgresql.additionalArgs</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4774,7 +4774,7 @@ Group exceptions with low cardinality:
             <td>Extra arguments for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2614">postgresql.additionalVolumes</a></td>
+            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2615">postgresql.additionalVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4783,7 +4783,7 @@ Group exceptions with low cardinality:
             <td>Extra volumes for the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2618">postgresql.additionalVolumeMounts</a></td>
+            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2619">postgresql.additionalVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4792,7 +4792,7 @@ Group exceptions with low cardinality:
             <td>Extra volume mounts for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--extraEnv"><a href="./values.yaml#L2622">postgresql.extraEnv</a></td>
+            <td id="postgresql--extraEnv"><a href="./values.yaml#L2623">postgresql.extraEnv</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4801,7 +4801,7 @@ Group exceptions with low cardinality:
             <td>Extra environment variables for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2627">postgresql.serviceAccount.create</a></td>
+            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2628">postgresql.serviceAccount.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4810,7 +4810,7 @@ Group exceptions with low cardinality:
             <td>Create a ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2631">postgresql.serviceAccount.annotations</a></td>
+            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2632">postgresql.serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4819,7 +4819,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2635">postgresql.serviceAccount.name</a></td>
+            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2636">postgresql.serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -4839,7 +4839,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2638">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2639">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -4860,7 +4860,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2645">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2646">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -4880,7 +4880,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2858">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L2859">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>
