@@ -367,16 +367,18 @@ In addition:
   1. `<release>-postgresql-upgrade-backup`, with bundled PostgreSQL ([PostgreSQL](#100-postgres)).
   2. `<release>-clickhouse-operator-upgrade`, which deletes the ClickHouse Operator Deployment that SigNoz Helm Chart 0.151.0 created.
   3. `<release>-clickhouse-operator-crd-install`, which applies the four CRDs. Allow Helm to create its ClusterRole.
+- `helm uninstall` runs one pre-delete Job, `<release>-signoz-uninstall`, the chart's uninstall hook, which deletes the ClickHouse resources, the ClickHouseInstallation and the ClickHouseKeeperInstallation, while the ClickHouse Operator still runs, so that the uninstall completes. It runs only on `helm uninstall`. `hooks.uninstall.enabled: false` turns it off.
 - No action is needed unless a row below applies.
-- With Argo CD, the hooks run as PreSync hooks on every sync. See [With Argo CD][guide-argocd] in the upgrade guide.
+- With Argo CD, the pre-install and pre-upgrade hooks run as PreSync hooks on every sync. See [With Argo CD][guide-argocd] in the upgrade guide.
 
 <a id="100-hooks-actions"></a>
 #### Setup-specific actions
 
 | If you | Do |
 |---|---|
-| Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, Roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Delete the hook objects before a SigNoz Helm Chart version that changes them. |
+| Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every `pre-install` and `pre-upgrade` hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, Roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Never apply the `pre-delete` hook objects: applying the Job deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation at once. Render with `hooks.uninstall.enabled: false` to leave them out. Delete the hook objects before a SigNoz Helm Chart version that changes them. |
 | Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old ClickHouse Operator Deployment manually right before the upgrade ([command][guide-selector]). |
+| Uninstall with `--no-hooks` or `hooks.uninstall.enabled: false`, or apply rendered manifests | Delete the ClickHouseKeeperInstallation and the ClickHouseInstallation before the ClickHouse Operator ([uninstall steps](README.md#uninstalling-the-chart)). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs manually before each ClickHouse Operator version change. |
 | Upgrade with `--no-hooks` or `postgresql.upgradeBackupHook.enabled: false`, with bundled PostgreSQL | See [PostgreSQL](#100-postgres). |
 
