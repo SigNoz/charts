@@ -253,6 +253,17 @@ Set a file to `null` to leave its table unconfigured.
 | `otelCollector.podLabels` | `otelCollector.pod.labels` | |
 | `otelCollector.securityContext` | `otelCollector.containerSecurityContext` | |
 
+<a id="100-collector-defaults"></a>
+#### Changed defaults
+
+Set the old value to keep it.
+
+| Key | Old value | New value |
+|---|---|---|
+| `otelCollector.config.exporters.clickhouselogsexporter.timeout` | `10s` | `45s` |
+| `otelCollector.config.exporters.clickhousetraces.timeout` | Not set (5s) | `45s` |
+| `otelCollector.config.exporters.metadataexporter.timeout` | `10s` | `45s` |
+
 <a id="100-collector-actions"></a>
 #### Setup-specific actions
 
