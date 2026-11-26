@@ -1,13 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
-suite: clickhouse/uninstall-hook
+suite: hooks/uninstall
 templates:
-  - templates/clickhouse/hooks/uninstall/job.yaml
-  - templates/clickhouse/hooks/uninstall/role.yaml
-  - templates/clickhouse/hooks/uninstall/rolebinding.yaml
-  - templates/clickhouse/hooks/uninstall/serviceaccount.yaml
+  - templates/hooks/uninstall/job.yaml
+  - templates/hooks/uninstall/role.yaml
+  - templates/hooks/uninstall/rolebinding.yaml
+  - templates/hooks/uninstall/serviceaccount.yaml
 tests:
   - it: deletes, before an uninstall, the ClickHouseInstallation and the ClickHouseKeeperInstallation by name, in ClickHouse's namespace
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+    template: templates/hooks/uninstall/job.yaml
     set:
       clickhouse.namespace: db
       altinity-clickhouse-operator.namespaceOverride: db
@@ -28,7 +28,7 @@ tests:
             - --ignore-not-found=true
             - --wait=true
   - it: deletes only the ClickHouseInstallation when Keeper is off
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+    template: templates/hooks/uninstall/job.yaml
     set:
       keeper.enabled: false
       zookeeper.enabled: true
@@ -43,22 +43,22 @@ tests:
             - --wait=true
   - it: creates the Job's ServiceAccount, Role and RoleBinding as pre-delete hooks before the Job, and lets the Job delete only the two installation kinds
     asserts:
-      - template: templates/clickhouse/hooks/uninstall/serviceaccount.yaml
+      - template: templates/hooks/uninstall/serviceaccount.yaml
         equal:
           path: metadata.annotations
           value:
             helm.sh/hook: pre-delete
             helm.sh/hook-weight: "-10"
             helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-      - template: templates/clickhouse/hooks/uninstall/rolebinding.yaml
+      - template: templates/hooks/uninstall/rolebinding.yaml
         equal:
           path: metadata.annotations["helm.sh/hook-weight"]
           value: "-10"
-      - template: templates/clickhouse/hooks/uninstall/job.yaml
+      - template: templates/hooks/uninstall/job.yaml
         equal:
           path: metadata.annotations["helm.sh/hook-weight"]
           value: "-9"
-      - template: templates/clickhouse/hooks/uninstall/role.yaml
+      - template: templates/hooks/uninstall/role.yaml
         equal:
           path: rules
           value:
@@ -70,7 +70,7 @@ tests:
               verbs: [get, list, watch, delete]
   - it: renders nothing when the hook is disabled
     set:
-      clickhouse.hooks.uninstall.enabled: false
+      hooks.uninstall.enabled: false
     asserts:
       - hasDocuments:
           count: 0
@@ -81,17 +81,17 @@ tests:
       - hasDocuments:
           count: 0
   - it: pulls the hook's kubectl image from global.imageRegistry, replacing registry.k8s.io
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+    template: templates/hooks/uninstall/job.yaml
     set:
       global.imageRegistry: mirror.example.com
-      clickhouse.hooks.uninstall.image.repository: registry.k8s.io/kubectl
-      clickhouse.hooks.uninstall.image.tag: t3
+      hooks.uninstall.image.repository: registry.k8s.io/kubectl
+      hooks.uninstall.image.tag: t3
     asserts:
       - equal:
           path: spec.template.spec.containers[?(@.name == "uninstall")].image
           value: mirror.example.com/kubectl:t3
   - it: pulls the hook's kubectl image with global.imagePullSecrets, then imagePullSecrets, then clickhouse.imagePullSecrets, in that order
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+    template: templates/hooks/uninstall/job.yaml
     set:
       global.imagePullSecrets: [registry-mirror]
       imagePullSecrets: [corp-pull]
@@ -103,21 +103,21 @@ tests:
             - name: registry-mirror
             - name: corp-pull
             - name: ch-vendor
-  - it: schedules the hook pod with clickhouse.hooks.uninstall.nodeSelector, tolerations, affinity, topologySpreadConstraints and priorityClassName, for tainted or dedicated nodes
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+  - it: schedules the hook pod with hooks.uninstall.nodeSelector, tolerations, affinity, topologySpreadConstraints and priorityClassName, for tainted or dedicated nodes
+    template: templates/hooks/uninstall/job.yaml
     set:
-      clickhouse.hooks.uninstall.nodeSelector: {node-role.example.com/platform: "true"}
-      clickhouse.hooks.uninstall.tolerations:
+      hooks.uninstall.nodeSelector: {node-role.example.com/platform: "true"}
+      hooks.uninstall.tolerations:
         - {key: dedicated, operator: Equal, value: platform, effect: NoSchedule}
-      clickhouse.hooks.uninstall.affinity:
+      hooks.uninstall.affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - {key: kubernetes.io/arch, operator: In, values: [amd64]}
-      clickhouse.hooks.uninstall.topologySpreadConstraints:
+      hooks.uninstall.topologySpreadConstraints:
         - {maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway}
-      clickhouse.hooks.uninstall.priorityClassName: platform-critical
+      hooks.uninstall.priorityClassName: platform-critical
     asserts:
       - equal:
           path: spec.template.spec.nodeSelector
@@ -141,13 +141,13 @@ tests:
       - equal:
           path: spec.template.spec.priorityClassName
           value: platform-critical
-  - it: runs the hook with clickhouse.hooks.uninstall.podSecurityContext on its pod and containerSecurityContext on uninstall, for a restricted namespace
-    template: templates/clickhouse/hooks/uninstall/job.yaml
+  - it: runs the hook with hooks.uninstall.podSecurityContext on its pod and containerSecurityContext on uninstall, for a restricted namespace
+    template: templates/hooks/uninstall/job.yaml
     set:
-      clickhouse.hooks.uninstall.podSecurityContext:
+      hooks.uninstall.podSecurityContext:
         runAsNonRoot: true
         seccompProfile: {type: RuntimeDefault}
-      clickhouse.hooks.uninstall.containerSecurityContext:
+      hooks.uninstall.containerSecurityContext:
         allowPrivilegeEscalation: false
         capabilities: {drop: [ALL]}
     asserts:
