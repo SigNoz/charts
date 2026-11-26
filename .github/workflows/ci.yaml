@@ -8,10 +8,7 @@ on:
     types:
       - labeled
 
-# Every job runs a Makefile target; the Makefile pins and downloads the chart tooling
-# (helm, helm-unittest, ct, kubeconform, helm-docs), so CI and local runs use the same versions.
 jobs:
-  # helm unittest for every chart with suites. No cluster and no secrets.
   unittest:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
@@ -29,7 +26,6 @@ jobs:
       - name: unittest
         run: make chart-unittest
 
-  # helm lint --strict through ct. No cluster and no secrets.
   lint:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
@@ -48,7 +44,6 @@ jobs:
       - name: lint
         run: make chart-lint
 
-  # Validates every chart's rendered manifests against the Kubernetes schemas with kubeconform.
   validate:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
@@ -66,7 +61,6 @@ jobs:
       - name: validate
         run: make chart-validate
 
-  # Fails when a chart's generated README drifts from its values.yaml.
   docs:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
@@ -84,7 +78,6 @@ jobs:
       - name: docs-drift
         run: make chart-docs-check
 
-  # Installs changed charts on a kind cluster. Only runs when a chart changed.
   install:
     if: |
       (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
