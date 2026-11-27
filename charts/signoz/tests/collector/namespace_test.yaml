@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/namespace
+templates:
+  - templates/otel-collector/deployment.yaml
+  - templates/otel-collector/configmap.yaml
+  - templates/otel-collector/service.yaml
+  - templates/otel-collector/serviceaccount.yaml
+  - templates/otel-collector/hpa.yaml
+  - templates/otel-collector/keda-autoscaler.yaml
+tests:
+  - it: places the collector's Deployment, ConfigMap, Service, ServiceAccount and HPA in the release namespace
+    release:
+      namespace: obs
+    set:
+      otelCollector.serviceAccount.create: true
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: false
+    asserts:
+      - template: templates/otel-collector/deployment.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/otel-collector/configmap.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/otel-collector/service.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/otel-collector/serviceaccount.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/otel-collector/hpa.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+
+  - it: places the collector's KEDA ScaledObject in the release namespace
+    release:
+      namespace: obs
+    set:
+      otelCollector.autoscaling.enabled: true
+      otelCollector.autoscaling.keda.enabled: true
+    asserts:
+      - template: templates/otel-collector/keda-autoscaler.yaml
+        equal:
+          path: metadata.namespace
+          value: obs

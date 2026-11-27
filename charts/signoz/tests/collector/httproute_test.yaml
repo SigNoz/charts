@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/httproute
+templates:
+  - templates/otel-collector/httproute.yaml
+  - templates/otel-collector/service.yaml
+tests:
+  - it: sends the default rule of an HTTPRoute with only otelCollector.httpRoute.parentRefs to otelCollector.ports.otlp-http.servicePort on the collector Service
+    set:
+      otelCollector.ports.otlp-http.servicePort: 9318
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+    asserts:
+      - template: templates/otel-collector/httproute.yaml
+        equal:
+          path: spec.rules
+          value:
+            - backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 9318}]
+      - template: templates/otel-collector/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: otlp-http, port: 9318}
+          any: true

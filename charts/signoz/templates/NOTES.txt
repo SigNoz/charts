@@ -14,6 +14,22 @@ Open SigNoz at:
   {{ $scheme }}://{{ $host.host }}{{ .path }}
 {{- end }}
 {{- end }}
+{{- else if .Values.signoz.httpRoute.enabled }}
+{{- with .Values.signoz.httpRoute.hostnames }}
+
+Open SigNoz through the Gateway at:
+{{- range . }}
+  {{ . }}
+{{- end }}
+{{- end }}
+{{- with .Values.signoz.httpRoute.parentRefs }}
+{{- with first . }}
+
+Check the Gateway the HTTPRoute attaches to:
+
+  kubectl get gateway {{ .name }} --namespace {{ .namespace | default (include "signoz.namespace" $) }}
+{{- end }}
+{{- end }}
 {{- else if contains "NodePort" .Values.signoz.service.type }}
 
 Get the SigNoz URL:

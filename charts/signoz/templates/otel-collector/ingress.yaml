@@ -1,54 +1,8 @@
 {{- if .Values.otelCollector.ingress.enabled }}
-{{- $ingress := .Values.otelCollector.ingress }}
-{{- $fullName := include "otelCollector.fullname" . }}
-{{- $apiIsStable := eq (include "ingress.isStable" .) "true" }}
-{{- $supportsPathType := eq (include "ingress.supportsPathType" .) "true" }}
-apiVersion: {{ include "ingress.apiVersion" . }}
-kind: Ingress
-metadata:
-  name: {{ $fullName }}
-  labels:
-    {{- include "otelCollector.labels" . | nindent 4 }}
-  {{- with $ingress.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  {{- if and $ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ $ingress.className }}
-  {{- end }}
-  {{- with $ingress.tls }}
-  tls:
-    {{- range . }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      {{- with .secretName }}
-      secretName: {{ . }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-  rules:
-    {{- range $ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if $supportsPathType }}
-            pathType: {{ .pathType }}
-            {{- end }}
-            backend:
-              {{- if $apiIsStable }}
-              service:
-                name: {{ $fullName }}
-                port:
-                  number: {{ .port }}
-              {{- else }}
-              serviceName: {{ $fullName }}
-              servicePort: {{ .port }}
-              {{- end }}
-          {{- end }}
-    {{- end }}
+{{- $args := dict "name" (include "otelCollector.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "otelCollector.labels" . | fromYaml) }}
+{{- $_ := set $args "ingress" .Values.otelCollector.ingress }}
+{{- $_ := set $args "port" (dig "otlp-http" "servicePort" "" .Values.otelCollector.ports) }}
+{{- include "signoz.lib.ingress" $args }}
 {{- end }}

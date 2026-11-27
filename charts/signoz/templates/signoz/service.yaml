@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "signoz.fullname" . }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "signoz.labels" . | fromYaml) $service.labels)) | nindent 4 }}
   {{- with $service.annotations }}

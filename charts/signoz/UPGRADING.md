@@ -130,6 +130,7 @@ See [Step 1: Keep ZooKeeper for the upgrade][guide-store] in the upgrade guide.
 - The Altinity ClickHouse Operator is upgraded from 0.21.2 to 0.27.4.
 - It is now installed from Altinity's Helm chart, `altinity-clickhouse-operator`.
 - The upgrade brings the three ClickHouse CustomResourceDefinitions (CRDs) to 0.27.4 and adds the ClickHouse Keeper CRD.
+- ClickHouse Operator 0.27.4 needs Kubernetes 1.25 or later, so SigNoz Helm Chart 1.0.0 does too.
 
 <a id="100-operator-moved"></a>
 #### Moved values
@@ -210,6 +211,9 @@ Set a file to `null` to leave its table unconfigured.
 <a id="100-signoz"></a>
 ### SigNoz
 
+- The Ingress renders `networking.k8s.io/v1` only. The `networking.k8s.io/v1beta1` and `extensions/v1beta1` fallbacks are gone.
+- `signoz.ingress.labels` labels the Ingress, and `signoz.httpRoute` creates a Gateway API HTTPRoute. Both are new.
+
 <a id="100-signoz-moved"></a>
 #### Moved values
 
@@ -235,6 +239,10 @@ Set a file to `null` to leave its table unconfigured.
 
 <a id="100-collector"></a>
 ### SigNoz OTel Collector
+
+- The Ingress renders `networking.k8s.io/v1` only, and the HorizontalPodAutoscaler `autoscaling/v2` only. The `networking.k8s.io/v1beta1`, `extensions/v1beta1` and `autoscaling/v2beta2` fallbacks are gone.
+- `otelCollector.ingress.labels` labels the Ingress, `otelCollector.httpRoute` and `otelCollector.grpcRoute` create Gateway API routes, and an `otelCollector.ports` entry can set `appProtocol`. All are new.
+- A collector Ingress path without `pathType` now gets `ImplementationSpecific`, and one without `port` now goes to `otelCollector.ports.otlp-http.servicePort`, as on the SigNoz Ingress.
 
 <a id="100-collector-moved"></a>
 #### Moved values
@@ -388,6 +396,7 @@ In addition:
 | If you | Do |
 |---|---|
 | Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every `pre-install` and `pre-upgrade` hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, Roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Never apply the `pre-delete` hook objects: applying the Job deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation at once. Render with `hooks.uninstall.enabled: false` to leave them out. Delete the hook objects before a SigNoz Helm Chart version that changes them. |
+| Apply rendered manifests (`helm template`, `kubectl apply`) | Render with `--namespace` set to the namespace you apply them to. Every namespaced object now sets its namespace, so `kubectl apply -n` with another namespace fails. |
 | Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old ClickHouse Operator Deployment manually right before the upgrade ([command][guide-selector]). |
 | Uninstall with `--no-hooks` or `hooks.uninstall.enabled: false`, or apply rendered manifests | Delete the ClickHouseKeeperInstallation and the ClickHouseInstallation before the ClickHouse Operator ([uninstall steps](README.md#uninstalling-the-chart)). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs manually before each ClickHouse Operator version change. |
