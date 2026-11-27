@@ -19,7 +19,7 @@ Kubernetes cluster using [Helm](https://helm.sh) package manager.
 
 ### Prerequisites
 
-- Kubernetes 1.16+
+- Kubernetes 1.25+
 - Helm 3.0+
 
 ### Installing the Chart

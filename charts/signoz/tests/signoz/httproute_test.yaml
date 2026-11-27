@@ -3,6 +3,7 @@ suite: signoz/httproute
 templates:
   - templates/signoz/httproute.yaml
   - templates/signoz/service.yaml
+  - templates/NOTES.txt
 tests:
   - it: renders no HTTPRoute without signoz.httpRoute.enabled
     template: templates/signoz/httproute.yaml
@@ -169,3 +170,29 @@ tests:
       - equal:
           path: metadata.namespace
           value: observability
+
+  - it: lists signoz.httpRoute.hostnames and the Gateway of the first parentRef in the install notes
+    template: templates/NOTES.txt
+    set:
+      signoz.httpRoute.enabled: true
+      signoz.httpRoute.parentRefs:
+        - {name: signoz-gateway, namespace: gateway-system}
+        - {name: backup-gateway, namespace: gateway-system}
+      signoz.httpRoute.hostnames: [signoz.example.com]
+    asserts:
+      - matchRegexRaw:
+          pattern: "\n  signoz\\.example\\.com\n"
+      - matchRegexRaw:
+          pattern: kubectl get gateway signoz-gateway --namespace gateway-system
+
+  - it: leaves the Gateway out of the install notes while signoz.httpRoute.parentRefs is empty
+    template: templates/NOTES.txt
+    set:
+      signoz.httpRoute.enabled: true
+      signoz.httpRoute.parentRefs: []
+      signoz.httpRoute.hostnames: [signoz.example.com]
+    asserts:
+      - matchRegexRaw:
+          pattern: "\n  signoz\\.example\\.com\n"
+      - notMatchRegexRaw:
+          pattern: kubectl get gateway
