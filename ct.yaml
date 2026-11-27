@@ -2,11 +2,15 @@
 remote: origin
 target-branch: main
 debug: true
-charts:
-  - charts/k8s-infra
-  - charts/signoz
-  - charts/signoz-operator
-  - charts/signoz-mcp-server
+# Discover charts under charts/.
+chart-dirs:
+  - charts
+# redpanda and zookeeper are vendored and carry no tests; signoz-otel-gateway is
+# excluded until its standalone rendering is fixed.
+excluded-charts:
+  - redpanda
+  - zookeeper
+  - signoz-otel-gateway
 check-version-increment: false
 helm-extra-args: --timeout 5m
 chart-repos:
