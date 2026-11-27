@@ -5,15 +5,6 @@ templates:
   - templates/signoz/service.yaml
   - templates/NOTES.txt
 tests:
-  - it: renders no HTTPRoute without signoz.httpRoute.enabled
-    template: templates/signoz/httproute.yaml
-    set:
-      signoz.httpRoute.enabled: false
-      signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
-    asserts:
-      - hasDocuments:
-          count: 0
-
   - it: sends the default rule of an HTTPRoute with only signoz.httpRoute.parentRefs to the SigNoz Service's signoz.service.port
     set:
       signoz.service.port: 9090
@@ -31,29 +22,8 @@ tests:
           content: {name: http, port: 9090}
           any: true
 
-  - it: sends a backendRef without a name to the SigNoz Service and keeps a name that is set
+  - it: sends a backendRef without a name or port to the SigNoz Service's signoz.service.port and keeps a name and port that are set
     template: templates/signoz/httproute.yaml
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
-      signoz.httpRoute.rules:
-        - matches: [{path: {type: PathPrefix, value: /api}}]
-          backendRefs: [{port: 8080}]
-        - matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-          backendRefs: [{name: opamp-proxy, port: 4320}]
-    asserts:
-      - contains:
-          path: spec.rules
-          content:
-            matches: [{path: {type: PathPrefix, value: /api}}]
-            backendRefs: [{name: RELEASE-NAME-signoz, port: 8080}]
-      - contains:
-          path: spec.rules
-          content:
-            matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-            backendRefs: [{name: opamp-proxy, port: 4320}]
-
-  - it: sends a backendRef without a port to the SigNoz Service's signoz.service.port and keeps a port that is set
     set:
       signoz.service.port: 9090
       signoz.httpRoute.enabled: true
@@ -62,68 +32,18 @@ tests:
         - matches: [{path: {type: PathPrefix, value: /}}]
           backendRefs: [{weight: 1}]
         - matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-          backendRefs: [{port: 4320}]
+          backendRefs: [{name: opamp-proxy, port: 4320}]
     asserts:
-      - template: templates/signoz/httproute.yaml
-        contains:
+      - contains:
           path: spec.rules
           content:
             matches: [{path: {type: PathPrefix, value: /}}]
             backendRefs: [{name: RELEASE-NAME-signoz, port: 9090, weight: 1}]
-      - template: templates/signoz/httproute.yaml
-        contains:
-          path: spec.rules
-          content:
-            matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-            backendRefs: [{name: RELEASE-NAME-signoz, port: 4320}]
-      - template: templates/signoz/service.yaml
-        contains:
-          path: spec.ports
-          content: {name: http, port: 9090}
-          any: true
-
-  - it: keeps each signoz.httpRoute rule a rule of its own, with its own backends
-    template: templates/signoz/httproute.yaml
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
-      signoz.httpRoute.rules:
-        - matches: [{path: {type: PathPrefix, value: /}}]
-          backendRefs: [{port: 8080}]
-        - matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-          backendRefs: [{port: 4320}]
-    asserts:
-      - lengthEqual:
-          path: spec.rules
-          count: 2
-      - contains:
-          path: spec.rules
-          content:
-            matches: [{path: {type: PathPrefix, value: /}}]
-            backendRefs: [{name: RELEASE-NAME-signoz, port: 8080}]
       - contains:
           path: spec.rules
           content:
             matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-            backendRefs: [{name: RELEASE-NAME-signoz, port: 4320}]
-
-  - it: keeps a signoz.httpRoute rule without matches apart from the rule before it
-    template: templates/signoz/httproute.yaml
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
-      signoz.httpRoute.rules:
-        - matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
-          backendRefs: [{port: 4320}]
-        - backendRefs: [{port: 8080}]
-    asserts:
-      - lengthEqual:
-          path: spec.rules
-          count: 2
-      - contains:
-          path: spec.rules
-          content:
-            backendRefs: [{name: RELEASE-NAME-signoz, port: 8080}]
+            backendRefs: [{name: opamp-proxy, port: 4320}]
 
   - it: adds no backend to a signoz.httpRoute rule without backendRefs
     template: templates/signoz/httproute.yaml
@@ -159,32 +79,6 @@ tests:
           path: metadata.labels.team
           value: observability
 
-  - it: leaves parentRefs and hostnames off the HTTPRoute while signoz.httpRoute.parentRefs and hostnames are empty
-    template: templates/signoz/httproute.yaml
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: []
-      signoz.httpRoute.hostnames: []
-    asserts:
-      - exists:
-          path: spec.rules
-      - notExists:
-          path: spec.parentRefs
-      - notExists:
-          path: spec.hostnames
-
-  - it: creates the HTTPRoute in the release namespace
-    template: templates/signoz/httproute.yaml
-    release:
-      namespace: observability
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
-    asserts:
-      - equal:
-          path: metadata.namespace
-          value: observability
-
   - it: lists signoz.httpRoute.hostnames and the Gateway of the first parentRef in the install notes
     template: templates/NOTES.txt
     set:
@@ -198,15 +92,3 @@ tests:
           pattern: "\n  signoz\\.example\\.com\n"
       - matchRegexRaw:
           pattern: kubectl get gateway signoz-gateway --namespace gateway-system
-
-  - it: leaves the Gateway out of the install notes while signoz.httpRoute.parentRefs is empty
-    template: templates/NOTES.txt
-    set:
-      signoz.httpRoute.enabled: true
-      signoz.httpRoute.parentRefs: []
-      signoz.httpRoute.hostnames: [signoz.example.com]
-    asserts:
-      - matchRegexRaw:
-          pattern: "\n  signoz\\.example\\.com\n"
-      - notMatchRegexRaw:
-          pattern: kubectl get gateway

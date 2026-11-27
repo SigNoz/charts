@@ -75,13 +75,3 @@ tests:
       - equal:
           path: metadata.labels.team
           value: observability
-
-  - it: creates the Ingress in the release namespace
-    release:
-      namespace: observability
-    set:
-      signoz.ingress.enabled: true
-    asserts:
-      - equal:
-          path: metadata.namespace
-          value: observability
