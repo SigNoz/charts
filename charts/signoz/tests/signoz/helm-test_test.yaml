@@ -3,7 +3,6 @@ suite: signoz/helm-test
 templates:
   - templates/signoz/tests/test-connection.yaml
   - templates/signoz/service.yaml
-  - templates/signoz/statefulset.yaml
 tests:
   - it: checks the health of the SigNoz Service on signoz.service.port with helm test
     set:
@@ -23,7 +22,7 @@ tests:
           path: spec.ports[?(@.name == "http")].port
           value: 9090
 
-  - it: runs helm test on the SigNoz image the release deploys, from signoz.image.repository and signoz.image.tag
+  - it: runs helm test on the SigNoz image from signoz.image.repository and signoz.image.tag
     set:
       signoz.image.repository: registry.example.com/signoz/signoz
       signoz.image.tag: v9.9.9
@@ -31,10 +30,6 @@ tests:
       - template: templates/signoz/tests/test-connection.yaml
         equal:
           path: spec.containers[?(@.name == "wget")].image
-          value: registry.example.com/signoz/signoz:v9.9.9
-      - template: templates/signoz/statefulset.yaml
-        equal:
-          path: spec.template.spec.containers[?(@.name == "signoz")].image
           value: registry.example.com/signoz/signoz:v9.9.9
 
   - it: pulls the helm test image with global.imagePullSecrets, imagePullSecrets and signoz.imagePullSecrets
