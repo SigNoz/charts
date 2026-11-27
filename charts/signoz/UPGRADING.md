@@ -388,6 +388,7 @@ In addition:
 | If you | Do |
 |---|---|
 | Apply rendered manifests (`helm template --is-upgrade`, `kubectl apply`), or your GitOps tool does not run Helm hooks | Apply every `pre-install` and `pre-upgrade` hook object in hook-weight order (`helm.sh/hook-weight`), lowest first, so that each Job's ServiceAccount, Roles and ConfigMaps exist before it. Let each Job finish before the next weight, then apply the rest. Never apply the `pre-delete` hook objects: applying the Job deletes the ClickHouseInstallation and the ClickHouseKeeperInstallation at once. Render with `hooks.uninstall.enabled: false` to leave them out. Delete the hook objects before a SigNoz Helm Chart version that changes them. |
+| Apply rendered manifests (`helm template`, `kubectl apply`) | Render with `--namespace` set to the namespace you apply them to. Every namespaced object now sets its namespace, so `kubectl apply -n` with another namespace fails. |
 | Upgrade with `--no-hooks` or `clickhouse.operatorUpgradeHook.enabled: false` | Delete the old ClickHouse Operator Deployment manually right before the upgrade ([command][guide-selector]). |
 | Uninstall with `--no-hooks` or `hooks.uninstall.enabled: false`, or apply rendered manifests | Delete the ClickHouseKeeperInstallation and the ClickHouseInstallation before the ClickHouse Operator ([uninstall steps](README.md#uninstalling-the-chart)). |
 | Upgrade with `--no-hooks` or `altinity-clickhouse-operator.crdHook.enabled: false` | Apply the four CRDs manually before each ClickHouse Operator version change. |
