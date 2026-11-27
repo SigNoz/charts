@@ -1576,6 +1576,9 @@ signoz:
     # -- Annotations to add to the Ingress.
     # @section -- SigNoz Networking
     annotations: {}
+    # -- Labels to add to the Ingress. A key that matches a chart label replaces it.
+    # @section -- SigNoz Networking
+    labels: {}
     # -- Hosts and paths of the Ingress.
     # A path without `port` routes to `signoz.service.port`, and a path without `pathType` gets `ImplementationSpecific`.
     # @default -- "the host signoz.domain.com, with the path / on port 8080"
@@ -2115,8 +2118,12 @@ otelCollector:
     # -- Annotations to add to the Ingress.
     # @section -- Otel Collector Networking
     annotations: {}
+    # -- Labels to add to the Ingress. A key that matches a chart label replaces it.
+    # @section -- Otel Collector Networking
+    labels: {}
     # -- Hosts and paths of the Ingress.
-    # @default -- "Please checkout the default values in values.yml"
+    # A path without `port` routes to `otelCollector.ports.otlp-http.servicePort`, and a path without `pathType` gets `ImplementationSpecific`.
+    # @default -- "the host otelcollector.domain.com, with the path / on port 4318"
     # @section -- Otel Collector Networking
     hosts:
       - host: otelcollector.domain.com

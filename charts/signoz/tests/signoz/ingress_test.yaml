@@ -2,11 +2,6 @@
 suite: signoz/ingress
 templates:
   - templates/signoz/ingress.yaml
-capabilities:
-  majorVersion: "1"
-  minorVersion: "30"
-  apiVersions:
-    - networking.k8s.io/v1
 tests:
   - it: renders no Ingress without signoz.ingress.enabled
     set:
@@ -66,3 +61,27 @@ tests:
             - hosts: [signoz.example.com]
               secretName: signoz-tls
             - hosts: [opamp.example.com]
+
+  - it: labels the Ingress with signoz.ingress.labels, a key that repeats a chart label taking the user's value
+    set:
+      signoz.ingress.enabled: true
+      signoz.ingress.labels:
+        app.kubernetes.io/component: query-service
+        team: observability
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: query-service
+      - equal:
+          path: metadata.labels.team
+          value: observability
+
+  - it: creates the Ingress in the release namespace
+    release:
+      namespace: observability
+    set:
+      signoz.ingress.enabled: true
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: observability

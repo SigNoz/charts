@@ -3,11 +3,6 @@ suite: signoz/ingress-paths
 templates:
   - templates/signoz/ingress.yaml
   - templates/signoz/service.yaml
-capabilities:
-  majorVersion: 1
-  minorVersion: 30
-  apiVersions:
-    - networking.k8s.io/v1
 tests:
   - it: routes an Ingress path without a port to the SigNoz Service's signoz.service.port
     set:

@@ -1,21 +1,20 @@
 {{- if .Values.otelCollector.ingress.enabled }}
 {{- $ingress := .Values.otelCollector.ingress }}
 {{- $fullName := include "otelCollector.fullname" . }}
-{{- $apiIsStable := eq (include "ingress.isStable" .) "true" }}
-{{- $supportsPathType := eq (include "ingress.supportsPathType" .) "true" }}
-apiVersion: {{ include "ingress.apiVersion" . }}
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
-    {{- include "otelCollector.labels" . | nindent 4 }}
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "otelCollector.labels" . | fromYaml) $ingress.labels)) | nindent 4 }}
   {{- with $ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and $ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ $ingress.className }}
+  {{- with $ingress.className }}
+  ingressClassName: {{ . }}
   {{- end }}
   {{- with $ingress.tls }}
   tls:
@@ -35,20 +34,17 @@ spec:
       http:
         paths:
           {{- range .paths }}
+          {{- $port := .port }}
+          {{- if not $port }}
+          {{- $port = index $.Values.otelCollector.ports "otlp-http" "servicePort" }}
+          {{- end }}
           - path: {{ .path }}
-            {{- if $supportsPathType }}
-            pathType: {{ .pathType }}
-            {{- end }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
-              {{- if $apiIsStable }}
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ .port }}
-              {{- else }}
-              serviceName: {{ $fullName }}
-              servicePort: {{ .port }}
-              {{- end }}
+                  number: {{ $port }}
           {{- end }}
     {{- end }}
 {{- end }}
