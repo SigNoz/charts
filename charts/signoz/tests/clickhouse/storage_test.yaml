@@ -39,6 +39,14 @@ tests:
       - equal:
           path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.storageClassName
           value: ""
+  - it: sets clickhouse.persistence.volumeAttributesClassName as the VolumeAttributesClass of claim template data-volumeclaim-template
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.volumeAttributesClassName: high-iops
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data-volumeclaim-template")].spec.volumeAttributesClassName
+          value: high-iops
   - it: keeps the claims the operator stops tracking, and the claim when the installation is removed
     template: templates/clickhouse/clickhouseinstallation.yaml
     asserts:
@@ -97,6 +105,23 @@ tests:
               accessModes: [ReadWriteOnce]
               resources: {requests: {storage: 5Gi}}
               storageClassName: fast
+  - it: sets volumeAttributesClassName of a clickhouse.templates.volumeClaimTemplates entry as the VolumeAttributesClass of its claim template
+    template: templates/clickhouse/clickhouseinstallation.yaml
+    set:
+      clickhouse.persistence.enabled: false
+      clickhouse.templates.volumeClaimTemplates:
+        - name: data
+          accessModes: [ReadWriteOnce]
+          resources: {requests: {storage: 5Gi}}
+          storageClassName: fast
+          volumeAttributesClassName: high-iops
+      clickhouse.extraVolumeMounts:
+        - name: data
+          mountPath: /var/lib/clickhouse
+    asserts:
+      - equal:
+          path: spec.templates.volumeClaimTemplates[?(@.name == "data")].spec.volumeAttributesClassName
+          value: high-iops
   - it: creates the expandable StorageClass gp2-resizable on aws
     template: templates/clickhouse/storageclass.yaml
     set:

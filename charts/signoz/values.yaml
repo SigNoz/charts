@@ -422,6 +422,7 @@ clickhouse:
     #     storageClassName: standard
     #   ```
     #
+    # An entry may also set `volumeAttributesClassName`, the VolumeAttributesClass of the claim.
     # @default -- []
     # @section -- ClickHouse
     volumeClaimTemplates: []
@@ -829,10 +830,11 @@ clickhouse:
     # @default -- null
     # @section -- ClickHouse
     storageClass: null
-    # -- VolumeAttributesClass to apply to the data PVC (Kubernetes 1.31+).
-    # When set, renders `volumeAttributesClassName: <name>` on the PVC, allowing
-    # in-place modification of volume parameters (e.g. EBS gp3 IOPS/throughput)
-    # without recreating the underlying volume.
+    # Needs a cluster with VolumeAttributesClass support and a CSI driver that supports it. Once set, it cannot be
+    # unset: the ClickHouse Operator only assigns the class, and Kubernetes does not allow clearing it.
+    # -- VolumeAttributesClass of the claim.
+    # Ref: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
+    # @default -- "no VolumeAttributesClass"
     # @section -- ClickHouse
     volumeAttributesClassName: null
     # -- Access modes of the PVC.
