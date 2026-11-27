@@ -3,6 +3,7 @@ suite: signoz/helm-test
 templates:
   - templates/signoz/tests/test-connection.yaml
   - templates/signoz/service.yaml
+  - templates/signoz/statefulset.yaml
 tests:
   - it: checks the health of the SigNoz Service on signoz.service.port with helm test
     set:
@@ -21,3 +22,66 @@ tests:
         equal:
           path: spec.ports[?(@.name == "http")].port
           value: 9090
+
+  - it: runs helm test on the SigNoz image the release deploys, from signoz.image.repository and signoz.image.tag
+    set:
+      signoz.image.repository: registry.example.com/signoz/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - template: templates/signoz/tests/test-connection.yaml
+        equal:
+          path: spec.containers[?(@.name == "wget")].image
+          value: registry.example.com/signoz/signoz:v9.9.9
+      - template: templates/signoz/statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[?(@.name == "signoz")].image
+          value: registry.example.com/signoz/signoz:v9.9.9
+
+  - it: pulls the helm test image from global.imageRegistry over the registry in signoz.image.repository
+    template: templates/signoz/tests/test-connection.yaml
+    set:
+      global.imageRegistry: mirror.example.com
+      signoz.image.repository: docker.io/signoz/signoz
+      signoz.image.tag: v9.9.9
+    asserts:
+      - equal:
+          path: spec.containers[?(@.name == "wget")].image
+          value: mirror.example.com/signoz/signoz:v9.9.9
+
+  - it: runs helm test on the chart's appVersion when signoz.image.tag is empty
+    template: templates/signoz/tests/test-connection.yaml
+    chart:
+      appVersion: v1.2.3
+    set:
+      signoz.image.repository: registry.example.com/signoz/signoz
+      signoz.image.tag: ""
+    asserts:
+      - equal:
+          path: spec.containers[?(@.name == "wget")].image
+          value: registry.example.com/signoz/signoz:v1.2.3
+
+  - it: pulls the helm test image with global.imagePullSecrets, imagePullSecrets and signoz.imagePullSecrets
+    template: templates/signoz/tests/test-connection.yaml
+    set:
+      global.imagePullSecrets: [global-pull]
+      imagePullSecrets: [root-pull]
+      signoz.imagePullSecrets: [signoz-pull]
+    asserts:
+      - contains:
+          path: spec.imagePullSecrets
+          content: {name: global-pull}
+      - contains:
+          path: spec.imagePullSecrets
+          content: {name: root-pull}
+      - contains:
+          path: spec.imagePullSecrets
+          content: {name: signoz-pull}
+
+  - it: creates the helm test Pod in the release namespace, where the SigNoz Service name resolves
+    template: templates/signoz/tests/test-connection.yaml
+    release:
+      namespace: observability
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: observability
