@@ -5,11 +5,6 @@ templates:
   - templates/otel-collector/service.yaml
 tests:
   - it: routes each otelCollector.ingress host and path to the collector Service on the path's port
-    capabilities:
-      majorVersion: "1"
-      minorVersion: "30"
-      apiVersions:
-        - networking.k8s.io/v1
     set:
       otelCollector.ingress:
         enabled: true
@@ -37,3 +32,24 @@ tests:
         equal:
           path: metadata.name
           value: RELEASE-NAME-signoz-otel-collector
+
+  - it: routes a collector Ingress path without a port to otelCollector.ports.otlp-http.servicePort on the collector Service
+    set:
+      otelCollector.ports.otlp-http.servicePort: 4319
+      otelCollector.ingress:
+        enabled: true
+        hosts:
+          - host: otlp.example.com
+            paths:
+              - path: /
+                pathType: Prefix
+    asserts:
+      - template: templates/otel-collector/ingress.yaml
+        equal:
+          path: spec.rules[?(@.host == "otlp.example.com")].http.paths[?(@.path == "/")].backend.service.port.number
+          value: 4319
+      - template: templates/otel-collector/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: otlp-http, port: 4319}
+          any: true

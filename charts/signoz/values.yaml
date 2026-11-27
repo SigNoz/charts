@@ -1576,20 +1576,67 @@ signoz:
     # -- Annotations to add to the Ingress.
     # @section -- SigNoz Networking
     annotations: {}
+    # -- Labels to add to the Ingress. A key that matches a chart label replaces it.
+    # @section -- SigNoz Networking
+    labels: {}
     # -- Hosts and paths of the Ingress.
     # A path without `port` routes to `signoz.service.port`, and a path without `pathType` gets `ImplementationSpecific`.
-    # @default -- "the host signoz.domain.com, with the path / on port 8080"
+    # @default -- "the host signoz.domain.com, with the path / on signoz.service.port"
     # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
-            port: 8080
     # -- TLS settings of the Ingress, as entries with `hosts` and an optional `secretName`.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- SigNoz Networking
     tls: []
+  httpRoute:
+    # -- Create a Gateway API HTTPRoute for SigNoz.
+    # The Gateway API CRDs and a Gateway must already exist in the cluster.
+    # @section -- SigNoz Networking
+    enabled: false
+    # -- Annotations to add to the HTTPRoute.
+    # @section -- SigNoz Networking
+    annotations: {}
+    # -- Labels to add to the HTTPRoute. A key that matches a chart label replaces it.
+    # @section -- SigNoz Networking
+    labels: {}
+    # -- Gateways the HTTPRoute attaches to.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#attaching-to-gateways
+    # @raw
+    # A listener of a Gateway in another namespace:
+    #
+    #   ```yaml
+    #   - name: my-gateway
+    #     namespace: gateway-system
+    #     sectionName: https
+    #   ```
+    #
+    # @section -- SigNoz Networking
+    parentRefs: []
+    # -- Hostnames the HTTPRoute matches.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#hostnames
+    # @section -- SigNoz Networking
+    hostnames: []
+    # -- Rules of the HTTPRoute.
+    # An empty list renders one rule to the SigNoz Service on `signoz.service.port`; a backendRef without `name` or `port` gets the same.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
+    # @raw
+    # Only the API paths:
+    #
+    #   ```yaml
+    #   - matches:
+    #       - path:
+    #           type: PathPrefix
+    #           value: /api
+    #     backendRefs:
+    #       - port: 8080
+    #   ```
+    #
+    # @section -- SigNoz Networking
+    rules: []
   # -- Resource requests and limits for the container.
   # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
@@ -1870,6 +1917,16 @@ otelCollector:
       name: ""
   # -- Port configuration. Each entry is a port of the collector container and of its Service.
   # An entry of your own needs `enabled`, `containerPort`, `servicePort` and `protocol`. Its name is a port name of at most 15 characters.
+  # An entry may also set `appProtocol`, the application protocol of its Service port.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#application-protocol
+  # @raw
+  # HTTP/2 cleartext from a Gateway to OTLP gRPC, for `otelCollector.grpcRoute`:
+  #
+  #   ```yaml
+  #   otlp:
+  #     appProtocol: kubernetes.io/h2c
+  #   ```
+  #
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
   ports:
@@ -2067,15 +2124,18 @@ otelCollector:
     # -- Annotations to add to the Ingress.
     # @section -- Otel Collector Networking
     annotations: {}
+    # -- Labels to add to the Ingress. A key that matches a chart label replaces it.
+    # @section -- Otel Collector Networking
+    labels: {}
     # -- Hosts and paths of the Ingress.
-    # @default -- "Please checkout the default values in values.yml"
+    # A path without `port` routes to `otelCollector.ports.otlp-http.servicePort`, and a path without `pathType` gets `ImplementationSpecific`.
+    # @default -- "the host otelcollector.domain.com, with the path / on otelCollector.ports.otlp-http.servicePort"
     # @section -- Otel Collector Networking
     hosts:
       - host: otelcollector.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
-            port: 4318
     # -- TLS settings of the Ingress.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- Otel Collector Networking
@@ -2083,6 +2143,97 @@ otelCollector:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - otelcollector.domain.com
+  httpRoute:
+    # -- Create a Gateway API HTTPRoute for the collector.
+    # The Gateway API CRDs and a Gateway must already exist in the cluster.
+    # @section -- Otel Collector Networking
+    enabled: false
+    # -- Annotations to add to the HTTPRoute.
+    # @section -- Otel Collector Networking
+    annotations: {}
+    # -- Labels to add to the HTTPRoute. A key that matches a chart label replaces it.
+    # @section -- Otel Collector Networking
+    labels: {}
+    # -- Gateways the HTTPRoute attaches to.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#attaching-to-gateways
+    # @raw
+    # A listener of a Gateway in another namespace:
+    #
+    #   ```yaml
+    #   - name: my-gateway
+    #     namespace: gateway-system
+    #     sectionName: https
+    #   ```
+    #
+    # @section -- Otel Collector Networking
+    parentRefs: []
+    # -- Hostnames the HTTPRoute matches.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#hostnames
+    # @section -- Otel Collector Networking
+    hostnames: []
+    # -- Rules of the HTTPRoute.
+    # An empty list renders one rule to the collector Service on `otelCollector.ports.otlp-http.servicePort`; a backendRef without `name` or `port` gets the same.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
+    # @raw
+    # Only the OTLP HTTP paths:
+    #
+    #   ```yaml
+    #   - matches:
+    #       - path:
+    #           type: PathPrefix
+    #           value: /v1
+    #     backendRefs:
+    #       - port: 4318
+    #   ```
+    #
+    # @section -- Otel Collector Networking
+    rules: []
+  grpcRoute:
+    # -- Create a Gateway API GRPCRoute for the collector.
+    # The Gateway API CRDs, of v1.1 or later, and a Gateway must already exist in the cluster.
+    # @section -- Otel Collector Networking
+    enabled: false
+    # -- Annotations to add to the GRPCRoute.
+    # @section -- Otel Collector Networking
+    annotations: {}
+    # -- Labels to add to the GRPCRoute. A key that matches a chart label replaces it.
+    # @section -- Otel Collector Networking
+    labels: {}
+    # -- Gateways the GRPCRoute attaches to.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#attaching-to-gateways
+    # @raw
+    # A listener of a Gateway in another namespace:
+    #
+    #   ```yaml
+    #   - name: my-gateway
+    #     namespace: gateway-system
+    #     sectionName: grpc
+    #   ```
+    #
+    # @section -- Otel Collector Networking
+    parentRefs: []
+    # -- Hostnames the GRPCRoute matches.
+    # Keep them apart from `otelCollector.httpRoute.hostnames` on a shared listener: implementations may reject one of the two routes.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#cross-serving
+    # @section -- Otel Collector Networking
+    hostnames: []
+    # -- Rules of the GRPCRoute.
+    # An empty list renders one rule to the collector Service on `otelCollector.ports.otlp.servicePort`; a backendRef without `name` or `port` gets the same.
+    # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#rules
+    # @raw
+    # Only OTLP traces:
+    #
+    #   ```yaml
+    #   - matches:
+    #       - method:
+    #           service: opentelemetry.proto.collector.trace.v1.TraceService
+    #           method: Export
+    #     backendRefs:
+    #       - port: 4317
+    #   ```
+    #
+    # @section -- Otel Collector Networking
+    rules: []
   # -- Resource requests and limits for the container.
   # @section -- Otel Collector
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }

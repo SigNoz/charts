@@ -130,6 +130,7 @@ See [Step 1: Keep ZooKeeper for the upgrade][guide-store] in the upgrade guide.
 - The Altinity ClickHouse Operator is upgraded from 0.21.2 to 0.27.4.
 - It is now installed from Altinity's Helm chart, `altinity-clickhouse-operator`.
 - The upgrade brings the three ClickHouse CustomResourceDefinitions (CRDs) to 0.27.4 and adds the ClickHouse Keeper CRD.
+- ClickHouse Operator 0.27.4 needs Kubernetes 1.25 or later, so SigNoz Helm Chart 1.0.0 does too.
 
 <a id="100-operator-moved"></a>
 #### Moved values
@@ -210,6 +211,9 @@ Set a file to `null` to leave its table unconfigured.
 <a id="100-signoz"></a>
 ### SigNoz
 
+- The Ingress renders `networking.k8s.io/v1` only. The `networking.k8s.io/v1beta1` and `extensions/v1beta1` fallbacks are gone.
+- `signoz.ingress.labels` labels the Ingress, and `signoz.httpRoute` creates a Gateway API HTTPRoute. Both are new.
+
 <a id="100-signoz-moved"></a>
 #### Moved values
 
@@ -235,6 +239,10 @@ Set a file to `null` to leave its table unconfigured.
 
 <a id="100-collector"></a>
 ### SigNoz OTel Collector
+
+- The Ingress renders `networking.k8s.io/v1` only, and the HorizontalPodAutoscaler `autoscaling/v2` only. The `networking.k8s.io/v1beta1`, `extensions/v1beta1` and `autoscaling/v2beta2` fallbacks are gone.
+- `otelCollector.ingress.labels` labels the Ingress, `otelCollector.httpRoute` and `otelCollector.grpcRoute` create Gateway API routes, and an `otelCollector.ports` entry can set `appProtocol`. All are new.
+- A collector Ingress path without `pathType` now gets `ImplementationSpecific`, and one without `port` now goes to `otelCollector.ports.otlp-http.servicePort`, as on the SigNoz Ingress.
 
 <a id="100-collector-moved"></a>
 #### Moved values
