@@ -2,8 +2,8 @@ apiVersion: v2
 name: signoz-mcp-server
 description: Helm chart for the SigNoz MCP server
 type: application
-version: 1.0.0
-appVersion: "v1.0.0"
+version: 1.0.1
+appVersion: "v1.0.1"
 home: https://signoz.io
 icon: https://signoz.io/img/SigNozLogo-orange.svg
 keywords:
