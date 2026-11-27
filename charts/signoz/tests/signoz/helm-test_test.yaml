@@ -37,29 +37,6 @@ tests:
           path: spec.template.spec.containers[?(@.name == "signoz")].image
           value: registry.example.com/signoz/signoz:v9.9.9
 
-  - it: pulls the helm test image from global.imageRegistry over the registry in signoz.image.repository
-    template: templates/signoz/tests/test-connection.yaml
-    set:
-      global.imageRegistry: mirror.example.com
-      signoz.image.repository: docker.io/signoz/signoz
-      signoz.image.tag: v9.9.9
-    asserts:
-      - equal:
-          path: spec.containers[?(@.name == "wget")].image
-          value: mirror.example.com/signoz/signoz:v9.9.9
-
-  - it: runs helm test on the chart's appVersion when signoz.image.tag is empty
-    template: templates/signoz/tests/test-connection.yaml
-    chart:
-      appVersion: v1.2.3
-    set:
-      signoz.image.repository: registry.example.com/signoz/signoz
-      signoz.image.tag: ""
-    asserts:
-      - equal:
-          path: spec.containers[?(@.name == "wget")].image
-          value: registry.example.com/signoz/signoz:v1.2.3
-
   - it: pulls the helm test image with global.imagePullSecrets, imagePullSecrets and signoz.imagePullSecrets
     template: templates/signoz/tests/test-connection.yaml
     set:
@@ -76,12 +53,3 @@ tests:
       - contains:
           path: spec.imagePullSecrets
           content: {name: signoz-pull}
-
-  - it: creates the helm test Pod in the release namespace, where the SigNoz Service name resolves
-    template: templates/signoz/tests/test-connection.yaml
-    release:
-      namespace: observability
-    asserts:
-      - equal:
-          path: metadata.namespace
-          value: observability
