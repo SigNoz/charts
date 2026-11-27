@@ -1408,7 +1408,7 @@ signoz:
     repository: docker.io/signoz/signoz
     # -- Image tag. Empty means the chart's `appVersion`.
     # @section -- SigNoz
-    tag: v0.151.0
+    tag: v0.152.0
     # -- Image pull policy.
     # @section -- SigNoz
     pullPolicy: IfNotPresent
@@ -1747,7 +1747,7 @@ otelCollector:
     repository: docker.io/signoz/signoz-otel-collector
     # -- Image tag.
     # @section -- Otel Collector
-    tag: v0.144.16
+    tag: v0.144.18
     # -- Image pull policy.
     # @section -- Otel Collector
     pullPolicy: IfNotPresent
