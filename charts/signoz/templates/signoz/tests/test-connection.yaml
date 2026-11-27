@@ -17,10 +17,6 @@ spec:
   nodeSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.signoz.affinity }}
-  affinity:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
   {{- with .Values.signoz.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}
