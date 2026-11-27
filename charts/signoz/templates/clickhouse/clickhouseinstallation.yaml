@@ -351,7 +351,7 @@ spec:
         {{- end }}
     {{- end }}
           {{- with .Values.clickhouse.persistence.volumeAttributesClassName }}
-          volumeAttributesClassName: {{ . }}
+          volumeAttributesClassName: {{ . | quote }}
           {{- end }}
     {{- end }}
 
@@ -368,7 +368,7 @@ spec:
               storage: {{ .resources.requests.storage }}
           storageClassName: {{ .storageClassName }}
           {{- with .volumeAttributesClassName }}
-          volumeAttributesClassName: {{ . }}
+          volumeAttributesClassName: {{ . | quote }}
           {{- end }}
     {{- end }}
   {{- end }}
