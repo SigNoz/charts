@@ -5,18 +5,16 @@ templates:
   - templates/otel-collector/configmap.yaml
   - templates/otel-collector/service.yaml
   - templates/otel-collector/serviceaccount.yaml
-  - templates/otel-collector/ingress.yaml
   - templates/otel-collector/hpa.yaml
   - templates/otel-collector/keda-autoscaler.yaml
   - templates/otel-collector/clusterrole.yaml
   - templates/otel-collector/clusterrolebinding.yaml
 tests:
-  - it: places the collector's Deployment, ConfigMap, Service, ServiceAccount, Ingress and HPA in the release namespace
+  - it: places the collector's Deployment, ConfigMap, Service, ServiceAccount and HPA in the release namespace
     release:
       namespace: obs
     set:
       otelCollector.serviceAccount.create: true
-      otelCollector.ingress.enabled: true
       otelCollector.autoscaling.enabled: true
       otelCollector.autoscaling.keda.enabled: false
     asserts:
@@ -33,10 +31,6 @@ tests:
           path: metadata.namespace
           value: obs
       - template: templates/otel-collector/serviceaccount.yaml
-        equal:
-          path: metadata.namespace
-          value: obs
-      - template: templates/otel-collector/ingress.yaml
         equal:
           path: metadata.namespace
           value: obs

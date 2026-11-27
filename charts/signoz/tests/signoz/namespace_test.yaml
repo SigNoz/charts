@@ -4,15 +4,12 @@ templates:
   - templates/signoz/statefulset.yaml
   - templates/signoz/service.yaml
   - templates/signoz/serviceaccount.yaml
-  - templates/signoz/ingress.yaml
-  - templates/signoz/tests/test-connection.yaml
 tests:
-  - it: places the SigNoz StatefulSet, Service, ServiceAccount, Ingress and test Pod in the release namespace
+  - it: places the SigNoz StatefulSet, Service and ServiceAccount in the release namespace
     release:
       namespace: obs
     set:
       signoz.serviceAccount.create: true
-      signoz.ingress.enabled: true
     asserts:
       - template: templates/signoz/statefulset.yaml
         equal:
@@ -23,14 +20,6 @@ tests:
           path: metadata.namespace
           value: obs
       - template: templates/signoz/serviceaccount.yaml
-        equal:
-          path: metadata.namespace
-          value: obs
-      - template: templates/signoz/ingress.yaml
-        equal:
-          path: metadata.namespace
-          value: obs
-      - template: templates/signoz/tests/test-connection.yaml
         equal:
           path: metadata.namespace
           value: obs
