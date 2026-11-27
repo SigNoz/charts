@@ -1,3 +1,9 @@
 {{- if .Values.otelCollector.httpRoute.enabled }}
-{{- include "signoz.lib.route" (dict "kind" "HTTPRoute" "name" (include "otelCollector.fullname" .) "namespace" (include "signoz.namespace" .) "labels" (include "otelCollector.labels" . | fromYaml) "route" .Values.otelCollector.httpRoute "service" (include "otelCollector.fullname" .) "port" (dig "otlp-http" "servicePort" "" .Values.otelCollector.ports)) }}
+{{- $args := dict "kind" "HTTPRoute" }}
+{{- $_ := set $args "name" (include "otelCollector.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "otelCollector.labels" . | fromYaml) }}
+{{- $_ := set $args "route" .Values.otelCollector.httpRoute }}
+{{- $_ := set $args "port" (dig "otlp-http" "servicePort" "" .Values.otelCollector.ports) }}
+{{- include "signoz.lib.route" $args }}
 {{- end }}

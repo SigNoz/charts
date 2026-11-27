@@ -1,3 +1,8 @@
 {{- if .Values.signoz.ingress.enabled }}
-{{- include "signoz.lib.ingress" (dict "name" (include "signoz.fullname" .) "namespace" (include "signoz.namespace" .) "labels" (include "signoz.labels" . | fromYaml) "ingress" .Values.signoz.ingress "service" (include "signoz.fullname" .) "port" .Values.signoz.service.port) }}
+{{- $args := dict "name" (include "signoz.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "signoz.labels" . | fromYaml) }}
+{{- $_ := set $args "ingress" .Values.signoz.ingress }}
+{{- $_ := set $args "port" .Values.signoz.service.port }}
+{{- include "signoz.lib.ingress" $args }}
 {{- end }}

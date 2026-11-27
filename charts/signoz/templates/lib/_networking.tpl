@@ -5,12 +5,12 @@ Each reads only its arguments (a dict), never .Values, .Release or .Chart.
 
 {{/*
 signoz.lib.route: a Gateway API route of a component.
-Takes: kind (HTTPRoute or GRPCRoute), name, namespace, labels (the chart's labels, a map), route (the
-block with annotations, labels, parentRefs, hostnames and rules), service (the Service name), port
-(the Service port, may be empty).
+Takes: kind (HTTPRoute or GRPCRoute), name (of the route and of the Service), namespace, labels (the
+chart's labels, a map), route (the block with annotations, labels, parentRefs, hostnames and rules),
+port (the Service port, may be empty).
 Emits: the route, labelled with the merge of labels and route.labels. Empty rules give one rule with
-one backendRef; a backendRef without a name gets service, and one without a port gets port when port
-is set, else none, so the API server rejects it. A rule without backendRefs renders as written.
+one backendRef; a backendRef without a name gets name, and one without a port gets port when port is
+set, else none, so the API server rejects it. A rule without backendRefs renders as written.
 */}}
 {{- define "signoz.lib.route" -}}
 apiVersion: gateway.networking.k8s.io/v1
@@ -39,7 +39,7 @@ spec:
     {{- with $rule.backendRefs }}
     {{- $refs := list }}
     {{- range . }}
-    {{- $ref := merge (deepCopy .) (dict "name" $.service) }}
+    {{- $ref := merge (deepCopy .) (dict "name" $.name) }}
     {{- if and (not $ref.port) $.port }}
     {{- $_ := set $ref "port" $.port }}
     {{- end }}
@@ -53,12 +53,12 @@ spec:
 
 {{/*
 signoz.lib.ingress: the Ingress of a component.
-Takes: name, namespace, labels (the chart's labels, a map), ingress (the block with className,
-annotations, labels, hosts and tls), service (the Service name), port (the Service port, may be
-empty).
-Emits: the Ingress, labelled with the merge of labels and ingress.labels. Every path goes to service,
-on its own port, else port; with neither the backend has no port, so the API server rejects it. A
-path without pathType gets ImplementationSpecific.
+Takes: name (of the Ingress and of the Service), namespace, labels (the chart's labels, a map),
+ingress (the block with className, annotations, labels, hosts and tls), port (the Service port, may
+be empty).
+Emits: the Ingress, labelled with the merge of labels and ingress.labels. Every path goes to the
+Service name, on its own port, else port; with neither the backend has no port, so the API server
+rejects it. A path without pathType gets ImplementationSpecific.
 */}}
 {{- define "signoz.lib.ingress" -}}
 apiVersion: networking.k8s.io/v1
@@ -98,7 +98,7 @@ spec:
             pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
-                name: {{ $.service }}
+                name: {{ $.name }}
                 {{- with .port | default $.port }}
                 port:
                   number: {{ . }}

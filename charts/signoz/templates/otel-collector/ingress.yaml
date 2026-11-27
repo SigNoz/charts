@@ -1,3 +1,8 @@
 {{- if .Values.otelCollector.ingress.enabled }}
-{{- include "signoz.lib.ingress" (dict "name" (include "otelCollector.fullname" .) "namespace" (include "signoz.namespace" .) "labels" (include "otelCollector.labels" . | fromYaml) "ingress" .Values.otelCollector.ingress "service" (include "otelCollector.fullname" .) "port" (dig "otlp-http" "servicePort" "" .Values.otelCollector.ports)) }}
+{{- $args := dict "name" (include "otelCollector.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "otelCollector.labels" . | fromYaml) }}
+{{- $_ := set $args "ingress" .Values.otelCollector.ingress }}
+{{- $_ := set $args "port" (dig "otlp-http" "servicePort" "" .Values.otelCollector.ports) }}
+{{- include "signoz.lib.ingress" $args }}
 {{- end }}
