@@ -1921,6 +1921,16 @@ otelCollector:
       name: ""
   # -- Port configuration. Each entry is a port of the collector container and of its Service.
   # An entry of your own needs `enabled`, `containerPort`, `servicePort` and `protocol`. Its name is a port name of at most 15 characters.
+  # An entry may also set `appProtocol`, the application protocol of its Service port.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#application-protocol
+  # @raw
+  # HTTP/2 cleartext from a Gateway to OTLP gRPC, for `otelCollector.grpcRoute`:
+  #
+  #   ```yaml
+  #   otlp:
+  #     appProtocol: kubernetes.io/h2c
+  #   ```
+  #
   # @section -- Otel Collector Ports
   # @default -- "Please checkout the default values in values.yml"
   ports:
