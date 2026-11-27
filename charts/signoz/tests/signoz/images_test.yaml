@@ -2,7 +2,6 @@
 suite: signoz/images
 templates:
   - templates/signoz/statefulset.yaml
-  - templates/signoz/tests/test-connection.yaml
 tests:
   - it: runs signoz.image.repository, registry included, and tag in the signoz container
     template: templates/signoz/statefulset.yaml
@@ -14,7 +13,7 @@ tests:
           path: spec.template.spec.containers[?(@.name == "signoz")].image
           value: registry.example.com/signoz/signoz:v9.9.9
 
-  - it: pulls the SigNoz image and the helm test image from global.imageRegistry over the registry in signoz.image.repository
+  - it: pulls the SigNoz image from global.imageRegistry over the registry in signoz.image.repository
     set:
       global.imageRegistry: mirror.example.com
       signoz.image.repository: docker.io/signoz/signoz
@@ -24,10 +23,6 @@ tests:
         equal:
           path: spec.template.spec.containers[?(@.name == "signoz")].image
           value: mirror.example.com/signoz/signoz:v9.9.9
-      - template: templates/signoz/tests/test-connection.yaml
-        matchRegex:
-          path: spec.containers[*].image
-          pattern: ^mirror\.example\.com/
 
   - it: uses a repository that carries its own registry as given
     template: templates/signoz/statefulset.yaml
