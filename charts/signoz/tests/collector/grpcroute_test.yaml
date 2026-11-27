@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/grpcroute
+templates:
+  - templates/otel-collector/grpcroute.yaml
+  - templates/otel-collector/service.yaml
+tests:
+  - it: sends the default rule of a GRPCRoute with only otelCollector.grpcRoute.parentRefs to otelCollector.ports.otlp.servicePort on the collector Service
+    set:
+      otelCollector.ports.otlp.servicePort: 9317
+      otelCollector.grpcRoute.enabled: true
+      otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+    asserts:
+      - template: templates/otel-collector/grpcroute.yaml
+        isKind:
+          of: GRPCRoute
+      - template: templates/otel-collector/grpcroute.yaml
+        equal:
+          path: spec.rules
+          value:
+            - backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 9317}]
+      - template: templates/otel-collector/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: otlp, port: 9317}
+          any: true

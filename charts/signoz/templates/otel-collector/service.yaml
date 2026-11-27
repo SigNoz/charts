@@ -24,6 +24,9 @@ spec:
       port: {{ $port.servicePort }}
       targetPort: {{ $name }}
       protocol: {{ $port.protocol }}
+      {{- with $port.appProtocol }}
+      appProtocol: {{ . }}
+      {{- end }}
       {{- if eq $service.type "ClusterIP" }}
       {{- /* null clears a nodePort the API server kept from an earlier NodePort type */}}
       nodePort: null
