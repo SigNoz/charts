@@ -2662,7 +2662,7 @@ A plain value and a value from a Secret:
             <td>Startup probe for the container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/</td>
         </tr>
         <tr>
-            <td id="signoz--resources"><a href="./values.yaml#L1596">signoz.resources</a></td>
+            <td id="signoz--resources"><a href="./values.yaml#L1644">signoz.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests of 100m CPU and 100Mi of memory</pre>
@@ -2671,7 +2671,7 @@ A plain value and a value from a Secret:
             <td>Resource requests and limits for the container.</td>
         </tr>
         <tr>
-            <td id="signoz--priorityClassName"><a href="./values.yaml#L1603">signoz.priorityClassName</a></td>
+            <td id="signoz--priorityClassName"><a href="./values.yaml#L1651">signoz.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">no PriorityClass</pre>
@@ -2680,7 +2680,7 @@ A plain value and a value from a Secret:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="signoz--nodeSelector"><a href="./values.yaml#L1606">signoz.nodeSelector</a></td>
+            <td id="signoz--nodeSelector"><a href="./values.yaml#L1654">signoz.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2689,7 +2689,7 @@ A plain value and a value from a Secret:
             <td>Node labels for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--tolerations"><a href="./values.yaml#L1609">signoz.tolerations</a></td>
+            <td id="signoz--tolerations"><a href="./values.yaml#L1657">signoz.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2698,7 +2698,7 @@ A plain value and a value from a Secret:
             <td>Tolerations for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--affinity"><a href="./values.yaml#L1612">signoz.affinity</a></td>
+            <td id="signoz--affinity"><a href="./values.yaml#L1660">signoz.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2707,7 +2707,7 @@ A plain value and a value from a Secret:
             <td>Affinity rules for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1616">signoz.topologySpreadConstraints</a></td>
+            <td id="signoz--topologySpreadConstraints"><a href="./values.yaml#L1664">signoz.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -2716,7 +2716,7 @@ A plain value and a value from a Secret:
             <td>Topology spread constraints for Pod assignment. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/</td>
         </tr>
         <tr>
-            <td id="signoz--persistence--enabled"><a href="./values.yaml#L1621">signoz.persistence.enabled</a></td>
+            <td id="signoz--persistence--enabled"><a href="./values.yaml#L1669">signoz.persistence.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2725,7 +2725,7 @@ A plain value and a value from a Secret:
             <td>Enable persistence with a PersistentVolumeClaim. When false, the SQLite database is in an `emptyDir`. Ignored when `postgresql.enabled` is true.</td>
         </tr>
         <tr>
-            <td id="signoz--persistence--existingClaim"><a href="./values.yaml#L1625">signoz.persistence.existingClaim</a></td>
+            <td id="signoz--persistence--existingClaim"><a href="./values.yaml#L1673">signoz.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">none, the chart's volume claim template</pre>
@@ -2734,7 +2734,7 @@ A plain value and a value from a Secret:
             <td>Name of an existing PVC to use. Only used when `signoz.persistence.enabled` is true.</td>
         </tr>
         <tr>
-            <td id="signoz--persistence--storageClass"><a href="./values.yaml#L1629">signoz.persistence.storageClass</a></td>
+            <td id="signoz--persistence--storageClass"><a href="./values.yaml#L1677">signoz.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the cluster's default StorageClass</pre>
@@ -2743,7 +2743,7 @@ A plain value and a value from a Secret:
             <td>StorageClass of the PVC. `-` disables dynamic provisioning, and `global.storageClass` overrides it.</td>
         </tr>
         <tr>
-            <td id="signoz--persistence--accessModes"><a href="./values.yaml#L1633">signoz.persistence.accessModes</a></td>
+            <td id="signoz--persistence--accessModes"><a href="./values.yaml#L1681">signoz.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -2752,7 +2752,7 @@ A plain value and a value from a Secret:
             <td>Access modes of the PVC. Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes</td>
         </tr>
         <tr>
-            <td id="signoz--persistence--size"><a href="./values.yaml#L1637">signoz.persistence.size</a></td>
+            <td id="signoz--persistence--size"><a href="./values.yaml#L1685">signoz.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1Gi</pre>
@@ -2897,6 +2897,79 @@ A plain value and a value from a Secret:
             </td>
             <td>TLS settings of the Ingress, as entries with `hosts` and an optional `secretName`. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls</td>
         </tr>
+        <tr>
+            <td id="signoz--httpRoute--enabled"><a href="./values.yaml#L1597">signoz.httpRoute.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Create a Gateway API HTTPRoute for SigNoz. The Gateway API CRDs and a Gateway must already exist in the cluster.</td>
+        </tr>
+        <tr>
+            <td id="signoz--httpRoute--annotations"><a href="./values.yaml#L1600">signoz.httpRoute.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the HTTPRoute.</td>
+        </tr>
+        <tr>
+            <td id="signoz--httpRoute--labels"><a href="./values.yaml#L1603">signoz.httpRoute.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels to add to the HTTPRoute. A key that matches a chart label replaces it.</td>
+        </tr>
+        <tr>
+            <td id="signoz--httpRoute--parentRefs"><a href="./values.yaml#L1616">signoz.httpRoute.parentRefs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Gateways the HTTPRoute attaches to. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#attaching-to-gateways
+A listener of a Gateway in another namespace:
+
+  ```yaml
+  - name: my-gateway
+    namespace: gateway-system
+    sectionName: https
+  ```
+</td>
+        </tr>
+        <tr>
+            <td id="signoz--httpRoute--hostnames"><a href="./values.yaml#L1620">signoz.httpRoute.hostnames</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Hostnames the HTTPRoute matches. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#hostnames</td>
+        </tr>
+        <tr>
+            <td id="signoz--httpRoute--rules"><a href="./values.yaml#L1638">signoz.httpRoute.rules</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">one rule to the SigNoz Service on port 8080</pre>
+</div>
+            </td>
+            <td>Rules of the HTTPRoute. A backendRef without `name` goes to the SigNoz Service, and one without `port` to `signoz.service.port`. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
+Only the API paths:
+
+  ```yaml
+  - matches:
+      - path:
+          type: PathPrefix
+          value: /api
+    backendRefs:
+      - port: 8080
+  ```
+</td>
+        </tr>
     </tbody>
 </table>
 <h3>Telemetry Store Migrator</h3>
@@ -2909,7 +2982,7 @@ A plain value and a value from a Secret:
     </thead>
     <tbody>
         <tr>
-            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1641">telemetryStoreMigrator</a></td>
+            <td id="telemetryStoreMigrator"><a href="./values.yaml#L1689">telemetryStoreMigrator</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -2918,7 +2991,7 @@ A plain value and a value from a Secret:
             <td>Telemetry store migrator configuration.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1645">telemetryStoreMigrator.enabled</a></td>
+            <td id="telemetryStoreMigrator--enabled"><a href="./values.yaml#L1693">telemetryStoreMigrator.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2927,7 +3000,7 @@ A plain value and a value from a Secret:
             <td>Enable the telemetry store migrator, a Job that runs on every install and upgrade. The collector's `check` init container waits for its migrations.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1648">telemetryStoreMigrator.name</a></td>
+            <td id="telemetryStoreMigrator--name"><a href="./values.yaml#L1696">telemetryStoreMigrator.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz-telemetrystore-migrator</pre>
@@ -2936,7 +3009,7 @@ A plain value and a value from a Secret:
             <td>Name of the migrator component. The Job is named `<name>-<release revision>`. At most 57 characters.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1652">telemetryStoreMigrator.annotations</a></td>
+            <td id="telemetryStoreMigrator--annotations"><a href="./values.yaml#L1700">telemetryStoreMigrator.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2945,7 +3018,7 @@ A plain value and a value from a Secret:
             <td>Annotations added to the Job, merged over the chart's `argocd.argoproj.io/sync-options: Force=true,Replace=true`. A value for that key replaces the chart's.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--labels"><a href="./values.yaml#L1655">telemetryStoreMigrator.labels</a></td>
+            <td id="telemetryStoreMigrator--labels"><a href="./values.yaml#L1703">telemetryStoreMigrator.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2954,7 +3027,7 @@ A plain value and a value from a Secret:
             <td>Labels to add to the Job. A key the chart also sets takes your value.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--pod--labels"><a href="./values.yaml#L1659">telemetryStoreMigrator.pod.labels</a></td>
+            <td id="telemetryStoreMigrator--pod--labels"><a href="./values.yaml#L1707">telemetryStoreMigrator.pod.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2963,7 +3036,7 @@ A plain value and a value from a Secret:
             <td>Labels to add to the Pod. A key the chart also sets keeps the chart's value.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--pod--annotations"><a href="./values.yaml#L1662">telemetryStoreMigrator.pod.annotations</a></td>
+            <td id="telemetryStoreMigrator--pod--annotations"><a href="./values.yaml#L1710">telemetryStoreMigrator.pod.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -2972,7 +3045,7 @@ A plain value and a value from a Secret:
             <td>Annotations to add to the Pod.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1666">telemetryStoreMigrator.enableReplication</a></td>
+            <td id="telemetryStoreMigrator--enableReplication"><a href="./values.yaml#L1714">telemetryStoreMigrator.enableReplication</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -2981,7 +3054,7 @@ A plain value and a value from a Secret:
             <td>Enable replication in the migrations.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1670">telemetryStoreMigrator.timeout</a></td>
+            <td id="telemetryStoreMigrator--timeout"><a href="./values.yaml#L1718">telemetryStoreMigrator.timeout</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10m</pre>
@@ -2990,7 +3063,7 @@ A plain value and a value from a Secret:
             <td>Timeout of the migration.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--ttlSecondsAfterFinished"><a href="./values.yaml#L1677">telemetryStoreMigrator.ttlSecondsAfterFinished</a></td>
+            <td id="telemetryStoreMigrator--ttlSecondsAfterFinished"><a href="./values.yaml#L1725">telemetryStoreMigrator.ttlSecondsAfterFinished</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -2999,7 +3072,7 @@ A plain value and a value from a Secret:
             <td>Seconds Kubernetes keeps a finished migrator Job, and its logs, before deleting it. Set it (for example `604800`) to clean up Jobs a failed upgrade leaves behind. Leave it unset under Argo CD, which recreates a deleted Job and re-runs the migrator. Ref: https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1681">telemetryStoreMigrator.nodeSelector</a></td>
+            <td id="telemetryStoreMigrator--nodeSelector"><a href="./values.yaml#L1729">telemetryStoreMigrator.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3008,7 +3081,7 @@ A plain value and a value from a Secret:
             <td>Node labels for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1685">telemetryStoreMigrator.tolerations</a></td>
+            <td id="telemetryStoreMigrator--tolerations"><a href="./values.yaml#L1733">telemetryStoreMigrator.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3017,7 +3090,7 @@ A plain value and a value from a Secret:
             <td>Tolerations for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1689">telemetryStoreMigrator.affinity</a></td>
+            <td id="telemetryStoreMigrator--affinity"><a href="./values.yaml#L1737">telemetryStoreMigrator.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3026,7 +3099,7 @@ A plain value and a value from a Secret:
             <td>Affinity rules for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1694">telemetryStoreMigrator.topologySpreadConstraints</a></td>
+            <td id="telemetryStoreMigrator--topologySpreadConstraints"><a href="./values.yaml#L1742">telemetryStoreMigrator.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3035,7 +3108,7 @@ A plain value and a value from a Secret:
             <td>Topology spread constraints for Pod assignment. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--priorityClassName"><a href="./values.yaml#L1697">telemetryStoreMigrator.priorityClassName</a></td>
+            <td id="telemetryStoreMigrator--priorityClassName"><a href="./values.yaml#L1745">telemetryStoreMigrator.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3044,7 +3117,7 @@ A plain value and a value from a Secret:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--podSecurityContext"><a href="./values.yaml#L1701">telemetryStoreMigrator.podSecurityContext</a></td>
+            <td id="telemetryStoreMigrator--podSecurityContext"><a href="./values.yaml#L1749">telemetryStoreMigrator.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3053,7 +3126,7 @@ A plain value and a value from a Secret:
             <td>Security context for the Pod. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1704">telemetryStoreMigrator.resources</a></td>
+            <td id="telemetryStoreMigrator--resources"><a href="./values.yaml#L1752">telemetryStoreMigrator.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3062,7 +3135,7 @@ A plain value and a value from a Secret:
             <td>Resource requests and limits for the migration containers and the collector's `check` init container.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--containerSecurityContext"><a href="./values.yaml#L1708">telemetryStoreMigrator.containerSecurityContext</a></td>
+            <td id="telemetryStoreMigrator--containerSecurityContext"><a href="./values.yaml#L1756">telemetryStoreMigrator.containerSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3071,7 +3144,7 @@ A plain value and a value from a Secret:
             <td>Security context for the migration containers. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--env"><a href="./values.yaml#L1712">telemetryStoreMigrator.env</a></td>
+            <td id="telemetryStoreMigrator--env"><a href="./values.yaml#L1760">telemetryStoreMigrator.env</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3080,7 +3153,7 @@ A plain value and a value from a Secret:
             <td>Extra environment variables for the migration containers and the collector's `check` init container. An entry named like one the chart sets replaces it.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--envFrom"><a href="./values.yaml#L1715">telemetryStoreMigrator.envFrom</a></td>
+            <td id="telemetryStoreMigrator--envFrom"><a href="./values.yaml#L1763">telemetryStoreMigrator.envFrom</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3089,7 +3162,7 @@ A plain value and a value from a Secret:
             <td>Sources of extra environment variables for the migration containers and the collector's `check` init container.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--extraVolumes"><a href="./values.yaml#L1718">telemetryStoreMigrator.extraVolumes</a></td>
+            <td id="telemetryStoreMigrator--extraVolumes"><a href="./values.yaml#L1766">telemetryStoreMigrator.extraVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3098,7 +3171,7 @@ A plain value and a value from a Secret:
             <td>Extra volumes for the Pod.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--extraVolumeMounts"><a href="./values.yaml#L1721">telemetryStoreMigrator.extraVolumeMounts</a></td>
+            <td id="telemetryStoreMigrator--extraVolumeMounts"><a href="./values.yaml#L1769">telemetryStoreMigrator.extraVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3107,7 +3180,7 @@ A plain value and a value from a Secret:
             <td>Extra volume mounts for the migration containers.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1726">telemetryStoreMigrator.serviceAccount</a></td>
+            <td id="telemetryStoreMigrator--serviceAccount"><a href="./values.yaml#L1774">telemetryStoreMigrator.serviceAccount</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">annotations: {}
@@ -3118,7 +3191,7 @@ name: null</pre>
             <td>ServiceAccount of the migrator Job; by default none is created and the Job runs as `default`. Set `create: true` when a policy or credential is bound to a ServiceAccount. On an install from a chart before 1.0.0, first delete the old `signoz-telemetrystore-migrator` ServiceAccount or upgrade with `--take-ownership`.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--create"><a href="./values.yaml#L1729">telemetryStoreMigrator.serviceAccount.create</a></td>
+            <td id="telemetryStoreMigrator--serviceAccount--create"><a href="./values.yaml#L1777">telemetryStoreMigrator.serviceAccount.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3127,7 +3200,7 @@ name: null</pre>
             <td>Create a ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--annotations"><a href="./values.yaml#L1732">telemetryStoreMigrator.serviceAccount.annotations</a></td>
+            <td id="telemetryStoreMigrator--serviceAccount--annotations"><a href="./values.yaml#L1780">telemetryStoreMigrator.serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3136,7 +3209,7 @@ name: null</pre>
             <td>Annotations to add to the ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="telemetryStoreMigrator--serviceAccount--name"><a href="./values.yaml#L1735">telemetryStoreMigrator.serviceAccount.name</a></td>
+            <td id="telemetryStoreMigrator--serviceAccount--name"><a href="./values.yaml#L1783">telemetryStoreMigrator.serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3156,7 +3229,7 @@ name: null</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector"><a href="./values.yaml#L1739">otelCollector</a></td>
+            <td id="otelCollector"><a href="./values.yaml#L1787">otelCollector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -3165,7 +3238,7 @@ name: null</pre>
             <td>OpenTelemetry Collector configuration.</td>
         </tr>
         <tr>
-            <td id="otelCollector--name"><a href="./values.yaml#L1743">otelCollector.name</a></td>
+            <td id="otelCollector--name"><a href="./values.yaml#L1791">otelCollector.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">otel-collector</pre>
@@ -3174,7 +3247,7 @@ name: null</pre>
             <td>Name of the collector component.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image--repository"><a href="./values.yaml#L1747">otelCollector.image.repository</a></td>
+            <td id="otelCollector--image--repository"><a href="./values.yaml#L1795">otelCollector.image.repository</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">docker.io/signoz/signoz-otel-collector</pre>
@@ -3183,7 +3256,7 @@ name: null</pre>
             <td>Image repository, with its registry. `global.imageRegistry` replaces that registry when set.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image--tag"><a href="./values.yaml#L1750">otelCollector.image.tag</a></td>
+            <td id="otelCollector--image--tag"><a href="./values.yaml#L1798">otelCollector.image.tag</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">v0.144.16</pre>
@@ -3192,7 +3265,7 @@ name: null</pre>
             <td>Image tag.</td>
         </tr>
         <tr>
-            <td id="otelCollector--image--pullPolicy"><a href="./values.yaml#L1753">otelCollector.image.pullPolicy</a></td>
+            <td id="otelCollector--image--pullPolicy"><a href="./values.yaml#L1801">otelCollector.image.pullPolicy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
@@ -3201,7 +3274,7 @@ name: null</pre>
             <td>Image pull policy.</td>
         </tr>
         <tr>
-            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1756">otelCollector.imagePullSecrets</a></td>
+            <td id="otelCollector--imagePullSecrets"><a href="./values.yaml#L1804">otelCollector.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3210,7 +3283,7 @@ name: null</pre>
             <td>Image pull secrets for the collector Pod, as a list of Secret names.</td>
         </tr>
         <tr>
-            <td id="otelCollector--strategy"><a href="./values.yaml#L1761">otelCollector.strategy</a></td>
+            <td id="otelCollector--strategy"><a href="./values.yaml#L1809">otelCollector.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -3219,7 +3292,7 @@ name: null</pre>
             <td>Deployment strategy. Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy</td>
         </tr>
         <tr>
-            <td id="otelCollector--extraArgs"><a href="./values.yaml#L1764">otelCollector.extraArgs</a></td>
+            <td id="otelCollector--extraArgs"><a href="./values.yaml#L1812">otelCollector.extraArgs</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3228,7 +3301,7 @@ name: null</pre>
             <td>Extra arguments for the container, added after the chart's `--config`, `--manager-config` and `--copy-path`.</td>
         </tr>
         <tr>
-            <td id="otelCollector--configMap--create"><a href="./values.yaml#L1768">otelCollector.configMap.create</a></td>
+            <td id="otelCollector--configMap--create"><a href="./values.yaml#L1816">otelCollector.configMap.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3237,7 +3310,7 @@ name: null</pre>
             <td>Create a ConfigMap.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount--create"><a href="./values.yaml#L1772">otelCollector.serviceAccount.create</a></td>
+            <td id="otelCollector--serviceAccount--create"><a href="./values.yaml#L1820">otelCollector.serviceAccount.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3246,7 +3319,7 @@ name: null</pre>
             <td>Create a ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount--annotations"><a href="./values.yaml#L1775">otelCollector.serviceAccount.annotations</a></td>
+            <td id="otelCollector--serviceAccount--annotations"><a href="./values.yaml#L1823">otelCollector.serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3255,7 +3328,7 @@ name: null</pre>
             <td>Annotations to add to the ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="otelCollector--serviceAccount--name"><a href="./values.yaml#L1778">otelCollector.serviceAccount.name</a></td>
+            <td id="otelCollector--serviceAccount--name"><a href="./values.yaml#L1826">otelCollector.serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3264,7 +3337,7 @@ name: null</pre>
             <td>Name of the ServiceAccount. When empty and `create` is true, the chart generates one.</td>
         </tr>
         <tr>
-            <td id="otelCollector--annotations"><a href="./values.yaml#L1795">otelCollector.annotations</a></td>
+            <td id="otelCollector--annotations"><a href="./values.yaml#L1843">otelCollector.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3273,7 +3346,7 @@ name: null</pre>
             <td>Annotations to add to the Deployment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--labels"><a href="./values.yaml#L1798">otelCollector.labels</a></td>
+            <td id="otelCollector--labels"><a href="./values.yaml#L1846">otelCollector.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3282,7 +3355,7 @@ name: null</pre>
             <td>Labels to add to the Deployment. A key that repeats a chart label replaces its value.</td>
         </tr>
         <tr>
-            <td id="otelCollector--pod--annotations"><a href="./values.yaml#L1803">otelCollector.pod.annotations</a></td>
+            <td id="otelCollector--pod--annotations"><a href="./values.yaml#L1851">otelCollector.pod.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz.io/port: "8888"
@@ -3292,7 +3365,7 @@ signoz.io/scrape: "true"</pre>
             <td>Annotations to add to the Pod. Set a key to `null` to drop a default. A `checksum/config` key is ignored.</td>
         </tr>
         <tr>
-            <td id="otelCollector--pod--labels"><a href="./values.yaml#L1808">otelCollector.pod.labels</a></td>
+            <td id="otelCollector--pod--labels"><a href="./values.yaml#L1856">otelCollector.pod.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3301,7 +3374,7 @@ signoz.io/scrape: "true"</pre>
             <td>Labels to add to the Pod. A key named like a selector label is ignored.</td>
         </tr>
         <tr>
-            <td id="otelCollector--env"><a href="./values.yaml#L1820">otelCollector.env</a></td>
+            <td id="otelCollector--env"><a href="./values.yaml#L1868">otelCollector.env</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3317,7 +3390,7 @@ Group exceptions with low cardinality:
 </td>
         </tr>
         <tr>
-            <td id="otelCollector--envFrom"><a href="./values.yaml#L1823">otelCollector.envFrom</a></td>
+            <td id="otelCollector--envFrom"><a href="./values.yaml#L1871">otelCollector.envFrom</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3326,7 +3399,7 @@ Group exceptions with low cardinality:
             <td>Sources of extra environment variables for the container.</td>
         </tr>
         <tr>
-            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1828">otelCollector.minReadySeconds</a></td>
+            <td id="otelCollector--minReadySeconds"><a href="./values.yaml#L1876">otelCollector.minReadySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -3335,7 +3408,7 @@ Group exceptions with low cardinality:
             <td>Seconds a new Pod must be ready before it counts as available. Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#min-ready-seconds</td>
         </tr>
         <tr>
-            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1833">otelCollector.progressDeadlineSeconds</a></td>
+            <td id="otelCollector--progressDeadlineSeconds"><a href="./values.yaml#L1881">otelCollector.progressDeadlineSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">600</pre>
@@ -3344,7 +3417,7 @@ Group exceptions with low cardinality:
             <td>Seconds the Deployment may take to progress before it is marked failed. Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds</td>
         </tr>
         <tr>
-            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1837">otelCollector.replicaCount</a></td>
+            <td id="otelCollector--replicaCount"><a href="./values.yaml#L1885">otelCollector.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -3353,7 +3426,7 @@ Group exceptions with low cardinality:
             <td>Number of replicas.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--create"><a href="./values.yaml#L1841">otelCollector.clusterRole.create</a></td>
+            <td id="otelCollector--clusterRole--create"><a href="./values.yaml#L1889">otelCollector.clusterRole.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3362,7 +3435,7 @@ Group exceptions with low cardinality:
             <td>Create a ClusterRole.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--annotations"><a href="./values.yaml#L1844">otelCollector.clusterRole.annotations</a></td>
+            <td id="otelCollector--clusterRole--annotations"><a href="./values.yaml#L1892">otelCollector.clusterRole.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3371,7 +3444,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the ClusterRole.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--name"><a href="./values.yaml#L1847">otelCollector.clusterRole.name</a></td>
+            <td id="otelCollector--clusterRole--name"><a href="./values.yaml#L1895">otelCollector.clusterRole.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3380,7 +3453,7 @@ Group exceptions with low cardinality:
             <td>Name of the ClusterRole. When empty, the chart generates one.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--rules"><a href="./values.yaml#L1851">otelCollector.clusterRole.rules</a></td>
+            <td id="otelCollector--clusterRole--rules"><a href="./values.yaml#L1899">otelCollector.clusterRole.rules</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">See values.yaml</pre>
@@ -3389,7 +3462,7 @@ Group exceptions with low cardinality:
             <td>RBAC rules of the ClusterRole. The `k8sattributes` processor requires them.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--clusterRoleBinding--annotations"><a href="./values.yaml#L1867">otelCollector.clusterRole.clusterRoleBinding.annotations</a></td>
+            <td id="otelCollector--clusterRole--clusterRoleBinding--annotations"><a href="./values.yaml#L1915">otelCollector.clusterRole.clusterRoleBinding.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3398,7 +3471,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the ClusterRoleBinding.</td>
         </tr>
         <tr>
-            <td id="otelCollector--clusterRole--clusterRoleBinding--name"><a href="./values.yaml#L1870">otelCollector.clusterRole.clusterRoleBinding.name</a></td>
+            <td id="otelCollector--clusterRole--clusterRoleBinding--name"><a href="./values.yaml#L1918">otelCollector.clusterRole.clusterRoleBinding.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3407,7 +3480,7 @@ Group exceptions with low cardinality:
             <td>Name of the ClusterRoleBinding. When empty, the chart generates one.</td>
         </tr>
         <tr>
-            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L2025">otelCollector.livenessProbe</a></td>
+            <td id="otelCollector--livenessProbe"><a href="./values.yaml#L2073">otelCollector.livenessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">httpGet on port 13133, path /</pre>
@@ -3416,7 +3489,7 @@ Group exceptions with low cardinality:
             <td>Liveness probe for the container. `null` renders none. A handler other than `httpGet` must also set `httpGet: null`. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/</td>
         </tr>
         <tr>
-            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L2038">otelCollector.readinessProbe</a></td>
+            <td id="otelCollector--readinessProbe"><a href="./values.yaml#L2086">otelCollector.readinessProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">httpGet on port 13133, path /</pre>
@@ -3425,7 +3498,7 @@ Group exceptions with low cardinality:
             <td>Readiness probe for the container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/</td>
         </tr>
         <tr>
-            <td id="otelCollector--startupProbe"><a href="./values.yaml#L2051">otelCollector.startupProbe</a></td>
+            <td id="otelCollector--startupProbe"><a href="./values.yaml#L2099">otelCollector.startupProbe</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">no startup probe</pre>
@@ -3434,7 +3507,7 @@ Group exceptions with low cardinality:
             <td>Startup probe for the container. It holds the liveness and readiness probes back until it succeeds. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/</td>
         </tr>
         <tr>
-            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L2054">otelCollector.extraVolumeMounts</a></td>
+            <td id="otelCollector--extraVolumeMounts"><a href="./values.yaml#L2102">otelCollector.extraVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3443,7 +3516,7 @@ Group exceptions with low cardinality:
             <td>Extra volume mounts for the collector container and its `check` init container.</td>
         </tr>
         <tr>
-            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L2058">otelCollector.extraVolumes</a></td>
+            <td id="otelCollector--extraVolumes"><a href="./values.yaml#L2106">otelCollector.extraVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3452,7 +3525,7 @@ Group exceptions with low cardinality:
             <td>Extra volumes for the Pod.</td>
         </tr>
         <tr>
-            <td id="otelCollector--resources"><a href="./values.yaml#L2089">otelCollector.resources</a></td>
+            <td id="otelCollector--resources"><a href="./values.yaml#L2234">otelCollector.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3461,7 +3534,7 @@ Group exceptions with low cardinality:
             <td>Resource requests and limits for the container.</td>
         </tr>
         <tr>
-            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L2100">otelCollector.priorityClassName</a></td>
+            <td id="otelCollector--priorityClassName"><a href="./values.yaml#L2245">otelCollector.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3470,7 +3543,7 @@ Group exceptions with low cardinality:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L2104">otelCollector.nodeSelector</a></td>
+            <td id="otelCollector--nodeSelector"><a href="./values.yaml#L2249">otelCollector.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3479,7 +3552,7 @@ Group exceptions with low cardinality:
             <td>Node labels for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--tolerations"><a href="./values.yaml#L2108">otelCollector.tolerations</a></td>
+            <td id="otelCollector--tolerations"><a href="./values.yaml#L2253">otelCollector.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3488,7 +3561,7 @@ Group exceptions with low cardinality:
             <td>Tolerations for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--affinity"><a href="./values.yaml#L2112">otelCollector.affinity</a></td>
+            <td id="otelCollector--affinity"><a href="./values.yaml#L2257">otelCollector.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3497,7 +3570,7 @@ Group exceptions with low cardinality:
             <td>Affinity rules for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L2117">otelCollector.topologySpreadConstraints</a></td>
+            <td id="otelCollector--topologySpreadConstraints"><a href="./values.yaml#L2262">otelCollector.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -3506,7 +3579,7 @@ Group exceptions with low cardinality:
             <td>Topology spread constraints for Pod assignment. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/</td>
         </tr>
         <tr>
-            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L2128">otelCollector.podSecurityContext</a></td>
+            <td id="otelCollector--podSecurityContext"><a href="./values.yaml#L2273">otelCollector.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3515,7 +3588,7 @@ Group exceptions with low cardinality:
             <td>Security context for the Pod. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="otelCollector--containerSecurityContext"><a href="./values.yaml#L2134">otelCollector.containerSecurityContext</a></td>
+            <td id="otelCollector--containerSecurityContext"><a href="./values.yaml#L2279">otelCollector.containerSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3524,7 +3597,7 @@ Group exceptions with low cardinality:
             <td>Security context for the collector container and its `check` init container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--enabled"><a href="./values.yaml#L2146">otelCollector.autoscaling.enabled</a></td>
+            <td id="otelCollector--autoscaling--enabled"><a href="./values.yaml#L2291">otelCollector.autoscaling.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3533,7 +3606,7 @@ Group exceptions with low cardinality:
             <td>Enable autoscaling with a HorizontalPodAutoscaler (HPA). Ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--minReplicas"><a href="./values.yaml#L2149">otelCollector.autoscaling.minReplicas</a></td>
+            <td id="otelCollector--autoscaling--minReplicas"><a href="./values.yaml#L2294">otelCollector.autoscaling.minReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -3542,7 +3615,7 @@ Group exceptions with low cardinality:
             <td>Minimum number of replicas.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--maxReplicas"><a href="./values.yaml#L2152">otelCollector.autoscaling.maxReplicas</a></td>
+            <td id="otelCollector--autoscaling--maxReplicas"><a href="./values.yaml#L2297">otelCollector.autoscaling.maxReplicas</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">11</pre>
@@ -3551,7 +3624,7 @@ Group exceptions with low cardinality:
             <td>Maximum number of replicas.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L2155">otelCollector.autoscaling.targetCPUUtilizationPercentage</a></td>
+            <td id="otelCollector--autoscaling--targetCPUUtilizationPercentage"><a href="./values.yaml#L2300">otelCollector.autoscaling.targetCPUUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">50</pre>
@@ -3560,7 +3633,7 @@ Group exceptions with low cardinality:
             <td>Target CPU utilization percentage.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L2158">otelCollector.autoscaling.targetMemoryUtilizationPercentage</a></td>
+            <td id="otelCollector--autoscaling--targetMemoryUtilizationPercentage"><a href="./values.yaml#L2303">otelCollector.autoscaling.targetMemoryUtilizationPercentage</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">50</pre>
@@ -3569,7 +3642,7 @@ Group exceptions with low cardinality:
             <td>Target memory utilization percentage.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--behavior"><a href="./values.yaml#L2161">otelCollector.autoscaling.behavior</a></td>
+            <td id="otelCollector--autoscaling--behavior"><a href="./values.yaml#L2306">otelCollector.autoscaling.behavior</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3578,7 +3651,7 @@ Group exceptions with low cardinality:
             <td>Scaling behavior policies.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--autoscalingTemplate"><a href="./values.yaml#L2177">otelCollector.autoscaling.autoscalingTemplate</a></td>
+            <td id="otelCollector--autoscaling--autoscalingTemplate"><a href="./values.yaml#L2322">otelCollector.autoscaling.autoscalingTemplate</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3587,7 +3660,7 @@ Group exceptions with low cardinality:
             <td>Template for autoscaling.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--annotations"><a href="./values.yaml#L2181">otelCollector.autoscaling.keda.annotations</a></td>
+            <td id="otelCollector--autoscaling--keda--annotations"><a href="./values.yaml#L2326">otelCollector.autoscaling.keda.annotations</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -3596,7 +3669,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the KEDA ScaledObject.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--enabled"><a href="./values.yaml#L2184">otelCollector.autoscaling.keda.enabled</a></td>
+            <td id="otelCollector--autoscaling--keda--enabled"><a href="./values.yaml#L2329">otelCollector.autoscaling.keda.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3605,7 +3678,7 @@ Group exceptions with low cardinality:
             <td>Enable autoscaling with KEDA.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--pollingInterval"><a href="./values.yaml#L2187">otelCollector.autoscaling.keda.pollingInterval</a></td>
+            <td id="otelCollector--autoscaling--keda--pollingInterval"><a href="./values.yaml#L2332">otelCollector.autoscaling.keda.pollingInterval</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"30"</pre>
@@ -3614,7 +3687,7 @@ Group exceptions with low cardinality:
             <td>Polling interval for metrics data, in seconds.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--cooldownPeriod"><a href="./values.yaml#L2190">otelCollector.autoscaling.keda.cooldownPeriod</a></td>
+            <td id="otelCollector--autoscaling--keda--cooldownPeriod"><a href="./values.yaml#L2335">otelCollector.autoscaling.keda.cooldownPeriod</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"300"</pre>
@@ -3623,7 +3696,7 @@ Group exceptions with low cardinality:
             <td>Cooldown period before scaling down, in seconds.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--minReplicaCount"><a href="./values.yaml#L2193">otelCollector.autoscaling.keda.minReplicaCount</a></td>
+            <td id="otelCollector--autoscaling--keda--minReplicaCount"><a href="./values.yaml#L2338">otelCollector.autoscaling.keda.minReplicaCount</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"1"</pre>
@@ -3632,7 +3705,7 @@ Group exceptions with low cardinality:
             <td>Minimum replica count for KEDA.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--maxReplicaCount"><a href="./values.yaml#L2196">otelCollector.autoscaling.keda.maxReplicaCount</a></td>
+            <td id="otelCollector--autoscaling--keda--maxReplicaCount"><a href="./values.yaml#L2341">otelCollector.autoscaling.keda.maxReplicaCount</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"5"</pre>
@@ -3641,7 +3714,7 @@ Group exceptions with low cardinality:
             <td>Maximum replica count for KEDA.</td>
         </tr>
         <tr>
-            <td id="otelCollector--autoscaling--keda--triggers"><a href="./values.yaml#L2199">otelCollector.autoscaling.keda.triggers</a></td>
+            <td id="otelCollector--autoscaling--keda--triggers"><a href="./values.yaml#L2344">otelCollector.autoscaling.keda.triggers</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3661,7 +3734,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--service--annotations"><a href="./values.yaml#L1782">otelCollector.service.annotations</a></td>
+            <td id="otelCollector--service--annotations"><a href="./values.yaml#L1830">otelCollector.service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3670,7 +3743,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Service.</td>
         </tr>
         <tr>
-            <td id="otelCollector--service--labels"><a href="./values.yaml#L1785">otelCollector.service.labels</a></td>
+            <td id="otelCollector--service--labels"><a href="./values.yaml#L1833">otelCollector.service.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3679,7 +3752,7 @@ Group exceptions with low cardinality:
             <td>Labels to add to the Service.</td>
         </tr>
         <tr>
-            <td id="otelCollector--service--type"><a href="./values.yaml#L1788">otelCollector.service.type</a></td>
+            <td id="otelCollector--service--type"><a href="./values.yaml#L1836">otelCollector.service.type</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
@@ -3688,7 +3761,7 @@ Group exceptions with low cardinality:
             <td>Kubernetes Service type: `ClusterIP`, `NodePort` or `LoadBalancer`.</td>
         </tr>
         <tr>
-            <td id="otelCollector--service--loadBalancerSourceRanges"><a href="./values.yaml#L1791">otelCollector.service.loadBalancerSourceRanges</a></td>
+            <td id="otelCollector--service--loadBalancerSourceRanges"><a href="./values.yaml#L1839">otelCollector.service.loadBalancerSourceRanges</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -3697,7 +3770,7 @@ Group exceptions with low cardinality:
             <td>Source ranges allowed when the Service type is `LoadBalancer`.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--enabled"><a href="./values.yaml#L2062">otelCollector.ingress.enabled</a></td>
+            <td id="otelCollector--ingress--enabled"><a href="./values.yaml#L2110">otelCollector.ingress.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3706,7 +3779,7 @@ Group exceptions with low cardinality:
             <td>Create an Ingress for the collector.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--className"><a href="./values.yaml#L2066">otelCollector.ingress.className</a></td>
+            <td id="otelCollector--ingress--className"><a href="./values.yaml#L2114">otelCollector.ingress.className</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3715,7 +3788,7 @@ Group exceptions with low cardinality:
             <td>IngressClass of the Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--annotations"><a href="./values.yaml#L2069">otelCollector.ingress.annotations</a></td>
+            <td id="otelCollector--ingress--annotations"><a href="./values.yaml#L2117">otelCollector.ingress.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -3724,7 +3797,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Ingress.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L2073">otelCollector.ingress.hosts</a></td>
+            <td id="otelCollector--ingress--hosts"><a href="./values.yaml#L2121">otelCollector.ingress.hosts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -3733,13 +3806,159 @@ Group exceptions with low cardinality:
             <td>Hosts and paths of the Ingress.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ingress--tls"><a href="./values.yaml#L2082">otelCollector.ingress.tls</a></td>
+            <td id="otelCollector--ingress--tls"><a href="./values.yaml#L2130">otelCollector.ingress.tls</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
 </div>
             </td>
             <td>TLS settings of the Ingress. Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--enabled"><a href="./values.yaml#L2138">otelCollector.httpRoute.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Create a Gateway API HTTPRoute for the collector. The Gateway API CRDs and a Gateway must already exist in the cluster.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--annotations"><a href="./values.yaml#L2141">otelCollector.httpRoute.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the HTTPRoute.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--labels"><a href="./values.yaml#L2144">otelCollector.httpRoute.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels to add to the HTTPRoute. A key that matches a chart label replaces it.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--parentRefs"><a href="./values.yaml#L2157">otelCollector.httpRoute.parentRefs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Gateways the HTTPRoute attaches to. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#attaching-to-gateways
+A listener of a Gateway in another namespace:
+
+  ```yaml
+  - name: my-gateway
+    namespace: gateway-system
+    sectionName: https
+  ```
+</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--hostnames"><a href="./values.yaml#L2161">otelCollector.httpRoute.hostnames</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Hostnames the HTTPRoute matches. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#hostnames</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--httpRoute--rules"><a href="./values.yaml#L2179">otelCollector.httpRoute.rules</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">one rule to the collector Service on port 4318</pre>
+</div>
+            </td>
+            <td>Rules of the HTTPRoute. A backendRef without `name` goes to the collector Service. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
+Only the OTLP HTTP paths:
+
+  ```yaml
+  - matches:
+      - path:
+          type: PathPrefix
+          value: /v1
+    backendRefs:
+      - port: 4318
+  ```
+</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--enabled"><a href="./values.yaml#L2186">otelCollector.grpcRoute.enabled</a></td>
+            <td>bool</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">false</pre>
+</div>
+            </td>
+            <td>Create a Gateway API GRPCRoute for the collector. The Gateway API CRDs, of v1.1 or later, and a Gateway must already exist in the cluster.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--annotations"><a href="./values.yaml#L2189">otelCollector.grpcRoute.annotations</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Annotations to add to the GRPCRoute.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--labels"><a href="./values.yaml#L2192">otelCollector.grpcRoute.labels</a></td>
+            <td>object</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
+</div>
+            </td>
+            <td>Labels to add to the GRPCRoute. A key that matches a chart label replaces it.</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--parentRefs"><a href="./values.yaml#L2205">otelCollector.grpcRoute.parentRefs</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Gateways the GRPCRoute attaches to. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#attaching-to-gateways
+A listener of a Gateway in another namespace:
+
+  ```yaml
+  - name: my-gateway
+    namespace: gateway-system
+    sectionName: grpc
+  ```
+</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--hostnames"><a href="./values.yaml#L2210">otelCollector.grpcRoute.hostnames</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
+</div>
+            </td>
+            <td>Hostnames the GRPCRoute matches. Keep them apart from `otelCollector.httpRoute.hostnames` on a shared listener: implementations may reject one of the two routes. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#cross-serving</td>
+        </tr>
+        <tr>
+            <td id="otelCollector--grpcRoute--rules"><a href="./values.yaml#L2228">otelCollector.grpcRoute.rules</a></td>
+            <td>list</td>
+            <td>
+                <div style="max-width: 300px;"><pre lang="yaml">one rule to the collector Service on port 4317</pre>
+</div>
+            </td>
+            <td>Rules of the GRPCRoute. A backendRef without `name` goes to the collector Service. Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#rules
+Only OTLP traces:
+
+  ```yaml
+  - matches:
+      - method:
+          service: opentelemetry.proto.collector.trace.v1.TraceService
+          method: Export
+    backendRefs:
+      - port: 4317
+  ```
+</td>
         </tr>
     </tbody>
 </table>
@@ -3753,7 +3972,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--ports"><a href="./values.yaml#L1875">otelCollector.ports</a></td>
+            <td id="otelCollector--ports"><a href="./values.yaml#L1923">otelCollector.ports</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -3762,7 +3981,7 @@ Group exceptions with low cardinality:
             <td>Port configuration. Each entry is a port of the collector container and of its Service. An entry of your own needs `enabled`, `containerPort`, `servicePort` and `protocol`. Its name is a port name of at most 15 characters.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp--enabled"><a href="./values.yaml#L1879">otelCollector.ports.otlp.enabled</a></td>
+            <td id="otelCollector--ports--otlp--enabled"><a href="./values.yaml#L1927">otelCollector.ports.otlp.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3771,7 +3990,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for OTLP gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp--containerPort"><a href="./values.yaml#L1882">otelCollector.ports.otlp.containerPort</a></td>
+            <td id="otelCollector--ports--otlp--containerPort"><a href="./values.yaml#L1930">otelCollector.ports.otlp.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">4317</pre>
@@ -3780,7 +3999,7 @@ Group exceptions with low cardinality:
             <td>Container port for OTLP gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp--servicePort"><a href="./values.yaml#L1885">otelCollector.ports.otlp.servicePort</a></td>
+            <td id="otelCollector--ports--otlp--servicePort"><a href="./values.yaml#L1933">otelCollector.ports.otlp.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">4317</pre>
@@ -3789,7 +4008,7 @@ Group exceptions with low cardinality:
             <td>Service port for OTLP gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp--nodePort"><a href="./values.yaml#L1888">otelCollector.ports.otlp.nodePort</a></td>
+            <td id="otelCollector--ports--otlp--nodePort"><a href="./values.yaml#L1936">otelCollector.ports.otlp.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3798,7 +4017,7 @@ Group exceptions with low cardinality:
             <td>NodePort for OTLP gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp--protocol"><a href="./values.yaml#L1891">otelCollector.ports.otlp.protocol</a></td>
+            <td id="otelCollector--ports--otlp--protocol"><a href="./values.yaml#L1939">otelCollector.ports.otlp.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -3807,7 +4026,7 @@ Group exceptions with low cardinality:
             <td>Protocol for OTLP gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http--enabled"><a href="./values.yaml#L1895">otelCollector.ports.otlp-http.enabled</a></td>
+            <td id="otelCollector--ports--otlp-http--enabled"><a href="./values.yaml#L1943">otelCollector.ports.otlp-http.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3816,7 +4035,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for OTLP HTTP.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http--containerPort"><a href="./values.yaml#L1898">otelCollector.ports.otlp-http.containerPort</a></td>
+            <td id="otelCollector--ports--otlp-http--containerPort"><a href="./values.yaml#L1946">otelCollector.ports.otlp-http.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">4318</pre>
@@ -3825,7 +4044,7 @@ Group exceptions with low cardinality:
             <td>Container port for OTLP HTTP.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http--servicePort"><a href="./values.yaml#L1901">otelCollector.ports.otlp-http.servicePort</a></td>
+            <td id="otelCollector--ports--otlp-http--servicePort"><a href="./values.yaml#L1949">otelCollector.ports.otlp-http.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">4318</pre>
@@ -3834,7 +4053,7 @@ Group exceptions with low cardinality:
             <td>Service port for OTLP HTTP.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http--nodePort"><a href="./values.yaml#L1904">otelCollector.ports.otlp-http.nodePort</a></td>
+            <td id="otelCollector--ports--otlp-http--nodePort"><a href="./values.yaml#L1952">otelCollector.ports.otlp-http.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3843,7 +4062,7 @@ Group exceptions with low cardinality:
             <td>NodePort for OTLP HTTP.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--otlp-http--protocol"><a href="./values.yaml#L1907">otelCollector.ports.otlp-http.protocol</a></td>
+            <td id="otelCollector--ports--otlp-http--protocol"><a href="./values.yaml#L1955">otelCollector.ports.otlp-http.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -3852,7 +4071,7 @@ Group exceptions with low cardinality:
             <td>Protocol for OTLP HTTP.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift--enabled"><a href="./values.yaml#L1911">otelCollector.ports.jaeger-thrift.enabled</a></td>
+            <td id="otelCollector--ports--jaeger-thrift--enabled"><a href="./values.yaml#L1959">otelCollector.ports.jaeger-thrift.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3861,7 +4080,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for Jaeger Thrift.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift--containerPort"><a href="./values.yaml#L1914">otelCollector.ports.jaeger-thrift.containerPort</a></td>
+            <td id="otelCollector--ports--jaeger-thrift--containerPort"><a href="./values.yaml#L1962">otelCollector.ports.jaeger-thrift.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">14268</pre>
@@ -3870,7 +4089,7 @@ Group exceptions with low cardinality:
             <td>Container port for Jaeger Thrift.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift--servicePort"><a href="./values.yaml#L1917">otelCollector.ports.jaeger-thrift.servicePort</a></td>
+            <td id="otelCollector--ports--jaeger-thrift--servicePort"><a href="./values.yaml#L1965">otelCollector.ports.jaeger-thrift.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">14268</pre>
@@ -3879,7 +4098,7 @@ Group exceptions with low cardinality:
             <td>Service port for Jaeger Thrift.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift--nodePort"><a href="./values.yaml#L1920">otelCollector.ports.jaeger-thrift.nodePort</a></td>
+            <td id="otelCollector--ports--jaeger-thrift--nodePort"><a href="./values.yaml#L1968">otelCollector.ports.jaeger-thrift.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3888,7 +4107,7 @@ Group exceptions with low cardinality:
             <td>NodePort for Jaeger Thrift.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-thrift--protocol"><a href="./values.yaml#L1923">otelCollector.ports.jaeger-thrift.protocol</a></td>
+            <td id="otelCollector--ports--jaeger-thrift--protocol"><a href="./values.yaml#L1971">otelCollector.ports.jaeger-thrift.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -3897,7 +4116,7 @@ Group exceptions with low cardinality:
             <td>Protocol for Jaeger Thrift.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc--enabled"><a href="./values.yaml#L1927">otelCollector.ports.jaeger-grpc.enabled</a></td>
+            <td id="otelCollector--ports--jaeger-grpc--enabled"><a href="./values.yaml#L1975">otelCollector.ports.jaeger-grpc.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3906,7 +4125,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for Jaeger gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc--containerPort"><a href="./values.yaml#L1930">otelCollector.ports.jaeger-grpc.containerPort</a></td>
+            <td id="otelCollector--ports--jaeger-grpc--containerPort"><a href="./values.yaml#L1978">otelCollector.ports.jaeger-grpc.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">14250</pre>
@@ -3915,7 +4134,7 @@ Group exceptions with low cardinality:
             <td>Container port for Jaeger gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc--servicePort"><a href="./values.yaml#L1933">otelCollector.ports.jaeger-grpc.servicePort</a></td>
+            <td id="otelCollector--ports--jaeger-grpc--servicePort"><a href="./values.yaml#L1981">otelCollector.ports.jaeger-grpc.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">14250</pre>
@@ -3924,7 +4143,7 @@ Group exceptions with low cardinality:
             <td>Service port for Jaeger gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc--nodePort"><a href="./values.yaml#L1936">otelCollector.ports.jaeger-grpc.nodePort</a></td>
+            <td id="otelCollector--ports--jaeger-grpc--nodePort"><a href="./values.yaml#L1984">otelCollector.ports.jaeger-grpc.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3933,7 +4152,7 @@ Group exceptions with low cardinality:
             <td>NodePort for Jaeger gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--jaeger-grpc--protocol"><a href="./values.yaml#L1939">otelCollector.ports.jaeger-grpc.protocol</a></td>
+            <td id="otelCollector--ports--jaeger-grpc--protocol"><a href="./values.yaml#L1987">otelCollector.ports.jaeger-grpc.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -3942,7 +4161,7 @@ Group exceptions with low cardinality:
             <td>Protocol for Jaeger gRPC.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics--enabled"><a href="./values.yaml#L1943">otelCollector.ports.metrics.enabled</a></td>
+            <td id="otelCollector--ports--metrics--enabled"><a href="./values.yaml#L1991">otelCollector.ports.metrics.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -3951,7 +4170,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for internal metrics.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics--containerPort"><a href="./values.yaml#L1946">otelCollector.ports.metrics.containerPort</a></td>
+            <td id="otelCollector--ports--metrics--containerPort"><a href="./values.yaml#L1994">otelCollector.ports.metrics.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8888</pre>
@@ -3960,7 +4179,7 @@ Group exceptions with low cardinality:
             <td>Container port for internal metrics.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics--servicePort"><a href="./values.yaml#L1949">otelCollector.ports.metrics.servicePort</a></td>
+            <td id="otelCollector--ports--metrics--servicePort"><a href="./values.yaml#L1997">otelCollector.ports.metrics.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8888</pre>
@@ -3969,7 +4188,7 @@ Group exceptions with low cardinality:
             <td>Service port for internal metrics.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics--nodePort"><a href="./values.yaml#L1952">otelCollector.ports.metrics.nodePort</a></td>
+            <td id="otelCollector--ports--metrics--nodePort"><a href="./values.yaml#L2000">otelCollector.ports.metrics.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -3978,7 +4197,7 @@ Group exceptions with low cardinality:
             <td>NodePort for internal metrics.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--metrics--protocol"><a href="./values.yaml#L1955">otelCollector.ports.metrics.protocol</a></td>
+            <td id="otelCollector--ports--metrics--protocol"><a href="./values.yaml#L2003">otelCollector.ports.metrics.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -3987,7 +4206,7 @@ Group exceptions with low cardinality:
             <td>Protocol for internal metrics.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages--enabled"><a href="./values.yaml#L1959">otelCollector.ports.zpages.enabled</a></td>
+            <td id="otelCollector--ports--zpages--enabled"><a href="./values.yaml#L2007">otelCollector.ports.zpages.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -3996,7 +4215,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for zPages.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages--containerPort"><a href="./values.yaml#L1962">otelCollector.ports.zpages.containerPort</a></td>
+            <td id="otelCollector--ports--zpages--containerPort"><a href="./values.yaml#L2010">otelCollector.ports.zpages.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">55679</pre>
@@ -4005,7 +4224,7 @@ Group exceptions with low cardinality:
             <td>Container port for zPages.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages--servicePort"><a href="./values.yaml#L1965">otelCollector.ports.zpages.servicePort</a></td>
+            <td id="otelCollector--ports--zpages--servicePort"><a href="./values.yaml#L2013">otelCollector.ports.zpages.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">55679</pre>
@@ -4014,7 +4233,7 @@ Group exceptions with low cardinality:
             <td>Service port for zPages.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages--nodePort"><a href="./values.yaml#L1968">otelCollector.ports.zpages.nodePort</a></td>
+            <td id="otelCollector--ports--zpages--nodePort"><a href="./values.yaml#L2016">otelCollector.ports.zpages.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4023,7 +4242,7 @@ Group exceptions with low cardinality:
             <td>NodePort for zPages.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--zpages--protocol"><a href="./values.yaml#L1971">otelCollector.ports.zpages.protocol</a></td>
+            <td id="otelCollector--ports--zpages--protocol"><a href="./values.yaml#L2019">otelCollector.ports.zpages.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -4032,7 +4251,7 @@ Group exceptions with low cardinality:
             <td>Protocol for zPages.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof--enabled"><a href="./values.yaml#L1975">otelCollector.ports.pprof.enabled</a></td>
+            <td id="otelCollector--ports--pprof--enabled"><a href="./values.yaml#L2023">otelCollector.ports.pprof.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -4041,7 +4260,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for pprof.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof--containerPort"><a href="./values.yaml#L1978">otelCollector.ports.pprof.containerPort</a></td>
+            <td id="otelCollector--ports--pprof--containerPort"><a href="./values.yaml#L2026">otelCollector.ports.pprof.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1777</pre>
@@ -4050,7 +4269,7 @@ Group exceptions with low cardinality:
             <td>Container port for pprof.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof--servicePort"><a href="./values.yaml#L1981">otelCollector.ports.pprof.servicePort</a></td>
+            <td id="otelCollector--ports--pprof--servicePort"><a href="./values.yaml#L2029">otelCollector.ports.pprof.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1777</pre>
@@ -4059,7 +4278,7 @@ Group exceptions with low cardinality:
             <td>Service port for pprof.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof--nodePort"><a href="./values.yaml#L1984">otelCollector.ports.pprof.nodePort</a></td>
+            <td id="otelCollector--ports--pprof--nodePort"><a href="./values.yaml#L2032">otelCollector.ports.pprof.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4068,7 +4287,7 @@ Group exceptions with low cardinality:
             <td>NodePort for pprof.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--pprof--protocol"><a href="./values.yaml#L1987">otelCollector.ports.pprof.protocol</a></td>
+            <td id="otelCollector--ports--pprof--protocol"><a href="./values.yaml#L2035">otelCollector.ports.pprof.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -4077,7 +4296,7 @@ Group exceptions with low cardinality:
             <td>Protocol for pprof.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku--enabled"><a href="./values.yaml#L1991">otelCollector.ports.logsheroku.enabled</a></td>
+            <td id="otelCollector--ports--logsheroku--enabled"><a href="./values.yaml#L2039">otelCollector.ports.logsheroku.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4086,7 +4305,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for Heroku logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku--containerPort"><a href="./values.yaml#L1994">otelCollector.ports.logsheroku.containerPort</a></td>
+            <td id="otelCollector--ports--logsheroku--containerPort"><a href="./values.yaml#L2042">otelCollector.ports.logsheroku.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8081</pre>
@@ -4095,7 +4314,7 @@ Group exceptions with low cardinality:
             <td>Container port for Heroku logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku--servicePort"><a href="./values.yaml#L1997">otelCollector.ports.logsheroku.servicePort</a></td>
+            <td id="otelCollector--ports--logsheroku--servicePort"><a href="./values.yaml#L2045">otelCollector.ports.logsheroku.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8081</pre>
@@ -4104,7 +4323,7 @@ Group exceptions with low cardinality:
             <td>Service port for Heroku logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku--nodePort"><a href="./values.yaml#L2000">otelCollector.ports.logsheroku.nodePort</a></td>
+            <td id="otelCollector--ports--logsheroku--nodePort"><a href="./values.yaml#L2048">otelCollector.ports.logsheroku.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4113,7 +4332,7 @@ Group exceptions with low cardinality:
             <td>NodePort for Heroku logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsheroku--protocol"><a href="./values.yaml#L2003">otelCollector.ports.logsheroku.protocol</a></td>
+            <td id="otelCollector--ports--logsheroku--protocol"><a href="./values.yaml#L2051">otelCollector.ports.logsheroku.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -4122,7 +4341,7 @@ Group exceptions with low cardinality:
             <td>Protocol for Heroku logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson--enabled"><a href="./values.yaml#L2007">otelCollector.ports.logsjson.enabled</a></td>
+            <td id="otelCollector--ports--logsjson--enabled"><a href="./values.yaml#L2055">otelCollector.ports.logsjson.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4131,7 +4350,7 @@ Group exceptions with low cardinality:
             <td>Enable the Service port for JSON logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson--containerPort"><a href="./values.yaml#L2010">otelCollector.ports.logsjson.containerPort</a></td>
+            <td id="otelCollector--ports--logsjson--containerPort"><a href="./values.yaml#L2058">otelCollector.ports.logsjson.containerPort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8082</pre>
@@ -4140,7 +4359,7 @@ Group exceptions with low cardinality:
             <td>Container port for JSON logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson--servicePort"><a href="./values.yaml#L2013">otelCollector.ports.logsjson.servicePort</a></td>
+            <td id="otelCollector--ports--logsjson--servicePort"><a href="./values.yaml#L2061">otelCollector.ports.logsjson.servicePort</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">8082</pre>
@@ -4149,7 +4368,7 @@ Group exceptions with low cardinality:
             <td>Service port for JSON logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson--nodePort"><a href="./values.yaml#L2016">otelCollector.ports.logsjson.nodePort</a></td>
+            <td id="otelCollector--ports--logsjson--nodePort"><a href="./values.yaml#L2064">otelCollector.ports.logsjson.nodePort</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4158,7 +4377,7 @@ Group exceptions with low cardinality:
             <td>NodePort for JSON logs.</td>
         </tr>
         <tr>
-            <td id="otelCollector--ports--logsjson--protocol"><a href="./values.yaml#L2019">otelCollector.ports.logsjson.protocol</a></td>
+            <td id="otelCollector--ports--logsjson--protocol"><a href="./values.yaml#L2067">otelCollector.ports.logsjson.protocol</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">TCP</pre>
@@ -4178,7 +4397,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="otelCollector--config"><a href="./values.yaml#L2203">otelCollector.config</a></td>
+            <td id="otelCollector--config"><a href="./values.yaml#L2348">otelCollector.config</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">Please checkout the default values in values.yml</pre>
@@ -4198,7 +4417,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="postgresql--enabled"><a href="./values.yaml#L2344">postgresql.enabled</a></td>
+            <td id="postgresql--enabled"><a href="./values.yaml#L2489">postgresql.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">false</pre>
@@ -4207,7 +4426,7 @@ Group exceptions with low cardinality:
             <td>Install PostgreSQL. Switching an existing release from SQLite to Postgres needs a new release.</td>
         </tr>
         <tr>
-            <td id="postgresql--namespace"><a href="./values.yaml#L2347">postgresql.namespace</a></td>
+            <td id="postgresql--namespace"><a href="./values.yaml#L2492">postgresql.namespace</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4216,7 +4435,7 @@ Group exceptions with low cardinality:
             <td>Namespace of Postgres. Empty means the release namespace.</td>
         </tr>
         <tr>
-            <td id="postgresql--nameOverride"><a href="./values.yaml#L2350">postgresql.nameOverride</a></td>
+            <td id="postgresql--nameOverride"><a href="./values.yaml#L2495">postgresql.nameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4225,7 +4444,7 @@ Group exceptions with low cardinality:
             <td>Override the chart name.</td>
         </tr>
         <tr>
-            <td id="postgresql--fullnameOverride"><a href="./values.yaml#L2353">postgresql.fullnameOverride</a></td>
+            <td id="postgresql--fullnameOverride"><a href="./values.yaml#L2498">postgresql.fullnameOverride</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4234,7 +4453,7 @@ Group exceptions with low cardinality:
             <td>Override the full resource name.</td>
         </tr>
         <tr>
-            <td id="postgresql--replicaCount"><a href="./values.yaml#L2357">postgresql.replicaCount</a></td>
+            <td id="postgresql--replicaCount"><a href="./values.yaml#L2502">postgresql.replicaCount</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4243,7 +4462,7 @@ Group exceptions with low cardinality:
             <td>Number of replicas.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--repository"><a href="./values.yaml#L2362">postgresql.image.repository</a></td>
+            <td id="postgresql--image--repository"><a href="./values.yaml#L2507">postgresql.image.repository</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">postgres</pre>
@@ -4252,7 +4471,7 @@ Group exceptions with low cardinality:
             <td>Image repository.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--tag"><a href="./values.yaml#L2366">postgresql.image.tag</a></td>
+            <td id="postgresql--image--tag"><a href="./values.yaml#L2511">postgresql.image.tag</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">"15"</pre>
@@ -4261,7 +4480,7 @@ Group exceptions with low cardinality:
             <td>Image tag.</td>
         </tr>
         <tr>
-            <td id="postgresql--image--pullPolicy"><a href="./values.yaml#L2370">postgresql.image.pullPolicy</a></td>
+            <td id="postgresql--image--pullPolicy"><a href="./values.yaml#L2515">postgresql.image.pullPolicy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">IfNotPresent</pre>
@@ -4270,7 +4489,7 @@ Group exceptions with low cardinality:
             <td>Image pull policy.</td>
         </tr>
         <tr>
-            <td id="postgresql--imagePullSecrets"><a href="./values.yaml#L2374">postgresql.imagePullSecrets</a></td>
+            <td id="postgresql--imagePullSecrets"><a href="./values.yaml#L2519">postgresql.imagePullSecrets</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4279,7 +4498,7 @@ Group exceptions with low cardinality:
             <td>Image pull secrets for the Postgres Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--annotations"><a href="./values.yaml#L2379">postgresql.service.annotations</a></td>
+            <td id="postgresql--service--annotations"><a href="./values.yaml#L2524">postgresql.service.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4288,7 +4507,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Service.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--labels"><a href="./values.yaml#L2383">postgresql.service.labels</a></td>
+            <td id="postgresql--service--labels"><a href="./values.yaml#L2528">postgresql.service.labels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4297,7 +4516,7 @@ Group exceptions with low cardinality:
             <td>Labels to add to the Service.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--type"><a href="./values.yaml#L2387">postgresql.service.type</a></td>
+            <td id="postgresql--service--type"><a href="./values.yaml#L2532">postgresql.service.type</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">ClusterIP</pre>
@@ -4306,7 +4525,7 @@ Group exceptions with low cardinality:
             <td>Kubernetes Service type.</td>
         </tr>
         <tr>
-            <td id="postgresql--service--port"><a href="./values.yaml#L2391">postgresql.service.port</a></td>
+            <td id="postgresql--service--port"><a href="./values.yaml#L2536">postgresql.service.port</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5432</pre>
@@ -4315,7 +4534,7 @@ Group exceptions with low cardinality:
             <td>Service port.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--username"><a href="./values.yaml#L2396">postgresql.auth.username</a></td>
+            <td id="postgresql--auth--username"><a href="./values.yaml#L2541">postgresql.auth.username</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz</pre>
@@ -4324,7 +4543,7 @@ Group exceptions with low cardinality:
             <td>User to create.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--password"><a href="./values.yaml#L2399">postgresql.auth.password</a></td>
+            <td id="postgresql--auth--password"><a href="./values.yaml#L2544">postgresql.auth.password</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">signoz123</pre>
@@ -4333,7 +4552,7 @@ Group exceptions with low cardinality:
             <td>Password of the user, stored in the Secret `<fullname>-auth` under the key `password`. Ignored when `auth.existingSecret` is set.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--database"><a href="./values.yaml#L2403">postgresql.auth.database</a></td>
+            <td id="postgresql--auth--database"><a href="./values.yaml#L2548">postgresql.auth.database</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4342,7 +4561,7 @@ Group exceptions with low cardinality:
             <td>Database to create.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--existingSecret"><a href="./values.yaml#L2407">postgresql.auth.existingSecret</a></td>
+            <td id="postgresql--auth--existingSecret"><a href="./values.yaml#L2552">postgresql.auth.existingSecret</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4351,7 +4570,7 @@ Group exceptions with low cardinality:
             <td>Name of a Secret you created that holds the password. When set, the chart creates no Secret and ignores `auth.password`.</td>
         </tr>
         <tr>
-            <td id="postgresql--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2412">postgresql.auth.secretKeys.userPasswordKey</a></td>
+            <td id="postgresql--auth--secretKeys--userPasswordKey"><a href="./values.yaml#L2557">postgresql.auth.secretKeys.userPasswordKey</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">password</pre>
@@ -4360,7 +4579,7 @@ Group exceptions with low cardinality:
             <td>Key of the password inside `auth.existingSecret`.</td>
         </tr>
         <tr>
-            <td id="postgresql--resources"><a href="./values.yaml#L2416">postgresql.resources</a></td>
+            <td id="postgresql--resources"><a href="./values.yaml#L2561">postgresql.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4369,7 +4588,7 @@ Group exceptions with low cardinality:
             <td>Resource requests and limits for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--priorityClassName"><a href="./values.yaml#L2420">postgresql.priorityClassName</a></td>
+            <td id="postgresql--priorityClassName"><a href="./values.yaml#L2565">postgresql.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4378,7 +4597,7 @@ Group exceptions with low cardinality:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--podSecurityContext"><a href="./values.yaml#L2425">postgresql.podSecurityContext</a></td>
+            <td id="postgresql--podSecurityContext"><a href="./values.yaml#L2570">postgresql.podSecurityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4387,7 +4606,7 @@ Group exceptions with low cardinality:
             <td>Security context for the Pod. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="postgresql--securityContext"><a href="./values.yaml#L2430">postgresql.securityContext</a></td>
+            <td id="postgresql--securityContext"><a href="./values.yaml#L2575">postgresql.securityContext</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4396,7 +4615,7 @@ Group exceptions with low cardinality:
             <td>Security context for the container. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/</td>
         </tr>
         <tr>
-            <td id="postgresql--podAnnotations"><a href="./values.yaml#L2434">postgresql.podAnnotations</a></td>
+            <td id="postgresql--podAnnotations"><a href="./values.yaml#L2579">postgresql.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4405,7 +4624,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--annotations"><a href="./values.yaml#L2438">postgresql.annotations</a></td>
+            <td id="postgresql--annotations"><a href="./values.yaml#L2583">postgresql.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4414,7 +4633,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Postgres objects.</td>
         </tr>
         <tr>
-            <td id="postgresql--nodeSelector"><a href="./values.yaml#L2442">postgresql.nodeSelector</a></td>
+            <td id="postgresql--nodeSelector"><a href="./values.yaml#L2587">postgresql.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4423,7 +4642,7 @@ Group exceptions with low cardinality:
             <td>Node labels for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--tolerations"><a href="./values.yaml#L2446">postgresql.tolerations</a></td>
+            <td id="postgresql--tolerations"><a href="./values.yaml#L2591">postgresql.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4432,7 +4651,7 @@ Group exceptions with low cardinality:
             <td>Tolerations for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--affinity"><a href="./values.yaml#L2450">postgresql.affinity</a></td>
+            <td id="postgresql--affinity"><a href="./values.yaml#L2595">postgresql.affinity</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4441,7 +4660,7 @@ Group exceptions with low cardinality:
             <td>Affinity rules for Pod assignment.</td>
         </tr>
         <tr>
-            <td id="postgresql--topologySpreadConstraints"><a href="./values.yaml#L2455">postgresql.topologySpreadConstraints</a></td>
+            <td id="postgresql--topologySpreadConstraints"><a href="./values.yaml#L2600">postgresql.topologySpreadConstraints</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4450,7 +4669,7 @@ Group exceptions with low cardinality:
             <td>Topology spread constraints for Pod assignment. Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--enabled"><a href="./values.yaml#L2460">postgresql.livenessProbe.enabled</a></td>
+            <td id="postgresql--livenessProbe--enabled"><a href="./values.yaml#L2605">postgresql.livenessProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4459,7 +4678,7 @@ Group exceptions with low cardinality:
             <td>Enable the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--initialDelaySeconds"><a href="./values.yaml#L2464">postgresql.livenessProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--livenessProbe--initialDelaySeconds"><a href="./values.yaml#L2609">postgresql.livenessProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">20</pre>
@@ -4468,7 +4687,7 @@ Group exceptions with low cardinality:
             <td>Initial delay of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--periodSeconds"><a href="./values.yaml#L2468">postgresql.livenessProbe.periodSeconds</a></td>
+            <td id="postgresql--livenessProbe--periodSeconds"><a href="./values.yaml#L2613">postgresql.livenessProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -4477,7 +4696,7 @@ Group exceptions with low cardinality:
             <td>Period of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--timeoutSeconds"><a href="./values.yaml#L2472">postgresql.livenessProbe.timeoutSeconds</a></td>
+            <td id="postgresql--livenessProbe--timeoutSeconds"><a href="./values.yaml#L2617">postgresql.livenessProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4486,7 +4705,7 @@ Group exceptions with low cardinality:
             <td>Timeout of the liveness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--successThreshold"><a href="./values.yaml#L2476">postgresql.livenessProbe.successThreshold</a></td>
+            <td id="postgresql--livenessProbe--successThreshold"><a href="./values.yaml#L2621">postgresql.livenessProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4495,7 +4714,7 @@ Group exceptions with low cardinality:
             <td>Success threshold of the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--livenessProbe--failureThreshold"><a href="./values.yaml#L2480">postgresql.livenessProbe.failureThreshold</a></td>
+            <td id="postgresql--livenessProbe--failureThreshold"><a href="./values.yaml#L2625">postgresql.livenessProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">6</pre>
@@ -4504,7 +4723,7 @@ Group exceptions with low cardinality:
             <td>Failure threshold of the liveness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--enabled"><a href="./values.yaml#L2485">postgresql.readinessProbe.enabled</a></td>
+            <td id="postgresql--readinessProbe--enabled"><a href="./values.yaml#L2630">postgresql.readinessProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4513,7 +4732,7 @@ Group exceptions with low cardinality:
             <td>Enable the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L2489">postgresql.readinessProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--readinessProbe--initialDelaySeconds"><a href="./values.yaml#L2634">postgresql.readinessProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4522,7 +4741,7 @@ Group exceptions with low cardinality:
             <td>Initial delay of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--periodSeconds"><a href="./values.yaml#L2493">postgresql.readinessProbe.periodSeconds</a></td>
+            <td id="postgresql--readinessProbe--periodSeconds"><a href="./values.yaml#L2638">postgresql.readinessProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4531,7 +4750,7 @@ Group exceptions with low cardinality:
             <td>Period of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--timeoutSeconds"><a href="./values.yaml#L2497">postgresql.readinessProbe.timeoutSeconds</a></td>
+            <td id="postgresql--readinessProbe--timeoutSeconds"><a href="./values.yaml#L2642">postgresql.readinessProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">3</pre>
@@ -4540,7 +4759,7 @@ Group exceptions with low cardinality:
             <td>Timeout of the readiness probe, in seconds.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--successThreshold"><a href="./values.yaml#L2501">postgresql.readinessProbe.successThreshold</a></td>
+            <td id="postgresql--readinessProbe--successThreshold"><a href="./values.yaml#L2646">postgresql.readinessProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4549,7 +4768,7 @@ Group exceptions with low cardinality:
             <td>Success threshold of the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--readinessProbe--failureThreshold"><a href="./values.yaml#L2505">postgresql.readinessProbe.failureThreshold</a></td>
+            <td id="postgresql--readinessProbe--failureThreshold"><a href="./values.yaml#L2650">postgresql.readinessProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">6</pre>
@@ -4558,7 +4777,7 @@ Group exceptions with low cardinality:
             <td>Failure threshold of the readiness probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--enabled"><a href="./values.yaml#L2510">postgresql.startupProbe.enabled</a></td>
+            <td id="postgresql--startupProbe--enabled"><a href="./values.yaml#L2655">postgresql.startupProbe.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4567,7 +4786,7 @@ Group exceptions with low cardinality:
             <td>Enable the startup probe. It passes once Postgres answers and no dump waits at `backups/pre-upgrade.sql`. The liveness and readiness probes start only after it passes.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--initialDelaySeconds"><a href="./values.yaml#L2513">postgresql.startupProbe.initialDelaySeconds</a></td>
+            <td id="postgresql--startupProbe--initialDelaySeconds"><a href="./values.yaml#L2658">postgresql.startupProbe.initialDelaySeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">0</pre>
@@ -4576,7 +4795,7 @@ Group exceptions with low cardinality:
             <td>Delay before the first startup probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--periodSeconds"><a href="./values.yaml#L2516">postgresql.startupProbe.periodSeconds</a></td>
+            <td id="postgresql--startupProbe--periodSeconds"><a href="./values.yaml#L2661">postgresql.startupProbe.periodSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10</pre>
@@ -4585,7 +4804,7 @@ Group exceptions with low cardinality:
             <td>Interval between startup probes.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--timeoutSeconds"><a href="./values.yaml#L2519">postgresql.startupProbe.timeoutSeconds</a></td>
+            <td id="postgresql--startupProbe--timeoutSeconds"><a href="./values.yaml#L2664">postgresql.startupProbe.timeoutSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">5</pre>
@@ -4594,7 +4813,7 @@ Group exceptions with low cardinality:
             <td>Timeout of each startup probe.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--successThreshold"><a href="./values.yaml#L2522">postgresql.startupProbe.successThreshold</a></td>
+            <td id="postgresql--startupProbe--successThreshold"><a href="./values.yaml#L2667">postgresql.startupProbe.successThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">1</pre>
@@ -4603,7 +4822,7 @@ Group exceptions with low cardinality:
             <td>Consecutive successes for the startup probe to pass. Kubernetes accepts only 1.</td>
         </tr>
         <tr>
-            <td id="postgresql--startupProbe--failureThreshold"><a href="./values.yaml#L2526">postgresql.startupProbe.failureThreshold</a></td>
+            <td id="postgresql--startupProbe--failureThreshold"><a href="./values.yaml#L2671">postgresql.startupProbe.failureThreshold</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">180</pre>
@@ -4612,7 +4831,7 @@ Group exceptions with low cardinality:
             <td>Consecutive failures before the container is restarted. With the default period, a first start has 30 minutes to load a dump.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--enabled"><a href="./values.yaml#L2531">postgresql.persistence.enabled</a></td>
+            <td id="postgresql--persistence--enabled"><a href="./values.yaml#L2676">postgresql.persistence.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4621,7 +4840,7 @@ Group exceptions with low cardinality:
             <td>Enable persistence with a PersistentVolumeClaim.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2536">postgresql.persistence.existingClaim</a></td>
+            <td id="postgresql--persistence--existingClaim"><a href="./values.yaml#L2681">postgresql.persistence.existingClaim</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">none, the chart's volume claim template</pre>
@@ -4630,7 +4849,7 @@ Group exceptions with low cardinality:
             <td>Name of an existing PVC to use. Rendered as a template. `{{ .Release.Name }}-{{ .Chart.Name }}` names the PVC `<release>-postgresql`.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--size"><a href="./values.yaml#L2540">postgresql.persistence.size</a></td>
+            <td id="postgresql--persistence--size"><a href="./values.yaml#L2685">postgresql.persistence.size</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">10Gi</pre>
@@ -4639,7 +4858,7 @@ Group exceptions with low cardinality:
             <td>Size of the PVC.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2544">postgresql.persistence.storageClass</a></td>
+            <td id="postgresql--persistence--storageClass"><a href="./values.yaml#L2689">postgresql.persistence.storageClass</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -4648,7 +4867,7 @@ Group exceptions with low cardinality:
             <td>StorageClass of the PVC.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2549">postgresql.persistence.accessModes</a></td>
+            <td id="postgresql--persistence--accessModes"><a href="./values.yaml#L2694">postgresql.persistence.accessModes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">- ReadWriteOnce</pre>
@@ -4657,7 +4876,7 @@ Group exceptions with low cardinality:
             <td>Access modes of the PVC. Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2556">postgresql.persistence.mountPath</a></td>
+            <td id="postgresql--persistence--mountPath"><a href="./values.yaml#L2701">postgresql.persistence.mountPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql</pre>
@@ -4666,7 +4885,7 @@ Group exceptions with low cardinality:
             <td>Mount path of the data PVC. At `/var/lib/postgresql`, the chart also mounts the PVC's `data` directory at `/var/lib/postgresql/data`, so the database is on the PVC. Not applied to the official `postgres` image at tag 18 or later, or when an `additionalVolumeMounts` entry uses that path. At any other path, `persistence.dataDir` must be under this one.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2560">postgresql.persistence.subPath</a></td>
+            <td id="postgresql--persistence--subPath"><a href="./values.yaml#L2705">postgresql.persistence.subPath</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">""</pre>
@@ -4675,7 +4894,7 @@ Group exceptions with low cardinality:
             <td>Subpath of the PVC that holds the Postgres data.</td>
         </tr>
         <tr>
-            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2564">postgresql.persistence.dataDir</a></td>
+            <td id="postgresql--persistence--dataDir"><a href="./values.yaml#L2709">postgresql.persistence.dataDir</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">/var/lib/postgresql/data</pre>
@@ -4684,7 +4903,7 @@ Group exceptions with low cardinality:
             <td>Data directory of Postgres (`PGDATA`). It must be a subdirectory of `persistence.mountPath`. A container that does not run as root cannot initialize the `data` directory. Use `/var/lib/postgresql/pgdata` for it.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2573">postgresql.upgradeBackupHook.enabled</a></td>
+            <td id="postgresql--upgradeBackupHook--enabled"><a href="./values.yaml#L2718">postgresql.upgradeBackupHook.enabled</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4693,7 +4912,7 @@ Group exceptions with low cardinality:
             <td>Run the pre-upgrade hook Job that dumps a database not on the PVC, for the new Pod to load. Not run on `helm install`, without persistence, with a `persistence.mountPath` other than `/var/lib/postgresql`, with a `persistence.dataDir` outside it, with an `additionalVolumeMounts` entry at or above the data directory, with a `ReadWriteOncePod` PVC, or with `replicaCount: 0`. It runs on the Postgres Pod's node. While that Pod is absent, the upgrade fails after `activeDeadlineSeconds` with `DeadlineExceeded`. When false without a dump taken by hand, a database that is not on the PVC is lost: https://signoz.io/docs/operate/migration/upgrade-0-152/#take-the-postgresql-dump-by-hand</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2577">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
+            <td id="postgresql--upgradeBackupHook--activeDeadlineSeconds"><a href="./values.yaml#L2722">postgresql.upgradeBackupHook.activeDeadlineSeconds</a></td>
             <td>int</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">240</pre>
@@ -4702,7 +4921,7 @@ Group exceptions with low cardinality:
             <td>Time limit of the Job. When it passes, the Job and the upgrade fail. A value of 300 or more needs `helm upgrade --timeout` raised with it.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2581">postgresql.upgradeBackupHook.resources</a></td>
+            <td id="postgresql--upgradeBackupHook--resources"><a href="./values.yaml#L2726">postgresql.upgradeBackupHook.resources</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">requests 50m CPU and 64Mi memory, limits 1 CPU and 256Mi memory</pre>
@@ -4711,7 +4930,7 @@ Group exceptions with low cardinality:
             <td>Resource requests and limits for the container. `null` sets none, and `{}` keeps the defaults.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2591">postgresql.upgradeBackupHook.nodeSelector</a></td>
+            <td id="postgresql--upgradeBackupHook--nodeSelector"><a href="./values.yaml#L2736">postgresql.upgradeBackupHook.nodeSelector</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `nodeSelector`</pre>
@@ -4720,7 +4939,7 @@ Group exceptions with low cardinality:
             <td>Node labels for Pod assignment. They must match the node of the Postgres Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2594">postgresql.upgradeBackupHook.tolerations</a></td>
+            <td id="postgresql--upgradeBackupHook--tolerations"><a href="./values.yaml#L2739">postgresql.upgradeBackupHook.tolerations</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4729,7 +4948,7 @@ Group exceptions with low cardinality:
             <td>Tolerations for Pod assignment, added to the Postgres Pod's `tolerations`.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2598">postgresql.upgradeBackupHook.priorityClassName</a></td>
+            <td id="postgresql--upgradeBackupHook--priorityClassName"><a href="./values.yaml#L2743">postgresql.upgradeBackupHook.priorityClassName</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">the value of `priorityClassName`</pre>
@@ -4738,7 +4957,7 @@ Group exceptions with low cardinality:
             <td>PriorityClass of the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2601">postgresql.upgradeBackupHook.podAnnotations</a></td>
+            <td id="postgresql--upgradeBackupHook--podAnnotations"><a href="./values.yaml#L2746">postgresql.upgradeBackupHook.podAnnotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4747,7 +4966,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2604">postgresql.upgradeBackupHook.podLabels</a></td>
+            <td id="postgresql--upgradeBackupHook--podLabels"><a href="./values.yaml#L2749">postgresql.upgradeBackupHook.podLabels</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4756,7 +4975,7 @@ Group exceptions with low cardinality:
             <td>Labels to add to the Pod. A key the chart also sets keeps the chart's value.</td>
         </tr>
         <tr>
-            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2607">postgresql.upgradeBackupHook.annotations</a></td>
+            <td id="postgresql--upgradeBackupHook--annotations"><a href="./values.yaml#L2752">postgresql.upgradeBackupHook.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4765,7 +4984,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the Job. The `helm.sh/hook`, `helm.sh/hook-weight` and `helm.sh/hook-delete-policy` keys are ignored.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2611">postgresql.additionalArgs</a></td>
+            <td id="postgresql--additionalArgs"><a href="./values.yaml#L2756">postgresql.additionalArgs</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4774,7 +4993,7 @@ Group exceptions with low cardinality:
             <td>Extra arguments for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2615">postgresql.additionalVolumes</a></td>
+            <td id="postgresql--additionalVolumes"><a href="./values.yaml#L2760">postgresql.additionalVolumes</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4783,7 +5002,7 @@ Group exceptions with low cardinality:
             <td>Extra volumes for the Pod.</td>
         </tr>
         <tr>
-            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2619">postgresql.additionalVolumeMounts</a></td>
+            <td id="postgresql--additionalVolumeMounts"><a href="./values.yaml#L2764">postgresql.additionalVolumeMounts</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4792,7 +5011,7 @@ Group exceptions with low cardinality:
             <td>Extra volume mounts for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--extraEnv"><a href="./values.yaml#L2623">postgresql.extraEnv</a></td>
+            <td id="postgresql--extraEnv"><a href="./values.yaml#L2768">postgresql.extraEnv</a></td>
             <td>list</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">[]</pre>
@@ -4801,7 +5020,7 @@ Group exceptions with low cardinality:
             <td>Extra environment variables for the container.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2628">postgresql.serviceAccount.create</a></td>
+            <td id="postgresql--serviceAccount--create"><a href="./values.yaml#L2773">postgresql.serviceAccount.create</a></td>
             <td>bool</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">true</pre>
@@ -4810,7 +5029,7 @@ Group exceptions with low cardinality:
             <td>Create a ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2632">postgresql.serviceAccount.annotations</a></td>
+            <td id="postgresql--serviceAccount--annotations"><a href="./values.yaml#L2777">postgresql.serviceAccount.annotations</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">{}</pre>
@@ -4819,7 +5038,7 @@ Group exceptions with low cardinality:
             <td>Annotations to add to the ServiceAccount.</td>
         </tr>
         <tr>
-            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2636">postgresql.serviceAccount.name</a></td>
+            <td id="postgresql--serviceAccount--name"><a href="./values.yaml#L2781">postgresql.serviceAccount.name</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">null</pre>
@@ -4839,7 +5058,7 @@ Group exceptions with low cardinality:
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway"><a href="./values.yaml#L2639">signoz-otel-gateway</a></td>
+            <td id="signoz-otel-gateway"><a href="./values.yaml#L2784">signoz-otel-gateway</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false
@@ -4860,7 +5079,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2646">signoz-otel-gateway.strategy</a></td>
+            <td id="signoz-otel-gateway--strategy"><a href="./values.yaml#L2791">signoz-otel-gateway.strategy</a></td>
             <td>string</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">RollingUpdate</pre>
@@ -4880,7 +5099,7 @@ strategy: ""</pre>
     </thead>
     <tbody>
         <tr>
-            <td id="redpanda"><a href="./values.yaml#L2859">redpanda</a></td>
+            <td id="redpanda"><a href="./values.yaml#L3004">redpanda</a></td>
             <td>object</td>
             <td>
                 <div style="max-width: 300px;"><pre lang="yaml">enabled: false</pre>

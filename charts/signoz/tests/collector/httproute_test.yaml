@@ -1,0 +1,140 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: collector/httproute
+templates:
+  - templates/otel-collector/httproute.yaml
+tests:
+  - it: renders no HTTPRoute without otelCollector.httpRoute.enabled
+    set:
+      otelCollector.httpRoute.enabled: false
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: sends the default rule of an HTTPRoute with only otelCollector.httpRoute.parentRefs to the collector Service on port 4318
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+    asserts:
+      - equal:
+          path: spec.rules
+          value:
+            - backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4318}]
+
+  - it: sends a backendRef without a name to the collector Service and keeps a name that is set
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.httpRoute.rules:
+        - matches: [{path: {type: PathPrefix, value: /v1}}]
+          backendRefs: [{port: 4318}]
+        - matches: [{path: {type: PathPrefix, value: /v1/logs}}]
+          backendRefs: [{name: logs-collector, port: 4318}]
+    asserts:
+      - contains:
+          path: spec.rules
+          content:
+            matches: [{path: {type: PathPrefix, value: /v1}}]
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4318}]
+      - contains:
+          path: spec.rules
+          content:
+            matches: [{path: {type: PathPrefix, value: /v1/logs}}]
+            backendRefs: [{name: logs-collector, port: 4318}]
+
+  - it: keeps each otelCollector.httpRoute rule a rule of its own, with its own backends
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.httpRoute.rules:
+        - matches: [{path: {type: PathPrefix, value: /v1}}]
+          backendRefs: [{port: 4318}]
+        - matches: [{path: {type: PathPrefix, value: /api/traces}}]
+          backendRefs: [{port: 14268}]
+    asserts:
+      - lengthEqual:
+          path: spec.rules
+          count: 2
+      - contains:
+          path: spec.rules
+          content:
+            matches: [{path: {type: PathPrefix, value: /v1}}]
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4318}]
+      - contains:
+          path: spec.rules
+          content:
+            matches: [{path: {type: PathPrefix, value: /api/traces}}]
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 14268}]
+
+  - it: keeps an otelCollector.httpRoute rule without matches apart from the rule before it
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.httpRoute.rules:
+        - matches: [{path: {type: PathPrefix, value: /api/traces}}]
+          backendRefs: [{port: 14268}]
+        - backendRefs: [{port: 4318}]
+    asserts:
+      - lengthEqual:
+          path: spec.rules
+          count: 2
+      - contains:
+          path: spec.rules
+          content:
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4318}]
+
+  - it: adds no backend to an otelCollector.httpRoute rule without backendRefs
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.httpRoute.rules:
+        - matches: [{path: {type: PathPrefix, value: /v1}}]
+          backendRefs: [{port: 4318}]
+        - matches: [{path: {type: PathPrefix, value: /otlp}}]
+          filters:
+            - type: RequestRedirect
+              requestRedirect: {path: {type: ReplacePrefixMatch, replacePrefixMatch: /v1}, statusCode: 301}
+    asserts:
+      - exists:
+          path: spec.rules[?(@.filters)]
+      - notExists:
+          path: spec.rules[?(@.filters)].backendRefs
+
+  - it: labels the HTTPRoute with otelCollector.httpRoute.labels, a key that repeats a chart label taking the user's value
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.httpRoute.labels:
+        app.kubernetes.io/component: ingest-gateway
+        exposure: public
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: ingest-gateway
+      - equal:
+          path: metadata.labels.exposure
+          value: public
+
+  - it: leaves parentRefs and hostnames off the HTTPRoute while otelCollector.httpRoute.parentRefs and hostnames are empty
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: []
+      otelCollector.httpRoute.hostnames: []
+    asserts:
+      - exists:
+          path: spec.rules
+      - notExists:
+          path: spec.parentRefs
+      - notExists:
+          path: spec.hostnames
+
+  - it: creates the HTTPRoute in the release namespace
+    release:
+      namespace: observability
+    set:
+      otelCollector.httpRoute.enabled: true
+      otelCollector.httpRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: observability

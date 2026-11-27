@@ -1,0 +1,38 @@
+{{- if .Values.otelCollector.grpcRoute.enabled }}
+{{- $route := .Values.otelCollector.grpcRoute }}
+{{- $fullName := include "otelCollector.fullname" . }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "signoz.namespace" . }}
+  labels:
+    {{- include "signoz.lib.mergedMap" (dict "maps" (list (include "otelCollector.labels" . | fromYaml) $route.labels)) | nindent 4 }}
+  {{- with $route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $route.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $route.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $route.rules }}
+  rules:
+    {{- range . }}
+    {{- $rule := deepCopy . }}
+    {{- with $rule.backendRefs }}
+    {{- $refs := list }}
+    {{- range . }}
+    {{- $refs = append $refs (merge (deepCopy .) (dict "name" $fullName)) }}
+    {{- end }}
+    {{- $_ := set $rule "backendRefs" $refs }}
+    {{- end }}
+    - {{ toYaml $rule | nindent 6 | trim }}
+    {{- end }}
+  {{- end }}
+{{- end }}
