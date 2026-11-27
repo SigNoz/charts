@@ -14,16 +14,22 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: sends the default rule of an HTTPRoute with only signoz.httpRoute.parentRefs to the SigNoz Service on port 8080
-    template: templates/signoz/httproute.yaml
+  - it: sends the default rule of an HTTPRoute with only signoz.httpRoute.parentRefs to the SigNoz Service's signoz.service.port
     set:
+      signoz.service.port: 9090
       signoz.httpRoute.enabled: true
       signoz.httpRoute.parentRefs: [{name: signoz-gateway, namespace: gateway-system}]
     asserts:
-      - equal:
+      - template: templates/signoz/httproute.yaml
+        equal:
           path: spec.rules
           value:
-            - backendRefs: [{name: RELEASE-NAME-signoz, port: 8080}]
+            - backendRefs: [{name: RELEASE-NAME-signoz, port: 9090}]
+      - template: templates/signoz/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: http, port: 9090}
+          any: true
 
   - it: sends a backendRef without a name to the SigNoz Service and keeps a name that is set
     template: templates/signoz/httproute.yaml
@@ -47,7 +53,7 @@ tests:
             matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
             backendRefs: [{name: opamp-proxy, port: 4320}]
 
-  - it: sends a backendRef without a port to the SigNoz Service's signoz.service.port
+  - it: sends a backendRef without a port to the SigNoz Service's signoz.service.port and keeps a port that is set
     set:
       signoz.service.port: 9090
       signoz.httpRoute.enabled: true
@@ -55,6 +61,8 @@ tests:
       signoz.httpRoute.rules:
         - matches: [{path: {type: PathPrefix, value: /}}]
           backendRefs: [{weight: 1}]
+        - matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
+          backendRefs: [{port: 4320}]
     asserts:
       - template: templates/signoz/httproute.yaml
         contains:
@@ -62,6 +70,12 @@ tests:
           content:
             matches: [{path: {type: PathPrefix, value: /}}]
             backendRefs: [{name: RELEASE-NAME-signoz, port: 9090, weight: 1}]
+      - template: templates/signoz/httproute.yaml
+        contains:
+          path: spec.rules
+          content:
+            matches: [{path: {type: PathPrefix, value: /v1/opamp}}]
+            backendRefs: [{name: RELEASE-NAME-signoz, port: 4320}]
       - template: templates/signoz/service.yaml
         contains:
           path: spec.ports

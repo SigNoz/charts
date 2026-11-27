@@ -2,8 +2,10 @@
 suite: collector/grpcroute
 templates:
   - templates/otel-collector/grpcroute.yaml
+  - templates/otel-collector/service.yaml
 tests:
   - it: renders no GRPCRoute without otelCollector.grpcRoute.enabled
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: false
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -11,17 +13,25 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: sends the default rule of a GRPCRoute with only otelCollector.grpcRoute.parentRefs to the collector Service on port 4317
+  - it: sends the default rule of a GRPCRoute with only otelCollector.grpcRoute.parentRefs to otelCollector.ports.otlp.servicePort on the collector Service
     set:
+      otelCollector.ports.otlp.servicePort: 9317
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
     asserts:
-      - equal:
+      - template: templates/otel-collector/grpcroute.yaml
+        equal:
           path: spec.rules
           value:
-            - backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4317}]
+            - backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 9317}]
+      - template: templates/otel-collector/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: otlp, port: 9317}
+          any: true
 
   - it: sends a backendRef without a name to the collector Service and keeps a name that is set
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -42,7 +52,37 @@ tests:
             matches: [{method: {service: opentelemetry.proto.collector.logs.v1.LogsService}}]
             backendRefs: [{name: logs-collector, port: 4317}]
 
+  - it: sends a backendRef without a port to otelCollector.ports.otlp.servicePort and keeps a port that is set
+    set:
+      otelCollector.ports.otlp.servicePort: 9317
+      otelCollector.grpcRoute.enabled: true
+      otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
+      otelCollector.grpcRoute.rules:
+        - matches: [{method: {service: opentelemetry.proto.collector.trace.v1.TraceService}}]
+          backendRefs: [{weight: 1}]
+        - matches: [{method: {service: jaeger.api_v2.CollectorService}}]
+          backendRefs: [{port: 14250}]
+    asserts:
+      - template: templates/otel-collector/grpcroute.yaml
+        contains:
+          path: spec.rules
+          content:
+            matches: [{method: {service: opentelemetry.proto.collector.trace.v1.TraceService}}]
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 9317, weight: 1}]
+      - template: templates/otel-collector/grpcroute.yaml
+        contains:
+          path: spec.rules
+          content:
+            matches: [{method: {service: jaeger.api_v2.CollectorService}}]
+            backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 14250}]
+      - template: templates/otel-collector/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: otlp, port: 9317}
+          any: true
+
   - it: keeps each otelCollector.grpcRoute rule a rule of its own, with its own backends
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -67,6 +107,7 @@ tests:
             backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 14250}]
 
   - it: keeps an otelCollector.grpcRoute rule without matches apart from the rule before it
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -84,6 +125,7 @@ tests:
             backendRefs: [{name: RELEASE-NAME-signoz-otel-collector, port: 4317}]
 
   - it: adds no backend to an otelCollector.grpcRoute rule without backendRefs
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -97,6 +139,7 @@ tests:
           path: spec.rules[?(@.matches)].backendRefs
 
   - it: labels the GRPCRoute with otelCollector.grpcRoute.labels, a key that repeats a chart label taking the user's value
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: [{name: otlp-gateway, namespace: gateway-system}]
@@ -112,6 +155,7 @@ tests:
           value: public
 
   - it: leaves parentRefs and hostnames off the GRPCRoute while otelCollector.grpcRoute.parentRefs and hostnames are empty
+    template: templates/otel-collector/grpcroute.yaml
     set:
       otelCollector.grpcRoute.enabled: true
       otelCollector.grpcRoute.parentRefs: []
@@ -125,6 +169,7 @@ tests:
           path: spec.hostnames
 
   - it: creates the GRPCRoute in the release namespace
+    template: templates/otel-collector/grpcroute.yaml
     release:
       namespace: observability
     set:

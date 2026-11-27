@@ -21,18 +21,20 @@ spec:
   hostnames:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $route.rules }}
   rules:
-    {{- range . }}
+    {{- range $route.rules | default (list (dict "backendRefs" (list (dict)))) }}
     {{- $rule := deepCopy . }}
     {{- with $rule.backendRefs }}
     {{- $refs := list }}
     {{- range . }}
-    {{- $refs = append $refs (merge (deepCopy .) (dict "name" $fullName)) }}
+    {{- $ref := merge (deepCopy .) (dict "name" $fullName) }}
+    {{- if not $ref.port }}
+    {{- $_ := set $ref "port" (index $.Values.otelCollector.ports "otlp" "servicePort") }}
+    {{- end }}
+    {{- $refs = append $refs $ref }}
     {{- end }}
     {{- $_ := set $rule "backendRefs" $refs }}
     {{- end }}
     - {{ toYaml $rule | nindent 6 | trim }}
     {{- end }}
-  {{- end }}
 {{- end }}

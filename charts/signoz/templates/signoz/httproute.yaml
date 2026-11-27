@@ -22,9 +22,8 @@ spec:
   hostnames:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $route.rules }}
   rules:
-    {{- range . }}
+    {{- range $route.rules | default (list (dict "backendRefs" (list (dict)))) }}
     {{- $rule := deepCopy . }}
     {{- with $rule.backendRefs }}
     {{- $refs := list }}
@@ -35,5 +34,4 @@ spec:
     {{- end }}
     - {{ toYaml $rule | nindent 6 | trim }}
     {{- end }}
-  {{- end }}
 {{- end }}

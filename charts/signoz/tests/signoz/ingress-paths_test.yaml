@@ -23,6 +23,20 @@ tests:
           path: spec.ports
           content: {name: http, port: 9090}
           any: true
+  - it: routes the default Ingress path to the SigNoz Service's signoz.service.port
+    set:
+      signoz.service.port: 9090
+      signoz.ingress.enabled: true
+    asserts:
+      - template: templates/signoz/ingress.yaml
+        equal:
+          path: spec.rules[*].http.paths[*].backend.service.port.number
+          value: 9090
+      - template: templates/signoz/service.yaml
+        contains:
+          path: spec.ports
+          content: {name: http, port: 9090}
+          any: true
   - it: gives an Ingress path without a pathType the ImplementationSpecific type
     template: templates/signoz/ingress.yaml
     set:

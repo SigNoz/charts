@@ -1581,14 +1581,13 @@ signoz:
     labels: {}
     # -- Hosts and paths of the Ingress.
     # A path without `port` routes to `signoz.service.port`, and a path without `pathType` gets `ImplementationSpecific`.
-    # @default -- "the host signoz.domain.com, with the path / on port 8080"
+    # @default -- "the host signoz.domain.com, with the path / on signoz.service.port"
     # @section -- SigNoz Networking
     hosts:
       - host: signoz.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
-            port: 8080
     # -- TLS settings of the Ingress, as entries with `hosts` and an optional `secretName`.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- SigNoz Networking
@@ -1622,7 +1621,7 @@ signoz:
     # @section -- SigNoz Networking
     hostnames: []
     # -- Rules of the HTTPRoute.
-    # A backendRef without `name` goes to the SigNoz Service, and one without `port` to `signoz.service.port`.
+    # An empty list renders one rule to the SigNoz Service on `signoz.service.port`; a backendRef without `name` or `port` gets the same.
     # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
     # @raw
     # Only the API paths:
@@ -1636,11 +1635,8 @@ signoz:
     #       - port: 8080
     #   ```
     #
-    # @default -- "one rule to the SigNoz Service on port 8080"
     # @section -- SigNoz Networking
-    rules:
-      - backendRefs:
-          - port: 8080
+    rules: []
   # -- Resource requests and limits for the container.
   # @default -- "requests of 100m CPU and 100Mi of memory"
   # @section -- SigNoz
@@ -2133,14 +2129,13 @@ otelCollector:
     labels: {}
     # -- Hosts and paths of the Ingress.
     # A path without `port` routes to `otelCollector.ports.otlp-http.servicePort`, and a path without `pathType` gets `ImplementationSpecific`.
-    # @default -- "the host otelcollector.domain.com, with the path / on port 4318"
+    # @default -- "the host otelcollector.domain.com, with the path / on otelCollector.ports.otlp-http.servicePort"
     # @section -- Otel Collector Networking
     hosts:
       - host: otelcollector.domain.com
         paths:
           - path: /
             pathType: ImplementationSpecific
-            port: 4318
     # -- TLS settings of the Ingress.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     # @section -- Otel Collector Networking
@@ -2177,7 +2172,7 @@ otelCollector:
     # @section -- Otel Collector Networking
     hostnames: []
     # -- Rules of the HTTPRoute.
-    # A backendRef without `name` goes to the collector Service.
+    # An empty list renders one rule to the collector Service on `otelCollector.ports.otlp-http.servicePort`; a backendRef without `name` or `port` gets the same.
     # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/httproute/#rules
     # @raw
     # Only the OTLP HTTP paths:
@@ -2191,11 +2186,8 @@ otelCollector:
     #       - port: 4318
     #   ```
     #
-    # @default -- "one rule to the collector Service on port 4318"
     # @section -- Otel Collector Networking
-    rules:
-      - backendRefs:
-          - port: 4318
+    rules: []
   grpcRoute:
     # -- Create a Gateway API GRPCRoute for the collector.
     # The Gateway API CRDs, of v1.1 or later, and a Gateway must already exist in the cluster.
@@ -2226,7 +2218,7 @@ otelCollector:
     # @section -- Otel Collector Networking
     hostnames: []
     # -- Rules of the GRPCRoute.
-    # A backendRef without `name` goes to the collector Service.
+    # An empty list renders one rule to the collector Service on `otelCollector.ports.otlp.servicePort`; a backendRef without `name` or `port` gets the same.
     # Ref: https://gateway-api.sigs.k8s.io/reference/api-types/grpcroute/#rules
     # @raw
     # Only OTLP traces:
@@ -2240,11 +2232,8 @@ otelCollector:
     #       - port: 4317
     #   ```
     #
-    # @default -- "one rule to the collector Service on port 4317"
     # @section -- Otel Collector Networking
-    rules:
-      - backendRefs:
-          - port: 4317
+    rules: []
   # -- Resource requests and limits for the container.
   # @section -- Otel Collector
   # @default -- { requests: { cpu: "100m", memory: "200Mi" } }
