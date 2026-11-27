@@ -1,6 +1,6 @@
 {{- $autoscaling := .Values.otelCollector.autoscaling }}
 {{- if and $autoscaling.enabled (not $autoscaling.keda.enabled) }}
-apiVersion: {{ .Capabilities.APIVersions.Has "autoscaling/v2" | ternary "autoscaling/v2" "autoscaling/v2beta2" }}
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "otelCollector.fullname" . }}

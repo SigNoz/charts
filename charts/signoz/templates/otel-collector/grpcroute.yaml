@@ -1,0 +1,9 @@
+{{- if .Values.otelCollector.grpcRoute.enabled }}
+{{- $args := dict "kind" "GRPCRoute" }}
+{{- $_ := set $args "name" (include "otelCollector.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "otelCollector.labels" . | fromYaml) }}
+{{- $_ := set $args "route" .Values.otelCollector.grpcRoute }}
+{{- $_ := set $args "port" (dig "otlp" "servicePort" "" .Values.otelCollector.ports) }}
+{{- include "signoz.lib.route" $args }}
+{{- end }}

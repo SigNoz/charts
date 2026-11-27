@@ -1,55 +1,8 @@
 {{- if .Values.signoz.ingress.enabled }}
-{{- $ingress := .Values.signoz.ingress }}
-{{- $fullName := include "signoz.fullname" . }}
-{{- $servicePort := .Values.signoz.service.port }}
-{{- $apiIsStable := eq (include "ingress.isStable" .) "true" }}
-{{- $supportsPathType := eq (include "ingress.supportsPathType" .) "true" }}
-apiVersion: {{ include "ingress.apiVersion" . }}
-kind: Ingress
-metadata:
-  name: {{ $fullName }}
-  labels:
-    {{- include "signoz.labels" . | nindent 4 }}
-  {{- with $ingress.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  {{- if and $ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ $ingress.className }}
-  {{- end }}
-  {{- with $ingress.tls }}
-  tls:
-    {{- range . }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      {{- with .secretName }}
-      secretName: {{ . }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-  rules:
-    {{- range $ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if $supportsPathType }}
-            pathType: {{ .pathType | default "ImplementationSpecific" }}
-            {{- end }}
-            backend:
-              {{- if $apiIsStable }}
-              service:
-                name: {{ $fullName }}
-                port:
-                  number: {{ .port | default $servicePort }}
-              {{- else }}
-              serviceName: {{ $fullName }}
-              servicePort: {{ .port | default $servicePort }}
-              {{- end }}
-          {{- end }}
-    {{- end }}
+{{- $args := dict "name" (include "signoz.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "signoz.labels" . | fromYaml) }}
+{{- $_ := set $args "ingress" .Values.signoz.ingress }}
+{{- $_ := set $args "port" .Values.signoz.service.port }}
+{{- include "signoz.lib.ingress" $args }}
 {{- end }}

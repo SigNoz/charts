@@ -1,0 +1,9 @@
+{{- if .Values.signoz.httpRoute.enabled }}
+{{- $args := dict "kind" "HTTPRoute" }}
+{{- $_ := set $args "name" (include "signoz.fullname" .) }}
+{{- $_ := set $args "namespace" (include "signoz.namespace" .) }}
+{{- $_ := set $args "labels" (include "signoz.labels" . | fromYaml) }}
+{{- $_ := set $args "route" .Values.signoz.httpRoute }}
+{{- $_ := set $args "port" .Values.signoz.service.port }}
+{{- include "signoz.lib.route" $args }}
+{{- end }}
