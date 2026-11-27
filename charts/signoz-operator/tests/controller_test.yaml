@@ -4,12 +4,15 @@ templates:
 release:
   name: prod
   namespace: signoz-operator
+chart:
+  version: 0.0.0-test
+  appVersion: v0.0.0-test
 tests:
   - it: should tag the image with the chart appVersion by default
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: signoz/signoz-operator:v0.1.0
+          value: signoz/signoz-operator:v0.0.0-test
   - it: should honour an explicit image tag
     set:
       controller:

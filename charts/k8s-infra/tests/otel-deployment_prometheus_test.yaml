@@ -13,6 +13,8 @@ set:
       scrapeInterval: 60s
     debugExporter:
       enabled: true
+    otlphttpExporter:
+      enabled: false
     otlpExporter:
       enabled: false
     logsCollection:

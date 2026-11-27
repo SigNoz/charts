@@ -8,6 +8,8 @@ set:
       enabled: true
       annotationsPrefix: "signoz.io"
       scrapeInterval: 60s
+    otlphttpExporter:
+      enabled: false
     otlpExporter:
       enabled: false
     logsCollection:
