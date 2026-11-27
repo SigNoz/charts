@@ -7,8 +7,6 @@ templates:
   - templates/otel-collector/serviceaccount.yaml
   - templates/otel-collector/hpa.yaml
   - templates/otel-collector/keda-autoscaler.yaml
-  - templates/otel-collector/clusterrole.yaml
-  - templates/otel-collector/clusterrolebinding.yaml
 tests:
   - it: places the collector's Deployment, ConfigMap, Service, ServiceAccount and HPA in the release namespace
     release:
@@ -49,21 +47,4 @@ tests:
       - template: templates/otel-collector/keda-autoscaler.yaml
         equal:
           path: metadata.namespace
-          value: obs
-
-  - it: creates the ClusterRole and ClusterRoleBinding with no namespace, binding the ServiceAccount in the release namespace
-    release:
-      namespace: obs
-    set:
-      otelCollector.clusterRole.create: true
-    asserts:
-      - template: templates/otel-collector/clusterrole.yaml
-        notExists:
-          path: metadata.namespace
-      - template: templates/otel-collector/clusterrolebinding.yaml
-        notExists:
-          path: metadata.namespace
-      - template: templates/otel-collector/clusterrolebinding.yaml
-        equal:
-          path: subjects[0].namespace
           value: obs
