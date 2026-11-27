@@ -342,12 +342,11 @@ The backup Job does not run in any of these cases. Take the dump manually first,
 <a id="100-registry"></a>
 ### Registry and pull secrets
 
-`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` apply to every image and Pod in the SigNoz Helm Chart, with four exceptions:
+`global.imageRegistry`, `global.imagePullSecrets` and `imagePullSecrets` apply to every image and Pod in the SigNoz Helm Chart, with three exceptions:
 
 - **ClickHouse Operator**, with its CRD hook: only the `altinity-clickhouse-operator.*` keys below.
 - **PostgreSQL**, with its backup Job: only `postgresql.image.registry`, `postgresql.image.repository` and `postgresql.imagePullSecrets`.
 - **ZooKeeper**: `imagePullSecrets` does not reach it. Use `global.imagePullSecrets` or `zookeeper.image.pullSecrets`.
-- **The `helm test` Pod**: it gets the registry but no pull secrets.
 
 Set the ClickHouse Operator's keys before you upgrade:
 
@@ -387,6 +386,7 @@ In addition:
   2. `<release>-clickhouse-operator-upgrade`, which deletes the ClickHouse Operator Deployment that SigNoz Helm Chart 0.151.0 created.
   3. `<release>-clickhouse-operator-crd-install`, which applies the four CRDs. Allow Helm to create its ClusterRole.
 - `helm uninstall` runs one pre-delete Job, `<release>-signoz-uninstall`, the chart's uninstall hook, which deletes the ClickHouse resources, the ClickHouseInstallation and the ClickHouseKeeperInstallation, while the ClickHouse Operator still runs, so that the uninstall completes. It runs only on `helm uninstall`. `hooks.uninstall.enabled: false` turns it off.
+- The SigNoz Helm Chart no longer ships a `helm test` Pod, `<release>-signoz-test-connection`, so `helm test` has nothing to run.
 - No action is needed unless a row below applies.
 - With Argo CD, the pre-install and pre-upgrade hooks run as PreSync hooks on every sync. See [With Argo CD][guide-argocd] in the upgrade guide.
 

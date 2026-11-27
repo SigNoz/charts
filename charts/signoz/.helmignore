@@ -1,6 +1,4 @@
 # Patterns to ignore when building packages.
-# Anchored with a leading slash on purpose: an unanchored "tests/" would also
-# drop templates/signoz/tests/test-connection.yaml, the helm test hook.
 /tests/
 /ci/
 /UPGRADING.md
