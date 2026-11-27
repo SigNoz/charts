@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: signoz/namespace
+templates:
+  - templates/signoz/statefulset.yaml
+  - templates/signoz/service.yaml
+  - templates/signoz/serviceaccount.yaml
+tests:
+  - it: places the SigNoz StatefulSet, Service and ServiceAccount in the release namespace
+    release:
+      namespace: obs
+    set:
+      signoz.serviceAccount.create: true
+    asserts:
+      - template: templates/signoz/statefulset.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/signoz/service.yaml
+        equal:
+          path: metadata.namespace
+          value: obs
+      - template: templates/signoz/serviceaccount.yaml
+        equal:
+          path: metadata.namespace
+          value: obs

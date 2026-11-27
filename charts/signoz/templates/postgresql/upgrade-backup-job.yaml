@@ -13,6 +13,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ printf "%s-upgrade-backup" (include "postgresql.fullname" . | trunc 48 | trimSuffix "-") }}
+  namespace: {{ include "signoz.namespace" . }}
   labels:
     helm.sh/chart: {{ include "postgresql.chart" . }}
     app.kubernetes.io/name: {{ $name }}
